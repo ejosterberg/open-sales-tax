@@ -1785,6 +1785,124 @@ default taxability (everything taxable except groceries). To
     list count drops from 18 to 17 (KY, MI, NE, NV, NJ, NC, ND,
     OH, OK, RI, SD, TN, UT, VT, WA, WV, WY).
 
+### KY -- Kentucky
+
+- **Statewide rate:** **6.000% effective 1990** (raised from 5%
+  to 6% by H.B. 272 of the 1990 General Assembly; the 6% rate
+  has been stable since)
+- **Tax model:** sales tax (SST -- full member; verified 2026-05-03
+  against the SST member roster on streamlinedsalestax.org)
+- **Local jurisdictions:** **NONE.** Kentucky levies NO local
+  sales tax. The 6% state rate is the entire combined rate at
+  every Kentucky address. Kentucky's Constitution (section 181)
+  historically restricted local governments from imposing general
+  sales taxes, and the General Assembly has never broadly
+  authorized a county-option or city-option sales tax under KRS
+  Chapter 139. A handful of related local taxes exist (county-
+  option motor vehicle rental taxes, transient-room "lodging"
+  taxes, restaurant meals taxes in select municipalities
+  authorized by individual local-and-private-laws acts) but
+  those are narrow industry-specific levies and are NOT general
+  sales taxes. This is a notable contrast with peer SST member
+  states (e.g. WI's counties typically add 0.5%; MN's metro adds
+  transit districts) and one of the defining simplifications in
+  Kentucky's rate-stack model. (Mirrors Indiana's no-local-sales-
+  tax landscape -- IN and KY are the two SST states in this
+  project that levy ZERO local sales tax.)
+- **Sales-tax holidays:** **NONE.** Kentucky has never enacted a
+  recurring sales-tax holiday. Confirmed 2026-05-03 against the
+  Kentucky Department of Revenue's published guidance and a
+  search of KRS Chapter 139 for any periodic exemption window.
+  ``holidays_for(year)`` returns the empty iterator for every
+  year (mirrors DC, ID, and IN).
+- **Threshold rules:** none.
+- **DOR URL:** **https://revenue.ky.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (KRS Chapter 139 -- sales and use taxes):**
+  - KRS 139.010 -- definitions (tangible personal property,
+    digital property, retail sale, etc.)
+  - KRS 139.200 -- imposition of the state sales tax on retail
+    sales of tangible personal property and digital property at
+    6%; subsection (2) covers digital-property treatment as
+    expanded by SB 6 (2018) and HB 8 (2022)
+  - KRS 139.310 -- complementary use tax at 6%
+  - KRS 139.472 -- exemption for prescription drugs, insulin,
+    prosthetic devices, and certain medical / durable equipment
+    when prescribed
+  - KRS 139.485 -- exemption for food and food ingredients for
+    human consumption (excluding candy, dietary supplements,
+    soft drinks, alcoholic beverages, tobacco, and prepared
+    food)
+  - **2018 Senate Bill 6** (codified into KRS 139.200(2) and
+    related sections) -- expanded the sales-tax base to include
+    "digital property" (digital audio works, digital audio-
+    visual works, digital books, and other electronically
+    transferred products)
+  - **2022 House Bill 8** (codified throughout KRS Chapter 139)
+    -- significantly expanded sales tax to roughly 30 additional
+    service categories effective January 1, 2023, and further
+    refined digital-property treatment
+- *Sources for rate/taxability:*
+  - Kentucky Department of Revenue Sales Tax landing page
+    (https://revenue.ky.gov/Business/Sales-Use-Tax/), retrieved
+    2026-05-03 -- confirms 6% statewide rate and the absence of
+    local sales taxes
+  - Kentucky Department of Revenue Sales and Use Tax FAQs page,
+    retrieved 2026-05-03 -- confirms the no-local-sales-tax
+    landscape and the dominant taxable / exempt categories
+  - Kentucky Legislature online statutes
+    (https://apps.legislature.ky.gov/law/statutes/chapter.aspx?id=37241),
+    KRS Chapter 139, retrieved 2026-05-03 -- primary source for
+    every statutory citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Kentucky is a full
+    member
+  - Sovos State-by-State Guide entry for Kentucky
+    (specs/research/sovos-state-summary.tsv line 130) -- used as
+    cross-reference for the no-local-sales-tax claim ("No
+    localities impose sales and use tax. However, some
+    localities impose motor vehicle rental tax or meals tax.").
+    Sovos is research-only per constitution sec 3 and is not
+    ingested as a data source.
+- **Module file:** `src/opensalestax/states/kentucky.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ky branch; Phase 7 -- tier-2 to tier-1 promotion)
+- *Notes:*
+  - **No local sales tax** is the headline distinction (mirrors
+    Indiana). The module's ``jurisdiction_types`` dict accepts
+    ONLY the state-level SST type code ``"45"`` so any unexpected
+    non-state row in a future quarterly file is silently dropped
+    rather than miscategorized as a sub-state authority Kentucky
+    doesn't have. Documented prominently in the module docstring
+    and enforced by a regression test.
+  - **Digital goods is a 2018 + 2022 evolution.** Pre-2018 KY's
+    sales tax did not reach electronically-delivered digital
+    property; SB 6 (2018) brought digital property into the
+    base, and HB 8 (2022) significantly expanded the base
+    further (effective January 1, 2023, including roughly 30
+    additional service categories). The TaxabilityRule notes
+    cite both bills so a future maintainer can date the rule
+    against subsequent legislative changes.
+  - **HB 8 services taxability is broad and not exhaustively
+    modeled here.** Callers shipping enumerated services to
+    Kentucky should verify their specific service category
+    against current DOR guidance; the OpenSalesTax engine
+    presently treats services not categorized as 'general' /
+    'prepared_food' / 'digital_goods' through their default
+    category mapping. A future enhancement could add a
+    'taxable_services' category for finer-grained HB 8 modeling.
+  - **Narrow local meals / lodging / motor-vehicle-rental
+    taxes** exist in a handful of Kentucky municipalities but
+    are NOT modeled by this module -- they are narrow industry-
+    specific levies authorized by individual local-and-private-
+    laws acts, not general sales taxes. Documented in the
+    module docstring for the next maintainer who chooses to
+    model lodging / restaurant / vehicle-rental-specific
+    calculations.
+  - **Rate is stable.** The 6% rate has been in place since
+    1990; no scheduled change is currently in the legislative
+    pipeline that this research found.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
