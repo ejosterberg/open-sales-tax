@@ -69,23 +69,23 @@ async def test_states_lists_all_52(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None:
-    """MN, WI, AR, GA, IA (SST tier 1) and AK, DE, MT, NH, OR (no-tax) are tier 1.
+    """All SST tier-1 + no-tax tier-1 states show tier=1.
 
-    AR, GA, and IA were promoted from tier 2 -> tier 1 in v0.8 as
+    AR, GA, IA, IN were promoted from tier 2 -> tier 1 in v0.8 as
     part of the Phase 7 SST ratchet.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("MN", "WI", "AR", "GA", "IA", "AK", "DE", "MT", "NH", "OR"):
+    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "AK", "DE", "MT", "NH", "OR"):
         assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1"
 
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA were all promoted from tier 2 to tier 1 in v0.8."""
+    """AR, GA, IA, IN were all promoted from tier 2 to tier 1 in v0.8."""
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AR", "GA", "IA"):
+    for abbrev in ("AR", "GA", "IA", "IN"):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
@@ -129,6 +129,23 @@ async def test_virginia_is_tier_1_non_sst(client: AsyncClient) -> None:
     assert s["tier"] == 1
     assert s["has_sales_tax"] is True
     assert s["sst_member"] is False
+
+
+@pytest.mark.asyncio
+async def test_indiana_is_tier_1_sst(client: AsyncClient) -> None:
+    """IN was promoted from tier 2 to tier 1 in Phase 7.
+
+    Indiana is an SST member (unlike VA / SC / MS / etc.) and has the
+    highest single-state sales tax rate in the country (7.0%) with
+    NO local sales tax -- the combined rate at every IN address is
+    exactly 7%.
+    """
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["IN"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is True
 
 
 @pytest.mark.asyncio

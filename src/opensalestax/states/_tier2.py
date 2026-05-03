@@ -2,10 +2,10 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """Tier-2 SST member states (rate-only via SST data, default taxability).
 
-The 19 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA).
-Each is a ~10-line subclass of :class:`SstStateModule` providing
-only the state-specific metadata (USPS abbreviation, full name,
-state FIPS).
+The 18 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN
+are now tier 1). Each is a ~10-line subclass of :class:`SstStateModule`
+providing only the state-specific metadata (USPS abbreviation,
+full name, state FIPS).
 
 State base rates documented in the docstring per state are taken
 from ``specs/research/sovos-state-summary.md`` and cross-checked
@@ -24,24 +24,16 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
-# 19 tier-2 SST states. Order roughly alphabetical for readability.
+# 18 tier-2 SST states. Order roughly alphabetical for readability.
 # Sources:
 # - Sovos summary: specs/research/sovos-state-summary.md
 # - SST membership list: specs/research/state-coverage.md
 # - State FIPS codes: census.gov / NIST
 #
-# Arkansas (AR), Georgia (GA), and Iowa (IA) were promoted to
-# tier 1 in v0.8 -- see their dedicated modules in
+# Arkansas (AR), Georgia (GA), Indiana (IN), and Iowa (IA) were
+# promoted to tier 1 in v0.8 -- see their dedicated modules in
 # ``opensalestax/states/``.
 # ---------------------------------------------------------------------------
-
-
-class Indiana(SstStateModule):
-    """Indiana (IN) -- SST member, state base 7.0%, FIPS 18."""
-
-    state_abbrev = "IN"
-    state_name = "Indiana"
-    state_fips = "18"
 
 
 class Kansas(SstStateModule):
@@ -202,10 +194,9 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 19 instances at import time
+# Register all 18 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
-    Indiana,
     Kansas,
     Kentucky,
     Michigan,
