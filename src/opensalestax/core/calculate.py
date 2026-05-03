@@ -105,21 +105,9 @@ async def calculate_tax(
         )
 
     eff_date = effective_date or dt.date.today()
-
     authorities = await lookup_jurisdictions_by_zip(session, zip5, zip4)
-
-    # Identify the state from the authorities (assumes one state per ZIP --
-    # true for US, modulo a few cross-border ZIP edge cases we punt on
-    # in Phase 1).
-    state_abbrev: str | None = None
-    if authorities:
-        # State authority is preferred; fall back to any authority's state.
-        for a in authorities:
-            if a.authority_type == "state":
-                state_abbrev = a.state.abbrev
-                break
-        if state_abbrev is None:
-            state_abbrev = authorities[0].state.abbrev
+    state_abbrev = _resolve_state_abbrev(authorities)
+    no_jurisdiction_note = _no_jurisdiction_note(zip5, zip4) if not authorities else None
 
     lines_out: list[CalculatedLine] = []
     subtotal = Decimal("0")
@@ -127,79 +115,95 @@ async def calculate_tax(
 
     for item in line_items:
         subtotal += item.amount
-
-        if not authorities:
-            lines_out.append(
-                CalculatedLine(
-                    amount=item.amount,
-                    category=item.category,
-                    tax=Decimal("0"),
-                    rate_pct=Decimal("0"),
-                    jurisdictions=[],
-                    note=(
-                        f"No jurisdictions found for ZIP {zip5}"
-                        f"{'-' + zip4 if zip4 else ''}; tax assumed zero."
-                    ),
-                )
-            )
-            continue
-
-        # Per-state per-category taxability check
-        taxability_note: str | None = None
-        is_taxable = True
-        if state_abbrev:
-            rule = await _taxability_rule(session, state_abbrev, item.category, eff_date)
-            if rule is not None:
-                is_taxable = rule.is_taxable
-                if not is_taxable:
-                    taxability_note = (
-                        rule.notes or f"{item.category} is non-taxable in {state_abbrev}."
-                    )
-
-        if not is_taxable:
-            lines_out.append(
-                CalculatedLine(
-                    amount=item.amount,
-                    category=item.category,
-                    tax=Decimal("0"),
-                    rate_pct=Decimal("0"),
-                    jurisdictions=[],
-                    note=taxability_note,
-                )
-            )
-            continue
-
-        resolved = await resolve_rates_for_authorities(
-            session, authorities, eff_date, item.category
+        line = await _tax_one_line(
+            session,
+            item,
+            authorities,
+            state_abbrev,
+            eff_date,
+            no_jurisdiction_note,
         )
-        rate_pct = combined_rate_pct(resolved)
-        line_tax = (item.amount * rate_pct / Decimal("100")).quantize(
-            TAX_QUANTUM, rounding=ROUND_HALF_UP
-        )
-        tax_total += line_tax
-
-        lines_out.append(
-            CalculatedLine(
-                amount=item.amount,
-                category=item.category,
-                tax=line_tax,
-                rate_pct=rate_pct,
-                jurisdictions=[
-                    JurisdictionResult(
-                        name=r.authority.name,
-                        type=r.authority.authority_type,
-                        rate_pct=r.rate_pct,
-                    )
-                    for r in resolved
-                ],
-            )
-        )
+        tax_total += line.tax
+        lines_out.append(line)
 
     return CalculationResult(
         subtotal=subtotal,
         tax_total=tax_total,
         lines=lines_out,
         disclaimer=disclaimer(),
+    )
+
+
+def _resolve_state_abbrev(authorities: list) -> str | None:
+    """Pick the state abbreviation from a list of authorities.
+
+    Prefers the state-typed authority; falls back to the first
+    authority's state. Returns None if the list is empty.
+    """
+    if not authorities:
+        return None
+    for a in authorities:
+        if a.authority_type == "state":
+            return str(a.state.abbrev)
+    return str(authorities[0].state.abbrev)
+
+
+def _no_jurisdiction_note(zip5: str, zip4: str | None) -> str:
+    """Format the explanatory note for ZIPs with no boundaries on file."""
+    suffix = f"-{zip4}" if zip4 else ""
+    return f"No jurisdictions found for ZIP {zip5}{suffix}; tax assumed zero."
+
+
+async def _tax_one_line(
+    session: AsyncSession,
+    item: LineItem,
+    authorities: list,
+    state_abbrev: str | None,
+    eff_date: dt.date,
+    no_jurisdiction_note: str | None,
+) -> CalculatedLine:
+    """Compute the :class:`CalculatedLine` for a single :class:`LineItem`."""
+    if not authorities:
+        return _zero_line(item, note=no_jurisdiction_note)
+
+    # Taxability check -- a per-category rule may zero out this line.
+    if state_abbrev is not None:
+        rule = await _taxability_rule(session, state_abbrev, item.category, eff_date)
+        if rule is not None and not rule.is_taxable:
+            note = rule.notes or f"{item.category} is non-taxable in {state_abbrev}."
+            return _zero_line(item, note=note)
+
+    resolved = await resolve_rates_for_authorities(session, authorities, eff_date, item.category)
+    rate_pct = combined_rate_pct(resolved)
+    line_tax = (item.amount * rate_pct / Decimal("100")).quantize(
+        TAX_QUANTUM, rounding=ROUND_HALF_UP
+    )
+
+    return CalculatedLine(
+        amount=item.amount,
+        category=item.category,
+        tax=line_tax,
+        rate_pct=rate_pct,
+        jurisdictions=[
+            JurisdictionResult(
+                name=r.authority.name,
+                type=r.authority.authority_type,
+                rate_pct=r.rate_pct,
+            )
+            for r in resolved
+        ],
+    )
+
+
+def _zero_line(item: LineItem, note: str | None) -> CalculatedLine:
+    """Build a CalculatedLine with zero tax (used for non-taxable + missing-juris cases)."""
+    return CalculatedLine(
+        amount=item.amount,
+        category=item.category,
+        tax=Decimal("0"),
+        rate_pct=Decimal("0"),
+        jurisdictions=[],
+        note=note,
     )
 
 

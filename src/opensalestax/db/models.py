@@ -43,6 +43,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+# ---------------------------------------------------------------------------
+# Schema-level constants -- defined once, referenced from FK targets and
+# relationship cascades. Keeps duplicate-literal lint rules (S1192) quiet
+# and makes refactors trivial if a column ever moves.
+# ---------------------------------------------------------------------------
+_FK_STATES_ID = "states.id"
+_FK_TAX_AUTHORITIES_ID = "tax_authorities.id"
+_FK_DATA_VERSIONS_ID = "data_versions.id"
+_CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"
+
 
 class Base(DeclarativeBase):
     """Declarative base for all OpenSalesTax models."""
@@ -64,13 +74,13 @@ class State(Base):
 
     # relationships
     data_versions: Mapped[list[DataVersion]] = relationship(
-        back_populates="state", cascade="all, delete-orphan"
+        back_populates="state", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     tax_authorities: Mapped[list[TaxAuthority]] = relationship(
-        back_populates="state", cascade="all, delete-orphan"
+        back_populates="state", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     taxability_rules: Mapped[list[TaxabilityRule]] = relationship(
-        back_populates="state", cascade="all, delete-orphan"
+        back_populates="state", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
 
     def __repr__(self) -> str:
@@ -86,7 +96,7 @@ class DataVersion(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     state_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("states.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_STATES_ID, ondelete="CASCADE"), nullable=False
     )
     source: Mapped[str] = mapped_column(String(40), nullable=False)
     version_label: Mapped[str] = mapped_column(String(60), nullable=False)
@@ -117,14 +127,14 @@ class TaxAuthority(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     state_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("states.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_STATES_ID, ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     authority_type: Mapped[str] = mapped_column(
         String(20), nullable=False
     )  # 'state', 'county', 'city', 'district'
     parent_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("tax_authorities.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey(_FK_TAX_AUTHORITIES_ID, ondelete="SET NULL"), nullable=True
     )
 
     state: Mapped[State] = relationship(back_populates="tax_authorities")
@@ -132,13 +142,13 @@ class TaxAuthority(Base):
         remote_side="TaxAuthority.id", back_populates="children"
     )
     children: Mapped[list[TaxAuthority]] = relationship(
-        back_populates="parent", cascade="all, delete-orphan"
+        back_populates="parent", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     rates: Mapped[list[Rate]] = relationship(
-        back_populates="authority", cascade="all, delete-orphan"
+        back_populates="authority", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     boundaries: Mapped[list[Boundary]] = relationship(
-        back_populates="authority", cascade="all, delete-orphan"
+        back_populates="authority", cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
 
     __table_args__ = (
@@ -157,7 +167,7 @@ class Rate(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     authority_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("tax_authorities.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_TAX_AUTHORITIES_ID, ondelete="CASCADE"), nullable=False
     )
     rate_pct: Mapped[Decimal] = mapped_column(Numeric(8, 5), nullable=False)
     effective_from: Mapped[dt.date] = mapped_column(Date, nullable=False)
@@ -165,7 +175,7 @@ class Rate(Base):
     # Generic JSON: maps to JSONB on PG, JSON on MariaDB. NULL = applies to all categories.
     applies_to_categories: Mapped[Any | None] = mapped_column(JSON, nullable=True)
     data_version_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("data_versions.id", ondelete="SET NULL"), nullable=True
+        Integer, ForeignKey(_FK_DATA_VERSIONS_ID, ondelete="SET NULL"), nullable=True
     )
 
     authority: Mapped[TaxAuthority] = relationship(back_populates="rates")
@@ -186,14 +196,14 @@ class Boundary(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     authority_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("tax_authorities.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_TAX_AUTHORITIES_ID, ondelete="CASCADE"), nullable=False
     )
     zip5: Mapped[str] = mapped_column(String(5), nullable=False)
     zip4_low: Mapped[str | None] = mapped_column(String(4), nullable=True)
     zip4_high: Mapped[str | None] = mapped_column(String(4), nullable=True)
     address_pattern: Mapped[str | None] = mapped_column(String(255), nullable=True)
     data_version_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("data_versions.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_DATA_VERSIONS_ID, ondelete="CASCADE"), nullable=False
     )
 
     authority: Mapped[TaxAuthority] = relationship(back_populates="boundaries")
@@ -213,7 +223,7 @@ class TaxabilityRule(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     state_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("states.id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey(_FK_STATES_ID, ondelete="CASCADE"), nullable=False
     )
     item_category: Mapped[str] = mapped_column(String(60), nullable=False)
     is_taxable: Mapped[bool] = mapped_column(Boolean, nullable=False)

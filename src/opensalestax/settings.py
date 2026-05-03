@@ -20,9 +20,11 @@ class Settings(BaseSettings):
     """Runtime configuration for the OpenSalesTax API.
 
     All values come from environment variables with the
-    ``OPENSALESTAX_`` prefix, e.g.::
+    ``OPENSALESTAX_`` prefix. Replace ``<USER>`` and ``<PASSWORD>``
+    placeholders with your real credentials when setting the env
+    var; never commit real credentials to source control::
 
-        OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://opensalestax:opensalestax@localhost:5432/opensalestax
+        OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://<USER>:<PASSWORD>@localhost:5432/opensalestax
         OPENSALESTAX_AUTH_MODE=open
         OPENSALESTAX_RATE_LIMIT_PER_MINUTE=60
     """
@@ -39,9 +41,11 @@ class Settings(BaseSettings):
     database_url: SecretStr = Field(
         ...,
         description=(
-            "SQLAlchemy async DSN. PostgreSQL example: "
-            "postgresql+asyncpg://user:pass@host:5432/dbname. "
-            "MariaDB example: mysql+asyncmy://user:pass@host:3306/dbname."
+            "SQLAlchemy async DSN with placeholder credentials. "
+            "PostgreSQL example: "
+            "postgresql+asyncpg://<USER>:<PASSWORD>@<HOST>:5432/<DBNAME>. "
+            "MariaDB example: "
+            "mysql+asyncmy://<USER>:<PASSWORD>@<HOST>:3306/<DBNAME>."
         ),
     )
     database_echo: bool = Field(
@@ -53,7 +57,8 @@ class Settings(BaseSettings):
     auth_mode: Literal["open", "api_key"] = Field(
         default="open",
         description=(
-            "'open' = no auth, IP-based rate limiting. " "'api_key' = X-API-Key header required."
+            "Authentication mode. 'open' means no auth with IP-based "
+            "rate limiting; 'api_key' requires an X-API-Key header."
         ),
     )
     rate_limit_per_minute: int = Field(

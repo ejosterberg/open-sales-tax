@@ -60,14 +60,18 @@ class NoTaxState:
 
     def parse_rates(self, source_file: Path, version_label: str) -> Iterable[RateRow]:
         """No rates to parse."""
+        # Names retained for Protocol-signature compatibility.
+        del source_file, version_label
         return iter(())
 
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
         """No boundaries to parse."""
+        del source_file, version_label
         return iter(())
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Every category is non-taxable in a no-tax state."""
+        del effective_date  # rule applies for all dates
         return TaxabilityRule(
             item_category=item_category,
             is_taxable=False,

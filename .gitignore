@@ -51,6 +51,9 @@ data/downloads/
 *.local.json
 config.local.*
 
+# SonarQube scanner local state
+.scannerwork/
+
 # Build artifacts
 target/
 out/

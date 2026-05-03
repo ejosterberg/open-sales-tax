@@ -1,7 +1,7 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** Phase 1 Sections A + B complete. Live on GitHub at [open-sales-tax](https://github.com/ejosterberg/open-sales-tax). Core engine + state-module pattern (Section C) is the next concrete work.
+**Status:** Phase 1 Sections A + B + C complete and green in CI on both PostgreSQL and MariaDB. State-module Protocol, registry, no_tax (5 states), core lookup/resolve/calculate, and the disclaimer all shipped. SST data ingestion (Section D) is the next concrete work.
 
 **2026-05-02 update:** Added `specs/research/sovos-state-summary.md`
 + `.tsv` — captured Sovos's state-by-state guide (50 states + DC) as
@@ -34,6 +34,34 @@ both registered by Eric. The Python package name stays
 remains `sales_tax_api_service\` — the local directory doesn't
 have to match the repo name and renaming would break in-flight
 work.
+
+**2026-05-03 sixth update:** Phase 1 Section C (core engine +
+state-module pattern) shipped. Tasks 11–15 complete:
+
+- `states/protocol.py` — `StateModule` Protocol +
+  `RateRow`/`BoundaryRow`/`TaxabilityRule`/`SpecialCase`
+  frozen-slots dataclasses + `StateTier` Literal type
+- `states/registry.py` — process-global registry
+  (`register`, `get_state_module`, `all_states`,
+  `supported_abbrevs`, `_reset_for_tests`)
+- `states/no_tax.py` — `NoTaxState` class + 5 registered
+  instances (AK, DE, MT, NH, OR), each with documented
+  caveats (ARSSTC, resort taxes, etc.)
+- `core/lookup.py` — `lookup_jurisdictions_by_zip` with
+  ZIP5/ZIP4 input validation + stable sort
+- `core/resolve.py` — `resolve_rates_for_authorities` with
+  Python-side rate selection (no SQL window functions, keeps
+  query trivially portable across both engines)
+- `core/calculate.py` — `calculate_tax` orchestrator,
+  Decimal-only currency math, 4dp HALF_UP rounding,
+  per-line jurisdiction decomposition, taxability-rule check
+- `core/disclaimer.py` — single source of truth for
+  constitution §13 disclaimer string
+- 44 new unit tests + 5 new integration tests (DB-backed)
+- Initial CI run on Section C exposed a pytest-asyncio event-loop
+  scoping issue with session-scoped async fixtures; fixed by
+  switching to function-scoped fixtures and pinning
+  `asyncio_default_fixture_loop_scope=function`. Re-run green.
 
 **2026-05-03 fourth update:** Phase 1 Section B (database layer)
 shipped. Tasks 06–10 complete:
