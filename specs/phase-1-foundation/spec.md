@@ -34,14 +34,23 @@ Whichever language Eric picks (Python+FastAPI recommended), set up:
 
 ### 2. Database
 
-- PostgreSQL 15+ schema migrations (use `alembic` for Python; `prisma`
-  or `kysely` for Node; `golang-migrate` for Go).
-- Schema covering:
+- **Dual-engine support:** PostgreSQL 15+ AND MariaDB 11+ as
+  first-class citizens via SQLAlchemy 2.x + Alembic. See
+  `specs/decisions/03-database.md` for the full rationale and
+  rules.
+- **Portable schema only.** All Phase 1 migrations must apply
+  cleanly on both engines without dialect-specific branches.
+  Allowed types: INTEGER, VARCHAR, TEXT, BOOLEAN, NUMERIC, DATE,
+  TIMESTAMP, generic JSON, B-tree + UNIQUE indexes.
+- **No PostGIS in Phase 1.** Address-level GIS is Phase 4.
+- Schema below is shown in vendor-neutral SQL for reference;
+  actual implementation uses SQLAlchemy declarative models with
+  Alembic auto-generation.
 
 ```sql
 -- States
 CREATE TABLE states (
-    id              SERIAL PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,  -- SERIAL on Postgres
     abbrev          VARCHAR(2) NOT NULL UNIQUE,
     name            VARCHAR(60) NOT NULL,
     sst_member      BOOLEAN NOT NULL DEFAULT FALSE,
@@ -50,9 +59,19 @@ CREATE TABLE states (
     notes           TEXT
 );
 
+-- Data versions for reproducibility (declared before rates because rates references it)
+CREATE TABLE data_versions (
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
+    state_id        INTEGER NOT NULL REFERENCES states(id),
+    source          VARCHAR(40) NOT NULL,         -- 'sst', 'state_dor', 'manual'
+    version_label   VARCHAR(60) NOT NULL,         -- 'MN-SST-2026Q2APR15'
+    fetched_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    notes           TEXT
+);
+
 -- Tax authorities (state DOR, county, city, special district)
 CREATE TABLE tax_authorities (
-    id              SERIAL PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
     state_id        INTEGER NOT NULL REFERENCES states(id),
     name            VARCHAR(120) NOT NULL,
     authority_type  VARCHAR(20) NOT NULL,        -- 'state', 'county', 'city', 'district'
@@ -62,41 +81,32 @@ CREATE TABLE tax_authorities (
 
 -- Rates (effective-dated)
 CREATE TABLE rates (
-    id              SERIAL PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
     authority_id    INTEGER NOT NULL REFERENCES tax_authorities(id),
     rate_pct        NUMERIC(8,5) NOT NULL,        -- 6.87500
     effective_from  DATE NOT NULL,
     effective_to    DATE NULL,                    -- NULL = current
-    applies_to_categories JSONB NULL,             -- NULL = applies to all; ['clothing','prepared_food']
-    data_version_id INTEGER NULL REFERENCES data_versions(id),
-    INDEX idx_rates_eff (authority_id, effective_from, effective_to)
+    applies_to_categories JSON NULL,              -- portable JSON, not JSONB; NULL = applies to all
+    data_version_id INTEGER NULL REFERENCES data_versions(id)
+    -- index defined separately for portability
 );
+CREATE INDEX idx_rates_eff ON rates (authority_id, effective_from, effective_to);
 
--- Data versions for reproducibility
-CREATE TABLE data_versions (
-    id              SERIAL PRIMARY KEY,
-    state_id        INTEGER NOT NULL REFERENCES states(id),
-    source          VARCHAR(40) NOT NULL,         -- 'sst', 'state_dor', 'manual'
-    version_label   VARCHAR(60) NOT NULL,         -- 'MN-SST-2026Q2APR15'
-    fetched_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    notes           TEXT
-);
-
--- Boundaries (ZIP+4 OR jurisdiction code based for Phase 1; PostGIS later)
+-- Boundaries (ZIP+4 based for Phase 1; PostGIS / R-tree spatial later in Phase 4)
 CREATE TABLE boundaries (
-    id              SERIAL PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
     authority_id    INTEGER NOT NULL REFERENCES tax_authorities(id),
     zip5            VARCHAR(5) NOT NULL,
     zip4_low        VARCHAR(4) NULL,
     zip4_high       VARCHAR(4) NULL,
     address_pattern VARCHAR(255) NULL,             -- optional regex for street-level (rare)
-    data_version_id INTEGER NOT NULL REFERENCES data_versions(id),
-    INDEX idx_boundaries_zip (zip5, zip4_low, zip4_high)
+    data_version_id INTEGER NOT NULL REFERENCES data_versions(id)
 );
+CREATE INDEX idx_boundaries_zip ON boundaries (zip5, zip4_low, zip4_high);
 
 -- Taxability matrix (per-state per-category)
 CREATE TABLE taxability_rules (
-    id              SERIAL PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
     state_id        INTEGER NOT NULL REFERENCES states(id),
     item_category   VARCHAR(60) NOT NULL,         -- 'clothing', 'groceries', 'prepared_food', 'digital_goods'
     is_taxable      BOOLEAN NOT NULL,
@@ -107,6 +117,17 @@ CREATE TABLE taxability_rules (
     UNIQUE (state_id, item_category, effective_from)
 );
 ```
+
+**Notes on engine portability:**
+- `AUTO_INCREMENT` shown for clarity; SQLAlchemy emits the right
+  dialect-specific syntax (`SERIAL` on Postgres, `AUTO_INCREMENT`
+  on MariaDB).
+- `JSON` (not `JSONB`) — SQLAlchemy's generic type maps to JSONB
+  on Postgres and JSON on MariaDB; query syntax stays portable.
+- Indexes declared as separate `CREATE INDEX` statements; Alembic
+  generates them either way.
+- `CURRENT_TIMESTAMP` is the portable default (Postgres + MariaDB
+  both support it; `NOW()` is Postgres-specific in some contexts).
 
 ### 3. Per-state module pattern
 
@@ -226,15 +247,25 @@ Toggle via env var `OPENSALESTAX_AUTH_MODE=open|api_key`.
 ### 7. Docker + Compose
 
 - `Dockerfile` for the API server
-- `docker-compose.yml` for local dev: API + PostgreSQL (no PostGIS in
-  Phase 1; ZIP-based lookup is sufficient)
+- `docker-compose.yml` for local dev shipping **two database
+  profiles** so contributors can run against either engine:
+  - `docker compose --profile postgres up` → API + PostgreSQL 15
+  - `docker compose --profile mariadb up` → API + MariaDB 11
+  - Default profile (no flag) brings up PostgreSQL since it's the
+    most common Python web stack
+- No PostGIS in Phase 1; ZIP-based lookup is sufficient
 - Image published to GitHub Container Registry
-- Env-var-driven configuration (12-factor)
+- Env-var-driven configuration (12-factor):
+  `OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://...` or
+  `mysql+asyncmy://...`
 
 ### 8. CI on GitHub Actions
 
-- Run linter + formatter check on every PR
-- Run tests on every PR
+- Run linter + formatter check on every PR (ruff)
+- **DCO sign-off check on every commit in every PR** (per
+  constitution §14)
+- Run tests on every PR — **matrix across both PostgreSQL and
+  MariaDB** (per decision 03)
 - Build Docker image on every PR; publish on push to main
 - Conformance tests against SST gold-standard fixtures (when found)
 
@@ -264,7 +295,15 @@ Toggle via env var `OPENSALESTAX_AUTH_MODE=open|api_key`.
 ## Acceptance criteria
 
 - [ ] Repo public on GitHub under Apache 2.0
-- [ ] `docker compose up` brings the API online in <60 seconds
+- [ ] LICENSE, NOTICE, CONTRIBUTING.md, MAINTAINERS.md present
+      at repo root
+- [ ] All Python source files carry SPDX header
+      (`# SPDX-License-Identifier: Apache-2.0`)
+- [ ] DCO sign-off check enforced in CI; passing on all PRs
+- [ ] `docker compose --profile postgres up` brings the API
+      online in <60 seconds
+- [ ] `docker compose --profile mariadb up` brings the API online
+      in <60 seconds (acceptance includes BOTH engines working)
 - [ ] `curl localhost:8080/v1/health` returns 200 with version
 - [ ] `curl localhost:8080/v1/states` lists 52 states with MN, WI,
       AK, DE, MT, NH, OR marked `supported: true`
@@ -276,8 +315,8 @@ Toggle via env var `OPENSALESTAX_AUTH_MODE=open|api_key`.
       0% tax on that line; same in WI returns the WI rate
 - [ ] CLI: `opensalestax data fetch --state MN --version <current>`
       successfully downloads + parses + inserts MN's current SST data
-- [ ] All tests pass; coverage threshold met (TBD per language)
-- [ ] CI green on every PR
+- [ ] All tests pass against PostgreSQL AND MariaDB
+- [ ] CI green on every PR (lint + DCO + tests against both engines)
 - [ ] OpenAPI spec accessible at `/v1/openapi.json`
 - [ ] README's quickstart works on a fresh machine
 

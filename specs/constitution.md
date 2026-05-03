@@ -227,17 +227,53 @@ with rationale.
 
 ## 10. Database
 
-Recommended: **PostgreSQL 15+** with **PostGIS** extension for
-boundary geometry queries.
+OpenSalesTax supports **both PostgreSQL 15+ and MariaDB 11+** as
+first-class production databases via SQLAlchemy 2.x. See
+`specs/decisions/03-database.md` for the full rationale.
 
-Why PostGIS specifically: address-to-jurisdiction lookup is fundamentally
-a geometric query ("which polygons contain this point?"). PostGIS is
-the mature, free, open standard. Alternatives (in-memory R-trees,
-S2 cells) work but reinvent the wheel.
+**For Phase 4+ address-level production deployments,** PostgreSQL +
+**PostGIS** is recommended for performance and feature reasons
+(GiST indexes, `ST_Transform`, ~1000+ spatial functions). MariaDB
+deployments at that scale get a documented R-tree fallback using
+MariaDB's native `ST_*` functions; sufficient for small-to-mid
+production loads but with known performance ceilings.
 
-For tenants who don't need address-level resolution (ZIP-only is
-"good enough"), PostgreSQL alone with B-tree indexes suffices —
-PostGIS becomes optional.
+**For Phase 1–3 deployments** (ZIP+4 lookup, no address-level
+spatial), both engines are equivalent. Plain B-tree indexes do
+the work; PostGIS / spatial extensions are not required.
+
+### Architectural rules for dual-engine support
+
+These are non-negotiable constraints that keep dual support from
+collapsing into spaghetti:
+
+1. **No engine-specific branches in business logic.** All dialect
+   differences live inside SQLAlchemy models, Alembic migrations,
+   or a thin `db/dialects/` shim. The minute application code has
+   `if engine == "postgres": ...`, dual support has failed.
+2. **Schema migrations use the portable subset.** INTEGER, VARCHAR,
+   TEXT, BOOLEAN, NUMERIC, TIMESTAMP, DATE, BYTEA/BLOB, B-tree
+   and unique indexes, SQLAlchemy's generic `JSON` type. No
+   PostgreSQL-only `JSONB` operators in queries (use the generic
+   JSON path syntax). No PostGIS DDL until Phase 4.
+3. **CI runs every test against both engines.** A test that passes
+   only on PostgreSQL is a bug; either fix the test or fix the
+   schema.
+4. **Engine selection is purely connection-string config.**
+   `OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://...` or
+   `mysql+asyncmy://...`. Application code never branches.
+5. **Phase 4 PostGIS additions are additive, not replacement.**
+   PostGIS-specific spatial indexes get their own migration with
+   an Alembic dialect conditional — the only acceptable place for
+   that pattern.
+
+### Cost / risk acknowledgment
+
+Dual-engine support is not free: ~10–15% extra effort on migration
+authoring, ~50–80% longer CI runs, and a Phase 4 fork point for
+GIS work. The project accepts these costs in exchange for a wider
+self-hoster pool (LAMP/PHP devs comfortable with MariaDB) and
+clean integration with Eric's MariaDB-based SC Books.
 
 ## 11. Data update cadence
 

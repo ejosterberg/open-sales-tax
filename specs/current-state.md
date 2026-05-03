@@ -8,21 +8,23 @@
 a cross-reference for nexus thresholds and base rates. Reference
 only, not an ingestible data source per constitution §3.
 
-**2026-05-02 second update:** Stack and license decisions made.
-See `specs/decisions/01-language-framework.md` and
-`specs/decisions/02-license.md`.
+**2026-05-02 second update:** Stack, license, and database
+decisions all made. See `specs/decisions/`.
 
-- **Language/framework:** ✅ Python 3.11+ + FastAPI
+- **Language/framework:** ✅ Python 3.11+ + FastAPI (decision 01)
 - **License:** ✅ Apache 2.0 (with DCO sign-off, SPDX headers,
-  no CLA, NOTICE stub)
+  no CLA, NOTICE stub) (decision 02)
 - **Patent posture:** ✅ acknowledged in constitution §2 with
   mitigation rules (no reverse-engineering of commercial APIs;
   no naming features after commercial products; vet contributions
   from current/former commercial-vendor employees)
-- **Database:** ⏳ dual MariaDB + PostgreSQL via SQLAlchemy
-  proposed by Claude, **awaiting Eric's confirmation** before
-  scaffolding the DB layer. Decision to be recorded as
-  `specs/decisions/03-database.md` once confirmed.
+- **Database:** ✅ dual MariaDB + PostgreSQL via SQLAlchemy 2.x +
+  Alembic; PostGIS recommended for Phase 4+ address-level
+  production deployments (decision 03). Constitution §10 and
+  Phase 1 spec schema updated for portability.
+
+Bootstrap is now unblocked. Next session writes Phase 1 plan +
+tasks, then scaffolds.
 
 ## What exists
 
@@ -40,7 +42,7 @@ See `specs/decisions/01-language-framework.md` and
 | `specs/phase-1-foundation/spec.md` | ✅ |
 | `specs/decisions/01-language-framework.md` | ✅ Python 3.11+ + FastAPI |
 | `specs/decisions/02-license.md` | ✅ Apache 2.0 + DCO + SPDX |
-| `specs/decisions/03-database.md` | ⏳ pending Eric on dual MariaDB+PostgreSQL plan |
+| `specs/decisions/03-database.md` | ✅ Dual MariaDB + PostgreSQL via SQLAlchemy 2.x |
 | License file (LICENSE) | ❌ — bootstrap session creates after DB decision |
 | NOTICE file | ❌ — bootstrap session creates as empty stub |
 | CONTRIBUTING.md (with DCO instructions) | ❌ — bootstrap session creates |
@@ -64,9 +66,8 @@ See `specs/decisions/01-language-framework.md` and
 - **Data sources:** SST quarterly files + state DOR public data + TIGER/Line boundary data
 - **Database (proposed, pending confirmation):** dual MariaDB + PostgreSQL via SQLAlchemy 2.x; PostGIS recommended for Phase 4+ address-level production deployments
 
-## What's NOT decided (open for the bootstrap session)
+## What's NOT decided (smaller items, can punt to implementation)
 
-- **Database confirmation** — Claude proposed dual MariaDB + PostgreSQL via SQLAlchemy (Pattern A from 2026-05-02 conversation); awaiting Eric's final yes/no before constitution §10 is updated and scaffolding proceeds
 - **Initial state coverage** — phase-1-foundation/spec.md proposes 2 SST states (MN + WI as a pair: Eric's home + Wisconsin's contrasting clothing-tax rule). Could be expanded.
 - **Geocoding strategy** — option A: rely on caller-supplied lat/lon; option B: bundle a geocoder (Nominatim/Pelias). Phase 1 should punt.
 - **Auth model for the API** — option A: open / no auth (rate-limited only); option B: API keys. Phase 1 should ship both.
@@ -102,13 +103,18 @@ See `specs/decisions/01-language-framework.md` and
 
 ## Notes for next session
 
-- Stack and license are settled (decisions 01 + 02). The
-  bootstrap session's first job is: **confirm the database plan
-  with Eric** (dual MariaDB + PostgreSQL via SQLAlchemy), then
-  record `decisions/03-database.md`, then update constitution §10.
-- After DB is confirmed: scaffold per `handoff.md` §3 — Poetry +
-  ruff + pytest + pre-commit, LICENSE / NOTICE / CONTRIBUTING /
-  MAINTAINERS, DCO CI check, then git init + GitHub remote.
-- The bootstrap session does NOT need to fetch SST data or
-  implement any state module — Phase 1's `spec.md` is the right
-  starting point after scaffolding.
+All three foundational decisions are settled (decisions 01–03).
+Bootstrap is unblocked. The next session should:
+
+1. Read `specs/phase-1-foundation/plan.md` and `tasks.md` (drafted
+   2026-05-02 alongside the decisions).
+2. Execute the scaffolding tasks: Poetry + ruff + pytest +
+   pre-commit, LICENSE / NOTICE / CONTRIBUTING / MAINTAINERS,
+   DCO CI check, dual-engine docker-compose.
+3. Pause for Eric before pushing to GitHub (the remote needs
+   his per-deploy approval per handoff standing rules).
+4. Begin Phase 1 implementation per the task list.
+
+The bootstrap session does NOT need to fetch SST data or
+implement any state module on day one — scaffolding + initial
+schema is the right starting point.
