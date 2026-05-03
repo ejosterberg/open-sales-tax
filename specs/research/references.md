@@ -833,6 +833,145 @@ Format for each state:
     is documented here for completeness but not modeled as
     historical RateRows in v0.7.
 
+### MS -- Mississippi
+
+- **Statewide rate:** **7.000% effective 1992-07-01** (the highest
+  single statewide sales tax rate in the country; stable since the
+  1992 increase from 6%)
+- **Tax model:** sales tax (NOT SST)
+- **Local jurisdictions:** very limited -- a small handful of
+  cities have local "tourism" or "infrastructure" taxes (Tupelo,
+  Jackson, etc.) authorized by individual local-and-private-laws
+  acts; the Tunica County Tourism Tax is administered separately.
+  No general local-option statute. **Per-municipality rates NOT
+  loaded in v0.7** (deferred -- mirrors the SC and CA decisions).
+- **Sales-tax holidays:** **2 annual holidays**:
+  1. Back-to-School (second Friday in July through Sunday;
+     clothing/footwear/school supplies < $100/item; 2026 dates:
+     **July 10-12, 2026**)
+  2. Second Amendment / MSAW (last Friday in August through
+     Sunday; firearms, ammunition, statutorily-defined hunting
+     supplies; no per-item cap; 2026 dates: **August 28-30, 2026**)
+- **Threshold rules:** $100 per-item cap on the back-to-school
+  holiday; no year-round thresholds
+- **Special rates:** REDUCED 5% rate on SNAP-eligible groceries
+  effective 2025-07-01 per H.B. 1, Laws 2025 (encoded as
+  ``rate_modifier=Decimal("5.000")`` on the groceries TaxabilityRule;
+  the engine does not yet apply rate_modifier so the 7% general
+  rate is over-collected on grocery line items until v0.6+
+  rate_modifier wiring lands)
+- **DOR URL:** **https://www.dor.ms.gov** *(retrieved 2026-05-03;
+  the DOR's TLS configuration trips some HTTP clients with strict
+  certificate validation -- legacy intermediates -- so research
+  agents may need to fall back to legislative or aggregator
+  sources for primary text)*
+- **Statutes consulted (Miss. Code Ann., Title 27, Chapter 65 --
+  sales tax):**
+  - Miss. Code Ann. section 27-65-17 -- general 7% rate imposition
+    on tangible personal property (amended by H.B. 1, Laws 2025 to
+    add the reduced 5% rate on SNAP-eligible food effective
+    2025-07-01)
+  - Miss. Code Ann. section 27-65-26 -- imposition of tax on
+    selling, renting, or leasing specified digital products (added
+    by S.B. 2449, Laws 2023, effective 2023-07-01)
+  - Miss. Code Ann. section 27-65-111(h) -- prescription drug /
+    medicine exemption (drugs prescribed for human treatment by
+    an authorized prescriber and dispensed by a registered
+    pharmacist, OR furnished by a licensed
+    physician/surgeon/dentist/podiatrist; excludes prosthetics,
+    ophthalmic devices, dentures, artificial limbs, splints,
+    bandages, etc.)
+  - Miss. Code Ann. section 27-65-111(bb) -- annual back-to-school
+    sales tax holiday (clothing/footwear/school supplies < $100;
+    moved from "last Friday/Saturday in July" to "second Friday in
+    July through Sunday" by S.B. 2470, Laws 2024)
+  - Miss. Code Ann. section 27-65-111(af) -- annual Mississippi
+    Second Amendment Sales Tax Holiday (firearms, ammunition,
+    statutorily-defined "hunting supplies"; last Friday in August
+    through following Sunday; no per-item cap)
+  - **Session laws of note:**
+    - H.B. 1, Laws 2025 -- grocery rate reduction 7% -> 5%
+      effective 2025-07-01
+    - S.B. 2449, Laws 2023 -- specified digital products /
+      computer software taxability effective 2023-07-01
+    - S.B. 2470, Laws 2024 -- back-to-school holiday moved to
+      second weekend in July, extended from 2 days to 3 days
+      (signed 2024-04-22)
+- *Sources for rate / taxability / holiday verification (retrieved
+  2026-05-03):*
+  - Mississippi Department of Revenue -- "Reduced Sales Tax on
+    Groceries Begins July 1" press release at
+    https://www.dor.ms.gov/news/reduced-sales-tax-groceries-begins-july-1
+    (DOR site requires lenient TLS validation; cross-referenced
+    via Sales Tax Institute summary at
+    https://www.salestaxinstitute.com/resources/mississippi-grocery-sales-tax-cut)
+  - Mississippi Department of Revenue -- 2025 Second Amendment
+    Sales Tax Holiday official guide at
+    https://www.dor.ms.gov/sites/default/files/2025-05/2025%20Second%20Amendment%20Sales%20Tax%20Holiday%20Updated%205-13-2025.pdf
+    (cross-referenced via VATupdate guide at
+    https://www.vatupdate.com/2025/05/15/guide-to-mississippi-second-amendment-sales-tax-holiday-dates-eligibility-and-guidelines/
+    -- confirms 2025 dates Aug 29-31, statutory pattern of "last
+    Friday in August", and the eligible items list)
+  - Mississippi Legislature billstatus archive --
+    https://billstatus.ls.state.ms.us/documents/2023/html/SB/2400-2499/SB2449SG.htm
+    (S.B. 2449 enrolled text, digital products / software);
+    https://billstatus.ls.state.ms.us/documents/2024/html/SB/2400-2499/SB2470SG.htm
+    (S.B. 2470 enrolled text, holiday rescheduling)
+  - Mississippi Code on Justia --
+    https://law.justia.com/codes/mississippi/title-27/chapter-65/in-general/section-27-65-26/
+    (specified digital products) and the 27-65-111 search results
+    referenced in agent research notes (Justia returned 403 to the
+    automated fetcher; a manual visit confirms subsections (h),
+    (bb), and (af) cited above)
+  - Sales Tax Institute, "Mississippi Changes and Extends Dates
+    for Annual Back to School Sales Tax Holiday" --
+    https://www.salestaxinstitute.com/resources/mississippi-changes-and-extends-dates-for-annual-back-to-school-sales-tax-holiday
+    (confirms S.B. 2470 effect: second Friday in July, $100 cap on
+    clothing AND school supplies)
+  - Avalara 2026 sales tax holiday calendar --
+    https://www.avalara.com/blog/en/north-america/2026/01/sales-tax-holidays.html
+    (cross-reference for 2026 date confirmation: back-to-school
+    July 10-12; Second Amendment August 28-30 -- consistent with
+    the "second Friday of July" and "last Friday of August"
+    statutory rules and the 2026 calendar; cited as a secondary
+    cross-check, not as authoritative; primary authority is the
+    Mississippi Code)
+- **Module file:** `src/opensalestax/states/mississippi.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 6 Batch B)
+- *Notes:*
+  - Pre-2025-07-01 Mississippi was one of the few states that
+    taxed groceries at the FULL state rate (7%). H.B. 1, Laws 2025
+    cut the grocery rate to 5%; the saving statute references SNAP
+    eligibility as the qualifying definition. This historical
+    "groceries fully taxable" fact is the most-cited MS-vs-peers
+    distinction even though it is no longer the current law -- the
+    module docstring documents both the historical and current
+    treatment so future maintainers do not silently re-introduce a
+    stale assumption.
+  - The 5% reduced grocery rate is encoded as
+    ``rate_modifier=Decimal("5.000")`` on the TaxabilityRule
+    (mirrors IL's reduced grocery rate handling). The engine does
+    not yet apply rate_modifier through to the calculation
+    (deferred to v0.6+); until that lands, the engine over-collects
+    by 2 percentage points on SNAP-eligible food and the API
+    disclaimer should reflect this.
+  - The Second Amendment Sales Tax Holiday's "hunting supplies"
+    definition is statutorily LIMITED to: archery equipment,
+    firearm and archery cases, firearm and archery accessories,
+    hearing protection, holsters, belts, and slings. General
+    hunting clothing, decoys, calls, and live animals are NOT
+    eligible -- a common point of confusion at retail.
+  - Two 2026-session bills (HB 281 and HB 437) propose to expand
+    the back-to-school holiday's eligible items list (e.g., adding
+    computers) or raise the cap. Status to verify in subsequent
+    legislative-session reviews.
+  - The Tunica County Tourism Tax and the small set of
+    municipality tourism / infrastructure taxes are NOT modeled in
+    v0.7. They are imposed under local-and-private-laws acts
+    rather than a general local-option statute, so each requires
+    its own authorizing-bill review and effective-date research.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in
