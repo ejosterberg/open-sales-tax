@@ -19,7 +19,7 @@ router = APIRouter(tags=["health"])
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
-@router.get("/health", response_model=HealthResponse)
+@router.get("/health")
 async def health(session: SessionDep) -> HealthResponse:
     """Return service health.
 

@@ -13,7 +13,7 @@ from opensalestax.states.registry import get_state_module
 router = APIRouter(tags=["states"])
 
 
-@router.get("/states", response_model=StatesResponse)
+@router.get("/states")
 async def list_states() -> StatesResponse:
     """List every US tax jurisdiction with its coverage tier.
 

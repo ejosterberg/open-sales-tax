@@ -23,7 +23,10 @@ router = APIRouter(tags=["calculate"])
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
-@router.post("/calculate", response_model=CalculateResponse)
+@router.post(
+    "/calculate",
+    responses={400: {"description": "Engine-level validation error (e.g. malformed ZIP)."}},
+)
 async def calculate(
     body: CalculateRequest,
     session: SessionDep,

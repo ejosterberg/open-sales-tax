@@ -27,7 +27,10 @@ Zip4Q = Annotated[
 ]
 
 
-@router.get("/rates", response_model=RatesResponse)
+@router.get(
+    "/rates",
+    responses={400: {"description": "Malformed ZIP code rejected by the lookup layer."}},
+)
 async def get_rates(
     zip5: Zip5Q,
     session: SessionDep,
