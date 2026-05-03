@@ -216,6 +216,14 @@ separate concern.
 Useful for **competitive analysis** (see `prior-art.md`) but **NOT
 acceptable** as data sources per constitution §3.
 
+A snapshot of Sovos's public state-by-state guide (50 states + DC,
+captured 2026-05-02) lives in `sovos-state-summary.md` + the raw
+`sovos-state-summary.tsv` for **cross-reference** during
+implementation — verifying base rates and economic-nexus
+thresholds against an independent source. Same constitutional
+constraint applies: do not ingest into the API as a runtime data
+source.
+
 ## 9. Schema OpenSalesTax should use internally
 
 Drawing from how SST structures its data + how taxes actually work:

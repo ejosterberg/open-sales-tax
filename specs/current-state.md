@@ -3,6 +3,11 @@
 **Last updated:** 2026-05-02
 **Status:** Pre-development. Specs + research only. No code.
 
+**2026-05-02 update:** Added `specs/research/sovos-state-summary.md`
++ `.tsv` — captured Sovos's state-by-state guide (50 states + DC) as
+a cross-reference for nexus thresholds and base rates. Reference
+only, not an ingestible data source per constitution §3.
+
 ## What exists
 
 | Artifact | Status |
