@@ -606,6 +606,123 @@ Format for each state:
     that is administered locally and not modeled here; the
     "prepared_food" rule notes this for downstream callers.
 
+### MO -- Missouri
+
+- **Statewide rate:** **4.225% effective ~1984-01-01** (composed of
+  3.000% general revenue + 1.000% Proposition C education + 0.125%
+  parks/soils + 0.100% conservation; the current composition has
+  been stable since the parks/soils tax took effect 1984)
+- **Tax model:** sales tax (NOT SST -- verified against the SST
+  member roster on 2026-05-03; MO does not appear among the 23 full
+  members or the lone associate member, Tennessee)
+- **Local jurisdictions:** counties, cities, fire districts,
+  ambulance districts, transit authorities, and tourism community
+  enhancement districts (TCEDs) may each levy their own sales tax.
+  Combined rates range 4.225% to 11.0%+ (Branson area is among the
+  highest). **Per-jurisdiction local rates NOT loaded in v0.7** --
+  no SST file (MO is non-SST) and no public per-ZIP machine-
+  readable feed comparable to TX Comptroller's. MO DOR publishes a
+  quarterly Sales/Use Tax Rate Tables PDF + Excel download but
+  ingesting / normalizing requires a custom MO loader, deferred to
+  a future state-data-loader phase.
+- **Sales-tax holidays:** **2 annual** holidays codified in
+  Chapter 144:
+  - Show-Me Green Sales Tax Holiday (April 19-25 each year, fixed
+    calendar dates) -- Energy Star certified appliances $1,500/less
+    per item
+  - Back-to-School Sales Tax Holiday (first Friday of August
+    through following Sunday) -- clothing $100/less, school supplies
+    $50/purchase, computers $1,500/less, computer peripherals
+    $1,500/less, computer software $350/less
+- **Threshold rules:** none year-round; both holidays apply per-item
+  caps. Back-to-school school-supply cap is per-PURCHASE (not strictly
+  per-item) under the statute -- documented in the holiday's notes
+  pending purchase-level threshold-rule support.
+- **DOR URL:** **https://dor.mo.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted (Mo. Rev. Stat. Title X, Chapter 144 --
+  sales/use tax):**
+  - Mo. Rev. Stat. section 144.014 -- reduced 1.225% state rate on
+    food for home consumption (the 3.0% general-revenue portion is
+    excluded; the 1.0% education + 0.125% parks/soils + 0.1%
+    conservation portions still apply, totaling 1.225%)
+  - Mo. Rev. Stat. section 144.020 -- imposition of the sales tax
+    on tangible personal property
+  - Mo. Rev. Stat. section 144.030.2(18) -- prescription drug and
+    medical-equipment exemption
+  - Mo. Rev. Stat. section 144.049 -- annual Back-to-School Sales
+    Tax Holiday (first Friday of August through following Sunday;
+    HB 154 of 2021 made the holiday mandatory at all jurisdiction
+    levels via subdivision .10)
+  - Mo. Rev. Stat. section 144.526 -- annual Show-Me Green Sales
+    Tax Holiday (April 19-25 each year; cities/counties may opt out)
+  - Mo. Rev. Stat. section 144.605 -- remote-seller economic-nexus
+    threshold (SB 153, 2021; effective 2023-01-01)
+  - Mo. Rev. Stat. section 144.701 -- Proposition C 1% education tax
+  - Mo. Rev. Stat. section 144.752 -- marketplace-facilitator
+    collection requirement (SB 153, 2021; effective 2023-01-01)
+  - Mo. Const. art. IV section 43(a) -- 0.100% Conservation Sales Tax
+  - Mo. Const. art. IV section 47(a) -- 0.125% Parks and Soils Sales Tax
+- *Sources for rate/taxability:*
+  - Missouri Department of Revenue Sales/Use Tax page
+    (https://dor.mo.gov/taxation/business/tax-types/sales-use/),
+    retrieved 2026-05-03 -- confirms the 4.225% composition
+  - MO DOR Show-Me Green Sales Tax Holiday page
+    (https://dor.mo.gov/taxation/business/tax-types/sales-use/holidays/show-me-green/),
+    retrieved 2026-05-03 -- confirms April 19-25 fixed-date window
+    and $1,500 Energy Star cap
+  - MO DOR Back-to-School Sales Tax Holiday page
+    (https://dor.mo.gov/taxation/business/tax-types/sales-use/holidays/back-to-school/),
+    retrieved 2026-05-03 -- confirms first-Friday-of-August window
+    + clothing $100 / supplies $50 / computers $1,500 / peripherals
+    $1,500 / software $350 caps + post-2023 mandatory-jurisdiction
+    rule
+  - Missouri Revisor of Statutes (Title X Chapter 144) at
+    https://revisor.mo.gov/main/OneChapter.aspx?chapter=144,
+    retrieved 2026-05-03 -- primary source for every statutory
+    citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Missouri is NOT a member
+- **Module file:** `src/opensalestax/states/missouri.py`
+- **Last verified:** 2026-05-03 by per-state research agent (Phase
+  6 Batch B)
+- *Notes:*
+  - **Reduced grocery rate caveat:** the 1.225% rate per section
+    144.014 applies to the STATE portion only. City, county, and
+    other local sales taxes apply to qualifying food at the FULL
+    local rate. Encoded with ``rate_modifier=Decimal("1.225")``
+    mirroring IL/VA; engine support for rate_modifier is deferred
+    to v0.6+. Until then, retailers selling groceries in MO should
+    verify with the Missouri Department of Revenue.
+  - **Digital goods are NOT taxable** when delivered electronically.
+    Missouri sales tax applies to "tangible personal property"
+    per section 144.020; downloaded software, music, ebooks, and
+    streaming services have historically been treated as non-
+    tangible by the Missouri DOR. SB 153 (2021) added economic-
+    nexus + marketplace-facilitator collection requirements but did
+    NOT change the underlying tangibility-based scope. Tangible-
+    media sales (boxed CD, etc.) remain taxable. This contrasts
+    with CA, TX, FL, MD, NY, IL (all of which tax digital goods).
+  - **Show-Me Green local opt-out:** under section 144.526, cities
+    and counties may opt out of the Show-Me Green holiday, in
+    which case their local sales tax still applies to qualifying
+    Energy Star purchases. The state portion is exempt regardless.
+    Per-jurisdiction opt-out tracking is deferred to a future
+    SpecialCase implementation.
+  - **Back-to-School holiday is now mandatory** at all jurisdiction
+    levels per HB 154 (2021), codified at section 144.049.10.
+    Prior-year analyses that allowed local opt-out are stale.
+  - **School-supply cap is PER PURCHASE** under the statute (not
+    strictly per item). The HolidayWindow encodes it as a per-item
+    cap pending purchase-level threshold-rule support; documented
+    in the window's ``notes`` field.
+  - **Statewide effective date:** the current 4.225% composition
+    has been stable since 1984; encoded as 1984-01-01 in
+    parse_rates. Earlier composition history (3.0% only pre-1977,
+    3.1% with conservation 1977-1982, 4.1% with Prop C 1982-1984)
+    is documented here for completeness but not modeled as
+    historical RateRows in v0.7.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in

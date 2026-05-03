@@ -31,6 +31,7 @@ requires a named maintainer.
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
+| Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 
