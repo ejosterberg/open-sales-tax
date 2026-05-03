@@ -317,8 +317,10 @@ async def purge_data_version(
     # data versions can be archived without losing rate history.
     # Purge is different from archive.)
     rates_to_drop = (
-        await session.execute(select(Rate).where(Rate.data_version_id == existing.id))
-    ).scalars().all()
+        (await session.execute(select(Rate).where(Rate.data_version_id == existing.id)))
+        .scalars()
+        .all()
+    )
     for rate in rates_to_drop:
         await session.delete(rate)
     if rates_to_drop:
