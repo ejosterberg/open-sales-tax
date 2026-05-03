@@ -15,21 +15,27 @@ from opensalestax.api.v1.schemas import (
     CalculateResponse,
     JurisdictionRate,
 )
+from opensalestax.auth import authenticate
 from opensalestax.core.calculate import LineItem, calculate_tax
 from opensalestax.db.session import get_session
 
 router = APIRouter(tags=["calculate"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+AuthDep = Annotated[object, Depends(authenticate)]
 
 
 @router.post(
     "/calculate",
-    responses={400: {"description": "Engine-level validation error (e.g. malformed ZIP)."}},
+    responses={
+        400: {"description": "Engine-level validation error (e.g. malformed ZIP)."},
+        401: {"description": "Missing or invalid X-API-Key (api_key auth mode only)."},
+    },
 )
 async def calculate(
     body: CalculateRequest,
     session: SessionDep,
+    auth: AuthDep,
 ) -> CalculateResponse:
     """Calculate sales tax for a list of line items at a given address.
 

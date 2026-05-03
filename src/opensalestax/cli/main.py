@@ -45,6 +45,8 @@ app = typer.Typer(
 )
 data_app = typer.Typer(help="Manage SST data files.", no_args_is_help=True)
 app.add_typer(data_app, name="data")
+keys_app = typer.Typer(help="Manage API keys (api_key auth mode).", no_args_is_help=True)
+app.add_typer(keys_app, name="keys")
 
 
 # ---------------------------------------------------------------------------
@@ -300,6 +302,115 @@ async def _purge_async(state: str, version: str) -> bool:
     try:
         async with sessionmaker() as session:
             return await purge_data_version(session, state, version)
+    finally:
+        await reset_engine()
+
+
+# ---------------------------------------------------------------------------
+# keys subcommands -- API-key management for api_key auth mode
+# ---------------------------------------------------------------------------
+@keys_app.command("create")
+def keys_create(
+    label: str = typer.Argument(
+        ..., help="Human-readable label (e.g. 'eric-laptop', 'scbooks-prod')."
+    ),
+    rate_limit_per_minute: int | None = typer.Option(
+        None,
+        "--rate-limit",
+        help="Override the default rate limit for this key.",
+    ),
+    notes: str | None = typer.Option(None, "--notes", help="Free-form notes for the key."),
+) -> None:
+    """Mint a fresh API key.
+
+    The plaintext is printed ONCE -- save it now. The database
+    only ever stores the hash. The label can be reused for "rotate
+    and revoke" workflows.
+    """
+    minted = asyncio.run(_keys_create_async(label, rate_limit_per_minute, notes))
+    typer.secho(f"created key id={minted.db_id}, label={minted.label!r}", fg=typer.colors.GREEN)
+    typer.echo("plaintext (save now; not retrievable):")
+    typer.secho(f"  {minted.plaintext}", bold=True)
+
+
+@keys_app.command("list")
+def keys_list() -> None:
+    """List active (non-revoked) API keys."""
+    rows = asyncio.run(_keys_list_async())
+    if not rows:
+        typer.echo("(no active API keys)")
+        return
+    typer.echo(f"{'id':>4s}  {'label':30s} {'created_at':25s} last_used_at")
+    for row in rows:
+        last = row.last_used_at.isoformat() if row.last_used_at else "never"
+        typer.echo(f"{row.id:>4d}  {row.label:30s} {row.created_at.isoformat():25s} {last}")
+
+
+@keys_app.command("revoke")
+def keys_revoke(
+    label: str = typer.Argument(..., help="Revoke every active key with this label."),
+) -> None:
+    """Revoke every active API key matching ``label``."""
+    n = asyncio.run(_keys_revoke_async(label))
+    if n == 0:
+        typer.secho(f"no active keys with label {label!r}", fg=typer.colors.YELLOW)
+        raise typer.Exit(code=1)
+    typer.secho(f"revoked {n} key(s)", fg=typer.colors.GREEN)
+
+
+# ---------------------------------------------------------------------------
+# keys async bridges
+# ---------------------------------------------------------------------------
+async def _keys_create_async(
+    label: str,
+    rate_limit_per_minute: int | None,
+    notes: str | None,
+):
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from opensalestax.auth import create_api_key
+    from opensalestax.db.session import get_engine, reset_engine
+
+    engine = get_engine()
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with sessionmaker() as session:
+            return await create_api_key(
+                session,
+                label=label,
+                rate_limit_per_minute=rate_limit_per_minute,
+                notes=notes,
+            )
+    finally:
+        await reset_engine()
+
+
+async def _keys_list_async():
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from opensalestax.auth import list_active_api_keys
+    from opensalestax.db.session import get_engine, reset_engine
+
+    engine = get_engine()
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with sessionmaker() as session:
+            return await list_active_api_keys(session)
+    finally:
+        await reset_engine()
+
+
+async def _keys_revoke_async(label: str) -> int:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from opensalestax.auth import revoke_api_key
+    from opensalestax.db.session import get_engine, reset_engine
+
+    engine = get_engine()
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with sessionmaker() as session:
+            return await revoke_api_key(session, label)
     finally:
         await reset_engine()
 

@@ -246,7 +246,57 @@ class TaxabilityRule(Base):
         return f"<TaxabilityRule state={self.state_id} {self.item_category}={self.is_taxable}>"
 
 
+# --------------------------------------------------------------------------
+# api_keys -- per-key auth + per-key rate limit (Phase 2 Section B)
+# --------------------------------------------------------------------------
+class ApiKey(Base):
+    """An API key issued by an operator.
+
+    The plaintext key is **never stored**. Clients send the
+    plaintext key in the ``X-API-Key`` header; the server hashes
+    the incoming value (sha256) and compares against ``key_hash``.
+
+    The ``label`` field is a human-readable identifier ("eric's
+    laptop", "scbooks-prod") so an operator can revoke a specific
+    key by name without remembering the hash.
+    """
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    """SHA-256 hex digest of the plaintext key. 64 hex chars."""
+
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    """Human-readable identifier; not unique (multiple keys can share a label)."""
+
+    rate_limit_per_minute: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    """Override the default rate limit for this key. NULL = use server default."""
+
+    created_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.current_timestamp(),
+    )
+    revoked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    """When the key was revoked. NULL = active."""
+
+    last_used_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    """Updated on every successful auth. Useful for spotting unused keys."""
+
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    @property
+    def is_active(self) -> bool:
+        """True if the key has not been revoked."""
+        return self.revoked_at is None
+
+    def __repr__(self) -> str:
+        return f"<ApiKey {self.label!r} id={self.id} active={self.is_active}>"
+
+
 __all__ = [
+    "ApiKey",
     "Base",
     "Boundary",
     "DataVersion",

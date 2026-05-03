@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.api.v1.schemas import JurisdictionRate, RatesResponse
+from opensalestax.auth import authenticate
 from opensalestax.core.disclaimer import disclaimer
 from opensalestax.core.lookup import lookup_jurisdictions_by_zip
 from opensalestax.core.resolve import combined_rate_pct, resolve_rates_for_authorities
@@ -20,6 +21,7 @@ from opensalestax.db.session import get_session
 router = APIRouter(tags=["rates"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+AuthDep = Annotated[object, Depends(authenticate)]
 Zip5Q = Annotated[str, Query(min_length=5, max_length=5, pattern=r"^\d{5}$")]
 Zip4Q = Annotated[
     str | None,
@@ -29,11 +31,15 @@ Zip4Q = Annotated[
 
 @router.get(
     "/rates",
-    responses={400: {"description": "Malformed ZIP code rejected by the lookup layer."}},
+    responses={
+        400: {"description": "Malformed ZIP code rejected by the lookup layer."},
+        401: {"description": "Missing or invalid X-API-Key (api_key auth mode only)."},
+    },
 )
 async def get_rates(
     zip5: Zip5Q,
     session: SessionDep,
+    auth: AuthDep,
     zip4: Zip4Q = None,
 ) -> RatesResponse:
     """Return the active jurisdictional rate stack for ``zip5`` (+ optional ``zip4``).

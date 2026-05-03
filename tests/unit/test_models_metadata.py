@@ -20,6 +20,7 @@ EXPECTED_TABLES = {
     "rates",
     "boundaries",
     "taxability_rules",
+    "api_keys",  # Phase 2 Section B
 }
 
 
