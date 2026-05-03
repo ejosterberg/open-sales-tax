@@ -2339,6 +2339,115 @@ default taxability (everything taxable except groceries). To
     pipeline that this research found (the LB 1317 GLD reduced
     rate is a sub-state overlay, not a general-rate change).
 
+## ND — North Dakota
+
+- **Statewide rate:** **5.000% effective 1987-07-01** (raised from
+  4% to 5% by the 1987 legislative assembly's omnibus revenue act;
+  rate codified at N.D.C.C. section 57-39.2-02.1)
+- **Tax model:** sales tax (SST -- full member; verified 2026-05-03
+  against the SST member roster on streamlinedsalestax.org). State
+  FIPS: 38.
+- **Local jurisdictions:** Cities and home-rule counties may impose
+  local option sales taxes:
+  - **N.D.C.C. chapter 11-09.2** -- county home rule charter
+    authority (counties that adopt a home rule charter may impose
+    sales taxes among other powers)
+  - **N.D.C.C. chapter 40-05.1** -- city home rule charter
+    authority
+  - **N.D.C.C. chapter 40-57.3** -- general city sales / use /
+    gross-receipts tax authority (the more commonly used
+    non-home-rule path; any incorporated city may impose, by voter
+    approval, a city sales tax administered by the State Tax
+    Commissioner)
+  Local rates typically range from 0.25% to 3.5%, with most
+  participating cities at 1%-2.5%. Combined rates statewide range
+  from **5.0% (unincorporated areas with no county tax) to roughly
+  8.5%** (highest-rate cities). SST member status means rate data
+  flows through the inherited :class:`SstStateModule` parser; no
+  manual loader needed.
+- **Sales-tax holidays:** **NONE.** North Dakota has never enacted
+  a recurring sales-tax holiday. Confirmed 2026-05-03 against the
+  North Dakota Office of State Tax Commissioner's published
+  guidance and a search of N.D.C.C. chapter 57-39.2 for any
+  periodic exemption window. ``holidays_for(year)`` returns the
+  empty iterator for every year (mirrors KY, IN, MI, DC, ID).
+- **Threshold rules:** none.
+- **DOR URL:** **https://www.tax.nd.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted (N.D.C.C. chapter 57-39.2 -- sales tax;
+  chapter 57-40.2 -- complementary use tax):**
+  - N.D.C.C. section 57-39.2-01 -- definitions (including
+    "tangible personal property" and the SST common definitions
+    incorporated by reference)
+  - N.D.C.C. section 57-39.2-02.1 -- imposition of the state
+    sales tax at 5% on retail sales of tangible personal
+    property and on specified digital products
+  - N.D.C.C. section 57-39.2-02.1(1)(c) -- imposition of sales
+    tax on specified digital products (added by H.B. 1041 of the
+    66th Legislative Assembly, 2019)
+  - N.D.C.C. section 57-39.2-04(33) -- exemption for prescription
+    drugs, insulin, oxygen, and certain prescribed medical /
+    durable equipment
+  - N.D.C.C. section 57-39.2-04(46) -- exemption for food and
+    food ingredients for human consumption (using the SST common
+    definition; excludes prepared food, candy, soft drinks,
+    dietary supplements)
+  - N.D.C.C. chapter 57-40.2 -- complementary use tax
+  - N.D.C.C. chapter 11-09.2 -- county home rule charter
+    authority (county sales tax)
+  - N.D.C.C. chapter 40-05.1 -- city home rule charter authority
+    (home rule city sales tax)
+  - N.D.C.C. chapter 40-57.3 -- general city sales, use, and
+    gross-receipts tax (any incorporated city may impose, by
+    voter approval)
+- *Sources for rate/taxability:*
+  - North Dakota Office of State Tax Commissioner sales-tax
+    landing page (https://www.tax.nd.gov/), retrieved 2026-05-03
+    -- confirms 5% statewide rate and the local option layer
+  - North Dakota Century Code (N.D.C.C.) chapter 57-39.2 via the
+    Legislative Branch online code (https://ndlegis.gov/cencode/),
+    retrieved 2026-05-03 -- primary source for every statutory
+    citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms North Dakota is a full
+    member
+  - SST taxability matrix for North Dakota (published quarterly
+    on streamlinedsalestax.org) -- cross-checked 2026-05-03 for
+    the food-and-food-ingredients exemption scope, the
+    prescription-drug exemption scope, and the digital-products
+    treatment
+- **Module file:** `src/opensalestax/states/north_dakota.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 7 -- tier-2 to tier-1 promotion)
+- *Notes:*
+  - **No sales-tax holiday** is the headline regression risk.
+    A dedicated test in :mod:`tests.unit.test_state_north_dakota`
+    asserts ``holidays_for(year) == []`` for every year 2024-2030
+    so a contributor copy-pasting from a holiday state (Iowa,
+    Mississippi, etc.) cannot silently introduce a spurious
+    window.
+  - **Local sales taxes DO exist** (unlike the no-local-tax SST
+    peers KY / IN / MI). The module inherits the default
+    jurisdiction-type code mapping (state 45 / county 00 / city
+    01 / district 63) so the SST quarterly file's per-city
+    rate rows load as expected. A test asserts the inherited
+    mapping has not been narrowed.
+  - **Digital goods is a 2019 change.** Pre-2019 N.D.'s sales
+    tax did not reach electronically-delivered specified digital
+    products. The TaxabilityRule notes call out the H.B. 1041
+    (2019) origin so a future maintainer doesn't mistake the
+    current treatment for a long-standing position.
+  - **Rate is stable** at 5% since 1987-07-01; no scheduled
+    change for the general rate is currently in the legislative
+    pipeline that this research found.
+  - **No 2026Q2 ND SST file** has been captured to confirm the
+    jurisdiction-type codes empirically; the inherited default
+    mapping is taken from MN/WI 2026Q2 captures and the SST
+    file format is uniform across the membership in every other
+    state where we have data. The next maintainer should
+    validate against an N.D. SST quarterly capture and override
+    ``jurisdiction_types`` on the subclass if any code differs.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

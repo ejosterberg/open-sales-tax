@@ -43,6 +43,7 @@ requires a named maintainer.
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
 | Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
 | Nebraska | NE | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1 promotion; LB 1317 of 2024 Good Life District 2.75% reduced state rate flows through SST quarterly file)_ |
+| North Dakota | ND | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1; 5.0% per N.D.C.C. § 57-39.2-02.1; no state sales-tax holiday)_ |
 | Nevada | NV | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1 promotion; statewide minimum 6.85% only -- per-county add-ons (Clark ~1.525%, Washoe ~1.415%) deferred. Nevada National Guard Sales Tax Holiday under NRS 372.7282 is buyer-eligibility-restricted and NOT modeled in v1 -- engine does not currently model buyer eligibility.)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
@@ -50,14 +51,14 @@ requires a named maintainer.
 
 ### Tier 2 states (rate-only via SST data)
 
-The 13 other Streamlined Sales Tax member states ship as tier 2 —
+The 12 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; ND in v0.10 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: NJ, NC, ND, OH, OK, RI,
+States: NJ, NC, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states
