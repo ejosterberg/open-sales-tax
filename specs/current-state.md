@@ -1,7 +1,7 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** Phase 1 Section A complete (scaffold landed). DB layer (Section B) is the next concrete work.
+**Status:** Phase 1 Sections A + B complete. Live on GitHub at [open-sales-tax](https://github.com/ejosterberg/open-sales-tax). Core engine + state-module pattern (Section C) is the next concrete work.
 
 **2026-05-02 update:** Added `specs/research/sovos-state-summary.md`
 + `.tsv` — captured Sovos's state-by-state guide (50 states + DC) as
@@ -24,6 +24,41 @@ as we can from the start" priority. Tier 1 = MN, WI (full
 taxability matrix). Tier 2 = the other 22 SST states (rate-only
 via SST data, default taxability). No-tax states unchanged.
 Section G2 added to `tasks.md` for the rapid SST rollout.
+
+**2026-05-03 third update:** Branding settled. GitHub repo will be
+**`ejosterberg/open-sales-tax`** (not `sales_tax_api_service`).
+Domains **`opensalestax.org`** (intended for the OSS project site)
+and **`opensalestax.com`** (reserved for the eventual hosted SaaS)
+both registered by Eric. The Python package name stays
+`opensalestax` (per PEP 8). Local clone path on Eric's machine
+remains `sales_tax_api_service\` — the local directory doesn't
+have to match the repo name and renaming would break in-flight
+work.
+
+**2026-05-03 fourth update:** Phase 1 Section B (database layer)
+shipped. Tasks 06–10 complete:
+
+- `settings.py` — pydantic-settings; reads
+  `OPENSALESTAX_DATABASE_URL` and other `OPENSALESTAX_*` vars;
+  exposes `database_dialect` for diagnostics-only use
+- `db/models.py` — SQLAlchemy 2.x declarative models for all 6
+  Phase 1 tables; portability-strict (no JSONB, no PG arrays;
+  generic `JSON`, `Numeric(8,5)`, `DateTime(timezone=True)`)
+- `db/session.py` — async engine + sessionmaker singletons;
+  `get_session()` FastAPI dependency; `reset_engine()` for tests
+- `alembic.ini` + `db/migrations/env.py` (async-friendly) +
+  `db/migrations/versions/0001_initial_schema.py` (hand-written,
+  portable, all 6 tables)
+- `tests/conftest.py` — async session fixture; gracefully skips
+  DB-backed tests when `OPENSALESTAX_DATABASE_URL` unset
+- 8 new unit tests (metadata + settings) plus the 2 existing smoke
+  tests = 10 passing, ruff clean, ruff format clean, mypy clean
+
+**2026-05-03 fifth update:** GitHub repo is live at
+https://github.com/ejosterberg/open-sales-tax. Required a one-time
+`gh auth refresh -s workflow` to get the `workflow` scope on Eric's
+token before the workflow file would push. Token now has
+`gist, read:org, repo, workflow`.
 
 **2026-05-03 third update:** Branding settled. GitHub repo will be
 **`ejosterberg/open-sales-tax`** (not `sales_tax_api_service`).
@@ -80,10 +115,19 @@ Eric needs to install Python 3.11+ and Poetry locally before
 | `.github/workflows/ci.yml` (lint + DCO + dual-engine test matrix) | ✅ |
 | `src/opensalestax/` package skeleton (10 modules, all SPDX-headered) | ✅ |
 | `tests/test_smoke.py` (verifies imports + version) | ✅ |
-| Git repo initialized | ✅ already initialized; commits accumulating |
-| GitHub remote created | ❌ — pending Eric's per-deploy push approval |
-| `poetry install` ever run | ❌ — pending Eric installing Python 3.11+ and Poetry locally |
-| Database layer (Section B) | ❌ — next concrete work |
+| `src/opensalestax/settings.py` (pydantic-settings) | ✅ Section B |
+| `src/opensalestax/db/models.py` (SQLAlchemy 2.x; 6 tables) | ✅ Section B |
+| `src/opensalestax/db/session.py` (async engine + sessionmaker) | ✅ Section B |
+| `alembic.ini` + `db/migrations/env.py` + first migration | ✅ Section B |
+| `tests/conftest.py` (dual-engine async session fixture) | ✅ Section B |
+| Unit tests for models metadata + settings (8 new) | ✅ Section B |
+| Git repo initialized | ✅ |
+| GitHub remote `ejosterberg/open-sales-tax` | ✅ pushed 2026-05-03 |
+| Python 3.11.15 installed (via uv) | ✅ |
+| Poetry 2.3.4 installed (via uv tool) | ✅ |
+| `poetry install` run; lockfile committed | ✅ |
+| `pytest`/`ruff check`/`ruff format`/`mypy` all green locally | ✅ |
+| Core engine + state-module pattern (Section C) | ❌ — next concrete work |
 
 ## What's been decided
 

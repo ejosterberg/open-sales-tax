@@ -12,18 +12,18 @@ def test_version_is_set() -> None:
     assert isinstance(__version__, str)
     assert __version__
     # Allow pre-release suffixes (a1, b2, rc1, dev0, etc.)
-    assert re.match(r"^\d+\.\d+\.\d+", __version__), (
-        f"unexpected __version__ format: {__version__!r}"
-    )
+    assert re.match(
+        r"^\d+\.\d+\.\d+", __version__
+    ), f"unexpected __version__ format: {__version__!r}"
 
 
 def test_package_imports() -> None:
     """Top-level package and key subpackages import cleanly."""
-    import opensalestax  # noqa: F401
-    import opensalestax.api  # noqa: F401
-    import opensalestax.api.v1  # noqa: F401
-    import opensalestax.cli  # noqa: F401
-    import opensalestax.core  # noqa: F401
-    import opensalestax.data  # noqa: F401
-    import opensalestax.db  # noqa: F401
+    import opensalestax
+    import opensalestax.api
+    import opensalestax.api.v1
+    import opensalestax.cli
+    import opensalestax.core
+    import opensalestax.data
+    import opensalestax.db
     import opensalestax.states  # noqa: F401
