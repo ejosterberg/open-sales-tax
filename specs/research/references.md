@@ -606,6 +606,116 @@ Format for each state:
     that is administered locally and not modeled here; the
     "prepared_food" rule notes this for downstream callers.
 
+### ID — Idaho
+
+- **Statewide rate:** **6.000% effective 2006-10-01** (raised from 5%
+  by HB 82 of the 2006 First Extraordinary Legislative Session;
+  Idaho Code section 63-3619 as amended by Chapter 1, Section 18 of
+  the 2006 1st Extra. Sess.)
+- **Tax model:** sales tax (NOT SST -- verified 2026-05-03 against
+  the SST member roster on streamlinedsalestax.org)
+- **Local jurisdictions:** **No county-level sales tax.** A small
+  number of "resort cities" (population <= 10,000 with primary
+  economy from tourism/recreation) may impose 1-3% local-option
+  non-property taxes, including a sales tax, by 60% voter approval
+  under Idaho Code section 50-1044 (and the related municipal-finance
+  statute section 50-1046). Examples: Sun Valley, Ketchum, McCall,
+  Stanley, Donnelly, Cascade. **Per-resort-city rates are NOT loaded
+  in v0.7** -- deferred until a resort-city loader lands.
+- **Sales-tax holidays:** **NONE.** Idaho has never enacted a
+  recurring sales-tax holiday; confirmed 2026-05-03 against Idaho
+  State Tax Commission filing/holiday pages and multiple
+  cross-references. The module's ``holidays_for(year)`` returns an
+  empty iterator for every year, with a regression test in
+  ``test_state_idaho.py`` that exercises 2024-2030.
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.idaho.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted (Idaho Code Title 63, Chapter 36 unless noted):**
+  - Idaho Code section 63-3612 -- definition of "sale" (includes
+    furnishing of meals)
+  - Idaho Code section 63-3616 -- definition of "tangible personal
+    property"; subsection (b) classifies prewritten/canned computer
+    software AND digital music/books/videos/games sold with a
+    permanent right to use as TPP, while EXCLUDING custom programs,
+    SaaS / remotely accessed software, "load and leave" delivery
+    without tangible media, and digital media without a permanent
+    right to use
+  - Idaho Code section 63-3619 -- imposition and rate (6%)
+  - Idaho Code section 63-3622N -- prescription/medical-products
+    exemption (drugs, hypodermic syringes, insulin, artificial eyes,
+    eyeglasses/components, contact lenses, hearing aids and parts;
+    practitioner administered or by prescription; humans only)
+  - Idaho Code section 50-1044 (Title 50, Chapter 10) -- resort-city
+    local-option non-property tax authority
+  - Idaho Code section 50-1046 -- city local-option non-property
+    taxes by 60% majority vote
+  - HB 82, 2006 First Extraordinary Session -- enacted the 5% to 6%
+    rate increase effective 2006-10-01
+  - IDAPA 35.01.02.041 -- regulation, "FOOD, MEALS, OR DRINKS"
+    (confirms taxability of meal sales and service charges)
+  - IDAPA 35.01.02.027 -- regulation, "COMPUTER EQUIPMENT, SOFTWARE,
+    AND DATA SERVICES" (cross-reference for 63-3616(b) software
+    treatment)
+- *Sources for rate/taxability:*
+  - Idaho State Legislature statute repository
+    (https://legislature.idaho.gov/statutesrules/idstat/title63/t63ch36/)
+    retrieved 2026-05-03 -- primary source for sections 63-3612,
+    63-3616, 63-3619, 63-3622N
+  - Idaho State Tax Commission, "Sales and Use Taxes: Basics Guide"
+    (https://tax.idaho.gov/taxes/sales-use/online-guide/) retrieved
+    2026-05-03 -- confirmed 6% rate, prepared-food taxability,
+    digital-goods permanent-right rule
+  - Idaho State Tax Commission, "Idaho Food Tax Credit"
+    (https://tax.idaho.gov/taxes/income-tax/individual-income/popular-credits-and-deductions/idaho-grocery-credit/)
+    retrieved 2026-05-03 -- confirms groceries are FULLY TAXED at
+    the 6% sales-tax rate; the "grocery credit" is a separate
+    non-refundable INCOME-TAX credit, not a sales-tax reduction
+  - Idaho State Tax Commission, "Sales Tax: Filing and Paying"
+    (https://tax.idaho.gov/taxes/sales-use/stfiling/) retrieved
+    2026-05-03 -- no holiday entries
+  - Idaho State Tax Commission, "Introduction to Medical Products
+    Exemption" (https://tax.idaho.gov/taxes/sales-use/exemptions/medical-products/introduction/)
+    retrieved 2026-05-03 -- 63-3622N exemption scope
+  - Justia codification of Title 63 Chapter 36
+    (https://law.justia.com/codes/idaho/title-63/chapter-36/)
+    retrieved 2026-05-03 -- cross-reference
+  - Idaho State Tax Commission, "City Sales Taxes"
+    (https://tax.idaho.gov/taxes/sales-use/sales-tax/local-sales-tax/city-sales-tax/)
+    retrieved 2026-05-03 -- resort-city local-option tax overview
+- **Module file:** `src/opensalestax/states/idaho.py`
+- **Last verified:** 2026-05-03 by per-state agent (Phase 6 Batch B)
+- *Notes:*
+  - Idaho is one of the small group of states (with HI, MS, SD, AL,
+    OK, KS, AR among others depending on year) that fully tax
+    groceries at the state sales-tax rate. The "Idaho grocery
+    credit" is a non-refundable INCOME-TAX credit administered under
+    the income-tax statutes -- it is NOT a reduction of the sales
+    tax owed at the register. The module's grocery taxability rule
+    explicitly documents this in the ``notes`` field, and the test
+    suite has a regression test asserting the notes mention both
+    "grocery credit" and "income-tax credit" so an integrator
+    skimming the rule cannot miss the distinction.
+  - The per-state research brief's initial sketch said "ID taxes
+    remotely accessed software (SaaS) per Idaho Code section
+    63-3616(b)" -- this is **incorrect**. Section 63-3616(b)
+    expressly EXCLUDES remotely accessed software / SaaS from the
+    TPP definition. The implementation here encodes the dominant
+    taxable case (downloaded canned software + permanent-right
+    digital media) and documents the SaaS exclusion in notes for
+    callers; a future sub-category split between "downloaded
+    digital media / canned software" and "SaaS / subscription
+    digital media" would let the engine distinguish them precisely.
+  - The Idaho State Tax Commission provides industry-specific guides
+    (food, medical, schools, computers, etc.) at
+    https://tax.idaho.gov/taxes/sales-use/online-guide/ -- valuable
+    follow-up reading for the next maintainer.
+  - Resort-city local-option taxes vary by city (typical 1-3%) and
+    by what the city ordinance taxes (some tax the full state-tax
+    base, some limit to lodging + restaurants + alcohol). When the
+    v0.7+ resort-city loader lands, encoding will need per-city
+    ordinance research; Stanley and Donnelly publish their own
+    ordinances online which are good starting points.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in
