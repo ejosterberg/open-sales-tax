@@ -28,6 +28,7 @@ from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateTier,
@@ -126,6 +127,11 @@ class SstStateModule:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         """No special cases tracked by tier-2 modules."""
+        return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """No sales-tax holidays tracked by default tier-2 modules."""
+        del year
         return iter(())
 
     # ---- helpers ----------------------------------------------------------

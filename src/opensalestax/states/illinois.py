@@ -37,6 +37,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -119,6 +120,11 @@ class Illinois:
         return _TAXABILITY.get(item_category)
 
     def special_cases(self) -> Iterable[SpecialCase]:
+        return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Illinois has no recurring annual sales-tax holiday in the current law."""
+        del year
         return iter(())
 
 

@@ -34,6 +34,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -112,6 +113,11 @@ class Pennsylvania:
         return _TAXABILITY.get(item_category)
 
     def special_cases(self) -> Iterable[SpecialCase]:
+        return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Pennsylvania has no annual sales-tax holidays."""
+        del year
         return iter(())
 
 

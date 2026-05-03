@@ -38,6 +38,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -122,6 +123,51 @@ class Florida:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Florida runs 4-5 annual sales-tax holidays set by legislation.
+
+        2026 dates encoded explicitly. Add subsequent years as the
+        Florida Legislature's annual tax-relief bill is published.
+        """
+        if year != 2026:
+            return iter(())
+        return iter(
+            [
+                HolidayWindow(
+                    name="Disaster Preparedness (2026)",
+                    starts_on=dt.date(2026, 6, 1),
+                    ends_on=dt.date(2026, 6, 14),
+                    applicable_categories=("emergency_supplies",),
+                    max_amount_per_item=None,
+                    notes="Batteries, generators, ice chests, etc.",
+                ),
+                HolidayWindow(
+                    name="Freedom Month (2026)",
+                    starts_on=dt.date(2026, 7, 1),
+                    ends_on=dt.date(2026, 7, 31),
+                    applicable_categories=("recreation", "entertainment"),
+                    max_amount_per_item=None,
+                    notes="Outdoor recreation gear, event admissions, etc.",
+                ),
+                HolidayWindow(
+                    name="Back-to-School (2026)",
+                    starts_on=dt.date(2026, 8, 1),
+                    ends_on=dt.date(2026, 8, 14),
+                    applicable_categories=("clothing", "school_supplies", "computers"),
+                    max_amount_per_item=Decimal("100.00"),
+                    notes="Clothing $100/less, supplies $50/less, computers $1500/less.",
+                ),
+                HolidayWindow(
+                    name="Tool Time (2026)",
+                    starts_on=dt.date(2026, 9, 5),
+                    ends_on=dt.date(2026, 9, 11),
+                    applicable_categories=("tools",),
+                    max_amount_per_item=None,
+                    notes="Tools and shop supplies for skilled trade workers.",
+                ),
+            ]
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Florida()

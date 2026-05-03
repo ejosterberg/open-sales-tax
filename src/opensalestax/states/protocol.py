@@ -90,6 +90,36 @@ class TaxabilityRule:
 
 
 @dataclass(frozen=True, slots=True)
+class HolidayWindow:
+    """A sales-tax holiday window the engine consults during calculation.
+
+    Holidays exempt specific item categories from tax during a date
+    window, sometimes with a per-item price cap. Examples:
+
+    - Texas Back-to-School: clothing/footwear/school supplies under
+      $100 per item, first weekend of August.
+    - Florida Disaster Preparedness: batteries, generators, etc.,
+      no per-item cap, two-week window in late May.
+
+    State modules return one or more :class:`HolidayWindow` instances
+    from :meth:`StateModule.holidays_for`. The loader persists them
+    as :class:`opensalestax.db.models.HolidayPeriod` rows; the engine
+    checks them in ``calculate_tax``.
+    """
+
+    name: str
+    starts_on: dt.date
+    ends_on: dt.date
+    applicable_categories: tuple[str, ...] | None = None
+    """None = applies to all categories. Tuple = exact category match."""
+
+    max_amount_per_item: Decimal | None = None
+    """Per-item price cap. None = no cap."""
+
+    notes: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class SpecialCase:
     """A state-specific quirk the calculation engine should consult.
 
@@ -155,5 +185,15 @@ class StateModule(Protocol):
         """Yield state-specific quirks the engine may consult.
 
         Phase 1 returns an empty iterable for every state.
+        """
+        ...
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Yield sales-tax holidays for the given calendar year.
+
+        Default state-module implementations return an empty
+        iterator (most states have no annual holidays). States with
+        holidays (TX, FL, MA, MD, ...) override this and return
+        the year's windows.
         """
         ...

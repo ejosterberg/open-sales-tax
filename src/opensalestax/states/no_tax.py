@@ -32,6 +32,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -80,6 +81,11 @@ class NoTaxState:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         """No special cases tracked at the state level for Phase 1."""
+        return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """No-tax states have no sales-tax holidays (no tax to suspend)."""
+        del year
         return iter(())
 
     def __repr__(self) -> str:

@@ -43,6 +43,7 @@ from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -163,6 +164,11 @@ class Minnesota:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         """No special cases tracked for MN in Phase 1."""
+        return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Minnesota has no annual sales-tax holidays."""
+        del year
         return iter(())
 
 

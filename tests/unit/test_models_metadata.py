@@ -21,6 +21,7 @@ EXPECTED_TABLES = {
     "boundaries",
     "taxability_rules",
     "api_keys",  # Phase 2 Section B
+    "holiday_periods",  # v0.5
 }
 
 

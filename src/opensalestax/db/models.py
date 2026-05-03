@@ -295,11 +295,75 @@ class ApiKey(Base):
         return f"<ApiKey {self.label!r} id={self.id} active={self.is_active}>"
 
 
+# --------------------------------------------------------------------------
+# holiday_periods -- per-state sales-tax holidays (Phase 5 / v0.5)
+# --------------------------------------------------------------------------
+class HolidayPeriod(Base):
+    """A sales-tax holiday window for a state.
+
+    Examples:
+    - Texas Back-to-School (first weekend of August): exempts
+      clothing/footwear/school supplies under $100 per item.
+    - Florida Disaster Preparedness: exempts batteries, generators,
+      etc. for two weeks in June.
+
+    During an active holiday window, the engine treats line items
+    in any of ``applicable_categories`` as non-taxable, with an
+    optional per-item ``max_amount`` cap.
+    """
+
+    __tablename__ = "holiday_periods"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    state_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(_FK_STATES_ID, ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    """Human-readable identifier ('Back to School 2026', etc.)."""
+
+    starts_on: Mapped[dt.date] = mapped_column(Date, nullable=False)
+    ends_on: Mapped[dt.date] = mapped_column(Date, nullable=False)
+    """Inclusive on both ends."""
+
+    # JSON array of category strings. NULL = applies to ALL categories.
+    applicable_categories: Mapped[Any | None] = mapped_column(JSON, nullable=True)
+
+    max_amount_per_item: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    """Per-item price cap. NULL = no cap."""
+
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    state: Mapped[State] = relationship()
+
+    __table_args__ = (Index("idx_holidays_state_dates", "state_id", "starts_on", "ends_on"),)
+
+    def covers(self, when: dt.date) -> bool:
+        """Return True if ``when`` falls inside this holiday window."""
+        return self.starts_on <= when <= self.ends_on
+
+    def applies_to(self, item_category: str, amount: Decimal) -> bool:
+        """Return True if a line item is covered by this holiday."""
+        if self.max_amount_per_item is not None and amount > self.max_amount_per_item:
+            return False
+        cats = self.applicable_categories
+        if cats is None:
+            return True
+        if isinstance(cats, list | tuple):
+            return item_category in cats
+        return False
+
+    def __repr__(self) -> str:
+        return (
+            f"<HolidayPeriod {self.name!r} state={self.state_id} {self.starts_on}->{self.ends_on}>"
+        )
+
+
 __all__ = [
     "ApiKey",
     "Base",
     "Boundary",
     "DataVersion",
+    "HolidayPeriod",
     "Rate",
     "State",
     "TaxAuthority",

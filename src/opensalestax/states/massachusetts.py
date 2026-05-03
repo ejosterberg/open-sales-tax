@@ -35,6 +35,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -119,6 +120,31 @@ class Massachusetts:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """MA's annual sales-tax holiday weekend (set by joint resolution).
+
+        2026 dates per MA Department of Revenue. Subsequent years
+        require updating once the General Court designates them.
+        """
+        if year != 2026:
+            return iter(())
+        return iter(
+            [
+                HolidayWindow(
+                    name="Annual Sales Tax Holiday (2026)",
+                    starts_on=dt.date(2026, 8, 8),
+                    ends_on=dt.date(2026, 8, 9),
+                    applicable_categories=None,  # broad: most personal use
+                    max_amount_per_item=Decimal("2500.00"),
+                    notes=(
+                        "Most retail items < $2500/item; excludes "
+                        "telecommunications, tobacco, alcohol, motor vehicles, "
+                        "boats, marijuana, meals."
+                    ),
+                ),
+            ]
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Massachusetts()

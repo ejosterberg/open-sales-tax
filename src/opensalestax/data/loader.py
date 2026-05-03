@@ -37,6 +37,7 @@ from opensalestax.data.sst import SstFilename, default_data_dir, file_url
 from opensalestax.db.models import (
     Boundary,
     DataVersion,
+    HolidayPeriod,
     Rate,
     State,
     TaxabilityRule,
@@ -72,6 +73,7 @@ class LoadSummary:
     boundaries_loaded: int
     taxability_rules_loaded: int
     authorities_created: int
+    holidays_loaded: int = 0
 
 
 class LoaderError(Exception):
@@ -180,6 +182,7 @@ async def load_state_data(
         self_seeded=self_seeded,
     )
     taxability_loaded = await _load_taxability(session, state_module, state_row.id)
+    holidays_loaded = await _load_holidays(session, state_module, state_row.id)
 
     await session.commit()
 
@@ -191,6 +194,7 @@ async def load_state_data(
         boundaries_loaded=boundaries_loaded,
         taxability_rules_loaded=taxability_loaded,
         authorities_created=len(authority_cache),
+        holidays_loaded=holidays_loaded,
     )
     logger.info("loader: %s", summary)
     return summary
@@ -316,6 +320,44 @@ async def _maybe_load_boundaries(
         )
         boundaries_loaded += 1
     return boundaries_loaded
+
+
+async def _load_holidays(session: AsyncSession, state_module: StateModule, state_id: int) -> int:
+    """Replace the state's holiday windows for the current year.
+
+    Loads only the current year for v0.5; multi-year history can
+    be added later by extending this loop.
+    """
+    current_year = dt.date.today().year
+    # Drop existing holidays for this state to keep load idempotent.
+    existing = list(
+        (await session.execute(select(HolidayPeriod).where(HolidayPeriod.state_id == state_id)))
+        .scalars()
+        .all()
+    )
+    for old in existing:
+        await session.delete(old)
+    if existing:
+        await session.flush()
+
+    holidays_loaded = 0
+    for window in state_module.holidays_for(current_year):
+        cats = (
+            list(window.applicable_categories) if window.applicable_categories is not None else None
+        )
+        session.add(
+            HolidayPeriod(
+                state_id=state_id,
+                name=window.name,
+                starts_on=window.starts_on,
+                ends_on=window.ends_on,
+                applicable_categories=cats,
+                max_amount_per_item=window.max_amount_per_item,
+                notes=window.notes,
+            )
+        )
+        holidays_loaded += 1
+    return holidays_loaded
 
 
 async def _load_taxability(session: AsyncSession, state_module: StateModule, state_id: int) -> int:

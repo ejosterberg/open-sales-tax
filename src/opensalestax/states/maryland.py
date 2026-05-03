@@ -31,6 +31,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -111,6 +112,40 @@ class Maryland:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Maryland's two annual sales-tax holidays.
+
+        2026 dates per the Maryland Comptroller. Both are
+        recurring statutorily; subsequent years follow the same
+        calendar pattern.
+        """
+        if year != 2026:
+            return iter(())
+        return iter(
+            [
+                HolidayWindow(
+                    name="Shop Maryland Energy (2026)",
+                    starts_on=dt.date(2026, 2, 14),
+                    ends_on=dt.date(2026, 2, 16),
+                    applicable_categories=("energy_star",),
+                    max_amount_per_item=None,
+                    notes="Energy Star products + solar water heaters; President's Day weekend.",
+                ),
+                HolidayWindow(
+                    name="Shop Maryland Tax-Free Week (2026)",
+                    starts_on=dt.date(2026, 8, 9),
+                    ends_on=dt.date(2026, 8, 15),
+                    applicable_categories=("clothing",),
+                    max_amount_per_item=Decimal("100.00"),
+                    notes=(
+                        "Clothing and footwear $100 or less per item; "
+                        "first $40 of a backpack/book bag also exempt. "
+                        "Second Sunday of August through following Saturday."
+                    ),
+                ),
+            ]
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Maryland()

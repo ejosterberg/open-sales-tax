@@ -30,7 +30,7 @@ from opensalestax.core.resolve import (
     combined_rate_pct,
     resolve_rates_for_authorities,
 )
-from opensalestax.db.models import State, TaxabilityRule
+from opensalestax.db.models import HolidayPeriod, State, TaxabilityRule
 
 # Tax amounts round to 4 dp internally. Display rounding is the
 # caller's job.
@@ -166,6 +166,18 @@ async def _tax_one_line(
     if not authorities:
         return _zero_line(item, note=no_jurisdiction_note)
 
+    # Holiday check -- if a holiday window covers this date + category +
+    # amount, the line is non-taxable for the duration.
+    if state_abbrev is not None:
+        holiday = await _matching_holiday(
+            session, state_abbrev, item.category, item.amount, eff_date
+        )
+        if holiday is not None:
+            return _zero_line(
+                item,
+                note=f"{holiday.name}: this line falls within a sales-tax holiday in {state_abbrev}.",
+            )
+
     # Taxability check -- a per-category rule may zero out this line.
     if state_abbrev is not None:
         rule = await _taxability_rule(session, state_abbrev, item.category, eff_date)
@@ -205,6 +217,43 @@ def _zero_line(item: LineItem, note: str | None) -> CalculatedLine:
         jurisdictions=[],
         note=note,
     )
+
+
+async def _matching_holiday(
+    session: AsyncSession,
+    state_abbrev: str,
+    item_category: str,
+    amount: Decimal,
+    effective_date: dt.date,
+) -> HolidayPeriod | None:
+    """Return the first holiday window covering this state + date + line item.
+
+    A line item is "covered" when:
+    1. The holiday's date range includes ``effective_date``,
+    2. ``applicable_categories`` is NULL (covers everything) OR
+       includes the requested category,
+    3. ``max_amount_per_item`` is NULL OR the line amount is at
+       or below it.
+    """
+    candidates = (
+        (
+            await session.execute(
+                select(HolidayPeriod)
+                .join(State, State.id == HolidayPeriod.state_id)
+                .where(
+                    State.abbrev == state_abbrev,
+                    HolidayPeriod.starts_on <= effective_date,
+                    HolidayPeriod.ends_on >= effective_date,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for holiday in candidates:
+        if holiday.applies_to(item_category, amount):
+            return holiday
+    return None
 
 
 async def _taxability_rule(

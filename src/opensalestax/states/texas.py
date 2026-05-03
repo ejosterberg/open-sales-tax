@@ -40,6 +40,7 @@ from pathlib import Path
 
 from opensalestax.states.protocol import (
     BoundaryRow,
+    HolidayWindow,
     RateRow,
     SpecialCase,
     StateModule,
@@ -124,6 +125,48 @@ class Texas:
 
     def special_cases(self) -> Iterable[SpecialCase]:
         return iter(())
+
+    def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
+        """Texas has 3 annual sales-tax holidays per Tex. Tax Code Chapter 151.
+
+        Dates rotate each year (last Saturday of April, etc.); 2026
+        dates encoded explicitly. Add subsequent years as legislation
+        is published.
+        """
+        if year != 2026:
+            return iter(())
+        # Per https://comptroller.texas.gov/taxes/publications/
+        return iter(
+            [
+                HolidayWindow(
+                    name="Emergency Preparation Supplies (2026)",
+                    starts_on=dt.date(2026, 4, 25),
+                    ends_on=dt.date(2026, 4, 27),
+                    applicable_categories=("emergency_supplies",),
+                    max_amount_per_item=Decimal("3000.00"),
+                    notes="Generators <$3000, hurricane shutters, batteries, etc.",
+                ),
+                HolidayWindow(
+                    name="Energy Star + Water-Efficient Products (2026)",
+                    starts_on=dt.date(2026, 5, 23),
+                    ends_on=dt.date(2026, 5, 25),
+                    applicable_categories=("energy_star", "water_efficient"),
+                    max_amount_per_item=None,
+                    notes="Memorial Day weekend; Energy Star + WaterSense items.",
+                ),
+                HolidayWindow(
+                    name="Back-to-School (2026)",
+                    starts_on=dt.date(2026, 8, 7),
+                    ends_on=dt.date(2026, 8, 9),
+                    applicable_categories=("clothing", "school_supplies"),
+                    max_amount_per_item=Decimal("100.00"),
+                    notes=(
+                        "First weekend of August; clothing, footwear, "
+                        "school supplies and backpacks under $100/item."
+                    ),
+                ),
+            ]
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Texas()
