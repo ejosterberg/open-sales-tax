@@ -51,6 +51,7 @@ from opensalestax.states import (
     south_carolina,  # noqa: F401
     texas,  # noqa: F401
     virginia,  # noqa: F401
+    washington,  # noqa: F401
     wisconsin,  # noqa: F401
 )
 from opensalestax.states.protocol import (

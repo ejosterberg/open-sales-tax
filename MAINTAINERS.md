@@ -51,18 +51,19 @@ requires a named maintainer.
 | Oklahoma | OK | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; HB 1955 of 2024 eliminated state-portion grocery tax effective 2024-08-29 -- locals still apply; August clothing/footwear $100 holiday under 68 O.S. 1357.10; digital goods NOT taxable per OAC 710:65-19-156)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
+| Washington | WA | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1 promotion; statewide 6.5% per RCW 82.08.020 -- one of the WIDEST combined-rate ranges in the country (~6.5%-10.35%) due to layered local-option / transit / RTA / PFD overlays under RCW chapter 82.14; King County / Seattle reaches the highest combined retail rates in the US alongside Chicago / parts of CA. Business & Occupation (B&O) gross-receipts tax under RCW chapter 82.04 is a separate seller-side tax and OUT OF SCOPE for this engine. Broad digital-services tax base per RCW 82.04.050(6) + 82.04.192 (chapter 535, Laws of 2009) reaches digital products + digital codes + digital automated services -- one of the broadest in the country. NO recurring sales-tax holiday.)_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 8 other Streamlined Sales Tax member states ship as tier 2 —
+The 7 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10; WA in v0.11 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: RI, SD, TN, UT, VT, WA, WV, WY.
+States: RI, SD, TN, UT, VT, WV, WY.
 
 ### No-tax states
 

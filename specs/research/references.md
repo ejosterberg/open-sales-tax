@@ -3243,6 +3243,259 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+## WA -- Washington
+
+- **Statewide rate:** **6.500% effective 1983-07-01** (raised
+  from 5.4% to 6.5% by chapter 7, Laws of 1983 1st Ex. Sess.;
+  rate codified at RCW section 82.08.020(1). The 6.5% state
+  rate has been stable since.)
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: 53.
+- **Local jurisdictions:** Cities, counties, transit districts
+  (PTBA / RTA / TBD / HCT), public-facility districts (PFDs),
+  and various special-purpose districts may impose layered
+  local-option sales taxes under RCW chapter 82.14 and related
+  authorities:
+  - **RCW chapter 82.14** -- master local-option sales /
+    use tax chapter (county + city general local-option
+    typically 0.5% + optional 0.5% under RCW 82.14.030(1)
+    and 82.14.030(2))
+  - **RCW chapter 36.57A + RCW 82.14.045** -- public
+    transportation benefit areas (PTBAs); voter-approved
+    transit sales tax up to 0.9%
+  - **RCW 81.104.170 + RCW 82.14.0455** -- regional transit
+    authority (RTA) sales tax; Sound Transit (King /
+    Pierce / Snohomish RTA) imposes 1.4% under the ST3
+    expansion approved 2016-11-08
+  - **RCW 82.14.048 / 82.14.0485 / 82.14.0494** -- public
+    facility district (PFD) sales tax; voter-approved
+    typically 0.1%-0.2% for qualifying capital projects
+  - **RCW chapter 36.73 + RCW 82.14.0455** -- transportation
+    benefit district (TBD) sales tax; voter-approved up to
+    0.2% for transportation projects
+  - **RCW 82.14.340 / 82.14.450 / 82.14.460** -- county-level
+    voter-approved overlays for criminal justice / mental
+    health / chemical dependency programs
+
+  Combined statewide-plus-local general rates therefore range
+  from the **6.5% state-only floor** (in unincorporated areas
+  of low-tax counties with no special-district overlay) through
+  approximately **10.35% in parts of King County / Seattle**
+  (the highest combined retail rates in the country alongside
+  Chicago, IL and parts of LA County, CA -- verified 2026-05-03
+  against the WA Department of Revenue's Local Sales Tax Rate
+  Lookup tool). WA is one of only a handful of states (along
+  with CO and CA) where a single transaction's combined rate
+  can vary by more than 3 percentage points depending purely on
+  the buyer's specific street address. As an SST member, WA's
+  per-jurisdiction rates flow through the standard SST quarterly
+  rate file via the inherited :class:`SstStateModule` parser;
+  no manual loader needed.
+- **Sales-tax holidays:** **NONE.** Washington has **never**
+  enacted a recurring sales-tax holiday. Confirmed 2026-05-03
+  against the Washington Department of Revenue's published
+  guidance and a search of RCW chapter 82.08 for any periodic
+  exemption window. ``holidays_for(year)`` returns the empty
+  iterator for every year (mirrors KY, IN, MI, DC, ID, NE, ND,
+  NJ, NC, KS). The only periodic exemption-style relief WA has
+  implemented was a temporary 2024 manufacturing-input window
+  (chapter 419, Laws of 2024) which ran for a limited window in
+  2024 only and applied to a narrow set of qualifying
+  manufacturing inputs -- NOT a consumer-facing holiday and NOT
+  re-encoded as a recurring window.
+- **Threshold rules:** none. WA does NOT have a threshold-based
+  clothing exemption (contrast with NY's $110-per-item and MA's
+  $175-per-item).
+- **DOR URL:** **https://dor.wa.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (RCW Title 82, Chapter 8 -- retail sales
+  tax; Chapter 4 -- B&O tax + definitions; Chapter 14 -- local
+  option):**
+  - RCW section 82.08.020(1) -- imposition of the state retail
+    sales tax at 6.5% of the selling price
+  - RCW section 82.08.0281 -- exemption for prescription drugs
+    (plus insulin and certain related medical items via RCW
+    82.08.0283 et seq.)
+  - RCW section 82.08.0293 -- exemption for food and food
+    ingredients (added by chapter 7, Laws of 1977 1st Ex. Sess.
+    -- one of the oldest broad food sales-tax exemptions in
+    the country; uses the SST-uniform definition; excludes
+    candy, soft drinks, dietary supplements, prepared food,
+    and bottled water)
+  - RCW section 82.04.050 -- definition of "retail sale"
+    (extended in 2009 to include digital products / digital
+    codes / digital automated services per chapter 535, Laws
+    of 2009)
+  - RCW section 82.04.050(6) -- specifically the digital-
+    products / digital-codes / digital-automated-services
+    extension to the "retail sale" definition
+  - RCW section 82.04.192 -- defined terms for digital
+    products, digital codes, and digital automated services
+    (added by chapter 535, Laws of 2009; SST-uniform
+    definitions for the "specified digital products" subset
+    plus WA-specific extensions)
+  - RCW section 82.04.192(3)(b) -- statutory carve-outs from
+    the "digital automated services" definition (data-
+    processing services, professional services delivered
+    electronically, etc.)
+  - RCW chapter 82.04 -- the Business & Occupation (B&O) gross-
+    receipts tax (separate from sales tax; OUT OF SCOPE for
+    this engine -- see Notes below)
+  - RCW section 82.04.250 -- B&O retailing classification
+    (0.471%)
+  - RCW section 82.04.270 -- B&O wholesaling classification
+    (0.484%)
+  - RCW section 82.04.240 -- B&O manufacturing classification
+    (0.484%)
+  - RCW section 82.04.290 -- B&O service & other activities
+    classification (1.5% or 1.75% depending on annual gross
+    receipts)
+  - RCW chapter 82.14 -- local option sales / use tax (master
+    local-option chapter)
+  - RCW chapter 36.57A -- public transportation benefit areas
+    (PTBAs)
+  - RCW section 81.104.170 + RCW 82.14.0455 -- regional transit
+    authority (RTA) sales tax (Sound Transit ST3 1.4%)
+  - RCW chapter 36.73 -- transportation benefit districts
+    (TBDs)
+  - chapter 7, Laws of 1983 1st Ex. Sess. -- the rate increase
+    from 5.4% to 6.5% (the current rate has been stable since)
+  - chapter 7, Laws of 1977 1st Ex. Sess. -- the original food
+    sales-tax exemption (RCW 82.08.0293)
+  - chapter 535, Laws of 2009 (S.S.B. 5295) -- the digital-
+    products / digital-codes / digital-automated-services
+    extension to the retail sales-tax base; effective
+    2009-07-26
+  - chapter 419, Laws of 2024 -- the temporary 2024
+    manufacturing-input sales tax exemption window (NOT
+    re-encoded as a recurring holiday; documented for
+    completeness)
+- *Sources for rate/taxability:*
+  - Washington Department of Revenue -- Sales and Use Tax
+    landing page (https://dor.wa.gov/), retrieved 2026-05-03
+    -- confirms 6.5% statewide rate, food / prescription-drug
+    exemptions, broad digital-services tax base, and the
+    layered local-option overlay structure
+  - Washington Department of Revenue -- Local Sales Tax Rate
+    Lookup tool (https://dor.wa.gov/find-taxes-rates/sales-and-use-tax-rates/local-sales-and-use-tax-rates-by-address),
+    retrieved 2026-05-03 -- confirms the ~10.35% combined-rate
+    ceiling reached in parts of King County / Seattle and
+    documents address-level rate variance
+  - Washington Department of Revenue -- Business & Occupation
+    Tax landing page (https://dor.wa.gov/taxes-rates/business-occupation-tax),
+    retrieved 2026-05-03 -- confirms the B&O is a separate
+    seller-side gross-receipts tax (not a transactional sales
+    tax) with classification-based rates ranging from 0.471%
+    (retailing) to 1.75% (high-revenue services)
+  - Washington Department of Revenue -- Digital Products
+    sales-tax guidance (https://dor.wa.gov/education/industry-guides/digital-products),
+    retrieved 2026-05-03 -- elaborates the digital-products /
+    digital-codes / digital-automated-services taxability
+    rules including the statutory carve-outs in RCW
+    82.04.192(3)(b)
+  - Revised Code of Washington (RCW) Titles 82 and 36 via the
+    Washington Legislature's online code
+    (https://app.leg.wa.gov/rcw/), retrieved 2026-05-03 --
+    primary source for every statutory citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Washington is a full
+    member
+  - SST taxability matrix for Washington (published quarterly
+    on streamlinedsalestax.org) -- cross-checked 2026-05-03
+    for the food-and-food-ingredients exemption scope, the
+    prescription-drug exemption scope, and the digital-products
+    treatment
+- **Module file:** `src/opensalestax/states/washington.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wa branch; Phase 7 -- tier-2 to tier-1 promotion)
+- *Notes:*
+  - **Business & Occupation (B&O) tax is OUT OF SCOPE** per
+    RCW chapter 82.04. Washington uniquely (among the ~45
+    states with a general retail sales tax) also imposes a
+    separate B&O gross-receipts tax on persons engaging in
+    business activities within the state. The B&O is a
+    SELLER-SIDE tax on the seller's gross business income
+    (NOT a buyer-facing transactional sales tax that the
+    SELLER COLLECTS FROM THE BUYER), conceptually similar to
+    Ohio's CAT or Oregon's CAT. Rate varies by business
+    classification (0.471% retailing per RCW 82.04.250; 0.484%
+    wholesaling per RCW 82.04.270; 0.484% manufacturing per
+    RCW 82.04.240; 1.5%-1.75% service / other per RCW
+    82.04.290; assorted specialty rates per RCW 82.04.255 et
+    seq.). A seller operating in WA computes its B&O liability
+    via the WA DOR's E-File / My DOR system or accounting
+    integration -- NOT via OpenSalesTax. Some sellers pass the
+    B&O through to buyers as an explicit invoice line item
+    (e.g. "B&O surcharge: 0.471% added to invoice"); this is
+    a SELLER PRICING CHOICE, not a tax OpenSalesTax should
+    compute. An integrator wishing to model B&O surcharges as
+    buyer-visible line items must do so as a custom line-item
+    type outside this engine.
+  - **Wide combined-rate range (~6.5%-10.35%)** is the headline
+    integrator-awareness item. The combined retail sales-tax
+    rate at any specific WA address is the sum of the 6.5%
+    state rate plus every overlapping local-jurisdiction rate
+    applicable at that address (cities, counties, PTBAs, RTA
+    [Sound Transit ST3], PFDs, TBDs, criminal-justice /
+    public-safety overlays, etc.). King County / Seattle reaches
+    ~10.35% -- among the highest combined retail sales-tax
+    rates in the country alongside Chicago, IL and parts of
+    LA County, CA. Integrators must NOT assume a single
+    "Seattle area" or "King County" rate; the actual combined
+    rate at any given delivery address must come from the SST
+    quarterly file (or DOR's address-level rate lookup tool)
+    -- the inherited :class:`SstStateModule` parser handles
+    this automatically once the SST file is loaded.
+  - **Broad digital-services tax base** per RCW 82.04.050(6) +
+    RCW 82.04.192 (added by chapter 535, Laws of 2009; S.S.B.
+    5295 of the 61st Legislature; effective 2009-07-26).
+    Washington has one of the BROADEST digital-product tax
+    bases in the country: in addition to the SST-uniform
+    "specified digital products" (digital audio works, digital
+    audiovisual works, digital books), WA also taxes "digital
+    codes" (codes that allow the user to obtain digital
+    products) and "digital automated services" (services that
+    use one or more software applications to perform a service
+    for the customer). The digital-automated-services category
+    in particular reaches many cloud / SaaS / streaming
+    offerings that other states do NOT reach. Statutory
+    carve-outs in RCW 82.04.192(3)(b) exclude certain
+    enumerated services (data-processing services, professional
+    services delivered electronically, etc.); integrators
+    selling DAS-style services should consult RCW
+    82.04.192(3)(b) and applicable WA DOR Excise Tax Advisories
+    (ETAs) for ambiguous edge cases. The default
+    ``digital_goods`` rule is TAXABLE.
+  - **No clothing exemption, no threshold, no holiday.** WA
+    does NOT join the broad clothing-exemption states (PA, MA,
+    MN, NJ, VT) and does NOT have a threshold-based exemption
+    (NY $110, MA $175). The taxability rule for the
+    ``clothing`` category is TAXABLE year-round at 6.5% plus
+    local. The clothing rule's notes explicitly document all
+    three negatives so a future maintainer cannot accidentally
+    copy from an exempt-clothing state.
+  - **No sales-tax holiday history to backfill.** WA has never
+    enacted a consumer-facing back-to-school or general-purpose
+    sales-tax holiday. The 2024 manufacturing-input window
+    (chapter 419, Laws of 2024) was a one-time temporary
+    measure for a narrow set of qualifying manufacturing inputs
+    and is intentionally NOT re-encoded as a recurring window
+    -- doing so would risk a future maintainer extrapolating
+    it forward in violation of the "no extrapolation" rule
+    applied across all WA-style no-holiday states.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WA's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    which should match WA's structure given uniform SST file
+    formats observed across other member states. Validating
+    against an actual ``WAR<...>.csv`` file is a low-priority
+    maintenance task for the next quarterly data-refresh cycle.
+  - **Rate has been stable** at 6.5% since 1983-07-01; no
+    scheduled rate change for the general rate is currently in
+    the legislative pipeline that this research found.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
