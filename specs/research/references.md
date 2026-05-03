@@ -1375,14 +1375,14 @@ Format for each state:
 
 ### Tier-2 SST states (rate-only, default taxability)
 
-18 states load via the generic `SstStateModule` in
+17 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN,
+KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN,
 UT, VT, WA, WV, WY
 
-(AR, GA, IA, and IN were promoted to tier 1 in v0.8 -- see their
-dedicated sections in this document.)
+(AR, GA, IA, IN, and KS were promoted to tier 1 in v0.8 -- see
+their dedicated sections in this document.)
 
 ## IA -- Iowa
 
@@ -1670,6 +1670,120 @@ default taxability (everything taxable except groceries). To
     per-item cap, distinguishing AR's holiday from many peers.
   - The holiday exempts BOTH state AND local sales/use tax
     during the window.
+
+### KS -- Kansas
+
+- **Statewide rate:** **6.500% effective 2015-07-01** (raised from
+  5.3% to 6.5% by 2015 House Substitute for Senate Bill 270;
+  stable at 6.5% since)
+- **Tax model:** sales tax (SST -- full member; verified 2026-05-03
+  against the SST member roster on streamlinedsalestax.org)
+- **Local jurisdictions:** counties + cities + special districts
+  (Community Improvement Districts -- CIDs under K.S.A. chapter
+  12, article 60; Transportation Development Districts -- TDDs
+  under K.S.A. chapter 12, article 17; Star Bonds and
+  redevelopment districts). Combined rates commonly fall in the
+  8-11% range, with the highest rates appearing inside CIDs in
+  major-metro retail corridors. SST member status means rate data
+  flows through the inherited :class:`SstStateModule` parser.
+- **Sales-tax holidays:** **NONE.** Kansas has never enacted a
+  recurring sales-tax holiday. Confirmed 2026-05-03 against the
+  Kansas Department of Revenue's published guidance and a search
+  of K.S.A. chapter 79, article 36 for any periodic exemption
+  window. Multiple legislative proposals (most recently 2024 H.B.
+  2680 proposing a back-to-school holiday) have been introduced
+  but none has passed. ``holidays_for(year)`` returns the empty
+  iterator for every year (mirrors DC, ID, and IN).
+- **Threshold rules:** none.
+- **Reduced rates:** **groceries (food and food ingredients)
+  taxed at the state-portion 0.000% rate effective 2025-01-01**
+  per the Kansas grocery rate phase-down enacted by Senate
+  Substitute for House Bill 2106 (2022 session), codified at
+  K.S.A. section 79-3603(p). MAJOR RECENT CHANGE -- phase-down
+  history:
+
+    - Pre-2023-01-01: 6.5% state rate (full general rate)
+    - 2023-01-01 to 2023-12-31: 4.0% state rate
+    - 2024-01-01 to 2024-12-31: 2.0% state rate
+    - 2025-01-01 onward: 0.000% state rate
+
+  Local sales tax (county, city, CID, TDD) STILL applies at the
+  full local rate -- only the state portion was zeroed. Encoded
+  with `rate_modifier=Decimal("0.000")` per the AR Grocery Tax
+  Relief Act pattern.
+- **DOR URL:** **https://www.ksrevenue.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (K.S.A. chapter 79, article 36 -- Kansas
+  retailers' sales tax):**
+  - K.S.A. section 79-3603(a) -- imposition of the 6.5% state
+    retailers' sales tax on retail transactions
+  - K.S.A. section 79-3603(d) -- imposition on specified digital
+    products and digital codes (as amended by 2021 S.B. 50,
+    effective 2021-07-01)
+  - K.S.A. section 79-3603(p) -- reduced state rate on food and
+    food ingredients (phased 4.0% in 2023, 2.0% in 2024, 0.000%
+    from 2025-01-01 per S. Sub. for H.B. 2106 of the 2022 session)
+  - K.S.A. section 79-3602(o) -- statutory definition of "food
+    and food ingredients" (tracks the SST common definition)
+  - K.S.A. section 79-3606(p) -- exemption for prescription
+    drugs, prosthetic devices, mobility-enhancing equipment, and
+    insulin sold for human use
+- *Sources for rate/taxability:*
+  - **Kansas Department of Revenue** "Sales (Retailers) Tax"
+    landing page at https://www.ksrevenue.gov/ (retrieved
+    2026-05-03 -- confirms 6.5% statewide rate and phase-down
+    schedule for groceries)
+  - **Kansas DOR Notice 22-15** "Sales Tax Requirements
+    Pertaining to Food and Food Ingredients" (the 2022 notice
+    explaining the H.B. 2106 phase-down schedule and the
+    excluded categories)
+  - **Kansas DOR Notice 23-13** / **24-04** (annual updates
+    confirming each step of the phase-down -- 4% to 2% to 0%)
+  - **Kansas DOR Notice 21-15** "Streamlined Sales Tax /
+    S.B. 50" -- summary of 2021 S.B. 50 changes including
+    digital products and marketplace facilitator provisions
+  - **Kansas Statutes Annotated** at
+    http://www.kslegislature.org/li/b2025_26/statute/079_000_0000_chapter/
+    (primary source for every statutory citation above; chapter
+    79, article 36 is the retailers' sales tax act)
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Kansas is a full member
+- **Module file:** `src/opensalestax/states/kansas.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ks branch; Phase 7 SST tier-2 to tier-1
+  promotion)
+- *Notes:*
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    KS's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    documented in the module docstring. Validating against an
+    actual `KSR<...>.csv` file is the natural next maintenance
+    task -- districts (CIDs, TDDs, Star Bond) are particularly
+    worth checking because of the variety of special-district
+    types Kansas authorizes under chapter 12.
+  - **Grocery phase-down** is the headline 2026 fact. Kansas
+    joined the small group of states with a fully eliminated
+    state-portion grocery rate (alongside AR effective
+    2026-01-01). The local portion still applies, so the engine
+    -- which currently does not honor `rate_modifier` -- will
+    over-collect on KS grocery line items by the 6.5% state
+    portion until v0.6+ wires `rate_modifier` through. Documented
+    in the grocery TaxabilityRule notes and the module docstring.
+  - **Digital goods is a 2021-07-01 change.** Pre-S.B. 50, KS's
+    sales tax did not reach electronically-delivered specified
+    digital products. The TaxabilityRule notes call out the
+    2021 S.B. 50 origin so a future maintainer doesn't mistake
+    the current treatment for a long-standing position. SaaS /
+    remotely accessed software remains non-taxable and is
+    documented for follow-up.
+  - **No sales-tax holiday** is the second headline. Kansas has
+    NEVER enacted a recurring sales-tax holiday despite repeated
+    legislative attempts; encoded as the empty iterator and
+    exercised by a per-year regression test for 2024-2030.
+  - **Tier-2 list update:** Kansas removed from `_tier2.py`;
+    list count drops from 18 to 17 (KY, MI, NE, NV, NJ, NC, ND,
+    OH, OK, RI, SD, TN, UT, VT, WA, WV, WY).
 
 ## §4. Per-state references — TEMPLATE for new entries
 
