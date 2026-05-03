@@ -2667,6 +2667,209 @@ default taxability (everything taxable except groceries). To
     scheduled rate change is currently in the legislative
     pipeline that this research found.
 
+## NC -- North Carolina
+
+- **Statewide rate:** **4.750% effective 2011-10-15** (raised
+  from 4.5% to 4.75% by S.L. 2011-145 section 31A.1, the 2011
+  budget act; codified at N.C.G.S. section 105-164.4(a). The
+  4.75% state rate has been stable since.)
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org)
+- **Local jurisdictions:** counties impose layered local sales
+  taxes by voter approval and statutory authorization under
+  N.C.G.S. Chapter 105, Subchapter VIII (Articles 39, 40, 42,
+  43, 46) and related provisions. Typical county stack: 2.00%
+  Article 39 (section 105-466) + 0.50% Article 40 (section
+  105-480) + 0.50% Article 42 (section 105-495) + voter-
+  approved Article 43/46 transit/education/general option
+  layers (Mecklenburg, Durham, Orange, Wake, etc.). Combined
+  state + local general rates typically fall in the 6.75%-7.50%
+  range. As an SST member, NC's per-jurisdiction rates flow
+  through the standard SST quarterly file.
+- **Notable rate exception -- the unusual "food county tax"
+  structure:** groceries (food and food ingredients) are
+  EXEMPT from the state 4.75% portion under N.C.G.S. section
+  105-164.13B(a) (the "food exemption"), but a uniform 2.00%
+  LOCAL food tax under N.C.G.S. section 105-468.1 (the
+  "Article 39A food county tax") applies in EVERY one of the
+  100 NC counties. Net effective statewide grocery rate is
+  therefore **2.00%** (state portion 0% + uniform 2% local
+  food county tax). The structure is unusual: rather than the
+  standard state-and-local layering, the General Assembly
+  excluded qualifying food from the state portion AND from
+  the regular Article 39/40/42 local sales taxes, then re-
+  imposed a single uniform 2.00% county-level food tax that
+  is mandatory statewide. Encoded with
+  ``rate_modifier=Decimal("2.000")`` on the groceries
+  TaxabilityRule (mirrors the MS / VA / MO rate_modifier
+  pattern; differs in that NC's state portion is fully ZERO
+  and the 2% is a separate statutory LOCAL food tax rather
+  than a reduced state rate, but the in-engine encoding is
+  identical). Items NOT meeting the SST "food and food
+  ingredients" definition (candy, soft drinks, dietary
+  supplements, alcoholic beverages, tobacco) and prepared
+  food remain at the full combined rate per section
+  105-164.13B(a)(1).
+- **Sales-tax holidays:** **NONE.** North Carolina REPEALED
+  its annual back-to-school sales-tax holiday (former
+  N.C.G.S. section 105-164.13C) effective **2014** by S.L.
+  2013-316 section 4.1 (the 2013 tax-reform act). NC also
+  repealed its annual Energy Star sales-tax holiday by the
+  same act. From the 2002 enactment of the back-to-school
+  holiday (S.L. 2002-126 section 30A.1) through 2013, North
+  Carolina held an annual August holiday exempting clothing
+  under $100, school supplies under $100, sports/recreation
+  equipment under $50, computers under $3,500, and computer
+  accessories. The 2013 General Assembly let the holiday
+  expire as part of broader tax-base broadening; the
+  underlying authorizing statute was repealed. The General
+  Assembly has not re-enacted any sales-tax holiday since.
+  ``holidays_for(year)`` returns the empty iterator for every
+  year (mirrors DC, ID, IN, KS, GA).
+- **Threshold rules:** none in current law. (Pre-2014 the
+  back-to-school holiday had per-item caps but those are no
+  longer applicable.)
+- **DOR URL:** **https://www.ncdor.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (N.C.G.S. Chapter 105 -- Taxation,
+  Article 5 -- Sales and Use Tax, and Subchapter VIII --
+  Local Government Sales and Use Tax):**
+  - N.C.G.S. section 105-164.4(a)(1) -- 4.75% state retail
+    sales/use tax rate (raised from 4.5% to 4.75% by S.L.
+    2011-145 section 31A.1 effective 2011-10-15)
+  - N.C.G.S. section 105-164.4(a)(6b) -- imposition of state
+    sales/use tax on "digital property" / specified digital
+    products (added by S.L. 2009-451 section 27A.4(a),
+    effective 2010-01-01)
+  - N.C.G.S. section 105-164.3 -- definitions (incorporates
+    the SST-uniform "food and food ingredients" definition;
+    defines "specified digital products," "prewritten
+    computer software," "tangible personal property")
+  - N.C.G.S. section 105-164.13(13) -- exemption for
+    prescription drugs (drugs required by federal law to be
+    dispensed only on prescription, plus insulin sold to a
+    pharmacist for a person with diabetes diagnosed by a
+    licensed physician, and certain related prescribed
+    medical items)
+  - N.C.G.S. section 105-164.13B(a) -- exemption from the
+    state sales tax for "food" as defined in section
+    105-164.3 (the "food exemption"; expressly excludes
+    prepared food, candy, soft drinks, dietary supplements,
+    alcoholic beverages, and tobacco)
+  - N.C.G.S. section 105-468.1 -- the uniform 2.00% local
+    "food county tax" (Article 39A); applies in every NC
+    county to qualifying food and food ingredients despite
+    the section 105-164.13B(a) state exemption
+  - N.C.G.S. section 105-466 (Article 39 first one-cent
+    local option), section 105-480 (Article 40 first one-
+    half cent), section 105-495 (Article 42 second one-half
+    cent), and the Article 43/46 transit / education /
+    general option overlays -- the per-county local sales
+    tax authorizing statutes
+  - Former N.C.G.S. section 105-164.13C -- the repealed
+    back-to-school sales-tax holiday (enacted by S.L.
+    2002-126 section 30A.1; REPEALED by S.L. 2013-316
+    section 4.1 effective 2014)
+- *Sources for rate/taxability:*
+  - North Carolina Department of Revenue Sales and Use Tax
+    landing page (https://www.ncdor.gov/taxes-forms/sales-and-use-tax),
+    retrieved 2026-05-03 -- confirms 4.75% state rate, the
+    2.00% uniform food county tax, and prescription/food
+    exemptions
+  - North Carolina Department of Revenue Sales and Use Tax
+    Bulletins (https://www.ncdor.gov/documents/sales-use-tax-bulletins),
+    retrieved 2026-05-03 -- primary source for the SaaS /
+    custom-software taxability position cited in the digital-
+    goods rule (Bulletin section 44-2 on computer hardware,
+    software, and digital products)
+  - North Carolina General Assembly online statutes
+    (https://www.ncleg.gov/Laws/GeneralStatutes), retrieved
+    2026-05-03 -- primary source for every statutory citation
+    above
+  - North Carolina Session Laws S.L. 2011-145 (the 2011
+    budget act / "Current Operations and Capital
+    Improvements Appropriations Act of 2011") section 31A.1,
+    available at https://www.ncleg.gov/Sessions/2011/Bills/House/PDF/H200v8.pdf,
+    retrieved 2026-05-03 -- primary source for the 2011
+    rate increase from 4.5% to 4.75%
+  - North Carolina Session Laws S.L. 2013-316 (the 2013
+    tax-reform act / "Tax Simplification and Reduction Act"),
+    available at https://www.ncleg.gov/Sessions/2013/Bills/House/PDF/H998v9.pdf,
+    retrieved 2026-05-03 -- primary source for the 2014
+    repeal of the back-to-school and Energy Star sales-tax
+    holidays (section 4.1)
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms North Carolina is a
+    full SST member
+- **Module file:** `src/opensalestax/states/north_carolina.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-nc branch; SST tier-2 -> tier-1 promotion as
+  part of the Phase 7 SST ratchet)
+- *Notes:*
+  - **The food county tax is the headline distinction.** The
+    state-exempt-but-2%-local-food-county-tax structure is
+    unusual among US states (most states either exempt food
+    fully or tax it at a reduced rate uniformly across state
+    + local). NC's structure is encoded in a single
+    ``rate_modifier=Decimal("2.000")`` on the groceries rule,
+    documented prominently in the module docstring, and
+    enforced by a regression test that asserts both
+    controlling statutes (105-164.13B and 105-468.1) appear
+    in the rule's notes. The MS/VA/MO precedents already
+    establish the rate_modifier pattern for state-vs-local
+    grocery rate splits; NC fits the same engine encoding
+    even though its statutory structure differs.
+  - **The 2014 repeal of the back-to-school holiday is a key
+    historical fact** that an integrator may miss if
+    researching from older sources. The
+    ``holidays_for(year)`` regression test exercises a wide
+    window of years (2014-2030) to confirm the empty-
+    iterator default is never accidentally overridden with a
+    future-year extrapolation. Should the General Assembly
+    re-authorize a holiday in a future session, a maintainer
+    must explicitly add the year's data; the empty iterable
+    is intentional regression protection.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    NC's actual rate-file codes were not empirically
+    validated at promotion time. The module defaults to the
+    canonical MN/WI/IA mapping (45=state, 00=county,
+    01=city, 63=district), documented in the module
+    docstring. Validating against an actual `NCR<...>.csv`
+    file (and confirming how Article 39A food county tax
+    rows are encoded -- whether as a separate row or folded
+    into the per-county figure) is the natural next
+    maintenance task.
+  - **Digital goods is a 2010-01-01 change** (S.L. 2009-451
+    section 27A.4(a)). Pre-2010 NC's sales tax did not
+    reach electronically-delivered specified digital
+    products. The TaxabilityRule notes call out the S.L.
+    2009-451 origin so a future maintainer doesn't mistake
+    the current treatment for a long-standing position.
+  - **SaaS distinction lives in NC DOR Sales and Use Tax
+    Bulletin section 44-2.** North Carolina taxes prewritten
+    ("canned") software delivered electronically but does
+    NOT tax true SaaS / remotely accessed software (where
+    the customer takes neither possession nor control of the
+    software) or custom software. The dominant case
+    (specified digital products with permanent right of use)
+    is encoded as taxable; the SaaS exception is documented
+    in the digital_goods rule's notes for follow-up if/when
+    a sub-category split lands.
+  - **Narrow per-county prepared-food and beverage taxes**
+    exist in a handful of NC counties (notably the
+    Mecklenburg County Convention Center Act 1.0% prepared-
+    food and beverage tax) but are NOT modeled by this
+    module -- they are narrow industry-specific levies
+    authorized by individual local-and-private-laws acts,
+    not general sales taxes. Documented in the prepared_food
+    rule's notes for the next maintainer who chooses to
+    model meals-tax-specific calculations.
+  - **General rate is stable** at 4.75% since 2011-10-15;
+    no scheduled change is currently in the legislative
+    pipeline that this research found.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
