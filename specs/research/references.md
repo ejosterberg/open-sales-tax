@@ -3243,6 +3243,140 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+### **WY -- Wyoming** *(Phase 7 final SST promotion)*
+
+- **Statewide rate:** **4.0% effective 1993-07-01** (raised from
+  3% to 4% by Senate Enrolled Act 31 of the 1993 Wyoming
+  Legislature; in continuous effect since)
+- **Tax model:** sales tax (Selective Sales Tax Act of 1937, Wyo.
+  Stat. Title 39, Chapter 15, as amended)
+- **Local jurisdictions:** counties (general-purpose option up to
+  1% under Wyo. Stat. section 39-15-204(a)(i); specific-purpose
+  option up to 1% under Wyo. Stat. section 39-15-204(a)(iii));
+  combined rates typically 4%-7%
+- **Sales-tax holidays:** **NONE** -- WY has NEVER enacted a
+  sales-tax holiday of any kind
+- **Threshold rules:** none
+- **Digital goods:** **NOT TAXABLE** -- the sales-tax base is
+  statutorily limited to tangible personal property plus a
+  closed list of enumerated services per Wyo. Stat. section
+  39-15-103(a)(i); the Wyoming Legislature has NOT extended
+  the base to "specified digital products"
+- **Phase 7 milestone:** WY is the **FINAL Streamlined Sales Tax
+  member promoted from tier 2 to tier 1**. With this module
+  shipped, every SST member state has a fully-maintained tier-1
+  taxability matrix grounded in primary statutory sources. This
+  completes the SST tier-2 -> tier-1 ratchet that started in v0.8
+  with AR/GA/IA/IN, continued through v0.9 KS/KY/MI/NE/NV and
+  v0.10 NC/ND/NJ/OH/OK, and concludes at v0.11 with WY.
+- **DOR URL:** **https://revenue.wyo.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted:**
+  - Wyo. Stat. section 39-15-103(a)(i) -- imposition paragraph;
+    base limited to tangible personal property + enumerated
+    services
+  - Wyo. Stat. section 39-15-104(a) -- 4% state rate
+  - Wyo. Stat. section 39-15-105(a)(iii)(C) -- food-for-domestic-
+    home-consumption exemption (effective 2006-07-01 per Senate
+    Enrolled Act 64 of the 2006 Wyoming Legislature)
+  - Wyo. Stat. section 39-15-105(a)(viii) -- prescription drug
+    exemption (covers prescription drugs, insulin, hypodermic
+    syringes for human use, oxygen and oxygen-delivery
+    equipment for human use, prosthetic devices)
+  - Wyo. Stat. section 39-15-204(a)(i) -- general-purpose
+    county sales tax up to 1% ("5th penny")
+  - Wyo. Stat. section 39-15-204(a)(iii) -- specific-purpose
+    county sales tax up to 1% ("6th penny")
+- *Sources for rate/taxability:*
+  - **Wyoming Department of Revenue main page**
+    (https://revenue.wyo.gov/), retrieved 2026-05-03 --
+    confirms 4% state rate
+  - **Wyoming Department of Revenue Excise Tax Division**
+    (https://revenue.wyo.gov/divisions/excise-tax),
+    retrieved 2026-05-03 -- main excise-tax landing page;
+    confirms statewide 4% rate and lists current sales/use/
+    lodging tax rate chart for all 23 counties
+  - **Wyoming Department of Revenue Excise Tax Publications**
+    (https://revenue.wyo.gov/divisions/excise-tax/excise-tax-publications),
+    retrieved 2026-05-03 -- "Sales, Use and Lodging Tax Rate
+    Chart" published quarterly with current per-county
+    combined rates
+  - **Wyoming Department of Revenue Sales Tax FAQ**
+    (https://revenue.wyo.gov/divisions/excise-tax/sales-tax),
+    retrieved 2026-05-03 -- confirms food for domestic home
+    consumption exemption (since 2006), prescription drug
+    exemption, and the absence of any sales-tax holiday
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Wyoming is a full SST member
+  - **Sovos State-by-State Guide** (specs/research/
+    sovos-state-summary.md), cross-referenced 2026-05-03 --
+    confirms 4.0% state rate, $100k economic-nexus threshold,
+    SST member status; no documented Sovos defects on the
+    WY row
+- **Module file:** `src/opensalestax/states/wyoming.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wy branch -- Phase 7 final SST promotion)
+- *Notes:*
+  - **Phase 7 completion is the historic finding.** With WY's
+    promotion every SST member state ships a fully-maintained
+    tier-1 taxability matrix; the SST tier-2 backlog is
+    EMPTY. The remaining tier-2 list (RI, SD, TN, UT, VT, WA,
+    WV) consists of 7 SST member states whose default
+    taxability matrix is sufficient placeholder until they are
+    individually promoted -- though after WY ships, the
+    tier-2 framework is no longer the canonical "where SST
+    members live before they're promoted" path; future state
+    promotions will be driven by individual contributor
+    interest rather than batch ratcheting.
+  - **Digital goods exemption is the second notable finding.**
+    WY is one of a small minority of SST states (joining MI,
+    NV, OK) that does NOT tax electronically-delivered digital
+    products. The basis is the statutory limitation in section
+    39-15-103(a)(i): the sales-tax base is "the sales price
+    paid for tangible personal property" plus a closed list of
+    enumerated services (lodging, communications, intrastate
+    transportation, admissions to places of amusement). The
+    Wyoming Legislature has NOT amended the Selective Sales
+    Tax Act to adopt the SST "specified digital products"
+    definitions. A defensive regression test
+    (`test_wyoming_digital_goods_NOT_taxable_with_statutory_citation`)
+    catches a future maintainer who copies a digital-goods-
+    taxable pattern from a peer SST state.
+  - **No-sales-tax-holiday is the third notable finding.**
+    Wyoming is one of the cleanest "no holidays in any year"
+    states (alongside MI, ID, IN, KY, NE, NJ, ND). A
+    defensive regression test
+    (`test_wyoming_holidays_for_all_years_returns_empty`)
+    locks in this position across 2024-2030. If a future
+    Legislature enacts a holiday, that test will fail -- the
+    appropriate response is to add the explicit
+    HolidayWindow rather than weaken the test.
+  - **Grocery exemption is dated.** The
+    food-for-domestic-home-consumption exemption is
+    relatively recent in WY's tax history -- enacted in 2006
+    under Senate Enrolled Act 64 and codified at Wyo. Stat.
+    section 39-15-105(a)(iii)(C). Before 2006-07-01, groceries
+    were taxable at the full state + local rate. The historical
+    cutoff matters if a downstream consumer needs to compute
+    historical Wyoming sales tax for any pre-2006 transaction
+    audit (the engine's TaxabilityRule.effective_from defaults
+    to 1900-01-01 in v1, which over-grants the exemption for
+    pre-2006 dates -- a v0.6+ improvement candidate but not
+    blocking for current-year calculations).
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WY's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual WYR<...>.csv file is the
+    natural next maintenance task.
+  - **Local-option overlay is voter-driven.** Per-county rates
+    in WY shift over time as voters approve / sunset 5th-penny
+    and 6th-penny options. The SST quarterly file is the
+    authoritative source; ad-hoc rate updates between
+    quarterly files (rare in practice but possible) would
+    require an out-of-band data refresh.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

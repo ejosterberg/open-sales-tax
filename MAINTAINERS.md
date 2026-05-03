@@ -52,17 +52,28 @@ requires a named maintainer.
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
+| Wyoming | WY | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1 promotion; **FINAL SST member promoted -- completes Phase 7**; 4% statewide per Wyo. Stat. § 39-15-104(a) plus county-level 5th/6th-penny options; groceries exempt since 2006-07-01 per Wyo. Stat. § 39-15-105(a)(iii)(C); digital goods NOT taxable -- base statutorily limited to TPP per Wyo. Stat. § 39-15-103(a)(i); no sales-tax holiday in any year)_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 8 other Streamlined Sales Tax member states ship as tier 2 —
+The 7 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
+NC, ND, NJ, OH, OK in v0.10; WY in v0.11 -- see the table above.)
+
+**Phase 7 milestone:** WY's promotion in v0.11 completed the SST
+tier-2 -> tier-1 ratchet. Every Streamlined Sales Tax member state
+now ships a fully-maintained tier-1 taxability matrix grounded in
+primary statutory sources. The remaining tier-2 entries below are
+SST member states whose default taxability matrix is sufficient
+placeholder until they are individually promoted; future promotions
+will be driven by individual contributor interest rather than batch
+ratcheting.
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: RI, SD, TN, UT, VT, WA, WV, WY.
+States: RI, SD, TN, UT, VT, WA, WV.
 
 ### No-tax states
 

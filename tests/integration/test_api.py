@@ -72,7 +72,10 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
     """All SST tier-1 + no-tax tier-1 states show tier=1.
 
     AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
-    NC, ND, NJ, OH, OK in v0.10 -- all part of the Phase 7 SST ratchet.
+    NC, ND, NJ, OH, OK in v0.10; WY in v0.11 -- all part of the
+    Phase 7 SST ratchet. WY was the FINAL SST member promoted to
+    tier 1 (Phase 7 milestone -- every SST member state is now
+    fully maintained).
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
@@ -93,6 +96,7 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
         "NV",
         "OH",
         "OK",
+        "WY",
         "AK",
         "DE",
         "MT",
@@ -104,7 +108,13 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10. All SST tier-1."""
+    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC,
+    ND, NJ, OH, OK in v0.10; WY in v0.11. All SST tier-1.
+
+    WY's promotion in v0.11 completed Phase 7: every Streamlined Sales
+    Tax member state now ships a fully-maintained tier-1 taxability
+    matrix grounded in primary statutory sources.
+    """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
     for abbrev in (
@@ -122,6 +132,7 @@ async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> Non
         "NV",
         "OH",
         "OK",
+        "WY",
     ):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
