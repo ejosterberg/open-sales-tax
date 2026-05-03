@@ -31,7 +31,7 @@ requires a named maintainer.
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
-| Louisiana | LA | _vacant — see issue tracker_ | _v0.7_ |
+| Louisiana | LA | _vacant — see issue tracker_ | _v0.7 (state portion only; ~64 parishes deferred — see [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md))_ |
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
 | Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |

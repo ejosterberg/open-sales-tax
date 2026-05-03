@@ -1086,6 +1086,181 @@ Format for each state:
   - **No state-level holidays.** Some home-rule cities have local
     sales-tax holidays; not modeled.
 
+### **LA -- Louisiana**
+
+> **HEADS UP:** Louisiana's local tax landscape is uniquely
+> fragmented. **v0.7 ships the state portion only and does NOT
+> model the 64 parishes' independent local sales taxes.** See
+> `specs/decisions/05-louisiana-parishes.md` for the full
+> trade-off analysis (Options A / B / C considered; Option A --
+> state-only with prominent deferral -- chosen). A v0.7 caller
+> calculating tax for a LA address will under-collect by
+> ~5-7 percentage points for typical inhabited parishes (which
+> stack their own 4-7% on top of the state 5%).
+
+- **Statewide rate:** **5.000%** effective **2025-01-01** through
+  **2029-12-31** (Act 11 of 2024 3rd Extraordinary Session;
+  scheduled to step down to 4.75% on 2030-01-01 absent further
+  legislative action). The 5% rate is the sum of statutory layers
+  under La. R.S. 47:302, 47:321, 47:321.1, 47:331, and 47:332;
+  LDR publishes the combined rate as the headline figure.
+- **Tax model:** sales and use tax (standard).
+- **Local jurisdictions:** **64 parishes**, each with its own Sales
+  and Use Tax Commission (or comparable body) administering parish
+  + sub-municipal + special-district taxes under La. R.S. 47:337.1
+  et seq. ("Uniform Local Sales Tax Code"). Combined rates exceed
+  12% in some inhabited corners. Partial consolidation: the
+  Louisiana Sales and Use Tax Commission for Remote Sellers (R.S.
+  47:339.1, established 2018) collects state + local on
+  remote-seller transactions only; Parish E-File offers a unified
+  filing portal but rates remain parish-specific. **Not modeled in
+  v0.7.**
+- **Sales-tax holidays:** 1 active annual holiday (Second Amendment
+  Weekend, R.S. 47:305.62, first consecutive Friday-Sunday of
+  September; 2026 dates Sept 4-6). Two historical holidays --
+  back-to-school (R.S. 47:305.54) and hurricane preparedness (R.S.
+  47:305.58) -- have been **suspended** since 2018 and were NOT
+  reauthorized in the 2025 Regular Session (HB 551 died on
+  2025-06-12).
+- **Threshold rules:** none (the Second Amendment Weekend Holiday
+  has no per-item dollar cap).
+- **DOR URL:** **https://revenue.louisiana.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - **Act 11 of 2024 3rd Extraordinary Session (HB 10)** -- raised
+    state rate from 4.45% to 5.0% effective 2025-01-01, sunset
+    2029-12-31, scheduled step-down to 4.75% on 2030-01-01. Full
+    enrolled text retrieved
+    https://www.legis.la.gov/legis/ViewDocument.aspx?d=1391656
+    on 2026-05-03; LegiScan tracking
+    https://legiscan.com/LA/bill/HB10/2024/X3
+  - **Act 10 of 2024 3rd Extraordinary Session (HB 8)** -- imposed
+    state sales tax on digital products (audiovisual works, audio,
+    books, games, codes, periodicals, SaaS / remotely accessed
+    software) effective 2025-01-01. LDR digital-products guidance
+    (LDR document 11.20.25) -- retrieved
+    https://dam.ldr.la.gov/lawspolicies/Digital%20Products%20Guidance%2011.20.25(r).pdf
+    on 2026-05-03 (link surfaced via Sales Tax Institute summary;
+    direct fetch attempted).
+  - **La. R.S. 47:301** et seq. -- Louisiana sales and use tax
+    chapter. Statutes index retrieved 2026-05-03 via
+    https://www.legis.la.gov/legis/.
+  - **La. R.S. 47:302, 47:321, 47:321.1, 47:331, 47:332** --
+    statutory rate layers that sum to the headline 5%; cited via
+    LDR FAQ "What is the state sales tax rate?".
+  - **La. R.S. 47:305(D)** -- enumerated state-level exclusions
+    and exemptions (food sold for preparation and consumption in
+    the home, fresh fruit and vegetables, and others). 2025
+    renumbering noted by Act 11. Full statute retrieved
+    https://www.legis.la.gov/Legis/Law.aspx?d=101873 on
+    2026-05-03.
+  - **La. R.S. 47:305.10** -- prescription drugs prescribed by
+    physician or dentist. Cross-referenced via LawServer.
+  - **La. R.S. 47:305.62** -- "Annual Louisiana Second Amendment
+    Weekend Holiday Act"; first consecutive Friday-Sunday of
+    September; firearms/ammunition/hunting supplies; no per-item
+    cap; applies to "the state of Louisiana and its political
+    subdivisions" (state AND parish). Effective 2009-07-09 with
+    2023-07-01 amendments. Full statute retrieved
+    https://www.legis.la.gov/Legis/Law.aspx?d=672126 on
+    2026-05-03; landing page
+    https://revenue.louisiana.gov/secondamendment/ on 2026-05-03;
+    LDR Revenue Information Bulletin 25-017
+    https://dam.ldr.la.gov/lawspolicies/RIB%2025-017%202nd%20Amendment%20Holiday.pdf
+    on 2026-05-03 (confirmed 2025 holiday dates Sept 5-7, 2025;
+    2026 dates Sept 4-6, 2026 follow the same statutory formula).
+  - **La. R.S. 47:305.54** -- Annual Louisiana Sales Tax Holiday
+    (back-to-school, suspended 2018-2025; reauthorization HB 551
+    failed 2025-06-12).
+  - **La. R.S. 47:305.58** -- Annual Louisiana Hurricane
+    Preparedness Sales Tax Holiday (suspended; not reauthorized
+    for 2026).
+  - **La. R.S. 47:337.1** et seq. -- Uniform Local Sales Tax Code;
+    framework under which 64 parishes administer their own
+    independent local taxes.
+  - **La. R.S. 47:337.11.1** -- conditions parish taxation of
+    prescription drugs on parish local-board procedures.
+  - **La. R.S. 47:339.1** -- Louisiana Sales and Use Tax
+    Commission for Remote Sellers (sole entity for remote-seller
+    state + local collection). Retrieved
+    https://law.justia.com/codes/louisiana/revised-statutes/title-47/rs-47-339-1/
+    on 2026-05-03.
+  - **La. Const. Art. VII section 2.2** -- constitutional
+    protection for the state-level exemptions on groceries,
+    residential utilities, and prescription drugs. Cross-referenced
+    via LDR FAQ on the Constitutional Amendment effect.
+- *Sources for rate/taxability (cross-references, NOT primary):*
+  - LDR FAQ "What is the state sales tax rate?" --
+    https://revenue.louisiana.gov/tax-education-and-faqs/faqs/sales-tax-reform/what-is-the-state-sales-tax-rate/
+    (retrieved 2026-05-03; confirmed 5% effective 2025-01-01
+    through 2029-12-31).
+  - LDR FAQ "How does the amendment affect sales taxes charged on
+    groceries, utilities, and prescription drugs?" --
+    https://revenue.louisiana.gov/tax-education-and-faqs/faqs/constitutional-amendment/does-it-affect-sales-taxes-charged-on-groceries-utilities-and-prescription-drugs/
+    (retrieved 2026-05-03; confirmed exemptions retained at the
+    state level).
+  - LDR FAQ "Which sales and use tax exemptions were repealed as
+    of January 1, 2025?" --
+    https://revenue.louisiana.gov/tax-education-and-faqs/faqs/sales-tax-reform/which-sales-and-use-tax-exemptions-are-being-repealed/
+    (retrieved 2026-05-03).
+  - LDR FAQ on digital products --
+    https://revenue.louisiana.gov/tax-education-and-faqs/faqs/sales-tax-reform/are-digital-products-subject-to-sales-and-use-tax/
+    (retrieved 2026-05-03 via search).
+  - Sales Tax Institute "Louisiana to Increase State Sales Tax
+    Rate" -- https://www.salestaxinstitute.com/resources/louisiana-to-increase-state-sales-tax-rate
+    (cross-check on Act 11 effective dates).
+  - Eide Bailly "Significant Louisiana Sales and Use Tax
+    Legislative Changes Take Effect January 1, 2025" --
+    https://www.eidebailly.com/insights/blogs/2024/12/20241220_louisiana
+    (cross-check on Act 11 / Act 10 scope).
+  - Baker Tilly / Moss Adams summaries on Louisiana digital
+    products taxation (cross-checks on Act 10 / HB 8).
+  - Advantous Consulting 2025 Legislative Session sales-tax update
+    -- https://advantous.com/louisiana-2025-legislative-session-sales-use-tax-update/
+    (confirmed HB 551 back-to-school reauthorization died).
+  - ITEP Sales Tax Holidays 2025 -- https://itep.org/sales-tax-holidays-2025/
+    (cross-state holiday summary; corroborates LA's holiday
+    landscape).
+  - Yahoo News "Louisiana has a 'Second Amendment Sales Tax
+    Holiday' but back-to-school tax holiday suspended" --
+    https://www.yahoo.com/news/articles/louisiana-second-amendment-sales-tax-121528311.html
+    (popular-press cross-check on holiday status).
+  - Sovos State-by-State Guide LA entry (general cross-check;
+    NOT used as a primary source per constitution section 3 -- the
+    Sovos summary has documented errors and is research-only).
+- **Module file:** `src/opensalestax/states/louisiana.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 6 Batch B / v0.7)
+- *Notes:*
+  - **Parish-tax limitation is THE defining issue for LA.** A
+    v0.7 caller will materially under-collect tax for any LA
+    address. The module docstring, the class docstring, the
+    grocery TaxabilityRule notes, and the general TaxabilityRule
+    notes all surface this; an explicit unit test verifies the
+    docstring documentation. See
+    `specs/decisions/05-louisiana-parishes.md`.
+  - **Rate is TEMPORARY.** The 5% rate sunsets 2029-12-31; the
+    RateRow's ``effective_to`` is encoded so that on 2030-01-01
+    the row will self-expire. A future module update needs to add
+    the 4.75% successor row when 2030 approaches and the
+    legislature has confirmed (or amended) the step-down.
+  - **Digital goods is a 2025-01-01 change.** Pre-2025 LA generally
+    did not tax digital products. The TaxabilityRule notes call
+    out the Act 10 / HB 8 origin so a future maintainer doesn't
+    mistake the current treatment for a long-standing position.
+  - **Constitutional protection** for groceries / residential
+    utilities / prescription drugs at the state level was
+    confirmed by the November 2025 constitutional amendment per
+    LDR FAQ. This module assumes that protection holds.
+  - **Second Amendment Weekend Holiday** is the only currently
+    active LA holiday. Two others (back-to-school R.S. 47:305.54
+    and hurricane prep R.S. 47:305.58) have been suspended for
+    years; HB 551 (2025) tried to reauthorize back-to-school and
+    failed on 2025-06-12. Subsequent legislative sessions may
+    reauthorize either; the ``holidays_for(year)`` method
+    intentionally returns the empty iterable for years other than
+    2026 so a future maintainer must explicitly add data when
+    holidays are reauthorized.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in
