@@ -1263,11 +1263,13 @@ Format for each state:
 
 ### Tier-2 SST states (rate-only, default taxability)
 
-22 states load via the generic `SstStateModule` in
+21 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
+GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
 TN, UT, VT, WA, WV, WY
+
+(AR was promoted to tier 1 in v0.8 -- see the AR section below.)
 
 Each has a one-class entry there with state_abbrev + state_name +
 state_fips. They use the SST quarterly data files for rates and
@@ -1278,6 +1280,88 @@ default taxability (everything taxable except groceries). To
 - Cite statutes
 - Add a dedicated module under `src/opensalestax/states/<name>.py`
 - Remove the entry from `_tier2.py`
+
+### AR -- Arkansas
+
+- **Statewide rate:** **6.500% effective 2013-07-01** (current
+  rate per AR DFA "State Sales & Use Tax Rates" page)
+- **Tax model:** sales tax (Arkansas Gross Receipts Tax, Title 26
+  Chapter 52)
+- **Local jurisdictions:** 75 counties + many cities; SST member
+  with quarterly rate file by FIPS code (state FIPS = 05)
+- **Sales-tax holidays:** 1 annual (Back-to-School, first Saturday
+  and Sunday of August)
+- **Threshold rules:** holiday-specific only -- clothing under
+  $100/item, clothing accessories under $50/item; school
+  supplies / school art supplies / school instructional materials
+  / electronic devices have NO per-item cap
+- **Reduced rates:** groceries (food and food ingredients)
+  taxed at the **state-portion 0.000% rate effective 2026-01-01**
+  per the Grocery Tax Relief Act amending Ark. Code Ann.
+  section 26-52-317. Local sales tax still applies. Encoded with
+  `rate_modifier=Decimal("0.000")` per the IL/MS/VA pattern.
+- **DOR URL:** **https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/**
+  *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - Ark. Code Ann. section 26-52-301 -- general sales tax
+    imposition; current 6.5% state rate
+  - Ark. Code Ann. section 26-52-317 -- food and food ingredients
+    reduced rate (currently 0.000% post-Grocery Tax Relief Act,
+    effective 2026-01-01; previously 0.125% from 2019-01-01;
+    1.5% from 2011-07-01 to 2018-12-31)
+  - Ark. Code Ann. section 26-52-406 -- prescription drugs and
+    oxygen exemption
+  - Ark. Code Ann. section 26-52-444 -- annual back-to-school
+    sales tax holiday (definitions + per-item caps)
+  - Act 141 of 2017 (H.B. 1162) -- specified digital products
+    and digital codes brought into the sales-tax base, effective
+    2018-01-01
+  - Act 944 of 2021 -- electronic devices added to section
+    26-52-444 sales tax holiday scope
+- *Sources for rate/taxability:*
+  - **Arkansas DFA** "State Sales & Use Tax Rates" page,
+    https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/sales-use-tax-rates/state-sales-use-tax-rates/
+    (retrieved 2026-05-03; 6.5% general rate effective
+    2013-07-01; reduced food rate 0.000% effective 2026-01-01)
+  - **Arkansas DFA 2026 Sales Tax Holiday** page,
+    https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/2024-sales-tax-holiday/
+    (retrieved 2026-05-03; confirmed 2026 dates Aug 1-2 and the
+    five+one exempt categories)
+  - **Arkansas DFA Streamlined Sales Tax Project** page,
+    https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/streamlined-sales-tax-project/
+    (retrieved 2026-05-03; confirmed SST membership, FIPS-based
+    rate database structure)
+  - **Justia codes mirror** of Ark. Code Ann. sections 26-52-301,
+    26-52-317, 26-52-406, 26-52-444 (cross-referenced for
+    statutory text; primary source is the AR DFA / arkleg.state.ar.us)
+  - **Sales Tax Institute** "Specified Digital Products...
+    Effective January 1, 2018" article confirming Act 141 of
+    2017 (H.B. 1162) effective date
+  - **Sales Tax Institute** "Arkansas Includes Electronic
+    Devices for Sales Tax Holiday" confirming Act 944 of 2021
+    addition
+  - **Free Tax Weekend 2026** cross-reference for AR holiday
+    dates (used as one input among many; primary source is the
+    AR DFA holiday page)
+- **Module file:** `src/opensalestax/states/arkansas.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ar branch)
+- *Notes:*
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    AR's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    documented in the module docstring. Validating against an
+    actual `ARR<...>.csv` file is the natural next maintenance
+    task.
+  - **Grocery rate change**: as of January 1, 2026 AR became one
+    of a small number of states that fully exempt the state
+    portion on groceries (joining the SC, VA, MS pattern of
+    reduced grocery rates). Local rates still apply.
+  - **Holiday includes electronics** (Act 944 of 2021) without a
+    per-item cap, distinguishing AR's holiday from many peers.
+  - The holiday exempts BOTH state AND local sales/use tax
+    during the window.
 
 ## §4. Per-state references — TEMPLATE for new entries
 
