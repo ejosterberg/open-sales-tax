@@ -364,6 +364,72 @@ Format for each state:
     department reorganizes. The cga.ct.gov statute repository is the
     more durable primary source.
 
+### DC — District of Columbia
+
+- **Statewide rate:** 6.000% effective through 2026-09-30; 7.000%
+  effective 2026-10-01 (scheduled increase)
+- **Tax model:** sales tax (NOT SST)
+- **Local jurisdictions:** none -- DC is a single jurisdiction.
+  No sub-District counties or cities levy their own sales tax.
+- **Sales-tax holidays:** none (back-to-school holiday repealed by
+  D.C. Law 18-111, FY 2010 Budget Support Act of 2009)
+- **Threshold rules:** none
+- **DOR URL:** https://otr.cfo.dc.gov *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - DC Code Sec. 47-2001 (definitions, including (n) "retail sale",
+    (n)(2)(E) food exclusion, (d-1) digital goods definition,
+    (n)(1)(BB) digital goods imposition, (g)/(g-1) food vs.
+    food-for-immediate-consumption)
+  - DC Code Sec. 47-2002 (imposition of tax on sales)
+  - DC Code Sec. 47-2002.02 (rates on transient lodgings, food
+    for immediate consumption, on-premises spirits, rental
+    vehicles)
+  - DC Code Sec. 47-2005(14) (prescription drugs exemption)
+  - DC Code Sec. 47-2005(15) (medical devices exemption)
+  - DC Code Sec. 47-2005(23) (food-stamp eligible foods)
+  - DC Code Sec. 47-2005(24) (residential utilities)
+  - D.C. Law 18-111 (FY 2010 BSA -- repealed sales-tax holiday)
+  - Sec. 337 of FY 2019 Budget Support Act (digital goods expansion)
+- *Sources for rate / taxability:*
+  - OTR "Notice of Oct. 1, 2025 Tax Changes"
+    (https://otr.cfo.dc.gov/release/notice-oct-1-2025-tax-changes,
+    retrieved 2026-05-03) -- confirms 6% through 9/30/2026, 7%
+    from 10/1/2026, hotel 15.95% through 9/30/2027, commercial
+    bingo 7.5% from 10/1/2025
+  - OCFO "Tax Rates and Revenues, Sales and Use Taxes"
+    (https://cfo.dc.gov/page/tax-rates-and-revenues-sales-and-use-taxes-alcoholic-beverage-taxes-and-tobacco-taxes,
+    retrieved 2026-05-03) -- full special-rate table (6%/8%/10%/
+    10.25%/14.95%-15.95%/18%)
+  - OTR "Taxable and Non-Taxable Services"
+    (https://otr.cfo.dc.gov/page/taxable-and-non-taxable-services,
+    retrieved 2026-05-03) -- 10% prepared-food, 10.25% rentals
+  - OTR "Sales Tax Holiday Repealed"
+    (https://otr.cfo.dc.gov/page/sales-tax-holiday-repealed,
+    retrieved 2026-05-03)
+  - DC Council Code, Title 47 Chapter 20 (primary source for all
+    statutory citations above) via
+    https://code.dccouncil.gov/us/dc/council/code/titles/47/chapters/20
+  - Sales Tax Institute, "DC Repeals Back-to-School Tax Holiday"
+    (cross-reference for repeal context)
+- **Module file:** `src/opensalestax/states/district_of_columbia.py`
+- **Last verified:** 2026-05-03 by per-state agent
+- *Notes:*
+  - DC has multiple **special-category rates** (10% restaurant,
+    10% on-premises liquor, 10.25% off-premises liquor, 10.25%
+    rental vehicles, 8% soft drinks, 15.95% hotel, 18% commercial
+    parking, 7.5% commercial bingo). The current OpenSalesTax
+    engine resolves one rate per authority per category; encoding
+    these as separate per-category rates needs either multiple
+    authority rows OR a future category-aware authority feature.
+    **v0.6 ships only the general 6%/7% statewide rate** -- the
+    `prepared_food` taxability rule still marks the line item as
+    taxable, so a restaurant meal IS taxed, just at the general
+    rate (under-collection until the special-rate feature lands).
+  - The 6%-to-7% rate change on 2026-10-01 is encoded as two
+    `RateRow`s with non-overlapping `effective_from` /
+    `effective_to` so the engine picks the right rate per
+    transaction date.
+
 ### AK — Alaska, DE — Delaware, MT — Montana, NH — New Hampshire, OR — Oregon
 
 - **Statewide rate:** none (no state-level sales tax)
