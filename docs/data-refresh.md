@@ -46,24 +46,58 @@ List what's cached:
 docker compose run --rm api opensalestax data list-versions
 ```
 
-## Loading data into the database (v0.2)
+## Loading data into the database
 
-⚠️ **v0.1 ships the fetcher and parsers but not the loader CLI.**
-That command lands in v0.2. Until then, you can:
-
-- Manually seed your database via the example in
-  `tests/integration/test_api.py::_seed_minnesota_minneapolis()`
-- Write a one-off Python script that uses
-  `opensalestax.states.get_state_module(...)` + the parsed
-  records + raw SQLAlchemy inserts
-
-The v0.2 loader will be:
+End-to-end: fetch → load → query.
 
 ```bash
-# Planned -- NOT in v0.1
-opensalestax data load --state MN --version MN-SST-2026Q2FEB18
-opensalestax data activate --state MN --version MN-SST-2026Q2FEB18
+# 1. Fetch the SST file (constructs the filename for you)
+docker compose run --rm api opensalestax data fetch \
+    --state MN --version 2026Q2FEB18
+
+# 2. Load it into the database (idempotent; safe to re-run)
+docker compose run --rm api opensalestax data load \
+    --state MN --version 2026Q2FEB18
+
+# 3. Verify
+docker compose run --rm api opensalestax data status
+# state  version                                  fetched_at
+# MN     MN-SST-2026Q2FEB18                       2026-05-03T...
+
+# 4. Query the API -- rates now flow from the loaded data
+curl 'http://localhost:8080/v1/rates?zip5=55401'
 ```
+
+### Idempotency
+
+Re-running `data load` for the same `(state, version)` pair
+**drops the existing data version and re-inserts** -- safe to
+script in a cron job. Cascade rules on the schema clean up the
+dependent rates / boundaries automatically.
+
+### Cleanup
+
+```bash
+docker compose run --rm api opensalestax data purge \
+    --state MN --version 2026Q2FEB18
+```
+
+Removes the named data version and cascades to its rates,
+boundaries, and any taxability rules tied to it.
+
+### Skipping boundaries
+
+For very large boundary files (or when you want a fast
+iteration loop), pass `--skip-boundaries`:
+
+```bash
+docker compose run --rm api opensalestax data load \
+    --state WI --version 2026Q2FEB18 --skip-boundaries
+```
+
+Rate calculations for ZIPs you've separately seeded still work;
+ZIPs without a boundary entry return zero with a "no
+jurisdictions found" note.
 
 ## Recommended cadence
 

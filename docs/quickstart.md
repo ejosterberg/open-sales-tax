@@ -45,26 +45,26 @@ curl -s http://localhost:8080/v1/states | jq '.total'
 curl -s 'http://localhost:8080/v1/rates?zip5=55401' | jq
 ```
 
-## 4. Loading state data (Phase 2)
-
-v0.1 ships the API surface, the schema, the state modules, and a
-data fetcher. The end-to-end "fetch upstream → seed database →
-queryable rates" pipeline matures in v0.2. Until then, data
-seeding is manual:
+## 4. Loading state data (end-to-end)
 
 ```bash
 # Fetch the current MN SST file into the local cache
-docker compose run --rm api opensalestax data fetch MNR2026Q2FEB18.zip
+docker compose run --rm api opensalestax data fetch \
+    --state MN --version 2026Q2FEB18
 
-# (Schema for the loader CLI -- not yet wired in v0.1)
-# docker compose run --rm api opensalestax data load --state MN \
-#     --version MN-SST-2026Q2FEB18
+# Load it into the database (idempotent; safe to re-run)
+docker compose run --rm api opensalestax data load \
+    --state MN --version 2026Q2FEB18
+
+# Verify what's loaded
+docker compose run --rm api opensalestax data status
+
+# Now queries return real rates
+curl 'http://localhost:8080/v1/rates?zip5=55401'
 ```
 
-For v0.1 you can manually seed the database with the example
-rows in [tests/integration/test_api.py](
-../tests/integration/test_api.py) `_seed_minnesota_minneapolis()`
-to verify the calculation pipeline end-to-end.
+See [docs/data-refresh.md](data-refresh.md) for refresh cadence,
+purge semantics, and troubleshooting.
 
 ## 5. Use a different port or DB URL
 

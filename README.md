@@ -54,11 +54,19 @@ Swagger UI.
 | **Unsupported** (Phase 2+) | 23 | CA, TX, NY, FL, IL, PA, AL, AZ, CO, CT, DC, HI, ID, LA, MD, MA, MS, MO, NM, PA, PR, SC, VA |
 
 To **load real rate data** for an SST state into your local
-database, fetch the upstream file and run the loader CLI (still
-TODO for v0.1; planned for v0.2). For v0.1, the API responds
-correctly to all four endpoints but only returns rates for ZIPs
-you've manually seeded into your DB. The shipped state modules
-know how to parse SST data; wiring in the auto-loader is Phase 2.
+database (new in v0.2):
+
+```bash
+docker compose run --rm api opensalestax data fetch \
+    --state MN --version 2026Q2FEB18
+docker compose run --rm api opensalestax data load \
+    --state MN --version 2026Q2FEB18
+```
+
+The API now returns Minnesota's actual SST rates (state base
+6.875% plus any local additions) for any covered ZIP. See
+[docs/data-refresh.md](docs/data-refresh.md) for the full
+fetch / load / status / purge workflow.
 
 ## API reference
 
@@ -105,6 +113,7 @@ Vertex, Sovos, TaxCloud). See [constitution §3](specs/constitution.md).
 
 ## Status
 
-**v0.1 alpha.** API contract is stable; data-loading workflow
-matures in v0.2. Production self-hosting is feasible with manual
-data seeding today; turn-key data refresh in the next release.
+**v0.2 in flight.** v0.1 shipped the API + 29-state coverage;
+v0.2 lands the data-load CLI (this batch), API-key auth mode,
+and the first non-SST tier-1 state. Production self-hosting is
+viable today for SST states.
