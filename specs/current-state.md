@@ -6,7 +6,25 @@ top of v0.4's 16 tier-1 states. 310 unit tests + 37 integration
 tests, CI green on PostgreSQL + MariaDB, SonarQube clean (0 bugs /
 0 vulns / 0 smells / 0 hotspots / all-A ratings on 3601 LOC).
 
+**v0.6 / Phase 6 buildout in progress, started 2026-05-03.**
+
 Live at [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax).
+
+## Live deployment
+
+| Field | Value |
+|---|---|
+| **Hostname** | `opensalestax-01` (SSH alias on Eric's box) |
+| **IP** | `10.32.161.126` (DHCP from LAN) |
+| **Proxmox VMID** | 906 (on `pmvm1`) |
+| **Specs** | 4 vCPU / 8 GB RAM / 80 GB disk, Debian 13 |
+| **Provisioned** | 2026-05-03 |
+| **Stack** | Docker Compose (`postgres` profile) — API + PostgreSQL 15 |
+| **API base URL** | `http://10.32.161.126:8080` |
+| **Health check** | `curl http://10.32.161.126:8080/v1/health` |
+| **Loaded data** | 11 of 16 tier-1 states (9 self-seeded at v0.6 + MN/WI at SST 2026Q2FEB18); 5 no-tax states (AK/DE/MT/NH/OR) registered without DataVersion rows |
+
+Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI find the `opensalestax` package without a wheel install. Use `python -m opensalestax ...` rather than the bare `opensalestax` script (entry-point not installed in the runtime image).
 
 ## Release ladder
 
