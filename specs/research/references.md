@@ -4763,6 +4763,171 @@ default taxability (everything taxable except groceries). To
     quarterly files (rare in practice but possible) would
     require an out-of-band data refresh.
 
+### ME -- Maine
+
+- **Statewide rate:** **5.500% effective 2013-10-01** (raised from
+  5.0% by PL 2013, c. 368, Part M; the original sunset date of
+  2015-06-30 was eliminated and the 5.5% rate made permanent by
+  PL 2015, c. 267, Part OOOO)
+- **Tax model:** sales tax (NOT SST -- verified 2026-05-03 against
+  the SST membership list at streamlinedsalestax.org; Maine is
+  noted explicitly as not a Streamlined member state and runs its
+  own audit/compliance program through Maine Revenue Services)
+- **Local jurisdictions:** **NONE.** Maine levies no general local
+  (county or municipal) sales tax. The 5.5% statewide rate is the
+  entire combined rate at every Maine address. This puts ME in the
+  small "no-local-tax" club alongside Indiana (7.0%), Kentucky
+  (6.0%), Michigan (6.0%), and Rhode Island (7.0%).
+- **Statutory category-specific higher rates (NOT modeled in v1):**
+  - **8% on prepared food** -- Me. Rev. Stat. tit. 36 § 1811(1)
+    third paragraph
+  - **9% on lodging** (rental of living quarters in hotels,
+    rooming houses, tourist/trailer camps) -- § 1811(1) fourth
+    paragraph; was 8% from 2013-10-01 through 2015-12-31, raised
+    to 9% effective 2016-01-01 by PL 2015, c. 267, Part OOOO
+  - **10% on short-term automobile rental** (rentals less than
+    one year) -- § 1811(1) fifth paragraph
+  - **14% on adult-use cannabis** for sales on or after 2026-01-01
+    -- PL 2025, c. 87 § 7; PL 2025, c. 388, Pt. F §§ 1, 5
+  - These are **deferred** until the OpenSalesTax engine adds
+    category-aware rate application (currently a single rate per
+    authority applies to all taxable categories). The
+    prepared_food taxability rule is encoded as taxable; the
+    engine applies 5.5% rather than 8%, **under-collecting by 2.5
+    percentage points** on prepared-food line items until the
+    extension lands. Lodging and auto-rental are not in the v1
+    baseline category set.
+- **Sales-tax holidays:** **NONE.** Maine has no enacted sales-tax
+  holiday. Bills to establish a back-to-school holiday have been
+  introduced multiple sessions (HP0227 / LD 318 in the 126th
+  Legislature; HP0512 / LD 759 in the 127th Legislature) but none
+  have passed. Confirmed 2026-05-03 against Maine Revenue Services
+  guidance and current statute. The module's ``holidays_for(year)``
+  returns an empty iterator for every year, with a regression test
+  in ``test_state_maine.py`` that exercises 2024-2030.
+- **Threshold rules:** none.
+- **DOR URL:** **https://www.maine.gov/revenue/taxes/sales-use-service-provider-tax**
+  *(retrieved 2026-05-03)*
+- **Statutes consulted (Me. Rev. Stat. tit. 36, Part 3 unless noted):**
+  - § 1811(1) -- imposition and rate (5.5% general; 8% prepared
+    food; 9% lodging; 10% short-term auto rental; 14% cannabis)
+  - § 1752(3-B) -- definition of "grocery staples" (excludes
+    alcohol, candy, soft drinks, dietary supplements, prepared
+    food, marijuana, and various snack categories)
+  - § 1752(8-A) -- definition of "prepared food" (meals served on
+    or off premises; food/drinks prepared by retailer ready for
+    consumption)
+  - § 1752(17) -- definition of "tangible personal property"
+    (expressly INCLUDES "any product transferred electronically",
+    making digital goods part of the TPP base; digital-products
+    inclusion added by PL 2009, c. 211 effective 2010 and broadened
+    by subsequent acts)
+  - § 1760(3) -- exemption: sales of grocery staples
+  - § 1760(5) -- exemption: prescription drugs (medicines for
+    human beings sold on a doctor's prescription; cannabis
+    expressly excluded from this exemption)
+  - PL 2013, c. 368, Part M -- enacted 5.0%-to-5.5% rate increase
+    effective 2013-10-01 (originally with 2015-06-30 sunset)
+  - PL 2015, c. 267, Part OOOO -- removed sunset, made 5.5% rate
+    permanent, raised lodging rate from 8% to 9% effective
+    2016-01-01
+  - PL 2025, c. 87 § 7 / PL 2025, c. 388, Pt. F §§ 1, 5 -- 14%
+    cannabis rate effective 2026-01-01
+  - LD 210 of the 132nd Legislature (signed June 2025) --
+    expanded the taxable digital-services base effective
+    2026-01-01 to include subscription-based streaming/audio/
+    ebook/app services that lack a permanent right to use; the
+    unified TPP definition in § 1752(17) makes this an expansion
+    of the existing 5.5% digital-goods treatment rather than a
+    new tax category
+- *Sources for rate/taxability:*
+  - Maine Legislature statute repository
+    (https://legislature.maine.gov/statutes/36/title36sec1811.html)
+    retrieved 2026-05-03 -- primary source for § 1811 (current
+    rate text and 2025 amendment history)
+  - Maine Legislature statute repository
+    (https://legislature.maine.gov/statutes/36/title36sec1752.html)
+    retrieved 2026-05-03 -- primary source for § 1752 definitions
+    (TPP, grocery staples, prepared food)
+  - Maine Legislature statute repository
+    (https://legislature.maine.gov/statutes/36/title36sec1760.html)
+    retrieved 2026-05-03 -- primary source for § 1760 exemptions
+    (grocery staples, prescription drugs)
+  - Maine Revenue Services, "Sales and Use Tax Rates & Due Dates"
+    (https://www.maine.gov/revenue/taxes/sales-use-service-provider-tax/rates-due-dates)
+    retrieved 2026-05-03 -- confirmed 5.5% general / 8% prepared
+    food / 9% lodging / 10% short-term auto rental, all effective
+    10/1/2019 onward
+  - Edwards, Faust & Smith, "Maine Sales Tax Rate Changes"
+    (https://efscpa.com/maine-sales-tax-rate-changes/) retrieved
+    2026-05-03 -- confirmed PL 2013, c. 368, Part M and PL 2015,
+    c. 267, Part OOOO history (CPA-firm summary, used as
+    cross-reference to primary statutory citations)
+  - TaxCloud, "Maine Expands Sales Tax to Digital Services
+    (January 1, 2026)"
+    (https://taxcloud.com/sales-tax-radar/maine-expands-sales-tax-to-digital-services-2026/)
+    retrieved 2026-05-03 -- documented LD 210 of 2025
+    subscription-services expansion; cross-checked against the
+    bill text via Maine Legislature
+  - Streamlined Sales Tax, "Maine"
+    (https://www.streamlinedsalestax.org/state-details/maine)
+    retrieved 2026-05-03 -- confirmed Maine is NOT a member state
+- **Module file:** `src/opensalestax/states/maine.py`
+- **Last verified:** 2026-05-03 by per-state agent (Phase 8
+  non-SST tier-0 -> tier-1 ratchet)
+- *Notes:*
+  - Maine is one of the rare "no-local-tax" sales-tax states. The
+    combined rate at every ME address equals the state rate
+    exactly (5.5%); there is no county-level or municipal-level
+    sales tax to add. Integrators querying the rate stack for a
+    Maine address will receive a single state-level authority and
+    no children. (Some Maine municipalities have proposed
+    local-option lodging taxes; these would be a separate hotel/
+    short-term-rental tax layer outside the general sales-tax
+    regime and are not in scope for v1.)
+  - The 8% prepared-food / 9% lodging / 10% auto-rental / 14%
+    cannabis statutory rates are NOT applied by the v1 engine
+    because the engine does not yet support per-category rate
+    application (one rate per authority applies to all taxable
+    line items). The prepared_food taxability rule is encoded as
+    taxable so that meals are not silently dropped from the tax
+    base, but the actual tax applied is 5.5% rather than the
+    statutory 8% -- a 2.5-percentage-point under-collection on
+    prepared food. The module's docstring AND the prepared_food
+    rule's notes call this out explicitly; a regression test
+    asserts the notes mention "8%" and "under-collect" so a
+    future maintainer cannot accidentally drop the warning. When
+    the category-aware-rate engine extension lands, this module
+    should emit additional ``RateRow`` instances with
+    ``applies_to_categories=("prepared_food",)`` etc.
+  - Maine's digital-goods tax base is unusually broad for a
+    non-SST state: § 1752(17)'s "any product transferred
+    electronically" inclusion (added 2009) plus the LD 210 of
+    2025 subscription-services expansion (effective 2026-01-01)
+    means the 5.5% rate covers both downloaded-with-permanent-
+    right software/media AND subscription streaming/audio/
+    ebook/app services. The unified TPP-definition approach
+    means the OpenSalesTax module does not need a sub-category
+    split between "permanent right" and "subscription" digital
+    media (unlike Idaho, where § 63-3616(b) treats them
+    differently).
+  - The 2009 digital-products inclusion was originally enacted by
+    PL 2009, c. 211 (the so-called "Maine iTunes tax" at the
+    time); the language has been amended multiple times since,
+    most recently by LD 210 of 2025. The current module pins
+    ``effective_from`` for the rate row to 2013-10-01 (the date
+    of the current 5.5% rate); the digital_goods taxability rule
+    inherits the protocol's default ``effective_from=1900-01-01``
+    sentinel because the engine resolves taxability rules per
+    request date and the relevant 1900 -> present coverage
+    matches the current statutory state.
+  - Maine has historically considered (but never enacted) a
+    back-to-school sales-tax holiday. If a future legislative
+    session passes one, this module should be updated to emit
+    ``HolidayWindow`` instances from ``holidays_for(year)`` and
+    the regression test in ``test_state_maine.py`` should be
+    relaxed for the affected years.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

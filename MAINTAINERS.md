@@ -38,6 +38,7 @@ requires a named maintainer.
 | Kansas | KS | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1; state grocery rate phased to 0% effective 2025-01-01 per K.S.A. 79-3603(p))_ |
 | Kentucky | KY | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1; state-only -- KY levies no local sales tax)_ |
 | Louisiana | LA | _vacant — see issue tracker_ | _v0.7 (state portion only; ~64 parishes deferred — see [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md))_ |
+| Maine | ME | _vacant — see issue tracker_ | _Phase 8 (non-SST tier-0 -> tier-1; 5.5% per Me. Rev. Stat. tit. 36 § 1811(1) effective 2013-10-01 (PL 2013, c. 368, Pt. M; permanent under PL 2015, c. 267, Pt. OOOO); state-only -- ME levies no general local sales tax (joins IN/KY/MI/RI no-local-tax club); statutory higher rates 8% prepared food / 9% lodging / 10% short-term auto rental / 14% cannabis NOT modeled in v1 pending category-aware-rate engine extension; no enacted sales-tax holiday)_ |
 | Michigan | MI | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1 promotion; state-only -- MI levies no general local sales tax; notable peer-state difference: digital goods NOT taxable per Treasury RAB 2023-22)_ |
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
