@@ -2,10 +2,10 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """Tier-2 SST member states (rate-only via SST data, default taxability).
 
-The 18 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN
-are now tier 1). Each is a ~10-line subclass of :class:`SstStateModule`
-providing only the state-specific metadata (USPS abbreviation,
-full name, state FIPS).
+The 17 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN,
+MI are now tier 1). Each is a ~10-line subclass of
+:class:`SstStateModule` providing only the state-specific metadata
+(USPS abbreviation, full name, state FIPS).
 
 State base rates documented in the docstring per state are taken
 from ``specs/research/sovos-state-summary.md`` and cross-checked
@@ -24,14 +24,15 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
-# 18 tier-2 SST states. Order roughly alphabetical for readability.
+# 17 tier-2 SST states. Order roughly alphabetical for readability.
 # Sources:
 # - Sovos summary: specs/research/sovos-state-summary.md
 # - SST membership list: specs/research/state-coverage.md
 # - State FIPS codes: census.gov / NIST
 #
 # Arkansas (AR), Georgia (GA), Indiana (IN), and Iowa (IA) were
-# promoted to tier 1 in v0.8 -- see their dedicated modules in
+# promoted to tier 1 in v0.8; Michigan (MI) was promoted to tier 1
+# in v0.9 -- see their dedicated modules in
 # ``opensalestax/states/``.
 # ---------------------------------------------------------------------------
 
@@ -50,14 +51,6 @@ class Kentucky(SstStateModule):
     state_abbrev = "KY"
     state_name = "Kentucky"
     state_fips = "21"
-
-
-class Michigan(SstStateModule):
-    """Michigan (MI) -- SST member, state base 6.0%, FIPS 26."""
-
-    state_abbrev = "MI"
-    state_name = "Michigan"
-    state_fips = "26"
 
 
 class Nebraska(SstStateModule):
@@ -194,12 +187,11 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 18 instances at import time
+# Register all 17 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
     Kansas,
     Kentucky,
-    Michigan,
     Nebraska,
     Nevada,
     NewJersey,

@@ -72,20 +72,22 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
     """All SST tier-1 + no-tax tier-1 states show tier=1.
 
     AR, GA, IA, IN were promoted from tier 2 -> tier 1 in v0.8 as
-    part of the Phase 7 SST ratchet.
+    part of the Phase 7 SST ratchet; MI was promoted in v0.9.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "AK", "DE", "MT", "NH", "OR"):
+    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "MI", "AK", "DE", "MT", "NH", "OR"):
         assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1"
 
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA, IN were all promoted from tier 2 to tier 1 in v0.8."""
+    """AR, GA, IA, IN were promoted from tier 2 to tier 1 in v0.8;
+    MI was promoted in v0.9. All are SST member tier-1 states.
+    """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AR", "GA", "IA", "IN"):
+    for abbrev in ("AR", "GA", "IA", "IN", "MI"):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
@@ -143,6 +145,25 @@ async def test_indiana_is_tier_1_sst(client: AsyncClient) -> None:
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
     s = states_by_abbrev["IN"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is True
+
+
+@pytest.mark.asyncio
+async def test_michigan_is_tier_1_sst(client: AsyncClient) -> None:
+    """MI was promoted from tier 2 to tier 1 in Phase 7 (v0.9).
+
+    Michigan is an SST member with a 6% statewide rate (MCL section
+    205.52) and NO general local sales tax -- the combined rate at
+    every Michigan address is exactly 6%. Article IX section 8 of the
+    Michigan Constitution caps the state rate at 6% and (combined
+    with the General Sales Tax Act) preempts general local sales
+    taxes entirely.
+    """
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["MI"]
     assert s["tier"] == 1
     assert s["has_sales_tax"] is True
     assert s["sst_member"] is True
