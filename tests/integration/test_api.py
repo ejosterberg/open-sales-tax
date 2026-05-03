@@ -80,22 +80,25 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
 async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> None:
     """States without a loaded module show tier 0.
 
-    CA was promoted to tier 1 in v0.2 Section C; TX, NY, FL etc.
+    CA was promoted in v0.2; TX/NY/FL in v0.3; PA, IL, AL, AZ, CO etc.
     remain tier 0 until their state modules ship.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("TX", "NY", "FL", "PA", "IL"):
+    for abbrev in ("PA", "IL", "AL", "AZ", "CO"):
         assert states_by_abbrev[abbrev]["tier"] == 0
 
 
-async def test_california_is_tier_1(client: AsyncClient) -> None:
-    """CA is the first non-SST tier-1 state in v0.2."""
+@pytest.mark.asyncio
+async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
+    """CA (v0.2), TX/NY/FL (v0.3): all tier 1 non-SST."""
     response = await client.get("/v1/states")
-    ca = next(s for s in response.json()["states"] if s["abbrev"] == "CA")
-    assert ca["tier"] == 1
-    assert ca["has_sales_tax"] is True
-    assert ca["sst_member"] is False  # CA is not in SST
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    for abbrev in ("CA", "TX", "NY", "FL"):
+        s = states_by_abbrev[abbrev]
+        assert s["tier"] == 1
+        assert s["has_sales_tax"] is True
+        assert s["sst_member"] is False
 
 
 @pytest.mark.asyncio

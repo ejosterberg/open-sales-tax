@@ -18,8 +18,11 @@ Add a new state by:
 from opensalestax.states import (
     _tier2,  # noqa: F401
     california,  # noqa: F401
+    florida,  # noqa: F401
     minnesota,  # noqa: F401
+    new_york,  # noqa: F401
     no_tax,  # noqa: F401
+    texas,  # noqa: F401
     wisconsin,  # noqa: F401
 )
 from opensalestax.states.protocol import (
