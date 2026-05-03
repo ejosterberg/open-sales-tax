@@ -50,19 +50,20 @@ requires a named maintainer.
 | Ohio | OH | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; 2026 reverts to traditional 3-day back-to-school holiday under ORC 5739.02(B)(55) after HB 186 of 136th GA (signed 2025-12-19) cancelled the expanded 14-day section 5739.41 holiday for 2026)_ |
 | Oklahoma | OK | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; HB 1955 of 2024 eliminated state-portion grocery tax effective 2024-08-29 -- locals still apply; August clothing/footwear $100 holiday under 68 O.S. 1357.10; digital goods NOT taxable per OAC 710:65-19-156)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
+| Utah | UT | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1 promotion; statewide combined 4.85% = 4.70% state + 0.10% statewide-uniform local-option + 0.05% mass transit basic per Utah Code 59-12-103; reduced 1.75% state-portion grocery rate per 59-12-103(2)(a)(ii) encoded via rate_modifier; no state sales-tax holiday; Navajo Nation gross receipts tax on the San Juan County reservation portion is a DEFERRED sub-state regime not modeled in v1)_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 8 other Streamlined Sales Tax member states ship as tier 2 —
+The 7 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10; UT in v0.11 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: RI, SD, TN, UT, VT, WA, WV, WY.
+States: RI, SD, TN, VT, WA, WV, WY.
 
 ### No-tax states
 

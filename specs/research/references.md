@@ -3243,6 +3243,170 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+### UT -- Utah
+
+- **Statewide rate:** **4.85% statewide combined rate**, composed
+  of 4.70% state (Utah Code section 59-12-103(2)(a)(i)(A)) +
+  0.10% statewide-uniform local-option (Utah Code section
+  59-12-204) + 0.05% mass transit basic (Utah Code section
+  59-12-103(2)(a)(i)(C)). Effective in current composition since
+  the state-rate portion was raised from 4.65% to 4.70% on April
+  1, 2019 (SB 2001 of the 2018 Third Special Session); the other
+  two components have been stable for many years.
+- **Tax model:** sales tax (Utah Sales and Use Tax Act, Title 59
+  Chapter 12).
+- **Local jurisdictions:** counties, cities, towns, and special
+  transit districts may stack local sales taxes under various
+  enabling acts in Title 59 Chapter 12 Parts 2 and 4-22.
+  Combined rates typically range 6.10%-9.05% in the major metro
+  areas (Salt Lake County, Utah County, Davis County, Weber
+  County). UT is an SST member; per-jurisdiction rates flow
+  through the standard SST quarterly file.
+- **Sales-tax holidays:** **NONE.** Utah has NO state sales-tax
+  holiday in any year. Several legislative proposals to enact
+  a back-to-school holiday have been introduced in past
+  sessions (most recently HB 296 of the 2017 General Session)
+  and have failed to pass. Verified 2026-05-03 against Utah
+  State Tax Commission publications.
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.utah.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - Utah Code section 59-12-103 -- imposition statute and rate
+    composition (4.70% + 0.10% + 0.05% = 4.85%); also the
+    reduced-rate provision for food and food ingredients at
+    section 59-12-103(2)(a)(ii) (1.75% state-portion grocery
+    rate)
+  - Utah Code section 59-12-102 -- definitions, including the
+    "products transferred electronically" definition added by
+    Senate Bill 65 of the 2008 General Session (digital goods
+    in the sales-tax base)
+  - Utah Code section 59-12-104(11) -- prescription drug
+    exemption
+  - Utah Code section 59-12-204 -- statewide-uniform 0.10%
+    local-option sales tax (the second of the three components
+    in the 4.85% statewide rate)
+  - Utah Code section 59-12-603 -- county-administered
+    restaurant tax (~1.00%; separate non-sales-tax layer NOT
+    modeled in this engine)
+  - Utah Code section 20A-1-201.5 -- ballot publication
+    requirements (the basis on which Constitutional Amendment
+    A was struck from the 2024 ballot)
+  - Utah Code Title 58, Chapter 17b -- prescriber licensing
+    (referenced by the prescription-drug exemption in section
+    59-12-104(11))
+  - Senate Bill 65, Utah 2008 General Session -- expanded
+    sales-tax base to include "products transferred
+    electronically" (digital goods)
+  - House Bill 54, Utah 2023 General Session -- companion bill
+    to Constitutional Amendment A; would have eliminated the
+    1.75% state-portion grocery tax conditional on Amendment
+    A passing
+  - Title 24, Navajo Nation Code section 601 et seq. (Navajo
+    Nation Sales Tax) -- documented in module docstring as
+    deferred sub-state regime; NOT modeled in v1
+  - *Federal Indian-law preemption authority for the Navajo
+    Nation regime:* **Warren Trading Post v. Arizona Tax
+    Commission**, 380 U.S. 685 (1965); **Central Machinery Co.
+    v. Arizona Tax Commission**, 448 U.S. 160 (1980)
+- *Sources for rate/taxability:*
+  - **Utah State Tax Commission**, https://tax.utah.gov/
+    (retrieved 2026-05-03) -- the authoritative DOR; published
+    quarterly Sales and Use Tax Rate publications (the source
+    of the 4.85% statewide combined rate breakdown), Publication
+    25 (Sales and Use Tax General Information; the source for
+    the 3.00% composite grocery rate worked example), and the
+    sales-tax-holiday-disclaimer (no Utah state holiday).
+  - **Utah Code (le.utah.gov)**, https://le.utah.gov/xcode/
+    Title59/Chapter12/59-12.html?v=C59-12_2024 (retrieved
+    2026-05-03) -- the codified text of Title 59 Chapter 12.
+  - **Justia codified statutes** for Title 59 Chapter 12
+    (sections 102, 103, 104, 204, 603), cross-referenced
+    2026-05-03.
+  - **Utah Foundation, "Constitutional Amendment A: Income
+    Tax for Public Education"**, retrieved 2026-05-03 --
+    background on the income-tax earmark and the 2023-2024
+    legislative effort to enable grocery-tax elimination.
+  - **Streamlined Sales Tax member roster**,
+    https://www.streamlinedsalestax.org (retrieved 2026-05-03)
+    -- confirms Utah is a full SST member.
+  - **Avalara guidance on Utah digital products**,
+    https://www.avalara.com/blog/en/north-america/2019/02/state-by-state-guide-to-digital-products-and-sales-tax.html
+    (cross-referenced 2026-05-03) -- secondary confirmation
+    that UT taxes electronically-delivered digital goods;
+    primary source is Utah Code section 59-12-102 + SB 65 of
+    2008.
+  - **Navajo Tax Commission**, https://www.navajotax.org/
+    (retrieved 2026-05-03) -- the authority that administers
+    the Navajo Nation gross receipts tax (deferred sub-state
+    regime; not modeled).
+- **Module file:** `src/opensalestax/states/utah.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ut branch)
+- *Notes:*
+  - **Statewide rate composition is the headline finding.** The
+    4.85% combined rate decomposes into 4.70% state + 0.10%
+    statewide-uniform local + 0.05% mass transit basic; all
+    three are imposed at the state level and uniform statewide.
+    Documented in the module docstring so future maintainers
+    can audit each component independently.
+  - **Reduced 1.75% state-portion grocery rate.** Encoded with
+    ``rate_modifier=Decimal("1.75")`` per Utah Code section
+    59-12-103(2)(a)(ii). Local rates apply to groceries at
+    full local rate; the composite tax on typical groceries in
+    jurisdictions with the standard 1.25% local stack is 3.00%.
+    Mirrors the IL / MO / VA / TN reduced-state-grocery-rate
+    patterns. Until v0.6+ wires the modifier through, the
+    engine over-collects 3.10 percentage points on grocery line
+    items in Utah.
+  - **Constitutional Amendment A (2024) was struck from the
+    ballot.** Amendment A would have removed the Utah
+    Constitution's earmark on income tax revenue (currently
+    restricted to education), enabling the legislature to enact
+    HB 54 (2023) and eliminate the 1.75% state-portion grocery
+    tax. The Utah Third District Court (affirmed by the Utah
+    Supreme Court) struck Amendment A from the November 5, 2024
+    ballot for failure to properly publish the amendment under
+    Utah Code section 20A-1-201.5. The 1.75% state-portion
+    grocery tax accordingly continues to apply; future
+    legislative sessions may revisit the constitutional
+    question.
+  - **Navajo Nation gross receipts tax is a DEFERRED sub-state
+    regime.** The Navajo Nation reservation extends into
+    northeastern Utah (San Juan County); sales by Navajo-
+    enrolled-member businesses on the reservation are subject
+    only to the Navajo Nation gross receipts tax (Title 24,
+    Navajo Nation Code section 601 et seq.), NOT Utah sales
+    tax, on the basis of long-standing federal Indian-law
+    preemption (Warren Trading Post / Central Machinery line of
+    Supreme Court cases). This engine does NOT model the
+    Navajo Nation regime in v1; calls to /v1/calculate for
+    addresses inside the reservation will return the standard
+    Utah sales tax rate, which is incorrect for sales by Navajo-
+    enrolled-member businesses. Operators serving Navajo Nation
+    businesses must apply an exemption certificate at the line-
+    item level. Structurally analogous to LA parishes, CO home-
+    rule cities, and AL self-administering municipalities --
+    a future :class:`SubJurisdiction` Protocol extension may
+    first-class-model these regimes in v1.0+.
+  - **NO state sales-tax holiday.** Verified 2026-05-03;
+    several legislative proposals (most recently HB 296 of
+    2017) have failed to enact one. ``holidays_for(year)``
+    returns an empty iterator unconditionally. A defensive
+    parametrized regression test
+    (``test_utah_holidays_always_empty``) catches a future
+    maintainer who tries to add a holiday without confirming
+    the legislature actually passed one.
+  - **Digital goods are taxable.** Notable peer-state difference
+    from Oklahoma (which does NOT tax digital goods per OAC
+    710:65-19-156). UT places digital goods in the sales-tax
+    base via SB 65 of 2008 amending Utah Code section 59-12-102.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION.**
+    UT's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual UTR<...>.csv file is the
+    natural next maintenance task.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
