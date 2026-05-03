@@ -82,7 +82,9 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
 
     CA was promoted in v0.2; TX/NY/FL in v0.3; PA/IL/MD/MA/AZ in v0.4;
     CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7. AL, NM, HI, etc.
-    remain tier 0 until their state modules ship.
+    remain tier 0 until their state modules ship. (NM uses the
+    Gross Receipts Tax model and waits on a separate non-sales-tax
+    abstraction.)
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}

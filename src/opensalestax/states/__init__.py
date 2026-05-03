@@ -19,6 +19,7 @@ from opensalestax.states import (
     _tier2,  # noqa: F401
     arizona,  # noqa: F401
     california,  # noqa: F401
+    colorado,  # noqa: F401
     connecticut,  # noqa: F401
     district_of_columbia,  # noqa: F401
     florida,  # noqa: F401

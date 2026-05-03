@@ -27,17 +27,17 @@ requires a named maintainer.
 
 | State | Abbrev | Maintainer | Since |
 |---|---|---|---|
-| Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
-| Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
-| Colorado | CO | _vacant — see issue tracker_ | _v0.7_ |
+| Colorado | CO | _vacant — see issue tracker_ | _v0.7 (state portion only; home-rule cities deferred — see [`specs/decisions/04-colorado-home-rule.md`](specs/decisions/04-colorado-home-rule.md))_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
 | Louisiana | LA | _vacant — see issue tracker_ | _v0.7_ |
+| Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
 | Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
+| Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 

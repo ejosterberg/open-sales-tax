@@ -972,6 +972,120 @@ Format for each state:
     rather than a general local-option statute, so each requires
     its own authorizing-bill review and effective-date research.
 
+### CO -- Colorado
+
+- **Statewide rate:** **2.900% effective 2001-01-01** -- one of the
+  lowest state-level rates of any taxing US state. Combined rates
+  inside home-rule cities reach **11%+**.
+- **Tax model:** sales tax (NOT SST). Three concurrent regimes:
+  state-administered state tax, state-collected local taxes
+  (counties + special districts + non-home-rule cities), and
+  ~70 home-rule self-collecting cities.
+- **Local jurisdictions:** **HOME-RULE CITIES** (~70) self-administer
+  under Article XX of the Colorado Constitution -- Denver, Aurora,
+  Boulder, Colorado Springs, Fort Collins, Lakewood, Thornton,
+  Arvada, Pueblo, Greeley, Westminster, Centennial, and ~58 others.
+  Each defines its own rate, base, and exemptions (notably:
+  most home-rule cities tax groceries even though the state exempts
+  them). State-collected counties + special districts (RTD, SCFD,
+  Football Stadium District) layer on additional rates that CDOR
+  collects on the locality's behalf. **None modeled in v0.7** -- see
+  the "Notes" section and ``specs/decisions/04-colorado-home-rule.md``.
+- **Sales-tax holidays:** **NONE** at the state level (some
+  home-rule cities have local holidays; not modeled).
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.colorado.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted (Colorado Revised Statutes Title 39 Article 26):**
+  - Colo. Rev. Stat. section 39-26-104 -- imposition (taxable
+    property and services definitions)
+  - Colo. Rev. Stat. section 39-26-106(1)(a)(II) -- 2.9% rate
+    effective 2001-01-01
+  - Colo. Rev. Stat. section 39-26-102(15)(b.5) -- "tangible
+    personal property" expanded to include "digital goods"
+    regardless of method of delivery (added by **HB 21-1312**,
+    signed 2021-06-23, effective 2021-07-01)
+  - Colo. Rev. Stat. section 39-26-707(1)(e) -- food for home
+    consumption exemption, effective 1980-01-01
+  - Colo. Rev. Stat. section 39-26-707(1.5) -- candy and soft
+    drinks carved out of the food exemption (taxable), effective
+    2010-05-01
+  - Colo. Rev. Stat. section 39-26-717 -- drugs and medical and
+    therapeutic devices exemption (prescription drugs, insulin,
+    oxygen-delivery equipment, prescription-dispensed medical
+    supplies)
+  - **HB 21-1312** -- digital goods (cited above)
+  - **HB 21-1162** -- separate bill addressing destination-sourcing
+    transition rules (NOT digital goods; the orchestrator brief's
+    mention of "1162 affected sourcing" is correct -- both are real
+    bills with different scopes)
+- **External sources retrieved 2026-05-03:**
+  - https://law.justia.com/codes/colorado/title-39/specific-taxes/sales-and-use-tax/article-26/part-1/section-39-26-106/
+    -- C.R.S. section 39-26-106 (state rate)
+  - https://colorado.public.law/statutes/crs_39-26-707
+    -- C.R.S. section 39-26-707 (food exemption + candy/soft drink carve-outs)
+  - https://law.justia.com/codes/colorado/title-39/specific-taxes/sales-and-use-tax/article-26/part-7/section-39-26-717/
+    -- C.R.S. section 39-26-717 (drugs and medical exemptions)
+  - https://www.stateandlocaltax.com/digital-economy/colorado-defines-digital-goods-as-taxable-tangible-personal-property-regardless-of-the-means-of-delivery/
+    -- HB 21-1312 digital-goods analysis (Eversheds Sutherland SALT Shaker, 2021)
+  - https://tax.colorado.gov/DR1002 -- CDOR rate publication landing
+    page (DR 1002 is the canonical state+local rate schedule and
+    home-rule contact directory)
+  - https://tax.colorado.gov/local-government-sales-tax -- CDOR
+    overview page describing state-collected vs. self-collecting
+    distinction
+  - https://www.salestaxcolorado.com/2022/10/06/which-towns-cities-in-colorado-are-self-collecting-home-rule-jurisdictions/
+    -- third-party roster of CO home-rule self-collecting cities
+    (cites "68 towns and cities" as of 2022; CDOR cites
+    "approximately 70" in current materials)
+  - https://www.cml.org/docs/default-source/uploadedfiles/legislative/position-papers/2021-position-papers/hb-1162-position-paper.pdf?sfvrsn=10477b4a_0
+    -- Colorado Municipal League position paper on HB 21-1162
+    (confirms it addressed destination sourcing, not digital goods)
+  - https://taxcloud.com/sales-tax/colorado/ -- combined-rate
+    cross-reference for the 12 most populous home-rule cities
+    (used only as a cross-check; not authoritative)
+- *Sources for rate/taxability:* Colorado Revised Statutes via
+  Justia + colorado.public.law (the statute repositories) + CDOR
+  rate publications + the Eversheds Sutherland SALT Shaker analysis
+  of HB 21-1312.
+- **Module file:** `src/opensalestax/states/colorado.py`
+- **Last verified:** 2026-05-03 by per-state research agent (state-co)
+- **Decision document:** `specs/decisions/04-colorado-home-rule.md`
+  -- the canonical rationale for the v0.7 state-portion-only scope
+  and the three options considered.
+- *Notes:*
+  - **HOME-RULE WARNING.** This is the most important caveat for any
+    Colorado integrator. Approximately 70 home-rule cities
+    self-administer their own sales taxes under Article XX of the
+    Colorado Constitution. Their rates, bases, and exemptions differ
+    from the state, and CDOR does not collect on their behalf. The
+    OpenSalesTax v0.7 module ships the **state portion only** -- a
+    transaction inside a home-rule city will be **under-collected**
+    (the city portion is missing entirely, and the taxability matrix
+    may be wrong, notably for groceries). See the decision document
+    for the path to correctness.
+  - **Most home-rule cities tax groceries** (Denver, Boulder,
+    Colorado Springs, Fort Collins, etc.) even though the state
+    exempts them under section 39-26-707(1)(e). The module's
+    ``groceries`` taxability rule warns about this in its ``notes``
+    field but cannot model it precisely until per-jurisdiction
+    taxability overrides land.
+  - **Combined rates** in CO range from 2.9% (an unincorporated area
+    with no county or special-district add-on) up to **~11.2%** in
+    some home-rule cities. The state portion alone is one of the
+    lowest in the country; the combined rate ranks among the highest.
+  - **Digital goods are taxable** in Colorado as of 2021-07-01 per
+    HB 21-1312, which expanded the C.R.S. section 39-26-102(15)(b.5)
+    definition of "tangible personal property" to include digital
+    goods regardless of delivery method (downloads + streaming).
+  - **Candy and soft drinks** are statutorily carved out of the food
+    exemption (taxable) per section 39-26-707(1.5) effective
+    2010-05-01. The current six-category taxability matrix doesn't
+    distinguish candy/soft-drinks from groceries; encoding that
+    distinction is a future refinement that ties into per-subcategory
+    item codes.
+  - **No state-level holidays.** Some home-rule cities have local
+    sales-tax holidays; not modeled.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in
