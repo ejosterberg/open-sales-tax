@@ -28,6 +28,7 @@ from opensalestax.states import (
     no_tax,  # noqa: F401
     pennsylvania,  # noqa: F401
     texas,  # noqa: F401
+    virginia,  # noqa: F401
     wisconsin,  # noqa: F401
 )
 from opensalestax.states.protocol import (
