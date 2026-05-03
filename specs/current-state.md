@@ -1,14 +1,17 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** **v0.6.0 shipped.** Phase 6 Batch A — 4 new tier-1
-states added in parallel by 4 sub-agents (CT, DC, SC, VA). 393
-unit tests + 38 integration tests, CI green on PostgreSQL +
-MariaDB, ruff + mypy clean.
+**Status:** **v0.7.0 shipped.** Phase 6 Batch B — 5 new tier-1
+states added in parallel by 5 sub-agents (CO, ID, LA, MO, MS).
+508 unit tests + 38 integration tests, CI matrix green on
+PostgreSQL + MariaDB, ruff + mypy clean.
 
-**v0.6 / Phase 6 buildout in progress, started 2026-05-03; Batch
-A shipped same day.** Batch B (MO, MS, ID, CO, LA) is the next
-agent fanout.
+**v0.6 / Phase 6 buildout in progress, started 2026-05-03;
+Batches A + B shipped same day.** Two agents (CO, LA) flagged
+that proper home-rule / parish modeling needs a
+`SubJurisdiction` Protocol extension — captured in
+`specs/decisions/04-colorado-home-rule.md` and
+`specs/decisions/05-louisiana-parishes.md` for v1.0+ design.
 
 Live at [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax).
 
@@ -38,16 +41,17 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.4.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.4.0) | 2026-05-03 | PA, IL, MD, MA, AZ tier-1 |
 | [v0.5.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.5.0) | 2026-05-03 | Sales-tax holidays support |
 | [v0.6.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.6.0) | 2026-05-03 | CT, DC, SC, VA tier-1 (Batch A — 4 parallel agents) |
+| [v0.7.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.7.0) | 2026-05-03 | CO, ID, LA, MO, MS tier-1 (Batch B — 5 parallel agents) |
 
 ## Coverage (after v0.5)
 
 | Tier | Count | States |
 |---|---:|---|
-| **Tier 1** -- fully maintained | **20** | MN, WI, CA, TX, NY, FL, PA, IL, MD, MA, AZ, AK, DE, MT, NH, OR, CT, DC, SC, VA |
+| **Tier 1** -- fully maintained | **25** | MN, WI, CA, TX, NY, FL, PA, IL, MD, MA, AZ, AK, DE, MT, NH, OR, CT, DC, SC, VA, CO, ID, LA, MO, MS |
 | **Tier 2** -- rate-only via SST data | **22** | AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY |
-| Unsupported | **10** | CO, HI, ID, LA, MS, MO, NM, PR, AL + 1 |
+| Unsupported | **5** | AL, HI, NM, PR, + 1 |
 
-**42 of 52 jurisdictions** have first-class engine support.
+**47 of 52 jurisdictions** have first-class engine support.
 
 ## Feature ladder
 
