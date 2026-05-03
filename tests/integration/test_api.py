@@ -69,11 +69,15 @@ async def test_states_lists_all_52(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None:
-    """MN, WI, AK, DE, MT, NH, OR are tier 1 in Phase 1."""
+    """MN, WI, GA, AK, DE, MT, NH, OR are tier 1 SST/no-tax states.
+
+    GA was promoted from tier 2 to tier 1 in v0.7+ (see
+    ``opensalestax/states/georgia.py``).
+    """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("MN", "WI", "AK", "DE", "MT", "NH", "OR"):
-        assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1 in Phase 1"
+    for abbrev in ("MN", "WI", "GA", "AK", "DE", "MT", "NH", "OR"):
+        assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1"
 
 
 @pytest.mark.asyncio

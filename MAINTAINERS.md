@@ -30,6 +30,7 @@ requires a named maintainer.
 | Colorado | CO | _vacant — see issue tracker_ | _v0.7 (state portion only; home-rule cities deferred — see [`specs/decisions/04-colorado-home-rule.md`](specs/decisions/04-colorado-home-rule.md))_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
+| Georgia | GA | _vacant — see issue tracker_ | _v0.7+ (promoted from tier 2; state-only grocery exemption per O.C.G.A. § 48-8-3(57) -- locals still tax groceries)_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
 | Louisiana | LA | _vacant — see issue tracker_ | _v0.7 (state portion only; ~64 parishes deferred — see [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md))_ |
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
@@ -41,13 +42,14 @@ requires a named maintainer.
 
 ### Tier 2 states (rate-only via SST data)
 
-The 22 other Streamlined Sales Tax member states ship in Phase 1 as
+The 21 other Streamlined Sales Tax member states ship in Phase 1 as
 tier 2 — official SST data drives rates and boundaries, default
 taxability matrix applies (everything taxable except groceries).
+(GA was promoted to tier 1 in v0.7+ -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
+States: AR, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states

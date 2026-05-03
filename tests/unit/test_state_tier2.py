@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Tests for the 22 tier-2 SST state modules.
+"""Tests for the 21 tier-2 SST state modules.
 
 Validates that every tier-2 state's metadata is correctly set
 and the module satisfies the StateModule Protocol. Per-state
 rate validation against real SST data is left to the per-state
 maintainer (constitution sec 12) -- these tests are the smoke-
 level guarantees.
+
+Note: GA was promoted from tier 2 to tier 1 in v0.7+ (see
+``opensalestax/states/georgia.py``); the tier-2 set is now 21
+rather than the original 22.
 """
 
 from __future__ import annotations
@@ -20,11 +24,10 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states._tier2 import TIER_2_CLASSES, TIER_2_STATES
 from opensalestax.states.protocol import StateModule
 
-# All 22 tier-2 states should be present.
+# All 21 tier-2 states should be present (GA was promoted to tier 1 in v0.7+).
 EXPECTED_TIER_2_ABBREVS = frozenset(
     {
         "AR",
-        "GA",
         "IA",
         "IN",
         "KS",
@@ -50,8 +53,8 @@ EXPECTED_TIER_2_ABBREVS = frozenset(
 
 
 def test_count_matches_expected() -> None:
-    assert len(TIER_2_STATES) == 22
-    assert len(TIER_2_CLASSES) == 22
+    assert len(TIER_2_STATES) == 21
+    assert len(TIER_2_CLASSES) == 21
     assert {s.state_abbrev for s in TIER_2_STATES} == EXPECTED_TIER_2_ABBREVS
 
 
