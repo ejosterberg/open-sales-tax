@@ -3,22 +3,28 @@
 """FastAPI application factory.
 
 The package's HTTP entry point. Production deployments instantiate
-the app via uvicorn::
+the app via uvicorn's factory mode (which constructs the app on
+worker startup, ensuring ``OPENSALESTAX_DATABASE_URL`` is read at
+the right moment)::
 
-    uvicorn opensalestax.app:app --host 0.0.0.0 --port 8080
+    uvicorn --factory opensalestax.app:create_app --host 0.0.0.0 --port 8080
 
 For tests and embedded use cases, call :func:`create_app` directly.
 """
 
 from __future__ import annotations
 
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 # Import for side-effect: triggers state-module registration.
 import opensalestax.states  # noqa: F401
 from opensalestax import __version__
 from opensalestax.api.v1 import router as v1_router
+from opensalestax.settings import get_settings
 
 
 def create_app() -> FastAPI:
@@ -28,7 +34,18 @@ def create_app() -> FastAPI:
     instances and so future configuration (CORS, custom middleware,
     auth dispatch) can branch on settings without re-import side
     effects.
+
+    Rate limiting (per constitution sec 6 / spec sec 6): the app
+    installs a slowapi limiter scoped per-IP at the configured
+    requests/minute (default 60). Tests can override the limiter
+    by overriding settings before calling ``create_app``.
     """
+    settings = get_settings()
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=[f"{settings.rate_limit_per_minute}/minute"],
+    )
+
     app = FastAPI(
         title="OpenSalesTax",
         version=__version__,
@@ -42,6 +59,8 @@ def create_app() -> FastAPI:
         openapi_url="/v1/openapi.json",
     )
 
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
     app.include_router(v1_router)
 
     @app.get("/", include_in_schema=False)
@@ -51,5 +70,12 @@ def create_app() -> FastAPI:
     return app
 
 
-# Module-level instance for ``uvicorn opensalestax.app:app``
-app = create_app()
+def _rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Return a friendlier JSON body when a client exceeds the rate limit."""
+    del request, exc
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Rate limit exceeded. Slow down or use API-key mode.",
+        },
+    )

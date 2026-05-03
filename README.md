@@ -1,74 +1,110 @@
-# OpenSalesTax — open-source US sales tax calculation API
+# OpenSalesTax
 
-> **Status: pre-development.** Project specification + research complete (2026-05-02).
-> Ready for an implementation session to bootstrap.
+> **Open-source US sales tax calculation API.** Free, self-hostable,
+> contributor-driven. Apache 2.0.
 
-## Why this project exists
+[![CI](https://github.com/ejosterberg/open-sales-tax/actions/workflows/ci.yml/badge.svg)](https://github.com/ejosterberg/open-sales-tax/actions/workflows/ci.yml)
 
-US sales tax is one of the most complex compliance burdens for small
-businesses. There are **~13,000 distinct taxing jurisdictions** in the US
-(state + county + city + special district), each with its own rate, its
-own definitions of what's taxable, and its own filing schedule.
+OpenSalesTax answers one question for any US transaction: **how
+much sales tax should I charge?** It uses free public data from
+the Streamlined Sales Tax (SST) project plus per-state contributor
+modules to cover the messy reality of US sales tax (~13,000 taxing
+jurisdictions, every state with its own quirks).
 
-Commercial solutions (Avalara, Vertex, Sovos, TaxJar) charge **$50-500+
-per month** for small-business plans, and far more at scale. Their data
-is closed; their APIs proprietary.
+⚠️ **Calculation only. Not legal or tax advice.** Verify against
+your state Department of Revenue before remitting.
 
-The **Streamlined Sales Tax (SST) project** has produced *free, public,
-machine-readable* rates and boundary data for **24 member states** since
-2005, updated quarterly. **TaxCloud** offers free filing for those 24
-states under SST certification but is otherwise commercial.
+## Quickstart (5 minutes)
 
-**The gap:** there is no widely-adopted, self-hostable, open-source API
-that small businesses or other accounting projects can drop into their
-stack to calculate sales tax correctly. This project aims to be that.
+You need [Docker](https://docs.docker.com/get-docker/) +
+[Docker Compose](https://docs.docker.com/compose/install/).
 
-## What this is (vision)
+```bash
+git clone https://github.com/ejosterberg/open-sales-tax.git
+cd open-sales-tax
 
-- An **API server** that calculates sales tax for any US transaction.
-- Self-hostable (Docker / single binary), **OR** consumable as a SaaS
-  for users who don't want to host.
-- Per-state coverage starting with the 24 SST states (free public
-  data) and growing to non-SST states via community contributions.
-- **Per-state contributor module** pattern — one volunteer per state
-  can maintain that state's data, taxability matrix, and edge cases.
-- License: **Apache 2.0** (recommended — strong patent grant, broad
-  contributor friendliness).
-- Reference implementation that other accounting projects (including
-  [SC Books](https://github.com/ejosterberg/scbooks)) can integrate.
+# Bring up API + PostgreSQL (or use --profile mariadb for MariaDB)
+docker compose --profile postgres up -d
+
+# Apply migrations
+docker compose run --rm api alembic upgrade head
+
+# Hit the API
+curl http://localhost:8080/v1/health
+curl http://localhost:8080/v1/states | jq '.states[] | select(.tier > 0)'
+
+# Calculate sales tax on a $100 general purchase in Minneapolis
+curl -X POST http://localhost:8080/v1/calculate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "address": {"zip5": "55401"},
+    "line_items": [{"amount": "100.00", "category": "general"}]
+  }'
+```
+
+Visit **http://localhost:8080/v1/docs** for the auto-generated
+Swagger UI.
+
+## What's covered (Phase 1, v0.1)
+
+| Coverage tier | Count | States |
+|---|---:|---|
+| **Tier 1** -- fully maintained (taxability matrix + tests) | 7 | MN, WI, AK, DE, MT, NH, OR |
+| **Tier 2** -- rate-only via SST data, default taxability | 22 | AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY |
+| **Unsupported** (Phase 2+) | 23 | CA, TX, NY, FL, IL, PA, AL, AZ, CO, CT, DC, HI, ID, LA, MD, MA, MS, MO, NM, PA, PR, SC, VA |
+
+To **load real rate data** for an SST state into your local
+database, fetch the upstream file and run the loader CLI (still
+TODO for v0.1; planned for v0.2). For v0.1, the API responds
+correctly to all four endpoints but only returns rates for ZIPs
+you've manually seeded into your DB. The shipped state modules
+know how to parse SST data; wiring in the auto-loader is Phase 2.
+
+## API reference
+
+Auto-generated OpenAPI 3.x:
+- Spec: `GET /v1/openapi.json`
+- Swagger UI: `GET /v1/docs`
+- ReDoc: `GET /v1/redoc`
+
+Endpoints:
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/v1/health` | Liveness + DB connectivity |
+| GET | `/v1/states` | Coverage tier for all 52 jurisdictions |
+| GET | `/v1/rates?zip5=&zip4=` | Active jurisdictional rate stack |
+| POST | `/v1/calculate` | Tax decomposition for line items |
+
+See [docs/api.md](docs/api.md) for request/response examples.
+
+## Contributing
+
+Yes please! See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The architectural keystone is the **per-state contributor pattern**:
+every state is a Python module implementing a small Protocol.
+Maintainers are listed per-state in [MAINTAINERS.md](MAINTAINERS.md).
+
+To add or improve your state's module, see
+[docs/state-modules.md](docs/state-modules.md).
+
+## License + provenance
+
+[Apache License 2.0](LICENSE). DCO sign-off
+(`git commit -s`) required on every commit.
+
+Built on free public data:
+- [Streamlined Sales Tax Project](https://www.streamlinedsalestax.org)
+  rates and boundary files (24 member states)
+- US Census TIGER/Line shapefiles (planned for Phase 4)
+- State Department of Revenue publications (per-state)
+
+We deliberately do **not** ingest paid feeds (Avalara, TaxJar,
+Vertex, Sovos, TaxCloud). See [constitution §3](specs/constitution.md).
 
 ## Status
 
-**Not built yet.** What exists today:
-
-- Detailed spec + research in `specs/`
-- Architectural recommendations
-- Phase-1 implementation plan ready for a Claude session to execute
-
-## How to start (next session)
-
-If you're a Claude session bootstrapping this project, **read in order:**
-
-1. `specs/constitution.md` — non-negotiable principles
-2. `specs/current-state.md` — what exists now (nothing — pre-build)
-3. `specs/handoff.md` — what to do first
-4. `specs/research/data-sources.md` — what data is actually available
-5. `specs/research/prior-art.md` — what existing solutions do
-6. `specs/research/state-coverage.md` — per-state notes
-7. `specs/phase-1-foundation/spec.md` — what to build first
-
-Then propose the language / framework choice (the constitution gives
-recommendations but leaves the call open) and walk Eric through it
-before writing any code.
-
-## Related projects
-
-- **SC Books** (`../CRL-NewAccounting/`) — Eric's open-source accounting
-  platform; the eventual primary consumer of this API.
-- **Streamlined Sales Tax (SST)** — multi-state government project
-  providing the free upstream data. https://www.streamlinedsalestax.org
-
-## License
-
-To be confirmed by maintainers — recommendation **Apache 2.0** (see
-`specs/constitution.md` for rationale).
+**v0.1 alpha.** API contract is stable; data-loading workflow
+matures in v0.2. Production self-hosting is feasible with manual
+data seeding today; turn-key data refresh in the next release.

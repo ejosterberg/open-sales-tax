@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+#
+# Local development stack for OpenSalesTax. Two database profiles are
+# defined; activate one at a time:
+#
+#   docker compose --profile postgres up
+#   docker compose --profile mariadb up
+#
+# Without a profile flag, only the API is brought up (you'd need to point
+# OPENSALESTAX_DATABASE_URL at an existing database).
+#
+# After the database is ready, run migrations against it:
+#
+#   docker compose run --rm api alembic upgrade head
+
+services:
+  api:
+    build: .
+    image: opensalestax:dev
+    ports:
+      - "8080:8080"
+    environment:
+      OPENSALESTAX_DATABASE_URL: ${OPENSALESTAX_DATABASE_URL:-postgresql+asyncpg://opensalestax:opensalestax@postgres:5432/opensalestax}
+      OPENSALESTAX_LOG_LEVEL: ${OPENSALESTAX_LOG_LEVEL:-INFO}
+      OPENSALESTAX_RATE_LIMIT_PER_MINUTE: ${OPENSALESTAX_RATE_LIMIT_PER_MINUTE:-60}
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+      mariadb:
+        condition: service_healthy
+        required: false
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: opensalestax
+      POSTGRES_PASSWORD: opensalestax
+      POSTGRES_DB: opensalestax
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opensalestax"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11
+    profiles: ["mariadb"]
+    environment:
+      MARIADB_USER: opensalestax
+      MARIADB_PASSWORD: opensalestax
+      MARIADB_DATABASE: opensalestax
+      MARIADB_ROOT_PASSWORD: rootpw
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mariadb_data:
