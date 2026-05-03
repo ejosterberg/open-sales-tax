@@ -55,12 +55,10 @@ class Iowa(SstStateModule):
     state_fips = "19"
 
 
-class Indiana(SstStateModule):
-    """Indiana (IN) -- SST member, state base 7.0%, FIPS 18."""
-
-    state_abbrev = "IN"
-    state_name = "Indiana"
-    state_fips = "18"
+# Indiana (IN) was promoted to tier 1 in v0.7.x. Its module lives at
+# ``src/opensalestax/states/indiana.py``. Do NOT re-add a tier-2
+# entry here -- the dedicated module overrides the generic SST
+# defaults with full statutory taxability rules.
 
 
 class Kansas(SstStateModule):
@@ -227,7 +225,6 @@ TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
     Arkansas,
     Georgia,
     Iowa,
-    Indiana,
     Kansas,
     Kentucky,
     Michigan,

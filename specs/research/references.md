@@ -1261,13 +1261,110 @@ Format for each state:
     2026 so a future maintainer must explicitly add data when
     holidays are reauthorized.
 
+### IN -- Indiana
+
+- **Statewide rate:** **7.000% effective 2008-04-01** (raised from
+  6% to 7% by P.L. 146-2008 to fund property-tax relief; the 7%
+  rate has been stable since)
+- **Tax model:** sales tax (SST -- full member; verified 2026-05-03
+  against the SST member roster on streamlinedsalestax.org)
+- **Local jurisdictions:** **NONE.** Indiana levies NO local sales
+  tax. The 7% state rate is the entire combined rate at every
+  Indiana address. A handful of related local taxes exist (county-
+  option innkeeper taxes on lodging, food-and-beverage taxes in
+  select municipalities authorized by individual local-and-private-
+  laws acts) but those are narrow industry-specific levies and are
+  NOT general sales taxes. This is a notable contrast with peer
+  SST member states (e.g. WI's counties typically add 0.5%; MN's
+  metro adds transit districts) and one of the defining
+  simplifications in Indiana's rate-stack model.
+- **Sales-tax holidays:** **NONE.** Indiana has never enacted a
+  recurring sales-tax holiday. Confirmed 2026-05-03 against the
+  Indiana Department of Revenue's published guidance and a search
+  of Article 2.5 for any periodic exemption window. ``holidays_for(year)``
+  returns the empty iterator for every year (mirrors DC and ID).
+- **Threshold rules:** none.
+- **DOR URL:** **https://www.in.gov/dor/** *(retrieved 2026-05-03)*
+- **Statutes consulted (Ind. Code Title 6, Article 2.5 -- gross
+  retail and use taxes):**
+  - Ind. Code section 6-2.5-2-1 -- imposition of the state gross
+    retail tax on retail transactions
+  - Ind. Code section 6-2.5-2-2(a) -- 7% state gross retail tax
+    rate (P.L. 146-2008, eff. 2008-04-01)
+  - Ind. Code section 6-2.5-1-27 -- definition of tangible personal
+    property
+  - Ind. Code section 6-2.5-4-16.4 -- imposition of sales/use tax on
+    transferred specified digital products (eff. 2018-07-01 under
+    H.E.A. 1316-2018)
+  - Ind. Code section 6-2.5-5-19 -- exemption for prescription
+    drugs, insulin, oxygen, blood, and certain medical/durable
+    equipment when prescribed
+  - Ind. Code section 6-2.5-5-20 -- exemption for food and food
+    ingredients for human consumption (excluding candy, dietary
+    supplements, soft drinks, alcoholic beverages, tobacco, and
+    prepared food)
+- *Sources for rate/taxability:*
+  - Indiana Department of Revenue Sales Tax landing page
+    (https://www.in.gov/dor/business-tax/sales-tax/), retrieved
+    2026-05-03 -- confirms 7% statewide rate and no local sales tax
+  - Indiana Department of Revenue Information Bulletin #8 (Sales of
+    Computer Hardware, Software, and Digital Goods) -- most recent
+    revision December 2024, retrieved 2026-05-03; primary source
+    for the SaaS / remotely-accessed-software taxability position
+    cited in the digital-goods rule
+  - Indiana General Assembly online statutes (Title 6, Article 2.5)
+    at http://iga.in.gov/laws/2024/ic/titles/6/, retrieved 2026-05-03
+    -- primary source for every statutory citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Indiana is a full member
+- **Module file:** `src/opensalestax/states/indiana.py`
+- **Last verified:** 2026-05-03 by per-state research agent (Phase
+  7 -- tier-2 to tier-1 promotion)
+- *Notes:*
+  - **No local sales tax** is the headline distinction. The
+    module's ``jurisdiction_types`` dict accepts ONLY the
+    state-level SST type code ``"45"`` so any unexpected non-state
+    row in a future quarterly file is silently dropped rather
+    than miscategorized as a sub-state authority Indiana doesn't
+    have. Documented prominently in the module docstring and
+    enforced by a regression test.
+  - **Digital goods is a 2018-07-01 change.** Pre-2018 IN's
+    sales tax did not reach electronically-delivered specified
+    digital products. The TaxabilityRule notes call out the
+    H.E.A. 1316-2018 origin so a future maintainer doesn't
+    mistake the current treatment for a long-standing position.
+  - **SaaS distinction lives in Information Bulletin #8.**
+    Indiana taxes prewritten ("canned") software delivered
+    electronically but does NOT tax true SaaS / remotely accessed
+    software (where the customer takes neither possession nor
+    control of the software). The dominant case (specified
+    digital products with permanent right of use) is encoded as
+    taxable; the SaaS exception is documented in the
+    digital_goods rule's notes for follow-up if/when a sub-
+    category split lands.
+  - **Narrow local food-and-beverage / innkeeper taxes** exist in
+    a handful of Indiana municipalities (Marion County food-and-
+    beverage tax, county-option innkeeper taxes) but are NOT
+    modeled by this module -- they are narrow industry-specific
+    levies authorized by individual local-and-private-laws acts,
+    not general sales taxes. Documented in the module docstring
+    for the next maintainer who chooses to model lodging or
+    F&B-specific calculations.
+  - **Rate is stable.** The 7% rate has been in place since
+    2008-04-01; no scheduled change is currently in the
+    legislative pipeline that this research found.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
-22 states load via the generic `SstStateModule` in
+21 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
+AR, GA, IA, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
 TN, UT, VT, WA, WV, WY
+
+(IN was promoted to tier 1 in v0.7.x -- see the IN section above
+and `src/opensalestax/states/indiana.py`.)
 
 Each has a one-class entry there with state_abbrev + state_name +
 state_fips. They use the SST quarterly data files for rates and

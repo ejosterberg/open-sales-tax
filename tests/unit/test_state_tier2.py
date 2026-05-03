@@ -20,13 +20,14 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states._tier2 import TIER_2_CLASSES, TIER_2_STATES
 from opensalestax.states.protocol import StateModule
 
-# All 22 tier-2 states should be present.
+# Tier-2 SST states still on the default-taxability path. IN was
+# promoted to tier 1 in v0.7.x (see ``opensalestax/states/indiana.py``),
+# so the count drops from 22 to 21.
 EXPECTED_TIER_2_ABBREVS = frozenset(
     {
         "AR",
         "GA",
         "IA",
-        "IN",
         "KS",
         "KY",
         "MI",
@@ -50,8 +51,8 @@ EXPECTED_TIER_2_ABBREVS = frozenset(
 
 
 def test_count_matches_expected() -> None:
-    assert len(TIER_2_STATES) == 22
-    assert len(TIER_2_CLASSES) == 22
+    assert len(TIER_2_STATES) == 21
+    assert len(TIER_2_CLASSES) == 21
     assert {s.state_abbrev for s in TIER_2_STATES} == EXPECTED_TIER_2_ABBREVS
 
 
@@ -113,6 +114,6 @@ def test_phase_1_states_all_registered() -> None:
     from opensalestax.states import supported_abbrevs
 
     abbrevs = supported_abbrevs()
-    # 22 tier-2 + MN + WI (tier 1 SST) + AK, DE, MT, NH, OR (no-tax) = 29
-    expected = EXPECTED_TIER_2_ABBREVS | {"MN", "WI", "AK", "DE", "MT", "NH", "OR"}
+    # 21 tier-2 + MN + WI + IN (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
+    expected = EXPECTED_TIER_2_ABBREVS | {"MN", "WI", "IN", "AK", "DE", "MT", "NH", "OR"}
     assert expected.issubset(abbrevs), f"missing: {expected - abbrevs}"

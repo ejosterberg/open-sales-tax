@@ -31,6 +31,7 @@ requires a named maintainer.
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
+| Indiana | IN | _vacant — see issue tracker_ | _v0.7.x (SST tier-2 → tier-1 promotion; state-only — IN levies no local sales tax)_ |
 | Louisiana | LA | _vacant — see issue tracker_ | _v0.7 (state portion only; ~64 parishes deferred — see [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md))_ |
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
@@ -47,7 +48,7 @@ taxability matrix applies (everything taxable except groceries).
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
+States: AR, GA, IA, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states
