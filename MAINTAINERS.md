@@ -29,9 +29,13 @@ requires a named maintainer.
 |---|---|---|---|
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
+| Colorado | CO | _vacant — see issue tracker_ | _v0.7_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
+| Louisiana | LA | _vacant — see issue tracker_ | _v0.7_ |
+| Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
+| Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 
