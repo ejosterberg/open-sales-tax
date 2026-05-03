@@ -1578,6 +1578,174 @@ dedicated sections in this document.)
     2008-04-01; no scheduled change is currently in the
     legislative pipeline that this research found.
 
+## NV — Nevada
+
+- **Statewide rate:** **6.850% statewide minimum combined rate**
+  (no single-statute headline rate; the 6.85% is the sum of three
+  state-level statutory layers that all 17 Nevada counties impose
+  -- see "Rate composition" below).
+- **Tax model:** sales tax (SST -- full member; verified 2026-05-03
+  against the SST member roster on streamlinedsalestax.org). State
+  FIPS: 32.
+- **Rate composition (the 6.85% statewide minimum):**
+  - **2.00%** -- State Sales Tax under NRS Chapter 372 (Nevada Sales
+    and Use Tax Act of 1955; NRS section 372.105 sets the rate).
+    This portion is constitutionally entrenched against repeal
+    without a 2/3 legislative supermajority because the underlying
+    1955 act was adopted by initiative petition.
+  - **2.60%** -- Local School Support Tax (LSST) under NRS Chapter
+    374, NRS section 374.110 -- imposed statewide in every county
+    to fund K-12 education.
+  - **2.25%** -- City-County Relief Tax components (Basic City-
+    County Relief Tax + City-County Relief Tax) under NRS Chapter
+    377 -- a state-level revenue-sharing layer that returns
+    proceeds to local governments.
+  - **TOTAL: 2.00 + 2.60 + 2.25 = 6.85%** statewide minimum. The
+    6.85% is the rate that flows through the SST quarterly file's
+    "general rate" column for every Nevada county; the underlying
+    split is documented for a future maintainer who wants to model
+    fund distributions but is not required for v1 calculation.
+- **Local jurisdictions:** Nevada's 17 counties may add county-
+  option taxes (per NRS Chapters 377A, 377B, and various county-
+  specific enabling statutes). **Per-county add-ons are NOT
+  modeled in v1.** Notable add-ons:
+  - **Clark County** (Las Vegas / Henderson / North Las Vegas /
+    Boulder City): adds approximately 1.525%, for a combined rate
+    of approximately **8.375%** -- the highest in Nevada and
+    applicable to the bulk of Nevada's transaction volume (Clark
+    contains roughly 73% of state population).
+  - **Washoe County** (Reno / Sparks): adds approximately 1.415%,
+    for a combined rate of approximately **8.265%**.
+  - Other counties add smaller increments; rural counties remain
+    at or near the 6.85% statewide minimum.
+  - The deferred-locals decision follows the same pattern as v0.7
+    Louisiana parishes (~64 deferred), v0.6 South Carolina
+    counties, and v0.7 Missouri / Mississippi local-option taxes
+    -- under-collection on Las Vegas / Reno addresses by ~1.5%
+    until per-county data is loaded.
+- **Sales-tax holidays:** **ONE statutory holiday in current
+  law -- but NOT modeled in v1.** Nevada's only sales-tax holiday
+  is the Nevada National Guard Sales Tax Holiday under NRS section
+  372.7282 (Friday-Saturday-Sunday closest to Nevada Day,
+  October 31; exempts ALL sales of TPP to active members of the
+  Nevada National Guard and their immediate families upon
+  presentation of qualifying ID; no per-item dollar cap; no
+  category restriction). This is structurally different from every
+  other state holiday currently modeled by OpenSalesTax: it is
+  defined by **buyer eligibility** (active Nevada Guard member or
+  family) rather than by item category + date + per-item cap.
+  The OpenSalesTax engine's :class:`HolidayWindow` /
+  :class:`HolidayPeriod` schema does not currently model buyer
+  eligibility, and there is no exemption-certificate mechanism on
+  the calculation request. If the holiday were yielded as a
+  date-only / category-wide HolidayWindow, the engine would zero
+  out tax on EVERY Nevada transaction during the 3-day window for
+  EVERY buyer regardless of National Guard status -- a systematic
+  under-collection bug for every NV retailer's general consumer
+  base. **v1 decision: ``Nevada.holidays_for`` returns the empty
+  iterator for every year.** The holiday is documented here, in
+  the module docstring, and in MAINTAINERS.md but is NOT exposed
+  to the calculation engine until a future PR (gated on the engine
+  growing a buyer-eligibility / exemption-certificate model)
+  re-enables it as a buyer-class-restricted exemption.
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.nv.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (NRS Chapter 372 -- Sales and Use Tax,
+  Chapter 374 -- LSST, Chapter 377 -- City-County Relief Tax):**
+  - NRS section 372.085 -- definition of tangible personal
+    property (limits sales-tax base to property "capable of being
+    seen, weighed, measured, felt, or touched" -- the basis for
+    Nevada's not taxing electronically-delivered digital products)
+  - NRS section 372.105 -- imposition of the State Sales Tax at
+    2.00% (the State portion of the 6.85% statewide minimum)
+  - NRS section 372.283 -- exemption for prescription medicines
+    and certain related items (insulin, oxygen for medical use,
+    prosthetic devices when prescribed)
+  - NRS section 372.284 -- exemption for food for human
+    consumption (the grocery exemption; tracks the SST uniform
+    "food and food ingredients" definition; excludes candy, soft
+    drinks, dietary supplements, and prepared food)
+  - NRS section 372.7282 -- Nevada National Guard Sales Tax
+    Holiday (3-day buyer-eligibility holiday around Nevada Day;
+    NOT modeled in v1)
+  - NRS Chapter 374 / NRS section 374.110 -- Local School Support
+    Tax imposition at 2.60% in every county
+  - NRS Chapter 377 -- City-County Relief Tax components
+    (combined 2.25% in every county)
+  - NRS Chapters 377A / 377B and county-specific enabling acts --
+    authority for county-option add-on taxes (Clark / Washoe / etc.)
+  - Nevada Constitution Article 10 section 3 -- constitutional
+    entrenchment of the food-for-human-consumption exemption
+    against legislative repeal (added by initiative 1979)
+- *Sources for rate/taxability:*
+  - **Nevada Department of Taxation** main page
+    (https://tax.nv.gov/), retrieved 2026-05-03 -- confirms the
+    6.85% statewide minimum as the headline rate and identifies
+    Nevada as an SST member
+  - **Nevada Department of Taxation Sales Tax Map / quarterly
+    rate publication** (downloaded via tax.nv.gov), retrieved
+    2026-05-03 -- confirms 6.85% statewide minimum and the per-
+    county add-on amounts (Clark 8.375% / Washoe 8.265% / etc.)
+  - **Nevada Legislative Counsel Bureau** online statutes
+    (https://www.leg.state.nv.us/NRS/), cross-referenced
+    2026-05-03 -- primary source for every NRS citation above
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Nevada is a full SST
+    member
+  - **Sovos summary entry for Nevada** -- used as starting cross-
+    check (confirmed 6.85% rate, grocery exemption, prescription
+    drug exemption); statutory citations verified directly against
+    NRS Chapter 372
+- **Module file:** `src/opensalestax/states/nevada.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-nv branch; Phase 7 Batch P2 -- second SST tier-2
+  to tier-1 promotion batch)
+- *Notes:*
+  - **The buyer-eligibility holiday is the headline finding.** Of
+    every state currently modeled (or under research) by
+    OpenSalesTax, Nevada is the only one whose sole statutory
+    sales-tax holiday is buyer-eligibility-restricted rather than
+    category / date / per-item-cap-restricted. This makes Nevada
+    a useful test case / motivating example for the future
+    exemption-certificate / buyer-eligibility feature in the
+    engine roadmap. When that feature lands, ``Nevada.holidays_for``
+    can re-enable the National Guard holiday with a buyer-class
+    constraint; the v1 documentation in the module docstring and
+    in this references entry should be the source of truth for
+    that future work.
+  - **Digital goods is the second notable finding.** Unlike Iowa
+    (Iowa Code 423.5A) and Indiana (Ind. Code 6-2.5-4-16.4),
+    Nevada has NOT enacted a sales-tax expansion to specified
+    digital products. The Nevada Department of Taxation's
+    longstanding position is that electronically-delivered ebooks,
+    streaming subscriptions, downloaded software, SaaS, and
+    similar are NOT taxable because they fail the tangibility
+    requirement of NRS section 372.085. Prewritten ("canned")
+    software delivered on a physical medium IS taxable as TPP;
+    the same software delivered electronically is NOT.
+  - **Per-county add-ons (Clark / Washoe / etc.) are deferred.**
+    Same trade-off pattern as LA parishes / SC counties /
+    MO+MS local-option taxes. A v1 caller calculating tax on a
+    Las Vegas or Reno address will under-collect by ~1.5%. The
+    natural next maintenance task is to validate an empirical NV
+    SST quarterly rate file and confirm that the inherited
+    :class:`SstStateModule` parser picks up the per-county rows
+    correctly with the default jurisdiction-type code mapping.
+  - **Rate-composition decomposition is documentary only.** The
+    engine does not need the 2.00 / 2.60 / 2.25 split for
+    calculation; v1 ships a single 6.85% combined row. The split
+    is documented for the future maintainer who wants to model
+    fund distributions (LSST to schools, CCRT to local
+    governments) separately.
+  - **Constitutional entrenchment of the grocery exemption.**
+    Article 10 section 3 of the Nevada Constitution (added by
+    initiative petition in 1979) blocks legislative repeal of the
+    food-for-human-consumption exemption without a popular vote.
+    Documented for the maintainer who one day sees a legislative
+    proposal touching NRS 372.284 and wonders why the legislature
+    is not simply amending the statute.
+
 
 Each has a one-class entry there with state_abbrev + state_name +
 state_fips. They use the SST quarterly data files for rates and

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Tests for the 18 tier-2 SST state modules.
+"""Tests for the 17 tier-2 SST state modules.
 
 Validates that every tier-2 state's metadata is correctly set
 and the module satisfies the StateModule Protocol. Per-state
@@ -9,7 +9,8 @@ maintainer (constitution sec 12) -- these tests are the smoke-
 level guarantees.
 
 Arkansas (AR), Georgia (GA), Indiana (IN), and Iowa (IA) were
-promoted to tier 1 in v0.8; they now live in their dedicated
+promoted to tier 1 in v0.8; Nevada (NV) was promoted to tier 1
+in v0.9 (Phase 7 Batch P2). They now live in their dedicated
 modules under ``opensalestax/states/``.
 """
 
@@ -24,14 +25,14 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states._tier2 import TIER_2_CLASSES, TIER_2_STATES
 from opensalestax.states.protocol import StateModule
 
-# All 18 tier-2 states should be present (AR + GA + IA + IN were promoted to tier 1 in v0.8).
+# All 17 tier-2 states should be present (AR + GA + IA + IN were promoted to tier 1 in v0.8;
+# NV was promoted to tier 1 in v0.9 / Phase 7 Batch P2).
 EXPECTED_TIER_2_ABBREVS = frozenset(
     {
         "KS",
         "KY",
         "MI",
         "NE",
-        "NV",
         "NJ",
         "NC",
         "ND",
@@ -50,8 +51,8 @@ EXPECTED_TIER_2_ABBREVS = frozenset(
 
 
 def test_count_matches_expected() -> None:
-    assert len(TIER_2_STATES) == 18
-    assert len(TIER_2_CLASSES) == 18
+    assert len(TIER_2_STATES) == 17
+    assert len(TIER_2_CLASSES) == 17
     assert {s.state_abbrev for s in TIER_2_STATES} == EXPECTED_TIER_2_ABBREVS
 
 
@@ -113,7 +114,7 @@ def test_phase_1_states_all_registered() -> None:
     from opensalestax.states import supported_abbrevs
 
     abbrevs = supported_abbrevs()
-    # 18 tier-2 + MN + WI + AR + GA + IA + IN (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
+    # 17 tier-2 + MN + WI + AR + GA + IA + IN + NV (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
     expected = EXPECTED_TIER_2_ABBREVS | {
         "MN",
         "WI",
@@ -121,6 +122,7 @@ def test_phase_1_states_all_registered() -> None:
         "GA",
         "IA",
         "IN",
+        "NV",
         "AK",
         "DE",
         "MT",
