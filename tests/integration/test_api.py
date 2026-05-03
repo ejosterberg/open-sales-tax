@@ -76,7 +76,24 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "KS", "KY", "MI", "NE", "NV", "AK", "DE", "MT", "NH", "OR"):
+    for abbrev in (
+        "MN",
+        "WI",
+        "AR",
+        "GA",
+        "IA",
+        "IN",
+        "KS",
+        "KY",
+        "MI",
+        "NE",
+        "NV",
+        "AK",
+        "DE",
+        "MT",
+        "NH",
+        "OR",
+    ):
         assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1"
 
 
