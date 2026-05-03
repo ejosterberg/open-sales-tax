@@ -3243,6 +3243,178 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+## RI -- Rhode Island
+
+- **Statewide rate:** **7.000%** per **R.I. Gen. Laws section
+  44-18-18** (the imposition statute in chapter 44-18, Sales and
+  Use Taxes -- Liability and Computation). The 7.0% rate is one
+  of the two highest single-state rates in the United States
+  (tied with IN, MS, and TN at 7.0%).
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: 44.
+- **Local jurisdictions:** **NONE.** Rhode Island is one of a
+  small number of US states that levies NO general local sales
+  tax (joins IN, KY, MI in the no-local-tax SST club). The 7.0%
+  state rate is the entire combined sales-tax rate at every
+  Rhode Island address. Rhode Island has no functioning county-
+  level government for tax-administration purposes, and the
+  state's 39 cities and towns do not have general sales-tax
+  authority under chapter 44-18. Two narrow industry-specific
+  levies exist but are NOT general sales taxes (and are NOT
+  modeled by the engine):
+  - **1% local meals and beverages tax** under R.I. Gen. Laws
+    section 44-18-18.1 -- paid by the customer on prepared meals
+    served at eating and drinking establishments. Stacks ON TOP
+    of the 7% state sales tax for restaurant transactions.
+  - **1% hotel tax** under R.I. Gen. Laws section 44-18-36.1 --
+    on transient lodging. Stacks similarly.
+- **Sales-tax holidays:** **NONE.** Rhode Island has never
+  enacted a recurring sales-tax holiday. Confirmed 2026-05-03
+  against the Rhode Island Division of Taxation's published
+  guidance and a search of chapter 44-18 for any periodic
+  exemption window. There is no back-to-school holiday, no
+  disaster-prep holiday, no Energy Star holiday, and no other
+  recurring exemption period in Rhode Island law.
+- **Threshold rules:** **CLOTHING $250-PER-ARTICLE EXEMPTION
+  CAP** per **R.I. Gen. Laws section 44-18-30(27)**. Items
+  priced AT OR BELOW $250 per article are fully exempt; for any
+  single article priced ABOVE $250, the FIRST $250 remains
+  exempt and only the PORTION ABOVE $250 is taxable at the 7%
+  state rate. RI is the only state in the broad-clothing-
+  exemption club (PA, MA, MN, NJ, VT) with this excess-above-
+  cap structure -- distinct from NY's $110-per-item threshold
+  and MA's $175-per-item threshold, where crossing the
+  threshold makes the ENTIRE article taxable. **ENGINE
+  CAVEAT:** the v0.10 engine does not yet enforce per-item
+  thresholds (the v0.6 threshold-rules feature is on the
+  roadmap -- see `specs/current-state.md`). The module encodes
+  ``is_taxable=False`` for clothing to match the dominant
+  retail mix in Rhode Island (everyday clothing well under
+  $250: T-shirts, jeans, kids' apparel, shoes, basic
+  outerwear). Trade-off: the engine UNDER-collects the 7% on
+  the excess-above-$250 portion of high-end items. Example: a
+  $400 wool coat owes $10.50 on the $150 above the cap, which
+  the engine currently does not collect. The opposite encoding
+  (``is_taxable=True``) would OVER-collect on the substantially
+  larger population of everyday-clothing transactions, which
+  was judged the worse failure mode at promotion time. The
+  threshold is documented prominently in the rule's notes and
+  in module-level constant ``RHODE_ISLAND_CLOTHING_EXEMPTION_CAP
+  = Decimal("250.00")`` so the v0.6 work has a stable named
+  reference.
+- **DOR URL:** **https://tax.ri.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (R.I. Gen. Laws Title 44, Chapter 18 --
+  Sales and Use Taxes -- Liability and Computation):**
+  - R.I. Gen. Laws section 44-18-7 -- definition of "tangible
+    personal property" (and the long-standing prewritten-software-
+    as-TPP rule that captures canned software regardless of
+    delivery mechanism)
+  - R.I. Gen. Laws section 44-18-7.1 -- definition of "specified
+    digital product"; brings digital audio works, digital
+    audiovisual works, and digital books delivered electronically
+    into the sales-tax base. Added by section 3 of P.L. 2018,
+    ch. 47, art. 4 (the FY2019 budget bill, signed June 22, 2018,
+    effective October 1, 2018).
+  - R.I. Gen. Laws section 44-18-18 -- imposition of the state
+    sales tax at 7.0% on the gross receipts from retail sales of
+    tangible personal property and specified digital products
+  - R.I. Gen. Laws section 44-18-18.1 -- 1% local meals and
+    beverages tax (non-general-sales-tax levy on restaurant
+    transactions; NOT modeled by the engine)
+  - R.I. Gen. Laws section 44-18-30(11) -- exemption for sales
+    of food and food ingredients (the grocery exemption, tracking
+    the SST uniform definition; excludes candy, soft drinks,
+    dietary supplements, alcoholic beverages, and prepared food)
+  - R.I. Gen. Laws section 44-18-30(27) -- exemption for clothing
+    and footwear up to $250 per article (the headline RI
+    distinctive feature)
+  - R.I. Gen. Laws section 44-18-30(28) -- exemption for drugs
+    sold pursuant to a written prescription
+  - R.I. Gen. Laws section 44-18-36.1 -- 1% hotel tax on
+    transient lodging (non-general-sales-tax levy; NOT modeled by
+    the engine)
+- **Public Laws of note:**
+  - **P.L. 2018, ch. 47, art. 4, section 3** -- FY2019 budget
+    bill that brought specified digital products into the sales-
+    tax base by adding section 44-18-7.1; effective October 1,
+    2018
+- *Sources for rate/taxability:*
+  - **Rhode Island Division of Taxation** main page
+    (https://tax.ri.gov/), retrieved 2026-05-03 -- confirms
+    7.0% state rate
+  - **Rhode Island General Laws Title 44 Chapter 18** on the
+    Rhode Island General Assembly site
+    (http://webserver.rilegislature.gov/Statutes/TITLE44/44-18/INDEX.htm),
+    retrieved 2026-05-03 -- primary source for sections 44-18-7,
+    44-18-7.1, 44-18-18, 44-18-30
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Rhode Island is a full SST member
+  - **Sovos state summary**
+    (`specs/research/sovos-state-summary.md`), cross-checked
+    2026-05-03 -- confirms 7.000% state rate, no
+    intra-state-rate-variation flag
+  - **Sales Tax Handbook 2026** Rhode Island clothing exemption
+    page
+    (https://www.salestaxhandbook.com/rhode-island/clothing),
+    cross-referenced 2026-05-03 -- secondary confirmation of the
+    $250-per-article cap and excess-above-cap structure (used
+    as one input among many; primary source is R.I. Gen. Laws
+    section 44-18-30(27))
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    cross-referenced 2026-05-03 -- confirms RI does NOT appear
+    on any holiday list (used as one input among many)
+- **Module file:** `src/opensalestax/states/rhode_island.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ri branch)
+- *Notes:*
+  - **Clothing-threshold encoding decision (CRITICAL).** The
+    R.I. Gen. Laws section 44-18-30(27) $250-per-article cap is
+    encoded as ``is_taxable=False`` in the taxability matrix to
+    match the dominant case (everyday clothing under $250). The
+    v0.10 engine does not enforce per-item thresholds; this
+    encoding UNDER-collects on the excess-above-$250 portion of
+    high-end items. The opposite encoding (``is_taxable=True``)
+    would OVER-collect on the larger population of everyday
+    clothing transactions, which was judged the worse failure
+    mode. The trade-off is documented in (a) the module
+    docstring, (b) the clothing rule's ``notes`` field, (c) the
+    ``RHODE_ISLAND_CLOTHING_EXEMPTION_CAP`` documentary
+    constant, and (d) a defensive regression test
+    (`test_rhode_island_clothing_documents_250_dollar_threshold`).
+    The v0.6 threshold-rules feature should re-visit this
+    encoding once per-item thresholds land in the engine.
+  - **No-local-tax structure.** Rhode Island joins IN/KY/MI as
+    SST states with NO general local sales tax. The module
+    restricts ``jurisdiction_types`` to the canonical state code
+    (`{"45": "state"}`) so any unexpected non-state row in a
+    future quarterly file is silently dropped rather than
+    miscategorized. Mirrors the defensive posture in the IN
+    module.
+  - **Restaurant + hotel sub-base.** The 1% local meals and
+    beverages tax (section 44-18-18.1) and the 1% hotel tax
+    (section 44-18-36.1) are non-general-sales-tax levies and
+    are NOT modeled by the engine. An integrator selling
+    restaurant transactions in RI needs to add the additional
+    1% layer outside the engine; same for hotel-room
+    transactions.
+  - **No state sales-tax holiday.** RI has never enacted a
+    recurring holiday. ``holidays_for(year)`` returns an empty
+    iterator for every year; a defensive regression test
+    (`test_rhode_island_holidays_for_all_years_returns_empty`)
+    catches a future maintainer who adds a phantom holiday based
+    on a stale article or confused with a peer state.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION:**
+    RI's actual rate-file codes were not empirically validated
+    at promotion time. The state-only restriction (`{"45":
+    "state"}`) defaults to the canonical MN/WI mapping for the
+    state code; validating against an actual `RIR<...>.csv` file
+    is the natural next maintenance task. Because RI ships only
+    a state-level row (no county/city/district to discover), the
+    risk surface is small.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
