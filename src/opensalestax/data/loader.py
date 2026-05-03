@@ -155,14 +155,22 @@ async def load_state_data(
             f"and register it via the registry."
         )
 
-    rates_file = find_cached_file(state_abbrev, version_label, "R", cache_dir)
-    if rates_file is None:
-        suggested = resolve_filename(state_abbrev, version_label, "R")
-        raise LoaderError(
-            f"No cached rates file found for {state_abbrev} {version_label}. "
-            f"Try `opensalestax data fetch {suggested}` first "
-            f"(or .zip variant)."
-        )
+    # "Self-seeded" state modules (e.g. California in v0.2) generate
+    # their rates statically without needing an upstream file. The
+    # attribute is optional; absent = file-driven (the SST default).
+    self_seeded = bool(getattr(state_module, "self_seeded", False))
+
+    if self_seeded:
+        rates_file = None
+    else:
+        rates_file = find_cached_file(state_abbrev, version_label, "R", cache_dir)
+        if rates_file is None:
+            suggested = resolve_filename(state_abbrev, version_label, "R")
+            raise LoaderError(
+                f"No cached rates file found for {state_abbrev} {version_label}. "
+                f"Try `opensalestax data fetch {suggested}` first "
+                f"(or .zip variant)."
+            )
 
     full_label = _full_label(state_abbrev, version_label)
 
@@ -183,8 +191,10 @@ async def load_state_data(
     session.add(data_version)
     await session.flush()
 
-    # 4) Rates -- group by authority and insert
-    rate_rows = list(state_module.parse_rates(rates_file, full_label))
+    # 4) Rates -- group by authority and insert.
+    # rates_file is None for self-seeded modules (CA); the state
+    # module's parse_rates ignores the path in that case.
+    rate_rows = list(state_module.parse_rates(rates_file, full_label))  # type: ignore[arg-type]
     authority_cache: dict[tuple[str, str], TaxAuthority] = {}
     rates_loaded = 0
     for row in rate_rows:
@@ -211,9 +221,10 @@ async def load_state_data(
         )
         rates_loaded += 1
 
-    # 5) Boundaries (optional)
+    # 5) Boundaries (optional). Self-seeded states have no boundary file
+    # in v0.2 either.
     boundaries_loaded = 0
-    if load_boundaries:
+    if load_boundaries and not self_seeded:
         boundary_file = find_cached_file(state_abbrev, version_label, "B", cache_dir)
         if boundary_file is not None:
             for brow in state_module.parse_boundaries(boundary_file, full_label):
