@@ -359,11 +359,23 @@ async def list_loaded_versions(
 # Internal helpers
 # ---------------------------------------------------------------------------
 def _full_label(state_abbrev: str, version_label: str) -> str:
-    """Normalize a version label to the canonical 'MN-SST-2026Q2FEB18' form."""
+    """Normalize a version label to the canonical ``<STATE>-<SOURCE>-<SUFFIX>`` form.
+
+    Accepts:
+
+    - A bare suffix (``"2026Q2FEB18"``, ``"v0.2-statewide"``) -- prepends
+      ``<STATE>-SST-``. Hyphens inside the suffix are kept.
+    - An already-canonical label that starts with ``<STATE>-`` -- returned
+      uppercased as-is.
+
+    The previous implementation treated any hyphen as "already canonical,"
+    which mangled labels like ``"v0.2-statewide"`` for non-SST states.
+    """
+    state = state_abbrev.upper()
     label = version_label.upper()
-    if "-" in label:
+    if label.startswith(f"{state}-"):
         return label
-    return f"{state_abbrev.upper()}-SST-{label}"
+    return f"{state}-SST-{label}"
 
 
 async def _get_or_create_state(session: AsyncSession, state_module: StateModule) -> State:
@@ -387,6 +399,12 @@ async def _get_or_create_state(session: AsyncSession, state_module: StateModule)
 async def _drop_existing_data_version(
     session: AsyncSession, state_id: int, full_label: str
 ) -> None:
+    """Drop a prior DataVersion + the rates it brought in (idempotency support).
+
+    Boundaries cascade automatically; rates have ondelete=SET NULL
+    so we delete them explicitly here -- same reasoning as in
+    :func:`purge_data_version`.
+    """
     existing = (
         await session.execute(
             select(DataVersion).where(
@@ -395,9 +413,20 @@ async def _drop_existing_data_version(
             )
         )
     ).scalar_one_or_none()
-    if existing is not None:
-        await session.delete(existing)
+    if existing is None:
+        return
+
+    rates_to_drop = list(
+        (await session.execute(select(Rate).where(Rate.data_version_id == existing.id)))
+        .scalars()
+        .all()
+    )
+    for rate in rates_to_drop:
+        await session.delete(rate)
+    if rates_to_drop:
         await session.flush()
+    await session.delete(existing)
+    await session.flush()
 
 
 async def _drop_existing_taxability(session: AsyncSession, state_id: int) -> None:
