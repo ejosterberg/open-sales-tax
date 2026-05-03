@@ -26,6 +26,7 @@ from opensalestax.states import (
     maryland,  # noqa: F401
     massachusetts,  # noqa: F401
     minnesota,  # noqa: F401
+    mississippi,  # noqa: F401
     new_york,  # noqa: F401
     no_tax,  # noqa: F401
     pennsylvania,  # noqa: F401
