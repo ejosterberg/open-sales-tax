@@ -77,6 +77,17 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
 
 
 @pytest.mark.asyncio
+async def test_arkansas_is_tier_1_sst(client: AsyncClient) -> None:
+    """AR was promoted from tier 2 to tier 1 in v0.8 (Phase 7 -- SST tier-2 ratchet)."""
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["AR"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is True
+
+
+@pytest.mark.asyncio
 async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> None:
     """States without a loaded module show tier 0.
 

@@ -27,6 +27,7 @@ requires a named maintainer.
 
 | State | Abbrev | Maintainer | Since |
 |---|---|---|---|
+| Arkansas | AR | _vacant — see issue tracker_ | _v0.8 (SST tier-2 → tier-1 promotion)_ |
 | Colorado | CO | _vacant — see issue tracker_ | _v0.7 (state portion only; home-rule cities deferred — see [`specs/decisions/04-colorado-home-rule.md`](specs/decisions/04-colorado-home-rule.md))_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
@@ -41,13 +42,13 @@ requires a named maintainer.
 
 ### Tier 2 states (rate-only via SST data)
 
-The 22 other Streamlined Sales Tax member states ship in Phase 1 as
-tier 2 — official SST data drives rates and boundaries, default
-taxability matrix applies (everything taxable except groceries).
+The 21 other Streamlined Sales Tax member states ship as tier 2 —
+official SST data drives rates and boundaries, default taxability
+matrix applies (everything taxable except groceries).
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
+States: GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states

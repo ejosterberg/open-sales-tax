@@ -2,9 +2,10 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """Tier-2 SST member states (rate-only via SST data, default taxability).
 
-The 22 SST members not yet promoted to tier 1 (MN, WI). Each is a
-~10-line subclass of :class:`SstStateModule` providing only the
-state-specific metadata (USPS abbreviation, full name, state FIPS).
+The 21 SST members not yet promoted to tier 1 (MN, WI, AR). Each
+is a ~10-line subclass of :class:`SstStateModule` providing only
+the state-specific metadata (USPS abbreviation, full name, state
+FIPS).
 
 State base rates documented in the docstring per state are taken
 from ``specs/research/sovos-state-summary.md`` and cross-checked
@@ -23,20 +24,15 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
-# 22 tier-2 SST states. Order roughly alphabetical for readability.
+# 21 tier-2 SST states. Order roughly alphabetical for readability.
 # Sources:
 # - Sovos summary: specs/research/sovos-state-summary.md
 # - SST membership list: specs/research/state-coverage.md
 # - State FIPS codes: census.gov / NIST
+#
+# Arkansas (AR) was promoted to tier 1 in v0.8 -- see
+# ``opensalestax/states/arkansas.py``.
 # ---------------------------------------------------------------------------
-
-
-class Arkansas(SstStateModule):
-    """Arkansas (AR) -- SST member, state base 6.5%, FIPS 05."""
-
-    state_abbrev = "AR"
-    state_name = "Arkansas"
-    state_fips = "05"
 
 
 class Georgia(SstStateModule):
@@ -221,10 +217,9 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 22 instances at import time
+# Register all 21 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
-    Arkansas,
     Georgia,
     Iowa,
     Indiana,

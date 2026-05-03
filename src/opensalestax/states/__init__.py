@@ -18,6 +18,7 @@ Add a new state by:
 from opensalestax.states import (
     _tier2,  # noqa: F401
     arizona,  # noqa: F401
+    arkansas,  # noqa: F401
     california,  # noqa: F401
     colorado,  # noqa: F401
     connecticut,  # noqa: F401
