@@ -284,6 +284,86 @@ Format for each state:
   level even though the state TPT exempts them. Verify per-city
   when loading district rates.
 
+### CT — Connecticut
+
+- **Statewide rate:** 6.35% effective 2011-07-01 (raised from 6.0% by P.A. 11-6)
+- **Tax model:** sales tax (NOT SST -- verified against the SST member
+  roster on 2026-05-03; CT does not appear among the 23 full members
+  or the lone associate member, TN)
+- **Local jurisdictions:** none -- CT is state-only for sales tax. The
+  Mashantucket Pequot Tribal Nation reservation is a separate regime
+  not modeled in v0.6.
+- **Sales-tax holidays:** 1 annual (Sales Tax Free Week, third Sunday
+  in August through following Saturday; under-$100 clothing/footwear)
+- **Threshold rules:** 7.75% luxury rate on motor vehicles > $50,000,
+  jewelry > $5,000, and clothing/footwear/handbag/luggage/umbrella/
+  wallet/watch > $1,000 (Conn. Gen. Stat. 12-408(1)(H)). Modeling
+  these requires the threshold-rule engine work scheduled for v0.6+;
+  v0.6 module documents the rule in `notes` but applies the 6.35%
+  general rate.
+- **Category-specific rates not yet modeled:**
+  - 7.35% on meals/beverages (12-408(1)(I) -- 6.35% + additional 1%)
+  - 15% on hotel/lodging-house occupancy (12-408(1)(B)(i))
+  - 11% on bed & breakfast occupancy (12-408(1)(B)(ii))
+  - 9.35% on short-term passenger-vehicle rental (12-408(1)(G))
+  - 1% on computer and data processing services (12-408(1)(D)(i))
+  - 2.99% on vessels and vessel motors (12-408(1)(E)(ii))
+- **DOR URL:** https://portal.ct.gov/drs *(retrieved 2026-05-03)*
+- **Statutes consulted (Connecticut General Statutes title 12, chapter 219):**
+  - Conn. Gen. Stat. section 12-407(a)(13) -- "tangible personal
+    property" defined to include digital goods + canned/prewritten
+    software accessed electronically (added by P.A. 19-117 effective
+    2019-10-01)
+  - Conn. Gen. Stat. section 12-407e -- annual Sales Tax Free Week
+    (under-$100 threshold effective 2015-07-01 per P.A. 15-244)
+  - Conn. Gen. Stat. section 12-408(1)(A) -- general 6.35% rate
+  - Conn. Gen. Stat. section 12-408(1)(B) -- 15% / 11% lodging rates
+  - Conn. Gen. Stat. section 12-408(1)(D) -- 1% computer/data services
+  - Conn. Gen. Stat. section 12-408(1)(E) -- 2.99% vessel rate
+  - Conn. Gen. Stat. section 12-408(1)(G) -- 9.35% short-term rental
+  - Conn. Gen. Stat. section 12-408(1)(H) -- 7.75% luxury rate
+  - Conn. Gen. Stat. section 12-408(1)(I) -- additional 1% meals
+  - Conn. Gen. Stat. section 12-412(4) -- prescription medicine
+    exemption
+  - Conn. Gen. Stat. section 12-412(13) -- food products for human
+    consumption exemption
+  - Public Acts: P.A. 11-6 (2011 rate increase); P.A. 15-244 (2015
+    holiday-threshold reduction); P.A. 19-117 (2019 digital-goods
+    inclusion); P.A. 04-218 (2004 holiday establishment)
+- **External sources retrieved 2026-05-03:**
+  - Connecticut General Statutes Chapter 219, raw text via
+    https://www.cga.ct.gov/current/pub/chap_219.htm (the live source
+    of truth for 12-407, 12-407e, 12-408, and 12-412)
+  - https://portal.ct.gov/drs/sales-tax (DRS landing page; confirmed
+    Sales Tax Free Week page link layout)
+  - https://portal.ct.gov/drs/sales-tax/sales-tax-free-week (2025
+    DRS announcement: "Sunday, August 17, through Saturday, August 23,
+    2025"; confirms third-Sunday-in-August window pattern + $100 cap
+    + athletic/jewelry/handbag/luggage/umbrella/wallet/watch
+    exclusions)
+  - https://en.wikipedia.org/wiki/Streamlined_Sales_Tax_Project
+    (cross-check that CT is not a member; member list verified to
+    contain 23 full members + Tennessee associate, no CT)
+  - https://en.wikipedia.org/wiki/Sales_taxes_in_the_United_States
+    (cross-reference for the 6.35% rate effective 2011-07-01 and the
+    7.35% meals rate)
+- **Module file:** `src/opensalestax/states/connecticut.py`
+- **Last verified:** 2026-05-03 by orchestrator (agent: state-ct)
+- **Notes:**
+  - 2026 Sales Tax Free Week dates: August 16 (Sunday) - August 22
+    (Saturday). Third Sunday of August 2026 is the 16th.
+  - The Mashantucket Pequot Tribal Nation reservation (in Ledyard,
+    CT) operates outside CT's sales-tax regime under federal
+    settlement and tribal-state compact -- documented as a future
+    SpecialCase rather than modeled in v0.6.
+  - Until rate-modifier and threshold-rule engine support lands,
+    consumers calculating CT tax on meals (7.35%), luxury items
+    (7.75%), or hotel stays (15%) should expect the engine to apply
+    only the 6.35% general rate.
+  - DRS publishes individual page URLs that 404 frequently when the
+    department reorganizes. The cga.ct.gov statute repository is the
+    more durable primary source.
+
 ### AK — Alaska, DE — Delaware, MT — Montana, NH — New Hampshire, OR — Oregon
 
 - **Statewide rate:** none (no state-level sales tax)

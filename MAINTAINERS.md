@@ -29,6 +29,7 @@ requires a named maintainer.
 |---|---|---|---|
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
+| Connecticut | CT | OpenSalesTax contributors | _Phase 6 (v0.6)_ |
 
 ### Tier 2 states (rate-only via SST data)
 
