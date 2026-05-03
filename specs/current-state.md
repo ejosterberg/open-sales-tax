@@ -47,6 +47,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.9.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.9.0) | 2026-05-03 | KS, KY, MI, NE, NV tier-1 (Phase 7 Batch P2 — 5 more SST promotions) |
 | [v0.10.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.10.0) | 2026-05-03 | NJ, NC, ND, OH, OK tier-1 (Phase 7 Batch P3 — 5 more SST promotions) |
 | [v0.11.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.0) | 2026-05-03 | RI, SD, TN, UT, VT, WA, WV, WY tier-1 (Phase 7 Batch P4 — **final SST batch; all 22 SST members now tier-1**) |
+| [v0.11.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.1) | 2026-05-03 | Engine wires `rate_modifier` through; reduced grocery rates now applied correctly across IL/MO/MS/AR/KS/OK/TN/UT/VA/NC |
 
 ## Coverage (after v0.5)
 

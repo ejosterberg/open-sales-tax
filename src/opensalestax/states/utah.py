@@ -151,7 +151,7 @@ cities; this is captured for v1.0+ design.
   144.014), Virginia (1.000% reduced state grocery rate at
   section 58.1-611.1), and Tennessee (4.000% reduced state
   grocery rate, plus full local) patterns. The engine does not
-  yet apply ``rate_modifier`` (deferred to v0.6+); until v0.6+
+  yet apply ``rate_modifier`` (shipped in v0.11.1); until v0.6+
   wires the modifier through, the engine over-collects the
   difference between 4.85% and 1.75% (i.e., 3.10 percentage
   points) on grocery line items in Utah. Retailers selling
@@ -334,8 +334,8 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "Court (affirmed by the Utah Supreme Court) for failure "
             "to properly publish the amendment under Utah Code "
             "section 20A-1-201.5; the 1.75% state-portion grocery "
-            "tax continues to apply. The engine does not yet apply "
-            "rate_modifier (deferred to v0.6+); until then the "
+            "tax continues to apply. The engine applies (as of v0.11.1) "
+            "rate_modifier (shipped in v0.11.1); until then the "
             "engine over-collects the difference (3.10 percentage "
             "points) on grocery line items in Utah. Retailers "
             "selling groceries in UT should verify with the Utah "

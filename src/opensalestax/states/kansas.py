@@ -65,7 +65,7 @@ state maintainer should validate against an actual
   portion. Encoded with ``rate_modifier=Decimal("0.000")`` to
   mark the special state rate (mirrors the AR Grocery Tax
   Relief Act pattern at section 26-52-317; the engine does not
-  yet apply rate_modifier, so until v0.6+ wires it through, the
+  yet apply rate_modifier, so as of v0.11.1, the
   engine over-collects the 6.5% state portion on grocery line
   items in KS). Items NOT meeting the SST "food and food
   ingredients" definition (candy, soft drinks, dietary
@@ -208,7 +208,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "meeting it (candy, soft drinks, dietary supplements, "
             "alcoholic beverages, tobacco) and prepared food remain "
             "at the general 6.5% state rate. The rate_modifier is "
-            "stored but the engine does not yet apply it (deferred "
+            "stored but the engine applies (as of v0.11.1) it (deferred "
             "to v0.6+); until then the engine over-collects the 6.5% "
             "state portion on grocery line items in Kansas. "
             "Calculation only -- not legal or tax advice."

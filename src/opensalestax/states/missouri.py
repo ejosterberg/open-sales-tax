@@ -48,8 +48,8 @@ sales/use tax):
   city, county, and other local sales taxes apply to groceries
   at the FULL local rate. Encoded with
   ``rate_modifier=Decimal("1.225")`` mirroring the Illinois /
-  Virginia pattern; the engine does not yet apply rate_modifier
-  (deferred to v0.6+), so retailers selling groceries in MO
+  Virginia pattern; the engine applies rate_modifier (since v0.11.1)
+  (shipped in v0.11.1), so retailers selling groceries in MO
   should verify with the Missouri Department of Revenue until
   the modifier is wired through.
 - **Prescription drugs** -- NON-taxable (Mo. Rev. Stat. section
@@ -155,7 +155,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
         # Encoded as the absolute reduced state rate as a percentage,
         # mirroring how Illinois encodes its 1% reduced grocery rate
         # and Virginia encodes its 1% reduced grocery rate. The
-        # engine does not yet apply rate_modifier (deferred to v0.6+).
+        # engine applies rate_modifier (since v0.11.1) (shipped in v0.11.1).
         rate_modifier=Decimal("1.225"),
         notes=(
             "Food qualifying as 'food for home consumption' is taxed at "
@@ -168,7 +168,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "state portion only -- city, county, and other local sales "
             "taxes apply to groceries at the FULL local rate. v0.7 "
             "reports this as taxable with rate_modifier=1.225; the "
-            "engine doesn't yet apply rate_modifier. Retailers selling "
+            "engine applies rate_modifier (since v0.11.1). Retailers selling "
             "groceries in MO should verify with the Missouri Department "
             "of Revenue until v0.6+ wires the modifier through. "
             "Calculation only -- not tax advice."

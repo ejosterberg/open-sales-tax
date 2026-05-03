@@ -26,10 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.core.disclaimer import disclaimer
 from opensalestax.core.lookup import lookup_jurisdictions_by_zip
-from opensalestax.core.resolve import (
-    combined_rate_pct,
-    resolve_rates_for_authorities,
-)
+from opensalestax.core.resolve import resolve_rates_for_authorities
 from opensalestax.db.models import HolidayPeriod, State, TaxabilityRule
 
 # Tax amounts round to 4 dp internally. Display rounding is the
@@ -185,7 +182,9 @@ async def _tax_one_line(
                 note=f"{holiday.name}: this line falls within a sales-tax holiday in {state_abbrev}.",
             )
 
-    # Taxability check -- a per-category rule may zero out this line.
+    # Taxability check -- a per-category rule may zero out this line
+    # OR override the state-level rate (e.g. reduced grocery rates).
+    rule: TaxabilityRule | None = None
     if state_abbrev is not None:
         rule = await _taxability_rule(session, state_abbrev, item.category, eff_date)
         if rule is not None and not rule.is_taxable:
@@ -193,7 +192,18 @@ async def _tax_one_line(
             return _zero_line(item, note=note)
 
     resolved = await resolve_rates_for_authorities(session, authorities, eff_date, item.category)
-    rate_pct = combined_rate_pct(resolved)
+
+    # Apply rate_modifier if the rule specifies one. The modifier
+    # REPLACES the state-level authority's rate for this category;
+    # local rates (county/city/district) pass through unchanged.
+    # This encodes reduced state grocery rates (IL 1%, MO 1.225%,
+    # TN 4%, UT 1.75%, MS 5%, AR 0%, KS 0%, OK 0%, VA 1%, NC 2%, etc.)
+    # without per-state engine branches.
+    rate_overrides: dict[int, Decimal] = {}
+    if rule is not None and rule.rate_modifier is not None:
+        for r in resolved:
+            if r.authority.authority_type == "state":
+                rate_overrides[r.authority.id] = rule.rate_modifier
 
     # Quantize per-jurisdiction first so the breakdown reconciles
     # exactly with the line total (line.tax == sum(j.tax for j in
@@ -202,14 +212,15 @@ async def _tax_one_line(
         JurisdictionResult(
             name=r.authority.name,
             type=r.authority.authority_type,
-            rate_pct=r.rate_pct,
-            tax=(item.amount * r.rate_pct / Decimal("100")).quantize(
-                TAX_QUANTUM, rounding=ROUND_HALF_UP
-            ),
+            rate_pct=rate_overrides.get(r.authority.id, r.rate_pct),
+            tax=(
+                item.amount * rate_overrides.get(r.authority.id, r.rate_pct) / Decimal("100")
+            ).quantize(TAX_QUANTUM, rounding=ROUND_HALF_UP),
         )
         for r in resolved
     ]
     line_tax = sum((j.tax for j in jurisdictions), Decimal("0"))
+    rate_pct = sum((j.rate_pct for j in jurisdictions), Decimal("0"))
 
     return CalculatedLine(
         amount=item.amount,

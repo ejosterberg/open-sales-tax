@@ -59,8 +59,8 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
         notes=(
             "Groceries are taxable at a REDUCED 1% rate in Illinois. "
             "v0.4 reports them as taxable with rate_modifier=1.0; the "
-            "engine doesn't yet apply rate_modifier. Retailers selling "
-            "groceries in IL should verify with IDOR until v0.5+ wires "
+            "engine applies rate_modifier (since v0.11.1). Retailers selling "
+            "groceries in IL should verify with IDOR as of v0.11.1 the engine wires "
             "the modifier through."
         ),
     ),

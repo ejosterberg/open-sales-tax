@@ -133,7 +133,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "(Va. Code section 58.1-611.1). The state 4.3% portion was "
             "eliminated effective January 1, 2023; only the mandatory "
             "1% local option still applies. v0.6 reports this as taxable "
-            "with rate_modifier=1.000; the engine doesn't yet apply "
+            "with rate_modifier=1.000; the engine applies (as of v0.11.1) "
             "rate_modifier. Retailers selling groceries in VA should "
             "verify with the Virginia Department of Taxation until v0.6+ "
             "wires the modifier through. Calculation only -- not tax "

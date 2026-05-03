@@ -51,7 +51,7 @@ Taxability matrix (per Ark. Code Title 26, Chapter 52):
   Local sales taxes still apply to groceries; only the state
   portion was eliminated. Encoded with
   ``rate_modifier=Decimal("0.000")`` to mark the special state
-  rate (the engine does not yet apply rate_modifier; until v0.6+
+  rate (the engine applies rate_modifier (since v0.11.1); until v0.6+
   wires it through, the engine over-collects the 6.5% state
   portion on grocery line items in AR -- documented in the
   ``notes`` and the API disclaimer). Items NOT meeting the SST
@@ -169,8 +169,8 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "the SST 'food and food ingredients' definition (candy, "
             "soft drinks, prepared food, dietary supplements, alcohol, "
             "tobacco) remain at the general 6.5% rate. The "
-            "rate_modifier is stored but the engine does not yet apply "
-            "it (deferred to v0.6+); until then the engine will "
+            "rate_modifier is stored but the engine applies (as of v0.11.1) "
+            "it (shipped in v0.11.1); until then the engine will "
             "over-collect the 6.5% state portion on grocery line items. "
             "Calculation only -- not tax advice."
         ),

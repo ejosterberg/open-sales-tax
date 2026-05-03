@@ -160,7 +160,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "few states that historically did so. Items NOT eligible "
             "for SNAP (candy, soft drinks, prepared foods) remain at "
             "the general 7% rate. The rate_modifier is stored but the "
-            "engine does not yet apply it (deferred to v0.6+); until "
+            "engine applies (as of v0.11.1) it (shipped in v0.11.1); until "
             "then the engine over-collects by 2 percentage points on "
             "SNAP-eligible food. Calculation only -- not tax advice."
         ),

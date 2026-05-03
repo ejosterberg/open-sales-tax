@@ -66,8 +66,8 @@ state maintainer should validate against an actual
   Encoded with ``rate_modifier=Decimal("0.000")`` to mark the
   special state rate (mirrors the AR Grocery Tax Relief Act
   pattern at section 26-52-317 and the KS phase-down pattern at
-  K.S.A. 79-3603(p)). The engine does not yet apply
-  ``rate_modifier``; until v0.6+ wires it through, the engine
+  K.S.A. 79-3603(p)). The engine applies (as of v0.11.1)
+  ``rate_modifier``; as of v0.11.1, the engine
   over-collects the 4.5% state portion on grocery line items in
   Oklahoma.
 - **Prescription drugs** -- EXEMPT per **68 O.S. section 1357**
@@ -250,7 +250,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "food, alcoholic beverages, dietary supplements, tobacco, "
             "and marijuana products -- remain at the general 4.5% "
             "state rate plus full local rate. The rate_modifier is "
-            "stored but the engine does not yet apply it (deferred "
+            "stored but the engine applies (as of v0.11.1) it (deferred "
             "to v0.6+); until then the engine over-collects the 4.5% "
             "state portion on grocery line items in Oklahoma. "
             "Calculation only -- not legal or tax advice."

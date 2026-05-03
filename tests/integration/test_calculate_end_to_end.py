@@ -233,3 +233,181 @@ async def test_empty_line_items_returns_empty(async_session: AsyncSession) -> No
     assert result.subtotal == Decimal("0")
     assert result.tax_total == Decimal("0")
     assert result.lines == []
+
+
+@pytest.mark.asyncio
+async def test_rate_modifier_replaces_state_rate(async_session: AsyncSession) -> None:
+    """A TaxabilityRule.rate_modifier overrides the state-level rate.
+
+    Replicates the IL/MO/AR/KS/MS/TN/UT/OK/VA/NC reduced-grocery-rate
+    pattern: state portion is replaced with `rate_modifier`; local
+    rates pass through unchanged. Encodes the engine guarantee that
+    accounting callers depend on.
+    """
+    # Seed a state + county + city stack with a 6% state rate but a
+    # rate_modifier of 1% on groceries (mirrors IL).
+    state = State(abbrev="QQ", name="Quibble", has_sales_tax=True, sst_member=False)
+    async_session.add(state)
+    await async_session.flush()
+
+    version = DataVersion(state_id=state.id, source="test", version_label="QQ-test-rate-modifier")
+    async_session.add(version)
+    await async_session.flush()
+
+    state_auth = TaxAuthority(state_id=state.id, name="Quibble", authority_type="state")
+    county_auth = TaxAuthority(state_id=state.id, name="Test County", authority_type="county")
+    city_auth = TaxAuthority(state_id=state.id, name="Test City", authority_type="city")
+    async_session.add_all([state_auth, county_auth, city_auth])
+    await async_session.flush()
+
+    today = dt.date.today()
+    async_session.add_all(
+        [
+            Rate(
+                authority_id=state_auth.id,
+                rate_pct=Decimal("6.000"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=county_auth.id,
+                rate_pct=Decimal("0.500"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=city_auth.id,
+                rate_pct=Decimal("1.000"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+        ]
+    )
+    async_session.add_all(
+        [
+            Boundary(authority_id=state_auth.id, zip5="11111", data_version_id=version.id),
+            Boundary(authority_id=county_auth.id, zip5="11111", data_version_id=version.id),
+            Boundary(authority_id=city_auth.id, zip5="11111", data_version_id=version.id),
+        ]
+    )
+
+    # Reduced-grocery-rate rule: state rate becomes 1.0%; locals unchanged.
+    async_session.add(
+        TaxabilityRule(
+            state_id=state.id,
+            item_category="groceries",
+            is_taxable=True,
+            rate_modifier=Decimal("1.000"),
+            effective_from=dt.date(1900, 1, 1),
+            notes="Quibble taxes groceries at 1% state (locals at full rate).",
+        )
+    )
+    await async_session.commit()
+
+    result = await calculate_tax(
+        async_session,
+        zip5="11111",
+        line_items=[
+            LineItem(amount=Decimal("100.00"), category="general"),
+            LineItem(amount=Decimal("100.00"), category="groceries"),
+        ],
+        effective_date=today,
+    )
+
+    general = next(line for line in result.lines if line.category == "general")
+    groceries = next(line for line in result.lines if line.category == "groceries")
+
+    # General: full 6% + 0.5% + 1% = 7.5% on $100 = $7.5000
+    assert general.rate_pct == Decimal("7.500")
+    assert general.tax == Decimal("7.5000")
+
+    # Groceries: state portion overridden to 1% (not 6%), locals unchanged
+    # 1% + 0.5% + 1% = 2.5% on $100 = $2.5000
+    assert groceries.rate_pct == Decimal("2.500")
+    assert groceries.tax == Decimal("2.5000")
+
+    # Per-jurisdiction breakdown: state row should report 1%, not 6%
+    by_type = {j.type: j for j in groceries.jurisdictions}
+    assert by_type["state"].rate_pct == Decimal("1.000")
+    assert by_type["state"].tax == Decimal("1.0000")
+    assert by_type["county"].rate_pct == Decimal("0.500")
+    assert by_type["county"].tax == Decimal("0.5000")
+    assert by_type["city"].rate_pct == Decimal("1.000")
+    assert by_type["city"].tax == Decimal("1.0000")
+    # Per-jurisdiction reconciliation invariant still holds
+    assert sum((j.tax for j in groceries.jurisdictions), Decimal("0")) == groceries.tax
+
+
+@pytest.mark.asyncio
+async def test_rate_modifier_zero_zeroes_state_portion(async_session: AsyncSession) -> None:
+    """rate_modifier=0 means state portion is 0%; locals still apply.
+
+    Mirrors the AR/KS/OK 2024-2026 grocery-tax-elimination pattern:
+    state rate is 0% on the affected category, but local rates still
+    apply at full local rate.
+    """
+    state = State(abbrev="QR", name="Quibble2", has_sales_tax=True, sst_member=False)
+    async_session.add(state)
+    await async_session.flush()
+    version = DataVersion(
+        state_id=state.id, source="test", version_label="QR-test-rate-modifier-zero"
+    )
+    async_session.add(version)
+    await async_session.flush()
+
+    state_auth = TaxAuthority(state_id=state.id, name="Quibble2", authority_type="state")
+    county_auth = TaxAuthority(state_id=state.id, name="Test County 2", authority_type="county")
+    async_session.add_all([state_auth, county_auth])
+    await async_session.flush()
+
+    today = dt.date.today()
+    async_session.add_all(
+        [
+            Rate(
+                authority_id=state_auth.id,
+                rate_pct=Decimal("4.500"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=county_auth.id,
+                rate_pct=Decimal("2.000"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+        ]
+    )
+    async_session.add_all(
+        [
+            Boundary(authority_id=state_auth.id, zip5="22222", data_version_id=version.id),
+            Boundary(authority_id=county_auth.id, zip5="22222", data_version_id=version.id),
+        ]
+    )
+    async_session.add(
+        TaxabilityRule(
+            state_id=state.id,
+            item_category="groceries",
+            is_taxable=True,
+            rate_modifier=Decimal("0.000"),
+            effective_from=dt.date(1900, 1, 1),
+            notes="State portion eliminated; locals still apply.",
+        )
+    )
+    await async_session.commit()
+
+    result = await calculate_tax(
+        async_session,
+        zip5="22222",
+        line_items=[LineItem(amount=Decimal("100.00"), category="groceries")],
+        effective_date=today,
+    )
+
+    groceries = result.lines[0]
+    # State portion 0%, county 2% = 2% effective
+    assert groceries.rate_pct == Decimal("2.000")
+    assert groceries.tax == Decimal("2.0000")
+    by_type = {j.type: j for j in groceries.jurisdictions}
+    assert by_type["state"].rate_pct == Decimal("0.000")
+    assert by_type["state"].tax == Decimal("0")
+    assert by_type["county"].rate_pct == Decimal("2.000")
+    assert by_type["county"].tax == Decimal("2.0000")

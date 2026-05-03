@@ -56,7 +56,7 @@ local food tax always applies.
 
 Encoded with ``rate_modifier=Decimal("2.000")`` to mark the
 2% effective rate (mirrors the MS / VA / MO pattern; the
-engine does not yet apply rate_modifier, so until v0.6+ wires
+engine applies rate_modifier (since v0.11.1), so until v0.6+ wires
 it through the engine over-collects on NC grocery line items
 by 2.75 percentage points -- the difference between the full
 4.75% state rate and the actual 2.00% effective grocery rate).
@@ -257,7 +257,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "is fully ZERO and the 2% is a separate statutory LOCAL "
             "food tax rather than a reduced state rate). The "
             "rate_modifier is stored but the engine does not yet "
-            "apply it (deferred to v0.6+); until then the engine "
+            "apply it (shipped in v0.11.1); until then the engine "
             "over-collects on NC grocery line items by 2.75 "
             "percentage points (full 4.75% state instead of the 2% "
             "effective grocery rate). Calculation only -- not legal "

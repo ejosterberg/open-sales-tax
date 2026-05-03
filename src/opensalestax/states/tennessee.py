@@ -105,8 +105,8 @@ maintainer should validate against an actual ``TNR<...>.csv`` file:
   still apply to groceries at the FULL local rate**; only the
   state portion is reduced. Encoded with
   ``rate_modifier=Decimal("4.000")`` mirroring the IL/MO/AR/OK
-  reduced-grocery-rate pattern. The engine does not yet apply
-  ``rate_modifier`` (deferred to v0.6+); until then the engine
+  reduced-grocery-rate pattern. The engine applies (as of v0.11.1)
+  ``rate_modifier`` (shipped in v0.11.1); until then the engine
   over-collects the state portion of grocery line items in TN
   by 3 percentage points (charging 7.0% state instead of the
   statutory 4.0%).
@@ -318,7 +318,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "FULL local rate -- only the state portion is reduced. "
             "Encoded with rate_modifier=Decimal('4.000') mirroring "
             "the IL/MO/AR/OK reduced-grocery-rate pattern. The "
-            "engine does not yet apply rate_modifier (deferred to "
+            "engine applies rate_modifier (since v0.11.1) (deferred to "
             "v0.6+); until then the engine over-collects the state "
             "portion on grocery line items in TN by 3 percentage "
             "points (charging 7.0% state instead of the statutory "
