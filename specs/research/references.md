@@ -3243,6 +3243,306 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+### TN -- Tennessee
+
+- **Statewide rate:** **7.000% effective long-standing** (current
+  rate per Tenn. Code Ann. section 67-6-202 -- the imposition
+  statute in the Retailers' Sales Tax Act, Title 67 Chapter 6).
+  At 7.0% Tennessee has one of the highest single-state sales
+  tax rates in the United States (tied with IN, MS, RI; only
+  CA's 7.25% is higher).
+- **Tax model:** sales tax (SST -- **associate** member, since
+  October 1, 2005; verified 2026-05-03 against the SST member
+  roster on streamlinedsalestax.org). **Tennessee is the ONLY
+  Associate Member State** -- distinct from the 23 SST full
+  members. An Associate Member State per the Streamlined Sales
+  and Use Tax Agreement is a state determined by the SST
+  Governing Board to be substantially compliant with the
+  Agreement except that not all of the state's statutory or
+  rule changes are yet in effect, OR a state in compliance
+  with nearly all parts of the Agreement. Practical
+  implication: TN publishes rate / boundary files in the
+  canonical SST format (so the inherited SstStateModule parser
+  works without override), but TN has NOT adopted every
+  uniformity provision (most notably the reduced grocery rate
+  at section 67-6-228, which differs from the SST uniform full-
+  exemption pattern). State FIPS: 47.
+- **Local jurisdictions:** counties and incorporated cities may
+  levy a local option sales tax under the **1963 Local Option
+  Revenue Act** (Tenn. Code Ann. sections 67-6-701 through
+  67-6-716). Per Tenn. Code Ann. section 67-6-702(a)(1), the
+  combined county-plus-city local rate may not exceed **2.75%**
+  (approved by referendum). Combined rates therefore range
+  **7.0% to 9.75%**, most commonly **9.25%-9.75%** (most TN
+  counties have voted in at or near the maximum local cap). Per-
+  jurisdiction rates flow through the SST quarterly rate file
+  via the inherited :class:`SstStateModule` parser.
+- **Single-article cap (notable peculiarity):** per Tenn. Code
+  Ann. section 67-6-702(d), the local sales tax applies only to
+  the **first $1,600** of the sales price of any single article
+  of tangible personal property. There is also a state "single-
+  article tax" of 2.75% on the portion of the sales price
+  between $1,600 and $3,200 per single article (Tenn. Code Ann.
+  section 67-6-202(c)). The single-article cap is NOT modeled
+  in v1 of OpenSalesTax (engine treats every line item as a
+  single unit at a flat combined rate). Documented for the next
+  maintainer.
+- **REDUCED grocery rate (key TN-specific feature):** food and
+  food ingredients are TAXABLE at a **reduced state rate of
+  4.0%** per **Tenn. Code Ann. section 67-6-228** (stable since
+  2017-07-01). Rate history:
+
+    - Pre-July 2002: 6.0% (general state rate at the time)
+    - 2002-07-15 to 2007: phased reductions to 5.5%
+    - 2007 to 2013: 5.5% state rate on groceries
+    - 2013-07-01 to 2017-06-30: reduced to 5.0%
+    - **2017-07-01 onward: reduced to 4.0%** (current rate;
+      stable since July 1, 2017)
+
+  The reduced state rate applies ONLY to "food and food
+  ingredients" as defined in section 67-6-228 / 67-6-102, which
+  follows the SST uniform definition (excludes prepared food,
+  candy, dietary supplements, and alcoholic beverages -- those
+  remain at the general 7.0% state rate). LOCAL sales taxes
+  STILL APPLY to groceries at the FULL local rate; only the
+  state portion is reduced. Encoded with
+  ``rate_modifier=Decimal("4.000")`` mirroring the IL/MO/AR/OK
+  reduced-grocery-rate pattern. The engine does not yet apply
+  rate_modifier (deferred to v0.6+); until then it over-collects
+  the state portion of grocery line items in TN by 3 percentage
+  points (charging 7.0% instead of the statutory 4.0%).
+- **Sales-tax holidays:** **ONE recurring annual holiday for the
+  general public in 2026** -- the **Tennessee Sales Tax Holiday**
+  (commonly "Back-to-School") under **Tenn. Code Ann. section
+  67-6-393**. The statute fixes the holiday to a 3-day window
+  beginning at 12:01 a.m. on the last Friday of July and ending
+  at 11:59 p.m. on the following Sunday. **2026 dates: July 24
+  (Friday) through July 26 (Sunday)**. Per longstanding TN DOR
+  practice, when the literal "last Friday in July" would push
+  Sunday into August (as it does in 2026 -- last Friday is
+  July 31), the holiday uses the last full Friday-Sunday weekend
+  wholly within July. Eligible items per section 67-6-393:
+
+    - Clothing -- $100 OR LESS per item
+    - School supplies -- $100 OR LESS per item
+    - School art supplies -- $100 OR LESS per item
+    - Computers -- $1,500 OR LESS per item
+
+  Each scope is encoded as a separate :class:`HolidayWindow`
+  (4 windows total) so the engine can per-category match and
+  apply the correct per-item cap. The exemption covers BOTH
+  state and local sales tax. Exemption is per article (an item
+  priced above its category cap is fully taxable; no proration).
+- **Other 2026 holidays (NONE enacted as of promotion):** TN ran
+  one-time grocery sales-tax holidays in 2022 (Public Chapter
+  1003 of 2022; one month, August 1-31, 2022) and 2023 (Public
+  Chapter 377 of 2023; three months, August 1 - October 31,
+  2023). These were ad-hoc legislative actions, NOT recurring.
+  Several 2026 proposals exist (e.g., HB 1486 / SB 1785 to
+  exempt food sold to persons aged 65+ from July 1 to September
+  30, 2026; proposals for a fifth-day-of-each-month exemption)
+  but **NONE are enacted** as of 2026-05-03. The module models
+  ONLY the recurring back-to-school holiday.
+- **Threshold rules:** holiday-specific only -- per-item caps
+  for the 4 holiday scopes (clothing/school supplies/school art
+  supplies $100; computers $1,500). NO year-round threshold
+  exemptions (unlike NY's $110 clothing or MA's $175 clothing).
+- **Digital goods (notable early-adopter):** specified digital
+  products are TAXABLE at 7.0% per **Tenn. Code Ann. section
+  67-6-233**, effective **January 1, 2009** (originally added
+  by Public Chapter 530 of the 2008 General Assembly).
+  Tennessee was an early-adopter state for digital product
+  taxation, predating most peer SST states by several years
+  (Iowa: 2019; Indiana: 2018; Arkansas: 2018; Kansas: 2021).
+  Section 67-6-233 imposes the sales tax on the retail sale,
+  lease, licensing or use of specified digital products or
+  video game digital products transferred to or accessed by
+  subscribers or consumers in Tennessee.
+- **Wayfair note (informational):** Tennessee was the LOSING
+  party in the historical 1992 Quill Corp. v. North Dakota
+  physical-presence precedent that set the groundwork for the
+  Wayfair litigation 26 years later. After Wayfair (2018) TN
+  updated its own economic-nexus regime under Tenn. Code Ann.
+  section 67-6-501 and rules. Current threshold for remote
+  sellers: $100,000 in TN sales over the prior 12 months (no
+  transaction-count alternative). Marketplace facilitator
+  threshold: also $100,000 (Tenn. Code Ann. section 67-6-535
+  et seq.). Informational only -- the rate-calculation engine
+  does not gate on nexus.
+- **DOR URL:** **https://www.tn.gov/revenue.html** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Tenn. Code Ann. Title 67 -- Taxes and
+  Licenses, Chapter 6 -- Sales and Use Taxes):**
+  - Tenn. Code Ann. section 67-6-102 -- definitions (including
+    "food and food ingredients" and "prepared food" via SST
+    uniform definitions)
+  - Tenn. Code Ann. section 67-6-202 -- imposition of sales tax;
+    7.0% state rate (the imposition statute)
+  - Tenn. Code Ann. section 67-6-228 -- reduced 4.0% state rate
+    on food and food ingredients (current rate effective
+    2017-07-01)
+  - Tenn. Code Ann. section 67-6-233 -- taxation of specified
+    digital products and video game digital products (effective
+    2009-01-01 per Public Chapter 530 of 2008)
+  - Tenn. Code Ann. section 67-6-314 -- exemption for medical
+    equipment and devices
+  - Tenn. Code Ann. section 67-6-320 -- exemption for
+    prescription drugs (and OTC drugs dispensed pursuant to a
+    prescription); covers disposable medical supplies for IV
+    administration
+  - Tenn. Code Ann. section 67-6-393 -- back-to-school sales tax
+    holiday (4 scopes: clothing/$100, school supplies/$100,
+    school art supplies/$100, computers/$1500)
+  - Tenn. Code Ann. section 67-6-409 -- year-round exemption for
+    gun safes and firearm safety devices (effective 2021-07-01;
+    not modeled as a HolidayWindow because it is year-round
+    rather than a date-bounded holiday)
+  - Tenn. Code Ann. sections 67-6-501, 67-6-535 et seq. --
+    economic nexus and marketplace facilitator thresholds
+    (informational only; not used by rate-calculation engine)
+  - Tenn. Code Ann. sections 67-6-701 through 67-6-716 -- the
+    1963 Local Option Revenue Act (county and city local sales
+    taxes)
+  - Tenn. Code Ann. section 67-6-702 -- local option rates;
+    2.75% combined cap; single-article $1,600 cap on the local
+    portion; state "single-article tax" of 2.75% on the
+    portion between $1,600 and $3,200
+  - Public Chapter 377 of 2023 -- 3-month grocery holiday
+    (August - October 2023; ONE-TIME)
+  - Public Chapter 1003 of 2022 -- 1-month grocery holiday
+    (August 2022; ONE-TIME)
+  - Public Chapter 530 of 2008 -- enacted section 67-6-233
+    (digital products taxation, effective 2009-01-01)
+- *Sources for rate/taxability:*
+  - **Tennessee Department of Revenue main page**
+    (https://www.tn.gov/revenue.html), retrieved 2026-05-03 --
+    confirms 7.0% state rate
+  - **Tennessee Department of Revenue Sales Tax Holiday page**
+    (https://www.tn.gov/revenue/taxes/sales-and-use-tax/sales-tax-holiday.html),
+    referenced 2026-05-03
+  - **Tennessee DOR 2024 Annual Sales Tax Holiday press
+    release**
+    (https://www.tn.gov/revenue/news/2024/7/11/annual-sales-tax-holiday-happening-july-26---july-28.html),
+    retrieved 2026-05-03 -- confirms 2024 dates (July 26-28)
+    and the $100/$100/$1500 thresholds
+  - **Tennessee DOR 2025 Annual Sales Tax Holiday press
+    release**
+    (https://www.tn.gov/revenue/news/2025/7/11/annual-sales-tax-holiday-happening-july-25---july-27.html),
+    retrieved 2026-05-03 -- confirms 2025 dates (July 25-27)
+    and the $100/$100/$1500 thresholds; cites Tenn. Code section
+    67-6-393
+  - **Tennessee DOR Streamlined Sales Tax page**
+    (https://www.tn.gov/revenue/taxes/sales-and-use-tax/streamlined-sales-tax.html),
+    referenced 2026-05-03 -- confirms TN's SST associate-member
+    status and cites Public Chapter 377 of 2023 sourcing-
+    provision changes effective 2024-07-01
+  - **Tennessee DOR SUT-13 Sales and Use Tax Rates Overview**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058139672-SUT-13-Sales-and-Use-Tax-Rates-Overview),
+    referenced 2026-05-03 -- confirms 7.0% state rate, 4.0%
+    grocery rate, single-article cap mechanics
+  - **Tennessee DOR SUT-54 Prepared Food**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058231192-SUT-54-Prepared-Food-Definition-and-Tax-Rate),
+    referenced 2026-05-03 -- definition of prepared food and
+    confirmation it taxes at the general 7.0% rate
+  - **Tennessee DOR SUT-65 Specified Digital Products**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058688471-SUT-65-Specified-Digital-Products),
+    referenced 2026-05-03 -- confirms digital products
+    taxability per section 67-6-233 effective 2009-01-01
+  - **Tennessee DOR SUT-125 Sales of Prescription Drugs**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058688011-SUT-125-Sales-of-Prescription-Drugs),
+    referenced 2026-05-03 -- confirms section 67-6-320
+    prescription-drug exemption and 67-6-314 medical devices
+    cross-reference
+  - **Justia codified Tennessee statutes** for Title 67 Chapter
+    6 (sections 67-6-202, 228, 233, 314, 320, 393, 702),
+    cross-referenced 2026-05-03
+  - **FindLaw Tenn. Code section 67-6-393** (codes.findlaw.com),
+    cross-referenced 2026-05-03 -- statute text for back-to-
+    school holiday with $100/$100/$100/$1500 thresholds
+  - **Streamlined Sales Tax member roster + Tennessee detail
+    page** (https://www.streamlinedsalestax.org/state-details/tennessee),
+    cross-checked 2026-05-03 -- confirms TN's SST associate-
+    member status and details
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference for 2026
+    dates (July 24-26) of the back-to-school holiday
+  - **Avalara coverage of TN 2026 sales-tax-holiday and grocery-
+    holiday proposals**
+    (https://www.avalara.com/blog/en/north-america/2026/02/will-tennessee-exempt-groceries-from-sales-tax.html),
+    retrieved 2026-05-03 -- confirms NO 2026 grocery holiday
+    enacted at promotion time; documents pending HB 1486 / SB
+    1785 proposals for 65+ exemption (NOT enacted)
+  - **The Mountain Press article on 2026 grocery holiday
+    prospects**
+    (https://www.themountainpress.com/roane/news/grocery-tax-holiday-in-2026-looks-bleak/article_aaa593dd-05c2-5fe4-bb86-6b174317d6b1.html),
+    retrieved 2026-05-03 -- confirms no general-public grocery
+    holiday is scheduled for 2026
+  - **Innovate Tax 2026 Sales Tax holidays compendium**
+    (https://innovatetax.com/blog/2026-sales-tax-holidays/),
+    retrieved 2026-05-03 -- confirms TN 2026 dates as July 24-26
+- **Module file:** `src/opensalestax/states/tennessee.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-tn branch)
+- *Notes:*
+  - **TN is the only SST associate member.** All 22 other SST
+    members are full members. Practical implication: TN's
+    quarterly rate / boundary files use the canonical SST
+    format (inherited parser works without override), but TN
+    has not adopted every uniformity provision (notably the
+    reduced grocery rate, which differs from the SST uniform
+    full-exemption pattern).
+  - **Reduced grocery rate of 4.0% is the headline TN-specific
+    finding.** Encoded with rate_modifier=Decimal("4.000") per
+    the IL/MO/AR/OK pattern. Until v0.6+ wires through
+    rate_modifier, the engine over-collects the state portion
+    on TN grocery line items by 3 percentage points (charging
+    7.0% instead of the statutory 4.0%).
+  - **Back-to-school holiday has 4 distinct scopes** -- each
+    encoded as a separate HolidayWindow with its own per-item
+    cap. Defensive regression test
+    (`test_tennessee_holiday_scope_set`) catches a future
+    maintainer who drops a scope or copies a peer state's
+    different scope (e.g., AR's electronics scope or FL's
+    emergency-supplies scope).
+  - **2026 holiday dates require interpretation.** The literal
+    statutory reading "last Friday of July ... following Sunday"
+    would push Sunday into August in 2026 (last Friday is
+    July 31; Sunday would be August 2). Per longstanding TN DOR
+    practice the holiday uses the last full Friday-Sunday
+    weekend wholly within July, i.e., July 24-26 in 2026. All
+    independent 2026 secondary sources (Sales Tax Institute,
+    Innovate Tax, Avalara, Calvetti Ferguson) report July 24-26.
+    A future maintainer should re-verify against the TN DOR's
+    official 2026 press release once issued.
+  - **Digital goods early-adopter status.** TN was among the
+    first states to tax specified digital products (effective
+    2009-01-01, via section 67-6-233 added by Public Chapter
+    530 of 2008), predating Iowa (2019), Indiana (2018),
+    Arkansas (2018), and Kansas (2021).
+  - **NO 2026 grocery holiday enacted.** Multiple 2026-session
+    proposals exist (HB 1486 / SB 1785 for persons 65+ from
+    July 1 - September 30, 2026; fifth-day-of-each-month
+    proposals) but NONE are enacted at promotion time. The
+    module models ONLY the recurring back-to-school holiday.
+    If the General Assembly enacts a 2026 grocery holiday, the
+    module must be updated.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION.**
+    TN's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual TNR<...>.csv file is the
+    natural next maintenance task.
+  - **Single-article cap is NOT modeled.** Tenn. Code Ann.
+    section 67-6-702(d) limits the local portion to the first
+    $1,600 of any single article's sales price; section
+    67-6-202(c) imposes a state "single-article tax" of 2.75%
+    on the portion between $1,600 and $3,200. The engine treats
+    every line item as a single unit at a flat combined rate.
+    Documented for the next maintainer; would require engine
+    work to support (likely overlaps with the v0.6+ threshold-
+    rule feature).
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
