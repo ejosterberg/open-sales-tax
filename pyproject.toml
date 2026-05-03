@@ -8,8 +8,8 @@ description = "Open-source US sales tax calculation API. Free, self-hostable, co
 authors = ["Eric Osterberg <ejosterberg@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-homepage = "https://github.com/ejosterberg/sales_tax_api_service"
-repository = "https://github.com/ejosterberg/sales_tax_api_service"
+homepage = "https://opensalestax.org"
+repository = "https://github.com/ejosterberg/open-sales-tax"
 keywords = ["sales-tax", "tax", "api", "sst", "streamlined-sales-tax"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

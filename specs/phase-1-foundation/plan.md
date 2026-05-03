@@ -51,7 +51,7 @@ Not yet implemented.
 ## File / module layout (`src` layout)
 
 ```
-sales_tax_api_service/
+open-sales-tax/                     # GitHub repo name (local clone may differ)
 ├── pyproject.toml                  Poetry, ruff, pytest config
 ├── poetry.lock
 ├── .python-version                 3.11

@@ -1,4 +1,4 @@
-# CLAUDE.md — sales_tax_api_service
+# CLAUDE.md — open-sales-tax (OpenSalesTax)
 
 This file gives Claude Code sessions the context they need to work on
 **OpenSalesTax**, an open-source US sales tax calculation API.
@@ -129,10 +129,20 @@ Per Eric's global standards:
 
 ## Git / hosting
 
-Like Eric's other projects: **GitHub initially**
-(github.com/ejosterberg/sales_tax_api_service when created),
+Like Eric's other projects: **GitHub** at
+[ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax),
 migrating to Eric's self-hosted GitLab CE if/when his GitLab
 migration finishes (see `~/.claude/future-tasks.md`).
+
+**Domains:** Eric owns both `opensalestax.org` (intended for the
+OSS project site) and `opensalestax.com` (reserved for the
+eventual hosted SaaS). Registered 2026-05-03.
+
+**Local clone path on Eric's machine:** the directory is
+`C:\Users\ejosterberg\Documents\GITprojects\sales_tax_api_service\`
+(not renamed when the GitHub repo became `open-sales-tax`). The
+local path doesn't have to match the repo name; references in code
+and docs use the repo name `open-sales-tax`.
 
 ## What NOT to do
 

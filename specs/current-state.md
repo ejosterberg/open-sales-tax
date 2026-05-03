@@ -25,6 +25,16 @@ taxability matrix). Tier 2 = the other 22 SST states (rate-only
 via SST data, default taxability). No-tax states unchanged.
 Section G2 added to `tasks.md` for the rapid SST rollout.
 
+**2026-05-03 third update:** Branding settled. GitHub repo will be
+**`ejosterberg/open-sales-tax`** (not `sales_tax_api_service`).
+Domains **`opensalestax.org`** (intended for the OSS project site)
+and **`opensalestax.com`** (reserved for the eventual hosted SaaS)
+both registered by Eric. The Python package name stays
+`opensalestax` (per PEP 8). Local clone path on Eric's machine
+remains `sales_tax_api_service\` — the local directory doesn't
+have to match the repo name and renaming would break in-flight
+work.
+
 **2026-05-03 second update:** Phase 1 Section A (scaffolding)
 shipped. Repo now has:
 

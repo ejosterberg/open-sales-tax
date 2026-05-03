@@ -38,8 +38,8 @@ learn.
 ### Setup
 
 ```bash
-git clone https://github.com/ejosterberg/sales_tax_api_service.git
-cd sales_tax_api_service
+git clone https://github.com/ejosterberg/open-sales-tax.git
+cd open-sales-tax
 poetry install
 poetry run pre-commit install
 ```

@@ -78,7 +78,7 @@ Bootstrap steps:
    `chore: initial scaffold (Phase 1 begin)` — signed off
    (`-s` flag) to set the example.
 9. **Create the GitHub repo** under
-   `ejosterberg/sales_tax_api_service` and push.
+   `ejosterberg/open-sales-tax` and push.
 10. **Once DB plan is confirmed by Eric:** add SQLAlchemy 2.x +
     Alembic + drivers (`asyncpg` + `aiomysql` or `asyncmy`) to
     `pyproject.toml`; scaffold `db/` and initial migration.
