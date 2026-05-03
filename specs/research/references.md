@@ -430,6 +430,76 @@ Format for each state:
     `effective_to` so the engine picks the right rate per
     transaction date.
 
+### SC — South Carolina
+
+- **Statewide rate:** 6.0% effective 2007-06-01
+  (S.C. Code Ann. section 12-36-910(A) imposes the 5% base rate;
+  section 12-36-1110 added the 1% additional surcharge effective
+  June 1, 2007 -- combined statewide rate has been 6% since)
+- **Tax model:** sales tax (NOT SST)
+- **Local jurisdictions:** counties may stack Local Option (1%),
+  Capital Project (1%), School District / Education Capital
+  Improvement (up to 1%), Transportation (1%); some
+  municipalities (e.g., Myrtle Beach) impose a separate 1%
+  Tourism Development Fee. Combined rates currently span 6% -- 9%.
+  **Per-county rates NOT loaded in v0.6** (no SST file; no public
+  machine-readable per-ZIP feed comparable to TX Comptroller's).
+  Deferred until SC-specific data ingestion lands.
+- **Sales-tax holidays:** 1 annual (Tax Free Weekend, first
+  Friday-Sunday of August, no per-item cap; 2026 dates Aug 7-9)
+- **Threshold rules:** none
+- **DOR URL:** https://dor.sc.gov *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - S.C. Code Ann. section 12-36-60 (definition of tangible
+    personal property; basis for SC Revenue Ruling 03-5's
+    treatment of electronically delivered software)
+  - S.C. Code Ann. section 12-36-910(A) (imposition of the 6%
+    sales tax)
+  - S.C. Code Ann. section 12-36-1110 (1% surcharge effective
+    2007-06-01 that brought the rate to 6%)
+  - S.C. Code Ann. section 12-36-2120(28) (prescription drug
+    exemption)
+  - S.C. Code Ann. section 12-36-2120(57) (annual August Tax
+    Free Weekend exemption -- 72 hours, no per-item cap)
+  - S.C. Code Ann. section 12-36-2120(75) (unprepared food
+    exemption from STATE 6% only; local taxes may still apply)
+  - SC Revenue Ruling 03-5 (electronically delivered software /
+    digital downloads NOT subject to sales tax; physical-media
+    delivery IS taxable)
+- *Sources for rate/taxability:*
+  - SC DOR Tax Free Weekend page
+    (https://dor.sc.gov/communications/tax-free-weekend),
+    retrieved 2026-05-03
+  - SC DOR Chapter 9 (Exemptions) policy manual,
+    retrieved 2026-05-03
+  - SC DOR Chapter 21 (Unprepared Food Exemption) policy manual,
+    retrieved 2026-05-03
+  - SC Revenue Ruling 03-5 (electronic software delivery),
+    retrieved 2026-05-03
+  - SC Statehouse Title 12 Chapter 36 archive,
+    retrieved 2026-05-03
+- **Module file:** `src/opensalestax/states/south_carolina.py`
+- **Last verified:** 2026-05-03 by per-state agent
+- *Notes:*
+  - **Digital goods are NOT taxable** when delivered purely
+    electronically -- this is unusual relative to most peer
+    states (CA, TX, FL, MD all tax digital goods). Per SC RR 03-5;
+    track legislative bills (e.g., 2017-2018 Bill 214 attempted
+    to add digital goods to the tax base) for any change.
+  - **Groceries (unprepared food) state-level exempt** but
+    local-level taxes may still apply. Until OpenSalesTax models
+    per-jurisdiction taxability overrides, the engine treats
+    groceries as fully exempt; document this caveat in any
+    SC-facing API documentation.
+  - **Pending 2025-2026 Bill 728** ("Tax Free Month") would
+    extend the August holiday to the entire month. Not enacted as
+    of 2026-05-03; v0.6 encodes the existing 72-hour holiday.
+  - **Myrtle Beach Tourism Development Fee (1%)** is separately
+    imposed under S.C. Code Title 12 Chapter 4 (NOT under the
+    sales tax act); collected differently. Deferred to v1.0+
+    when per-municipality fees can be modeled distinctly from
+    sales taxes.
+
 ### AK — Alaska, DE — Delaware, MT — Montana, NH — New Hampshire, OR — Oregon
 
 - **Statewide rate:** none (no state-level sales tax)
