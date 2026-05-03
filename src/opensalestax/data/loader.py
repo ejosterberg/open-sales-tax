@@ -278,7 +278,14 @@ async def purge_data_version(
     state_abbrev: str,
     version_label: str,
 ) -> bool:
-    """Delete a specific DataVersion + cascade dependent rows.
+    """Delete a specific DataVersion + the rows it brought in.
+
+    The schema has ``Rate.data_version_id`` as ``ondelete=SET NULL``
+    (rates can semantically outlive their data version). Purge
+    semantics are different -- we want a quarterly refresh's rows
+    GONE so the next refresh starts clean. So we explicitly delete
+    rates with this ``data_version_id`` before deleting the
+    version itself; ``Boundary`` already cascades.
 
     Returns True if a matching version was found and deleted;
     False if no matching version existed (nothing to purge).
@@ -303,6 +310,19 @@ async def purge_data_version(
 
     if existing is None:
         return False
+
+    # Explicitly delete rates linked to this data version.
+    # (Cascade-on-delete would do this automatically if the schema
+    # used ondelete=CASCADE, but we kept SET NULL on Rate so that
+    # data versions can be archived without losing rate history.
+    # Purge is different from archive.)
+    rates_to_drop = (
+        await session.execute(select(Rate).where(Rate.data_version_id == existing.id))
+    ).scalars().all()
+    for rate in rates_to_drop:
+        await session.delete(rate)
+    if rates_to_drop:
+        await session.flush()
 
     await session.delete(existing)
     await session.commit()
