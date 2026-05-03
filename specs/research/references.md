@@ -1375,14 +1375,14 @@ Format for each state:
 
 ### Tier-2 SST states (rate-only, default taxability)
 
-17 states load via the generic `SstStateModule` in
+14 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN,
+NV, NJ, NC, ND, OH, OK, RI, SD, TN,
 UT, VT, WA, WV, WY
 
-(AR, GA, IA, IN, and KS were promoted to tier 1 in v0.8 -- see
-their dedicated sections in this document.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE in v0.9 --
+see their dedicated sections in this document.)
 
 ## IA -- Iowa
 
@@ -2013,6 +2013,163 @@ default taxability (everything taxable except groceries). To
     Proposal A of 1994; the 3/4-supermajority requirement at
     Mich. Const. Art. IX section 8 makes increases politically
     very difficult, so no scheduled change is expected.
+
+### NE -- Nebraska
+
+- **Statewide rate:** **5.500% effective 2002-10-01** (rate set
+  at five and one-half percent by L.B. 1085, 97th Legislature,
+  Second Session, codified at Neb. Rev. Stat. section 77-2701.02)
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org)
+- **Local jurisdictions:** incorporated municipalities (other
+  than cities of the metropolitan class) may impose local option
+  sales and use tax of 0.5%, 1%, 1.5%, 1.75%, or 2% under Neb.
+  Rev. Stat. section 77-27,142 by voter approval. Counties may
+  impose 0.5% public-safety / capital-improvement local option
+  tax under sections 77-27,148 and 77-27,148.01 (rare). Combined
+  rates typically fall in the 5.5%-7.5% range.
+- **Notable rate exception -- Good Life Districts (LB 1317 of
+  2024):** effective **2024-07-01**, transactions within a Good
+  Life District (Good Life Transformational Projects Act, Neb.
+  Rev. Stat. sections 77-4401 et seq.) located inside the
+  corporate limits of a city or village tax at a **REDUCED 2.75%
+  state rate**. Effective **2025-07-01**, cities containing a
+  GLD may impose an additional **2.75% GLD Local Option Sales
+  and Use Tax**. The GLD layer is a sub-state geographic overlay
+  that flows through the SST quarterly rate file rather than
+  through the per-category taxability matrix; documented in the
+  module docstring for the next maintainer who validates GLD row
+  encoding against an actual NER<...>.csv file.
+- **Sales-tax holidays:** **NONE.** Nebraska has never enacted a
+  recurring statewide sales-tax holiday. Confirmed 2026-05-03
+  against the Nebraska Department of Revenue's published
+  guidance and the Sales Tax Handbook compendium
+  (https://www.salestaxhandbook.com/nebraska/sales-tax-holidays
+  -- "Nebraska does not offer a sales tax holiday or temporary
+  exemption period for any product categories"). The
+  ``holidays_for(year)`` method returns the empty iterator for
+  every year (mirrors DC, ID, IN).
+- **Threshold rules:** none.
+- **DOR URL:** **https://revenue.nebraska.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Neb. Rev. Stat. Chapter 77 -- Revenue
+  and Taxation):**
+  - Neb. Rev. Stat. section 77-2701.02 -- 5.5% state sales tax
+    rate (effective 2002-10-01 by L.B. 1085; 2.75% reduced rate
+    in qualifying Good Life Districts effective 2024-07-01 by
+    LB 1317)
+  - Neb. Rev. Stat. section 77-2701.16 -- definition of "gross
+    receipts" including specified digital products (digital
+    audio works, digital audiovisual works, digital codes,
+    digital books)
+  - Neb. Rev. Stat. section 77-2703 -- imposition of state
+    sales/use tax on retail sales
+  - Neb. Rev. Stat. section 77-2704.09 -- exemption for insulin,
+    prescription drugs, mobility enhancing equipment, and
+    medical equipment
+  - Neb. Rev. Stat. section 77-2704.24 -- exemption for food
+    and food ingredients (excluding prepared food and food sold
+    through vending machines)
+  - Neb. Rev. Stat. section 77-27,142 -- local option sales and
+    use tax (0.5%, 1%, 1.5%, 1.75%, or 2% in incorporated
+    municipalities)
+  - Neb. Rev. Stat. sections 77-4401 et seq. -- Good Life
+    Transformational Projects Act (Good Life Districts;
+    enabling statute for the LB 1317 reduced state rate)
+- *Sources for rate/taxability:*
+  - Nebraska Department of Revenue Sales and Use Tax landing
+    page (https://revenue.nebraska.gov/businesses/nebraska-sales-and-use-tax),
+    retrieved 2026-05-03 -- confirms 5.5% state rate, 0.5%-2%
+    local option, food and prescription drug exemptions
+  - Nebraska Department of Revenue Sales Tax Exemptions guide
+    (https://revenue.nebraska.gov/about/information-guides/nebraska-sales-tax-exemptions),
+    retrieved 2026-05-03 -- primary source for the prescription
+    drug + food + medical equipment exemption scope
+  - Nebraska Department of Revenue Sales and Use Tax Regulation
+    1-087 ("Sales of food or food ingredients are exempt from
+    sales and use tax",
+    https://revenue.nebraska.gov/sites/default/files/doc/legal/regs/1-087.pdf),
+    retrieved 2026-05-03 -- elaborates the food exemption
+    boundaries (heated food, mixed/combined food, bakery items
+    enumerated exception)
+  - Nebraska Legislature online statutes (Chapter 77) at
+    https://nebraskalegislature.gov/laws/browse-chapters.php?chapter=77,
+    retrieved 2026-05-03 -- primary source for every statutory
+    citation above
+  - Nebraska Department of Revenue Revenue Ruling 01-11-3
+    (https://revenue.nebraska.gov/sites/default/files/doc/legal/rulings/rr011103.pdf),
+    retrieved 2026-05-03 -- DOR's published interpretation of
+    section 77-2701.16(2)(e) for specified digital products
+  - Nebraska Department of Revenue "Reporting Good Life
+    District (GLD) Sales and Use Tax on NebFile Schedule II"
+    FAQ (FAQ-011-2024,
+    https://revenue.nebraska.gov/sites/default/files/doc/FAQ-011-2024.pdf),
+    retrieved 2026-05-03 -- DOR's GLD reporting guidance
+    referencing the LB 1317 framework
+  - Sales Tax Institute "Nebraska Launches New Good Life
+    Districts" (https://www.salestaxinstitute.com/resources/nebraska-launches-new-good-life-districts),
+    retrieved 2026-05-03 -- secondary cross-reference for the
+    LB 1317 effective dates and rate structure (primary source
+    is the NE DOR + Nebraska Legislature)
+  - Sales Tax Handbook "Nebraska Sales Tax Holidays 2026"
+    (https://www.salestaxhandbook.com/nebraska/sales-tax-holidays),
+    retrieved 2026-05-03 -- confirms Nebraska has no
+    sales-tax holiday in 2026 (used as one input among many;
+    primary source is the NE DOR which publishes no holiday
+    notice for any year)
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Nebraska is a full member
+- **Module file:** `src/opensalestax/states/nebraska.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ne branch)
+- *Notes:*
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    NE's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    documented in the module docstring. Validating against an
+    actual `NER<...>.csv` file (and empirically determining how
+    Good Life District rows are encoded) is the natural next
+    maintenance task.
+  - **Good Life Districts are a 2024-07-01 rate change** (LB
+    1317 of 2024). The reduced 2.75% state rate inside qualifying
+    GLDs (city/village portion only) is a sub-state geographic
+    overlay that depends on rate ingestion through the SST
+    quarterly file, NOT on a per-category taxability rule. The
+    module's general TPP rule notes the GLD exception and the
+    docstring elaborates; integrators billing GLD-located
+    transactions should rely on the SST-file-driven rate
+    lookup rather than hard-coding 5.5%.
+  - **Digital goods is a long-standing 77-2701.16(2)(e)
+    inclusion** in the gross-receipts definition; specified
+    digital products have been taxable in NE for many years
+    (the precise enactment date predates the most recent
+    statutory recodification we located -- a future maintainer
+    should add the originating session-law citation).
+  - **SaaS distinction follows DOR published guidance**, not a
+    statute. Prewritten ("canned") computer software delivered
+    by any means is taxable as TPP under section 77-2701, but
+    true SaaS / remotely accessed software where the customer
+    takes neither possession nor control of the software is
+    generally NOT taxable as TPP per the NE DOR's published
+    position. The dominant case (specified digital products
+    with permanent right of use) is encoded as taxable; the
+    SaaS exception is documented in the digital_goods rule's
+    notes for follow-up if/when a sub-category split lands.
+  - **Restaurant occupation tax** is imposed by some Nebraska
+    municipalities on prepared food / restaurant sales as a
+    separate municipal levy, NOT as part of the general state
+    sales tax. The module applies the state sales tax + the
+    general local option sales tax under section 77-27,142 and
+    does NOT model the prepared-food-specific occupation tax
+    layer; documented in the prepared_food rule's notes for
+    integrators selling restaurant transactions in NE.
+  - **Rate is stable** at 5.5% since 2002-10-01; no scheduled
+    change for the general rate is currently in the legislative
+    pipeline that this research found (the LB 1317 GLD reduced
+    rate is a sub-state overlay, not a general-rate change).
 
 ## §4. Per-state references — TEMPLATE for new entries
 
