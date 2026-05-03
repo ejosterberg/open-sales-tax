@@ -30,17 +30,10 @@ from opensalestax.states.registry import register
 # - SST membership list: specs/research/state-coverage.md
 # - State FIPS codes: census.gov / NIST
 #
-# Arkansas (AR) was promoted to tier 1 in v0.8 -- see
-# ``opensalestax/states/arkansas.py``.
+# Arkansas (AR) and Georgia (GA) were promoted to tier 1 in v0.8 --
+# see ``opensalestax/states/arkansas.py`` and
+# ``opensalestax/states/georgia.py``.
 # ---------------------------------------------------------------------------
-
-
-class Georgia(SstStateModule):
-    """Georgia (GA) -- SST member, state base 4.0%, FIPS 13."""
-
-    state_abbrev = "GA"
-    state_name = "Georgia"
-    state_fips = "13"
 
 
 class Iowa(SstStateModule):
@@ -217,10 +210,9 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 21 instances at import time
+# Register all 20 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
-    Georgia,
     Iowa,
     Indiana,
     Kansas,

@@ -1261,15 +1261,128 @@ Format for each state:
     2026 so a future maintainer must explicitly add data when
     holidays are reauthorized.
 
+## GA — Georgia
+
+- **Statewide rate:** **4.0% effective 2011-01-01** per O.C.G.A.
+  section 48-8-30 (state base) and the GA SST rate file
+  (`13,45,13,0.04,0.04,0,0,20110101,29991231` confirms the rate
+  effective from GA's SST associate-membership start). The 0 in
+  the food-rate column reflects the state-portion grocery
+  exemption; the 0 in the drug-rate column reflects the
+  prescription-drug exemption.
+- **Tax model:** sales tax (SST FULL member effective 2011-07-01,
+  associate member effective 2011-01-01)
+- **Local jurisdictions:** counties (LOST + SPLOST + ELOST + HOST
+  stack), cities (limited; the City of Atlanta MOST is the
+  notable example), special districts (TSPLOST regional
+  districts + the MARTA district)
+- **Sales-tax holidays:** **NONE** -- the last GA sales-tax
+  holiday was in 2016 (Ga. Comp. R. and Regs. R. 560-12-2-.110
+  was the implementing rule). The General Assembly has not re-
+  enacted any sales-tax holiday since; reauthorization bills
+  introduced in 2024-2025 (S.B. 115, S.B. 527, S.B. 555) did
+  not pass.
+- **Threshold rules:** none
+- **DOR URL:** https://dor.georgia.gov/taxes/business-taxes/sales-use-tax
+  (retrieved 2026-05-03)
+- **Statutes / regulations consulted:**
+  - O.C.G.A. section 48-8-30 (imposition of tax; 4% state rate)
+  - O.C.G.A. section 48-8-3(54) (prescription-drug exemption)
+  - O.C.G.A. section 48-8-3(57) (food and food ingredients;
+    state-only exemption that does NOT apply to local sales taxes
+    except in equalized homestead-option counties under section
+    48-8-104)
+  - O.C.G.A. section 48-8-80 et seq. (LOST -- Local Option Sales
+    Tax)
+  - O.C.G.A. section 48-8-100 et seq. (HOST -- Homestead Option
+    Sales Tax)
+  - O.C.G.A. section 48-8-110 et seq. (SPLOST -- Special Purpose
+    Local Option Sales Tax)
+  - O.C.G.A. section 48-8-141 et seq. (ELOST -- Educational
+    SPLOST)
+  - O.C.G.A. section 48-8-200 et seq. (MOST -- Municipal Option
+    Sales Tax; City of Atlanta)
+  - O.C.G.A. section 48-8-240 et seq. (TSPLOST -- Transportation
+    SPLOST)
+  - Ga. Comp. R. and Regs. R. 560-12-2-.118 (Digital Products,
+    Goods, and Codes; SUT 2024-001 implementing H.B. 170, Laws
+    2023; effective 2024-01-01)
+  - Ga. Comp. R. and Regs. R. 560-12-2-.110 (Sales Tax Holidays;
+    historical -- last applied to 2016 holidays)
+- *Sources for rate / taxability:*
+  - GA SST quarterly rate file `GAR2026Q2FEB19.csv` (downloaded
+    from `https://www.streamlinedsalestax.org/ratesandboundry/Rates/`,
+    retrieved 2026-05-03; bundled as
+    `src/opensalestax/data/fixtures/ga/GAR2026Q2FEB19.csv`)
+  - SST member-detail page for Georgia
+    (`https://www.streamlinedsalestax.org/state-details/georgia`),
+    retrieved 2026-05-03 -- confirms full membership effective
+    2011-07-01
+  - Sales Tax Institute "Digital Products Subject to Georgia
+    Sales and Use Tax Effective January 1, 2024"
+    (`https://www.salestaxinstitute.com/resources/digital-products-subject-to-georgia-sales-and-use-tax-effective-january-1-2024`),
+    retrieved 2026-05-03 -- secondary source for the 2024-01-01
+    digital-goods change; primary source is R. 560-12-2-.118
+  - GBPI "Time to Retire Georgia's Sales Tax Holidays"
+    (`https://gbpi.org/time-to-retire-georgias-sales-tax-holidays/`),
+    retrieved 2026-05-03 -- documents the 2016 holiday end and
+    the legislative inaction on reauthorization
+  - 11Alive "VERIFY: Georgia does not offer a sales tax holiday
+    for back-to-school"
+    (`https://www.11alive.com/article/news/verify/georgia-no-tax-free-holiday-2025-verify/85-13f08e65-1e48-4fe1-af49-dba452711c5a`),
+    retrieved 2026-05-03 -- secondary source confirming no GA
+    sales-tax holiday post-2016
+  - GA DOR "2016 Sales Tax Holidays" press release
+    (`https://dor.georgia.gov/press-releases/2016-04-27/2016-sales-tax-holidays`),
+    retrieved 2026-05-03 -- the most recent official GA DOR
+    holiday notice
+- **Module file:** `src/opensalestax/states/georgia.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 7 / GA tier-2 -> tier-1 promotion)
+- *Notes:*
+  - **State-vs-local grocery split is THE defining quirk for GA.**
+    The grocery exemption applies ONLY to the 4% state portion
+    per O.C.G.A. section 48-8-3(57); the local LOST + SPLOST +
+    ELOST + HOST + TSPLOST + MOST stack still applies (with the
+    narrow homestead-option exception under section 48-8-104).
+    v0.7+ marks groceries non-taxable at the combined-rate level
+    consistent with the engine's single-rate-per-authority
+    evaluation; the LA module sets the same precedent and a
+    future per-jurisdiction taxability override will model the
+    state-vs-local split precisely. Until then the engine
+    under-collects on GA groceries by the local portion (~3%);
+    the API disclaimer covers this.
+  - **Digital goods is a 2024-01-01 change.** Pre-2024 GA
+    generally did not tax digital products. The TaxabilityRule
+    notes call out R. 560-12-2-.118 / H.B. 170 / SUT 2024-001
+    so a future maintainer doesn't mistake the current
+    treatment for a long-standing position.
+  - **No holidays since 2016.** The `holidays_for(year)` method
+    intentionally returns the empty iterable for EVERY year
+    (parametrized regression test exercises 2024-2030). Should
+    a future General Assembly session re-authorize a holiday, a
+    maintainer must explicitly add the year's data; the empty
+    iterable is regression protection (the 2024-2025 bills
+    failed and the project does not pre-encode speculative
+    legislation).
+  - **SST jurisdiction-type codes** are the same MN/WI mapping:
+    `45` = state, `00` = county, `01` = city, `63` = special
+    district. Validated against `GAR2026Q2FEB19.csv` (449
+    rows): 1 state row, 432 county rows, 12 city rows, 4
+    special-district rows. The bulk of GA local taxation is
+    encoded in the county rows because most GA local-option
+    taxes are county-level.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
-21 states load via the generic `SstStateModule` in
+20 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
-TN, UT, VT, WA, WV, WY
+IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN,
+UT, VT, WA, WV, WY
 
-(AR was promoted to tier 1 in v0.8 -- see the AR section below.)
+(AR and GA were promoted to tier 1 in v0.8 -- see their dedicated
+sections below.)
 
 Each has a one-class entry there with state_abbrev + state_name +
 state_fips. They use the SST quarterly data files for rates and
