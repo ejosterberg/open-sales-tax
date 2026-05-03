@@ -14,7 +14,10 @@ Add a new state by:
 4. Importing the new module here so it loads with the package
 """
 
-from opensalestax.states import no_tax  # noqa: F401  -- side-effect: register 5 instances
+from opensalestax.states import (
+    minnesota,  # noqa: F401  -- side-effect: register MN
+    no_tax,  # noqa: F401  -- side-effect: register 5 no-tax states
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     RateRow,
