@@ -13,13 +13,17 @@ do not import these fixtures and run regardless of DB availability.
 Tests that need a database use the ``async_session`` fixture; if
 ``OPENSALESTAX_DATABASE_URL`` is unset, those tests are skipped
 with a clear message rather than failing.
+
+Fixture scoping note: every fixture here is **function-scoped** to
+avoid the event-loop crossing problems that pytest-asyncio's
+session-scoped async fixtures still have. Schema create/drop per
+test costs ~100ms and is well worth the reliability.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 
 import pytest
 import pytest_asyncio
@@ -49,21 +53,16 @@ def _database_url() -> str:
     return url
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
-    """Session-scoped event loop so async fixtures share state."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture
 async def db_engine() -> AsyncIterator[AsyncEngine]:
-    """Session-scoped AsyncEngine pointed at OPENSALESTAX_DATABASE_URL.
+    """Function-scoped AsyncEngine pointed at OPENSALESTAX_DATABASE_URL.
 
-    Schema is created once per test session and dropped at teardown.
+    Schema is created at fixture entry and dropped at teardown.
     Per decision 03 / constitution §10, this works against both
     PostgreSQL and MariaDB unchanged.
+
+    Function scope sidesteps the event-loop scoping issues that
+    pytest-asyncio session-scoped async fixtures still have.
     """
     url = _database_url()
     engine = create_async_engine(url, echo=False, future=True)
@@ -81,10 +80,7 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
 
 @pytest_asyncio.fixture
 async def async_session(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
-    """Function-scoped AsyncSession that rolls back on exit.
-
-    Each test gets a clean slate without re-creating the schema.
-    """
+    """Function-scoped AsyncSession that rolls back on exit."""
     sessionmaker = async_sessionmaker(db_engine, expire_on_commit=False)
     async with sessionmaker() as session:
         try:
