@@ -23,6 +23,12 @@ tier 2. Sales-tax holidays integrated end-to-end.
 
 5–10 minutes; saves you from re-deriving anything.
 
+## ⚡ Active session kickoff (if present)
+
+If `specs/NEXT-SESSION-KICKOFF.md` exists, read and execute it
+before anything else. Eric reset a session deliberately and that
+file contains the immediate next steps.
+
 ## If you're spawning state-research agents (Phase 6+)
 
 Eric's directive from 2026-05-03: engage **multiple agents in

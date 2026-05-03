@@ -3,6 +3,15 @@
 This file gives Claude Code sessions the context they need to work on
 **OpenSalesTax**, an open-source US sales tax calculation API.
 
+## 🚨 ACTIVE KICKOFF — READ FIRST IF PRESENT
+
+If `specs/NEXT-SESSION-KICKOFF.md` exists, **stop and read that file
+before doing anything else.** It contains a session-specific action
+plan from a prior session that was reset deliberately.
+
+After executing the kickoff, delete that file (per its own
+instructions) so it doesn't mislead later sessions.
+
 ## ⭐ Read these first (in order)
 
 This project uses a **spec-driven workflow** (same pattern as Eric's
