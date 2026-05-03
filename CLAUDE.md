@@ -137,6 +137,8 @@ migration finishes (see `~/.claude/future-tasks.md`).
 ## What NOT to do
 
 - **Don't pick the stack without asking Eric.** Propose; he decides.
+  (Stack settled 2026-05-02: Python 3.11+ + FastAPI. Database
+  pending Eric's confirmation on dual MariaDB+PostgreSQL plan.)
 - **Don't import paid datasets.** Free public data only — that's
   the whole point of the project.
 - **Don't ship a single state in isolation.** The architecture
@@ -146,3 +148,16 @@ migration finishes (see `~/.claude/future-tasks.md`).
   defeat the OSS purpose.
 - **Don't promise legal/tax advice.** This is a calculation
   engine; users are responsible for compliance. Disclaim clearly.
+- **Don't reverse-engineer commercial sales-tax APIs** (Avalara,
+  Vertex, Sovos, TaxJar, TaxCloud) to derive algorithms, schemas,
+  or data structures. Implement from primary sources only — tax
+  law, SST documentation, state DOR publications. Reading their
+  public docs to understand "what tax software does" is fine;
+  copying their request/response shapes or proprietary methods is
+  not. See constitution §2 (patent risk acknowledgment).
+- **Don't name features after commercial products.** No
+  `/v1/avatax-compatible/...`, no "TaxCloud-style certification."
+  Use generic functional names — they're more accurate and avoid
+  trademark/patent provocations.
+- **Don't accept commits without DCO sign-off** (`git commit -s`).
+  CI enforces this; don't bypass. Constitution §14.

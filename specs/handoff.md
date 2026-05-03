@@ -36,17 +36,53 @@ Make the proposal concrete:
 
 ### 3. On stack-pick approval, do the bootstrap
 
-Once Eric picks:
+Stack and license decisions made 2026-05-02 (see
+`specs/decisions/01-language-framework.md` and
+`specs/decisions/02-license.md`):
 
-1. **Initialize the language scaffold** (e.g., `pyproject.toml` for
-   Python+Poetry, or `package.json` for Node).
-2. **Create LICENSE** with Apache 2.0 text + copyright line:
-   `Copyright 2026 Eric Osterberg and OpenSalesTax contributors`
-3. **Initialize git** with first commit message
-   `chore: initial scaffold (Phase 1 begin)`
-4. **Create the GitHub repo** under `ejosterberg/sales_tax_api_service`
-   (or whatever name Eric picks at that moment) and push.
-5. **Start Phase 1** per `specs/phase-1-foundation/spec.md`.
+- **Language:** Python 3.11+ with FastAPI ✅ confirmed
+- **License:** Apache 2.0 ✅ confirmed
+- **Database:** dual MariaDB + PostgreSQL via SQLAlchemy proposed;
+  **awaiting Eric's final confirmation** before scaffolding the DB
+  layer. Until confirmed, the scaffold can proceed without
+  `models.py` / `alembic/`.
+
+Bootstrap steps:
+
+1. **Initialize the Python scaffold** with `pyproject.toml`
+   (Poetry-managed), `ruff` for lint+format, `pytest` for tests,
+   `pre-commit` hooks. Pin Python to 3.11+.
+2. **Create LICENSE** at repo root with Apache 2.0 text + copyright
+   line: `Copyright 2026 Eric Osterberg and OpenSalesTax
+   contributors`.
+3. **Create NOTICE** (empty stub at repo root; populated as
+   third-party dependencies require attribution).
+4. **Add SPDX headers** convention: every Python source file starts
+   with `# SPDX-License-Identifier: Apache-2.0`. Document this in
+   CONTRIBUTING.md.
+5. **Configure DCO enforcement:**
+   - Add a CI check (GitHub Actions: `dco-check` action or
+     equivalent) that fails on commits without a `Signed-off-by:`
+     trailer.
+   - Add a CONTRIBUTING.md section explaining `git commit -s` and
+     linking to https://developercertificate.org.
+   - Add a pre-commit hook locally that warns (not blocks) on
+     missing sign-off, so contributors catch it before pushing.
+6. **Create CONTRIBUTING.md** covering: how to set up dev env, DCO
+   sign-off requirement, PR review expectations, the per-state
+   contributor pattern, the "do not reverse-engineer commercial
+   APIs" rule from constitution §2.
+7. **Create MAINTAINERS.md** with Eric as initial maintainer +
+   placeholder for per-state maintainers.
+8. **Initialize git** with first commit message
+   `chore: initial scaffold (Phase 1 begin)` — signed off
+   (`-s` flag) to set the example.
+9. **Create the GitHub repo** under
+   `ejosterberg/sales_tax_api_service` and push.
+10. **Once DB plan is confirmed by Eric:** add SQLAlchemy 2.x +
+    Alembic + drivers (`asyncpg` + `aiomysql` or `asyncmy`) to
+    `pyproject.toml`; scaffold `db/` and initial migration.
+11. **Start Phase 1** per `specs/phase-1-foundation/spec.md`.
 
 ### 4. After scaffold, Phase 1 work begins
 
@@ -82,6 +118,10 @@ The discipline that survives across sessions.
 - Standing permission to commit directly to the default branch.
 - Push still asks per-deploy.
 - No AI co-author trailers in commits — Eric's project-wide preference.
+- **DCO sign-off (`-s`) is required on every commit** once CI is in
+  place — including commits Claude makes on Eric's behalf. The
+  `Signed-off-by:` line should reflect Eric's identity (his name +
+  the email in his git config).
 - Run the test suite (when one exists) before declaring "done."
 - Append, don't edit, security audits.
 

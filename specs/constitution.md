@@ -28,7 +28,51 @@ Rationale:
 
 GPL-family licenses (GPL, AGPL) were considered and rejected: the
 copyleft constraint would discourage commercial accounting software
-from integrating, defeating the project's purpose.
+from integrating, defeating the project's purpose. AGPL specifically
+would force SaaS providers to publish modifications — desirable in
+isolation, but the cost of cutting off commercial integrators
+(QuickBooks, Xero, ERPs, e-commerce platforms) is too high. We accept
+that some SaaS deployers will not contribute back; we engineer
+**strong contributor norms** (recognition, public deployer registry,
+per-state-maintainer credit) instead of legal enforcement. We
+**reserve the right to add a dual-license option later** (Apache OR
+AGPL) if norms prove insufficient — going Apache → dual is feasible;
+going AGPL → Apache is essentially impossible once contributors
+arrive.
+
+### Patent landscape — risk acknowledgment
+
+Sales-tax software exists in a patent minefield. Avalara, Vertex, and
+Sovos all hold portfolios. Most "implemented on a computer" patents
+from the 2000–2014 era are weak post-*Alice v. CLS Bank* (2014), but
+not zero. To minimize risk:
+
+- **Implement from primary sources** — tax law, SST documentation,
+  state DOR publications. Do **not** reverse-engineer commercial
+  APIs (Avalara, Vertex, Sovos, TaxJar, TaxCloud) to derive
+  algorithms or data structures.
+- **Don't name features after commercial products.** No
+  "AvaTax-compatible," no "TaxCloud-style." Use generic functional
+  names.
+- **Flag novel algorithms for review** before merging. Textbook
+  approaches (rate lookup by ZIP, per-state taxability rules,
+  jurisdiction stacking) are safe. Anything described as "a new
+  method for…" warrants a quick patent search and documented prior
+  art in `specs/`.
+- **Vet contributions from current/former employees** of commercial
+  tax-software vendors — they may have invention-assignment or
+  non-compete obligations that complicate the contributor patent
+  grant. Not a blanket exclusion; a documented vetting step.
+- **Public design docs in `specs/` serve as dated prior art.** Every
+  architectural decision recorded here defends against later
+  patent claims.
+
+For the v1 scope (SST data ingestion, ZIP+4 lookup, basic taxability
+matrix, REST API), patent risk is **low** — the methods are textbook
+and the data is public. Risk grows as the project moves into
+address-level GIS resolution, ML-driven product categorization, or
+nexus-determination analytics — at which point this section gets
+revisited and expanded.
 
 ## 3. Free public data only
 
@@ -243,6 +287,23 @@ PostGIS becomes optional.
 - **Code of conduct:** Contributor Covenant 2.1 (standard).
 - **PR review:** every PR needs at least one maintainer approval;
   state-specific PRs prefer the relevant state maintainer's review.
+- **Contributions require DCO sign-off.** Every commit must include
+  a `Signed-off-by:` trailer (`git commit -s`) per the Developer
+  Certificate of Origin v1.1 (https://developercertificate.org).
+  The sign-off is the contributor's assertion that they have the
+  right to submit the contribution under the project's Apache 2.0
+  license. This is enforced via a CI check on every PR.
+- **No CLA.** Apache 2.0 §5 already grants the project a license to
+  inbound contributions; DCO covers provenance. A signed CLA is
+  unnecessary friction for a project this size and would not be
+  added unless dual-licensing becomes necessary.
+- **Recognition over enforcement.** Per-state maintainers, recurring
+  contributors, and public deployers are listed in `MAINTAINERS.md`
+  / `USERS.md`. This is the project's primary mechanism for
+  encouraging contribute-back behavior from SaaS deployers — the
+  constitution accepts that some commercial users will not
+  contribute, and substitutes social/recognition incentives for
+  legal enforcement (see §2 license rationale).
 
 ## 15. What changes to this document need
 

@@ -8,6 +8,22 @@
 a cross-reference for nexus thresholds and base rates. Reference
 only, not an ingestible data source per constitution §3.
 
+**2026-05-02 second update:** Stack and license decisions made.
+See `specs/decisions/01-language-framework.md` and
+`specs/decisions/02-license.md`.
+
+- **Language/framework:** ✅ Python 3.11+ + FastAPI
+- **License:** ✅ Apache 2.0 (with DCO sign-off, SPDX headers,
+  no CLA, NOTICE stub)
+- **Patent posture:** ✅ acknowledged in constitution §2 with
+  mitigation rules (no reverse-engineering of commercial APIs;
+  no naming features after commercial products; vet contributions
+  from current/former commercial-vendor employees)
+- **Database:** ⏳ dual MariaDB + PostgreSQL via SQLAlchemy
+  proposed by Claude, **awaiting Eric's confirmation** before
+  scaffolding the DB layer. Decision to be recorded as
+  `specs/decisions/03-database.md` once confirmed.
+
 ## What exists
 
 | Artifact | Status |
@@ -22,25 +38,35 @@ only, not an ingestible data source per constitution §3.
 | `specs/research/prior-art.md` | ✅ |
 | `specs/research/state-coverage.md` | ✅ |
 | `specs/phase-1-foundation/spec.md` | ✅ |
-| Stack chosen (Python? Node? Go?) | ❌ pending Eric's call |
-| License file (LICENSE) | ❌ Apache 2.0 recommended; pending owner sign-off |
-| Git repo initialized | ❌ — left for the bootstrap session to do after Eric reviews |
-| GitHub remote created | ❌ — left for the bootstrap session |
+| `specs/decisions/01-language-framework.md` | ✅ Python 3.11+ + FastAPI |
+| `specs/decisions/02-license.md` | ✅ Apache 2.0 + DCO + SPDX |
+| `specs/decisions/03-database.md` | ⏳ pending Eric on dual MariaDB+PostgreSQL plan |
+| License file (LICENSE) | ❌ — bootstrap session creates after DB decision |
+| NOTICE file | ❌ — bootstrap session creates as empty stub |
+| CONTRIBUTING.md (with DCO instructions) | ❌ — bootstrap session creates |
+| MAINTAINERS.md | ❌ — bootstrap session creates with Eric as initial |
+| DCO CI check | ❌ — bootstrap session adds GitHub Actions workflow |
+| Git repo initialized | ❌ — bootstrap session does after DB decision |
+| GitHub remote created | ❌ — bootstrap session does after DB decision |
 | Any code at all | ❌ |
 
 ## What's been decided
 
 - **Project name:** OpenSalesTax (working title; rename if needed before public launch)
 - **Mission:** free, self-hostable, OSS sales tax calculation API
-- **License recommendation:** Apache 2.0 (pending Eric sign-off)
+- **License:** ✅ Apache 2.0 (decision 02)
+- **Contributor agreement:** ✅ DCO sign-off, no CLA (decision 02)
+- **Per-file headers:** ✅ SPDX (`# SPDX-License-Identifier: Apache-2.0`)
+- **Patent posture:** ✅ acknowledged + mitigation rules (constitution §2)
+- **Language/framework:** ✅ Python 3.11+ + FastAPI (decision 01)
 - **Distribution model:** primary self-hostable Docker; optional future SaaS
 - **Core architecture:** per-state contributor modules with common interface
 - **Data sources:** SST quarterly files + state DOR public data + TIGER/Line boundary data
-- **Database:** PostgreSQL 15+ with PostGIS for geometry
+- **Database (proposed, pending confirmation):** dual MariaDB + PostgreSQL via SQLAlchemy 2.x; PostGIS recommended for Phase 4+ address-level production deployments
 
 ## What's NOT decided (open for the bootstrap session)
 
-- **Implementation language / framework** — Python+FastAPI recommended; Eric to confirm
+- **Database confirmation** — Claude proposed dual MariaDB + PostgreSQL via SQLAlchemy (Pattern A from 2026-05-02 conversation); awaiting Eric's final yes/no before constitution §10 is updated and scaffolding proceeds
 - **Initial state coverage** — phase-1-foundation/spec.md proposes 2 SST states (MN + WI as a pair: Eric's home + Wisconsin's contrasting clothing-tax rule). Could be expanded.
 - **Geocoding strategy** — option A: rely on caller-supplied lat/lon; option B: bundle a geocoder (Nominatim/Pelias). Phase 1 should punt.
 - **Auth model for the API** — option A: open / no auth (rate-limited only); option B: API keys. Phase 1 should ship both.
@@ -76,9 +102,13 @@ only, not an ingestible data source per constitution §3.
 
 ## Notes for next session
 
-- Eric will start a new Claude Code session in this directory to bootstrap.
-- That session should: (1) propose the stack pick to Eric, (2) on approval,
-  scaffold the chosen language, (3) initialize git + GitHub repo, (4) start
-  Phase 1.
-- The bootstrap session does NOT need to fetch SST data or implement any
-  state module — Phase 1's `spec.md` is the right starting point.
+- Stack and license are settled (decisions 01 + 02). The
+  bootstrap session's first job is: **confirm the database plan
+  with Eric** (dual MariaDB + PostgreSQL via SQLAlchemy), then
+  record `decisions/03-database.md`, then update constitution §10.
+- After DB is confirmed: scaffold per `handoff.md` §3 — Poetry +
+  ruff + pytest + pre-commit, LICENSE / NOTICE / CONTRIBUTING /
+  MAINTAINERS, DCO CI check, then git init + GitHub remote.
+- The bootstrap session does NOT need to fetch SST data or
+  implement any state module — Phase 1's `spec.md` is the right
+  starting point after scaffolding.
