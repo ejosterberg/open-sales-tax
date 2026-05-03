@@ -29,6 +29,7 @@ from opensalestax.states import (
     illinois,  # noqa: F401
     indiana,  # noqa: F401
     iowa,  # noqa: F401
+    kansas,  # noqa: F401
     louisiana,  # noqa: F401
     maryland,  # noqa: F401
     massachusetts,  # noqa: F401

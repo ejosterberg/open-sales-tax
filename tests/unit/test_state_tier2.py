@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Tests for the 18 tier-2 SST state modules.
+"""Tests for the 17 tier-2 SST state modules.
 
 Validates that every tier-2 state's metadata is correctly set
 and the module satisfies the StateModule Protocol. Per-state
@@ -8,9 +8,9 @@ rate validation against real SST data is left to the per-state
 maintainer (constitution sec 12) -- these tests are the smoke-
 level guarantees.
 
-Arkansas (AR), Georgia (GA), Indiana (IN), and Iowa (IA) were
-promoted to tier 1 in v0.8; they now live in their dedicated
-modules under ``opensalestax/states/``.
+Arkansas (AR), Georgia (GA), Indiana (IN), Iowa (IA), and
+Kansas (KS) were promoted to tier 1 in v0.8; they now live in
+their dedicated modules under ``opensalestax/states/``.
 """
 
 from __future__ import annotations
@@ -24,10 +24,9 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states._tier2 import TIER_2_CLASSES, TIER_2_STATES
 from opensalestax.states.protocol import StateModule
 
-# All 18 tier-2 states should be present (AR + GA + IA + IN were promoted to tier 1 in v0.8).
+# All 17 tier-2 states should be present (AR + GA + IA + IN + KS were promoted to tier 1 in v0.8).
 EXPECTED_TIER_2_ABBREVS = frozenset(
     {
-        "KS",
         "KY",
         "MI",
         "NE",
@@ -50,8 +49,8 @@ EXPECTED_TIER_2_ABBREVS = frozenset(
 
 
 def test_count_matches_expected() -> None:
-    assert len(TIER_2_STATES) == 18
-    assert len(TIER_2_CLASSES) == 18
+    assert len(TIER_2_STATES) == 17
+    assert len(TIER_2_CLASSES) == 17
     assert {s.state_abbrev for s in TIER_2_STATES} == EXPECTED_TIER_2_ABBREVS
 
 
@@ -97,9 +96,9 @@ def test_each_tier2_state_has_default_taxability(
 
 def test_tier2_unknown_category_returns_none() -> None:
     """Unknown category returns None (engine treats as taxable default)."""
-    kansas = get_state_module("KS")
-    assert kansas is not None
-    assert kansas.taxability_for("alpaca-fur", dt.date(2026, 5, 3)) is None
+    kentucky = get_state_module("KY")
+    assert kentucky is not None
+    assert kentucky.taxability_for("alpaca-fur", dt.date(2026, 5, 3)) is None
 
 
 def test_phase_1_states_all_registered() -> None:
@@ -113,7 +112,7 @@ def test_phase_1_states_all_registered() -> None:
     from opensalestax.states import supported_abbrevs
 
     abbrevs = supported_abbrevs()
-    # 18 tier-2 + MN + WI + AR + GA + IA + IN (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
+    # 17 tier-2 + MN + WI + AR + GA + IA + IN + KS (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
     expected = EXPECTED_TIER_2_ABBREVS | {
         "MN",
         "WI",
@@ -121,6 +120,7 @@ def test_phase_1_states_all_registered() -> None:
         "GA",
         "IA",
         "IN",
+        "KS",
         "AK",
         "DE",
         "MT",
