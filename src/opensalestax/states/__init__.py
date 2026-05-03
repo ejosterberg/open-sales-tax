@@ -40,6 +40,7 @@ from opensalestax.states import (
     missouri,  # noqa: F401
     nebraska,  # noqa: F401
     nevada,  # noqa: F401
+    new_jersey,  # noqa: F401
     new_york,  # noqa: F401
     no_tax,  # noqa: F401
     pennsylvania,  # noqa: F401
