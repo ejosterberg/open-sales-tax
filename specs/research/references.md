@@ -3243,6 +3243,194 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+### VT -- Vermont
+
+- **Statewide rate:** **6.000% effective 1969-06-01 (current 6%
+  rate effective 2003-10-01)**. Vermont's general sales tax was
+  enacted by Act 144 of the 1969 Adjourned Session at 3%; the rate
+  was raised to 4% in 1982, to 5% in 1991, and to its current 6%
+  effective **October 1, 2003** by **Act 68 of the 2003
+  Legislative Session** as part of the education-funding reform
+  package. The 6% rate is the current rate per the imposition
+  statute at **Vt. Stat. Ann. tit. 32, section 9771**, has been
+  stable for 20+ years, and no rate change is currently in the
+  legislative pipeline.
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: **50**.
+- **Local jurisdictions:** counties impose **NO** sales tax;
+  incorporated municipalities (cities and towns) MAY adopt a
+  **Local Option Sales Tax (LOST)** of **EXACTLY 1%** under
+  **24 V.S.A. section 138** (originally enacted by Act 60 of
+  1997 -- the Equal Educational Opportunity Act -- expanded by
+  Act 68 of 2003). The local option rate is fixed at 1% by
+  statute (a town adopts it or does not -- no other rate is
+  permitted). Adoption requires both charter authorization and a
+  binding voter referendum. Approximately **17 of Vermont's ~247
+  incorporated municipalities** have opted in as of 2026,
+  including: Burlington, South Burlington, Williston,
+  Colchester, Essex Junction, Winooski, Stowe, Brattleboro,
+  Manchester, Killington, Dover, Wilmington, St. Albans Town,
+  Rutland Town, Middlebury, Montpelier, and Brandon (the precise
+  current list is the Vermont Department of Taxes
+  "Municipalities with a Local Option Tax" page at
+  https://tax.vermont.gov/business/lot/municipalities). Combined
+  rates in opted-in municipalities are **EXACTLY 7.0%**;
+  combined rates everywhere else are **EXACTLY 6.0%**. The VT
+  Department of Taxes administers the local option centrally
+  (sellers remit a single combined amount), making VT's local-
+  tax mechanics simpler than home-rule states like CO or
+  independent-locals states like AL. Per-municipality rate rows
+  flow through the SST quarterly rate file via the inherited
+  :class:`SstStateModule` parser; v1 ships state-only baseline
+  while LOST loading is deferred to per-municipality data
+  ingestion.
+- **Sales-tax holidays:** **NONE.** Vermont has never enacted a
+  sales-tax holiday and none is currently scheduled in any year
+  (verified 2026-05-03 against the Vermont Department of Taxes
+  Sales Tax landing page and the Sales Tax Institute holiday
+  compendium). Mirrors NJ, NE, DC, ID, IN, ND, MI, KY, NV, NC.
+- **Threshold rules:** **NONE** for clothing -- VT has a broad
+  year-round clothing exemption with no per-item dollar cap
+  (contrast with NY's $110-per-item threshold and MA's
+  $175-per-item threshold).
+- **DOR URL:** **https://tax.vermont.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Title 32 -- Taxation and Finance,
+  Chapter 233 -- Sales and Use Tax; Title 24 -- Municipal and
+  County Government, section 138 for the local option):**
+  - **Vt. Stat. Ann. tit. 32, section 9771** -- imposition
+    statute (sales tax on tangible personal property at 6%)
+  - **Vt. Stat. Ann. tit. 32, section 9701(7)** -- definition of
+    "tangible personal property"
+  - **Vt. Stat. Ann. tit. 32, section 9701(31)(B)** -- defined
+    term "specified digital products" (added by H. 528 of the
+    2014 Legislative Session, Act 174 of 2014, effective
+    2015-07-01)
+  - **Vt. Stat. Ann. tit. 32, section 9741(2)** -- prescription-
+    drug exemption
+  - **Vt. Stat. Ann. tit. 32, section 9741(13)** -- food and
+    food ingredients exemption
+  - **Vt. Stat. Ann. tit. 32, section 9741(45)** -- broad
+    clothing exemption (one of only ~5 states with a year-round
+    broad clothing exemption: PA, MA, MN, NJ, VT)
+  - **Vt. Stat. Ann. tit. 32, chapter 225 (sections 9201-9281)**
+    -- separate **Vermont Meals and Rooms Tax** at 9% on
+    prepared food / hotel rooms; NOT a general sales tax and out
+    of scope for this engine
+  - **Vt. Stat. Ann. tit. 32, section 9242** -- separate 6%
+    Sugar-Sweetened Beverage tax (added by Act 18 of 2018) on
+    certain soft drinks; NOT a general sales tax and out of
+    scope
+  - **24 V.S.A. section 138** -- **Local Option Sales Tax**
+    enabling statute (1% fixed local rate; municipalities adopt
+    by charter + referendum)
+  - **Act 60 of 1997** (Equal Educational Opportunity Act) --
+    original enactment of the local-option framework
+  - **Act 68 of 2003** -- raised the state rate from 5% to 6%
+    effective 2003-10-01 and expanded the local-option framework
+  - **Act 174 of 2014 (H. 528)** -- brought specified digital
+    products into the sales-tax base effective 2015-07-01
+  - **VT Department of Taxes Reg. 1.9741(45)** -- regulatory
+    guidance on the clothing exemption (includes the exclusions
+    list: accessories, sport/recreational equipment, protective
+    equipment for non-everyday use)
+  - **VT Department of Taxes Reg. 1.9701(7)** -- regulatory
+    guidance distinguishing taxable prewritten ("canned")
+    software from non-taxable custom software developed for a
+    specific customer
+- *Sources for rate/taxability:*
+  - **Vermont Department of Taxes** main site
+    (https://tax.vermont.gov/), retrieved 2026-05-03 -- confirms
+    6% state rate
+  - **Vermont Department of Taxes "Sales and Use Tax" landing
+    page** (https://tax.vermont.gov/business/sales-and-use-tax),
+    retrieved 2026-05-03 -- confirms 6% state rate, taxability
+    overview, no sales-tax holiday
+  - **Vermont Department of Taxes "Local Option Tax" page**
+    (https://tax.vermont.gov/business/lot), retrieved
+    2026-05-03 -- confirms exactly-1% local rate under 24 V.S.A.
+    section 138; ~17 municipalities opted in
+  - **Vermont Department of Taxes "Municipalities with a Local
+    Option Tax" page**
+    (https://tax.vermont.gov/business/lot/municipalities),
+    retrieved 2026-05-03 -- authoritative list of LOST-adopted
+    municipalities (Burlington, South Burlington, Williston,
+    Brattleboro, Stowe, Manchester, Killington, Dover,
+    Wilmington, Montpelier, etc.)
+  - **Vermont Department of Taxes "Meals and Rooms Tax" page**
+    (https://tax.vermont.gov/business/meals-and-rooms-tax),
+    retrieved 2026-05-03 -- confirms separate 9% rate on
+    prepared food / hotel rooms
+  - **Vermont General Assembly statutes** -- Title 32 chapter
+    233 (sections 9701, 9741, 9771); Title 24 section 138 -- via
+    https://legislature.vermont.gov/statutes/title/32 and
+    https://legislature.vermont.gov/statutes/title/24,
+    cross-referenced 2026-05-03
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference confirming
+    Vermont has no sales-tax holiday in any year
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Vermont is a full SST member
+  - **Sovos summary** (specs/research/sovos-state-summary.md
+    line 123) -- secondary cross-check of the 6% state rate;
+    primary source is the VT Department of Taxes
+- **Module file:** `src/opensalestax/states/vermont.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-vt branch)
+- *Notes:*
+  - **Broad clothing exemption (32 V.S.A. 9741(45)) is the
+    headline VT-specific finding.** VT joins PA, MA, MN, NJ in
+    the small set of states that broadly exempt clothing year-
+    round with no per-item dollar cap. Encoded as
+    ``is_taxable=False`` with the statutory citation in the
+    rule's notes; a defensive regression test
+    (`test_vermont_clothing_is_exempt_year_round_no_threshold`)
+    catches a future maintainer who accidentally re-enables
+    clothing tax.
+  - **Local Option Sales Tax is fixed at exactly 1%.** Unlike
+    Colorado (home-rule cities can pick rates 1%-7.5%) or Texas
+    (cities can adopt 0.25%-2% in 0.125% increments), VT's local
+    option is binary: a town is either at 0% or at exactly 1%.
+    This makes the deferred-locals posture unusually clean --
+    when LOST loading lands, every adopting municipality has
+    EXACTLY the same rate, so the per-municipality rows in the
+    SST file have a single distinct rate value.
+  - **Combined rate is always exactly 6.0% or exactly 7.0%.**
+    No fractional combined rates exist in Vermont. Useful
+    invariant for future test fixtures.
+  - **Prepared food principally taxes under the 9% Meals and
+    Rooms Tax, not the 6% sales tax.** The general sales-tax
+    matrix marks prepared food as taxable at 6% as a
+    conservative default; integrators selling restaurant meals
+    in Vermont should apply the 9% Meals and Rooms Tax instead.
+    Documented prominently in the module docstring and in the
+    `prepared_food` rule's notes.
+  - **No sales-tax holiday in any year.** Verified explicitly;
+    a regression test
+    (`test_vermont_holidays_for_all_years_returns_empty`)
+    catches a future contributor who mistakenly extrapolates
+    from a neighboring SST state's August holiday framework.
+  - **Digital goods became taxable on 2015-07-01** per H. 528
+    of the 2014 Legislative Session (Act 174 of 2014). The
+    defined term "specified digital products" lives at
+    32 V.S.A. section 9701(31)(B). Custom software developed
+    for a specific customer is NOT taxable per Reg. 1.9701(7);
+    prewritten software (delivered by any means) IS taxable
+    as TPP.
+  - **No 2026Q2 VT SST file** has been captured to confirm the
+    jurisdiction-type codes empirically; the inherited default
+    mapping is taken from MN/WI 2026Q2 captures. The next
+    maintainer should validate against a VT SST quarterly capture
+    and override ``jurisdiction_types`` on the subclass if any
+    code differs.
+  - **Separate 6% Sugar-Sweetened Beverage tax** under 32
+    V.S.A. section 9242 (Act 18 of 2018) on certain soft drinks
+    is documented for completeness but outside the general
+    sales-tax base modeled by this engine.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

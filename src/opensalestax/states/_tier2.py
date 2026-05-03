@@ -2,10 +2,10 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """Tier-2 SST member states (rate-only via SST data, default taxability).
 
-The 8 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN,
-KS, KY, MI, NC, ND, NE, NJ, NV, OH, OK are now tier 1). Each is a ~10-line subclass of
-:class:`SstStateModule` providing only the state-specific metadata
-(USPS abbreviation, full name, state FIPS).
+The 7 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN,
+KS, KY, MI, NC, ND, NE, NJ, NV, OH, OK, VT are now tier 1). Each is
+a ~10-line subclass of :class:`SstStateModule` providing only the
+state-specific metadata (USPS abbreviation, full name, state FIPS).
 
 State base rates documented in the docstring per state are taken
 from ``specs/research/sovos-state-summary.md`` and cross-checked
@@ -24,7 +24,7 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
-# 8 tier-2 SST states. Order roughly alphabetical for readability.
+# 7 tier-2 SST states. Order roughly alphabetical for readability.
 # Sources:
 # - Sovos summary: specs/research/sovos-state-summary.md
 # - SST membership list: specs/research/state-coverage.md
@@ -32,9 +32,9 @@ from opensalestax.states.registry import register
 #
 # Arkansas (AR), Georgia (GA), Indiana (IN), Iowa (IA), Kansas (KS),
 # Kentucky (KY), Michigan (MI), Nebraska (NE), Nevada (NV), New Jersey
-# (NJ), North Carolina (NC), North Dakota (ND), Ohio (OH), and Oklahoma
-# (OK) were promoted to tier 1 in v0.8/v0.9/v0.10 -- see their
-# dedicated modules in ``opensalestax/states/``.
+# (NJ), North Carolina (NC), North Dakota (ND), Ohio (OH), Oklahoma
+# (OK), and Vermont (VT) were promoted to tier 1 in v0.8/v0.9/v0.10/v0.11
+# -- see their dedicated modules in ``opensalestax/states/``.
 # ---------------------------------------------------------------------------
 
 
@@ -74,14 +74,6 @@ class Utah(SstStateModule):
     state_fips = "49"
 
 
-class Vermont(SstStateModule):
-    """Vermont (VT) -- SST member, state base 6.0%, FIPS 50."""
-
-    state_abbrev = "VT"
-    state_name = "Vermont"
-    state_fips = "50"
-
-
 class Washington(SstStateModule):
     """Washington (WA) -- SST member, state base 6.5%, FIPS 53."""
 
@@ -107,14 +99,13 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 8 instances at import time
+# Register all 7 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
     RhodeIsland,
     SouthDakota,
     Tennessee,
     Utah,
-    Vermont,
     Washington,
     WestVirginia,
     Wyoming,
