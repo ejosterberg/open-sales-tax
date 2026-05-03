@@ -38,11 +38,12 @@ build/
 vendor/
 
 # Local data caches (downloaded SST files etc.)
+# Note: `src/opensalestax/data/fixtures/**` are intentionally tracked
+# for test reproducibility -- only the local-cache dirs are ignored.
 data/raw/
 data/cache/
 data/downloads/
-*.zip
-*.csv
+~/.opensalestax/
 
 # Local secrets / dev config
 .env

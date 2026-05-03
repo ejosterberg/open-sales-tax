@@ -1,0 +1,121 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+
+[tool.poetry]
+name = "opensalestax"
+version = "0.1.0a1"
+description = "Open-source US sales tax calculation API. Free, self-hostable, contributor-driven."
+authors = ["Eric Osterberg <ejosterberg@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/ejosterberg/sales_tax_api_service"
+repository = "https://github.com/ejosterberg/sales_tax_api_service"
+keywords = ["sales-tax", "tax", "api", "sst", "streamlined-sales-tax"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+packages = [{include = "opensalestax", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115"
+uvicorn = {extras = ["standard"], version = "^0.32"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0"}
+alembic = "^1.13"
+asyncpg = "^0.30"
+asyncmy = "^0.2.10"
+pydantic = "^2.9"
+pydantic-settings = "^2.6"
+typer = "^0.13"
+slowapi = "^0.1.9"
+httpx = "^0.27"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+pytest-asyncio = "^0.24"
+pytest-cov = "^6.0"
+ruff = "^0.7"
+mypy = "^1.13"
+pre-commit = "^4.0"
+types-requests = "^2.32"
+
+[tool.poetry.scripts]
+opensalestax = "opensalestax.cli.main:app"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+# ---------------------------------------------------------------------------
+# Tooling configuration
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# E/W = pycodestyle, F = pyflakes, I = isort, B = bugbear, UP = pyupgrade,
+# SIM = simplify, RUF = ruff-specific, S = bandit (security)
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "S"]
+ignore = [
+    "S101",  # assert is fine in test code
+    "E501",  # line length is enforced by ruff format, not lint
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]  # asserts + hardcoded test passwords ok
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "postgres_only: test only meaningful on PostgreSQL (use sparingly)",
+    "mariadb_only: test only meaningful on MariaDB (use sparingly)",
+    "integration: integration tests (slower; hit real DB)",
+]
+
+[tool.coverage.run]
+source = ["src/opensalestax"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false  # gradual; tighten over time
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+disallow_untyped_defs = false  # gradual; tighten over time
+files = ["src/opensalestax"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["asyncmy.*", "slowapi.*"]
+ignore_missing_imports = true

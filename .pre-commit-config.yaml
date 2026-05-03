@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+#
+# Pre-commit hooks for OpenSalesTax. Install once with:
+#     poetry run pre-commit install
+#
+# To run against all files manually:
+#     poetry run pre-commit run --all-files
+#
+# DCO sign-off enforcement happens in CI (see .github/workflows/ci.yml);
+# locally, just remember `git commit -s` -- CONTRIBUTING.md has details.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format

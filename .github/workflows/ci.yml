@@ -1,0 +1,174 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  POETRY_VERSION: "1.8.4"
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Lint, format, and type checks. Fast; runs first to short-circuit on style
+  # errors before spending time on the test matrix.
+  # -------------------------------------------------------------------------
+  lint:
+    name: Lint and type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        run: pipx install poetry==${{ env.POETRY_VERSION }}
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: ruff lint
+        run: poetry run ruff check
+
+      - name: ruff format check
+        run: poetry run ruff format --check
+
+      - name: mypy
+        run: poetry run mypy src/
+
+  # -------------------------------------------------------------------------
+  # DCO sign-off check on every commit in the PR. Constitution §14 requires
+  # every commit to carry a Signed-off-by: trailer. Skipped on direct pushes
+  # to main (which only project maintainers can do, and that path is trusted).
+  # -------------------------------------------------------------------------
+  dco:
+    name: DCO sign-off check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify DCO sign-off on all PR commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for sha in $(git rev-list "${BASE_SHA}..${HEAD_SHA}"); do
+            if ! git log -1 --format="%B" "$sha" | grep -qE "^Signed-off-by: "; then
+              echo "::error::Commit $sha is missing 'Signed-off-by:' trailer."
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo ""
+            echo "Every commit must be signed off per the Developer Certificate"
+            echo "of Origin v1.1 (https://developercertificate.org)."
+            echo ""
+            echo "Fix:  git commit --amend -s --no-edit"
+            echo "  or: git rebase HEAD~N --signoff"
+            echo ""
+            echo "See CONTRIBUTING.md for details."
+            exit 1
+          fi
+          echo "All commits in this PR carry a Signed-off-by trailer."
+
+  # -------------------------------------------------------------------------
+  # Test matrix: every test runs against both PostgreSQL 15 and MariaDB 11.
+  # Per decision 03 (dual-DB support), a test that passes only on one engine
+  # is a bug -- either the test or the schema needs fixing.
+  # -------------------------------------------------------------------------
+  test:
+    name: Tests (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [postgres, mariadb]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: opensalestax
+          POSTGRES_PASSWORD: opensalestax
+          POSTGRES_DB: opensalestax
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U opensalestax"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_USER: opensalestax
+          MARIADB_PASSWORD: opensalestax
+          MARIADB_DATABASE: opensalestax
+          MARIADB_ROOT_PASSWORD: rootpw
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        run: pipx install poetry==${{ env.POETRY_VERSION }}
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Set DATABASE_URL for ${{ matrix.db }}
+        run: |
+          if [ "${{ matrix.db }}" = "postgres" ]; then
+            echo "OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://opensalestax:opensalestax@localhost:5432/opensalestax" >> "$GITHUB_ENV"
+          else
+            echo "OPENSALESTAX_DATABASE_URL=mysql+asyncmy://opensalestax:opensalestax@localhost:3306/opensalestax" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run tests
+        run: poetry run pytest -v --cov=opensalestax --cov-report=term-missing
+
+      - name: Upload coverage (PostgreSQL run only)
+        if: matrix.db == 'postgres'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: .coverage
+          if-no-files-found: ignore

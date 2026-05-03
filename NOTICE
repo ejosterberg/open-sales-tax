@@ -1,0 +1,29 @@
+OpenSalesTax
+Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+
+This product includes software developed at OpenSalesTax
+(https://github.com/ejosterberg/sales_tax_api_service).
+
+Licensed under the Apache License, Version 2.0. See LICENSE for details.
+
+================================================================================
+This NOTICE file is required by the Apache License, Version 2.0 §4(d).
+
+It will be populated as third-party dependencies are added that require
+attribution under their own licenses. Most BSD/MIT-licensed dependencies
+do not require entries here; entries are added only where the upstream
+license explicitly requires attribution in a NOTICE file.
+
+When adding a dependency that requires NOTICE attribution:
+
+    1. Append a section below following the format:
+
+       --------------------------------------------------------------------
+       <Project name> (<license short name>)
+       Copyright <year> <copyright holder>
+
+       <Verbatim text required by the upstream NOTICE / license>
+       --------------------------------------------------------------------
+
+    2. Reference the upstream NOTICE/LICENSE file location for traceability.
+================================================================================

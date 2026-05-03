@@ -250,6 +250,63 @@ auto-generated; integration tests pass on both engines.
 
 ---
 
+## Section G2 — Rapid SST rollout: 22 remaining states (Sessions 6.5–8)
+
+Per Eric's "as many states as we can from the start" priority. Once
+the MN + WI pattern is proven, each additional SST state is largely
+mechanical: the SST file format is uniform, the parser machinery
+exists, and the per-state work is mostly registration + a default
+taxability matrix.
+
+**Tier-2 contract** (less than tier 1; documented in `/v1/states`):
+- Rates parsed from official SST quarterly data ✅
+- Boundaries parsed from official SST quarterly data ✅
+- Default taxability matrix: everything taxable except groceries
+- 3-5 spot-check test fixtures per state, cross-referenced against
+  Sovos summary + state DOR official lookup tools
+- State module file is ~30 lines (mostly metadata + default
+  taxability)
+- State maintainer can later upgrade to tier 1 with full taxability
+  matrix in subsequent phase
+
+- [ ] **G2-1. Generic `SstStateModule` base class**
+  - `src/opensalestax/states/_sst_base.py`
+  - Parameterized by state abbrev + name + SST join date
+  - Default taxability: `general=taxable, groceries=non-taxable,
+    everything-else=taxable`
+  - `parse_rates` and `parse_boundaries` use the generic SST parser
+    from Section D
+  - Subclasses (like Minnesota, Wisconsin) override what they need
+
+- [ ] **G2-2. Refactor MN + WI to extend `SstStateModule`**
+  - Verify MN and WI tests still pass on both engines
+  - Confirms the base class is well-designed
+
+- [ ] **G2-3. Add 22 tier-2 state modules**
+  - One ~30-line module per state under `src/opensalestax/states/`
+  - States: AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK,
+    RI, SD, TN, UT, VT, WA, WV, WY
+  - Register each in the state registry with `tier=2`
+  - Use Sovos summary (`specs/research/sovos-state-summary.md`)
+    for default rate validation; use SST conformance fixtures
+    where they exist
+
+- [ ] **G2-4. Spot-check fixtures for tier-2 states**
+  - 3-5 known-good test cases per state (110 fixtures total)
+  - `tests/unit/test_state_<abbrev>.py` for each
+  - Cross-reference each rate against the Sovos summary +
+    state DOR lookup tool
+
+- [ ] **G2-5. `/v1/states` tier reporting**
+  - Update endpoint to include `tier: 1 | 2 | 0` per state
+  - Document tier semantics in API docs
+
+**Section G2 commit checkpoint:** all 24 SST states + 5 no-tax
+states return correct rates from `/v1/calculate`. Tier 1 = MN, WI.
+Tier 2 = the other 22.
+
+---
+
 ## Section H — Auth + ops (Session 7)
 
 - [ ] **30. Auth modes + rate limiting**

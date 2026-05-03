@@ -1,7 +1,7 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-02
-**Status:** Pre-development. Specs + research only. No code.
+**Last updated:** 2026-05-03
+**Status:** Phase 1 Section A complete (scaffold landed). DB layer (Section B) is the next concrete work.
 
 **2026-05-02 update:** Added `specs/research/sovos-state-summary.md`
 + `.tsv` — captured Sovos's state-by-state guide (50 states + DC) as
@@ -15,16 +15,32 @@ decisions all made. See `specs/decisions/`.
 - **License:** ✅ Apache 2.0 (with DCO sign-off, SPDX headers,
   no CLA, NOTICE stub) (decision 02)
 - **Patent posture:** ✅ acknowledged in constitution §2 with
-  mitigation rules (no reverse-engineering of commercial APIs;
-  no naming features after commercial products; vet contributions
-  from current/former commercial-vendor employees)
+  mitigation rules
 - **Database:** ✅ dual MariaDB + PostgreSQL via SQLAlchemy 2.x +
-  Alembic; PostGIS recommended for Phase 4+ address-level
-  production deployments (decision 03). Constitution §10 and
-  Phase 1 spec schema updated for portability.
+  Alembic; PostGIS recommended for Phase 4+ (decision 03)
 
-Bootstrap is now unblocked. Next session writes Phase 1 plan +
-tasks, then scaffolds.
+**2026-05-03 update:** Phase 1 re-scoped per Eric's "as many states
+as we can from the start" priority. Tier 1 = MN, WI (full
+taxability matrix). Tier 2 = the other 22 SST states (rate-only
+via SST data, default taxability). No-tax states unchanged.
+Section G2 added to `tasks.md` for the rapid SST rollout.
+
+**2026-05-03 second update:** Phase 1 Section A (scaffolding)
+shipped. Repo now has:
+
+- pyproject.toml (Poetry-managed); ruff/pytest/mypy/coverage
+  configured
+- src/opensalestax/ package skeleton with SPDX headers on every file
+- LICENSE / NOTICE / CONTRIBUTING / MAINTAINERS / USERS
+- .pre-commit-config.yaml (ruff + hygiene hooks)
+- .github/workflows/ci.yml — lint + DCO check + test matrix
+  across PostgreSQL and MariaDB
+- tests/test_smoke.py — minimal import + version check
+- .gitignore tightened (no longer blocks shipped CSV/ZIP fixtures)
+
+Eric needs to install Python 3.11+ and Poetry locally before
+`poetry install` can run; CI doesn't depend on that. Section B
+(database layer) is the next concrete work.
 
 ## What exists
 
@@ -43,14 +59,21 @@ tasks, then scaffolds.
 | `specs/decisions/01-language-framework.md` | ✅ Python 3.11+ + FastAPI |
 | `specs/decisions/02-license.md` | ✅ Apache 2.0 + DCO + SPDX |
 | `specs/decisions/03-database.md` | ✅ Dual MariaDB + PostgreSQL via SQLAlchemy 2.x |
-| License file (LICENSE) | ❌ — bootstrap session creates after DB decision |
-| NOTICE file | ❌ — bootstrap session creates as empty stub |
-| CONTRIBUTING.md (with DCO instructions) | ❌ — bootstrap session creates |
-| MAINTAINERS.md | ❌ — bootstrap session creates with Eric as initial |
-| DCO CI check | ❌ — bootstrap session adds GitHub Actions workflow |
-| Git repo initialized | ❌ — bootstrap session does after DB decision |
-| GitHub remote created | ❌ — bootstrap session does after DB decision |
-| Any code at all | ❌ |
+| `LICENSE` (Apache 2.0 full text) | ✅ |
+| `NOTICE` (stub) | ✅ |
+| `CONTRIBUTING.md` (with DCO instructions) | ✅ |
+| `MAINTAINERS.md` (Eric initial; tier 1/2 state slots) | ✅ |
+| `USERS.md` (deployer registry stub) | ✅ |
+| `pyproject.toml` (Poetry; deps + ruff/pytest/mypy config) | ✅ |
+| `.python-version` (3.11) | ✅ |
+| `.pre-commit-config.yaml` (ruff, hygiene hooks) | ✅ |
+| `.github/workflows/ci.yml` (lint + DCO + dual-engine test matrix) | ✅ |
+| `src/opensalestax/` package skeleton (10 modules, all SPDX-headered) | ✅ |
+| `tests/test_smoke.py` (verifies imports + version) | ✅ |
+| Git repo initialized | ✅ already initialized; commits accumulating |
+| GitHub remote created | ❌ — pending Eric's per-deploy push approval |
+| `poetry install` ever run | ❌ — pending Eric installing Python 3.11+ and Poetry locally |
+| Database layer (Section B) | ❌ — next concrete work |
 
 ## What's been decided
 
@@ -103,18 +126,19 @@ tasks, then scaffolds.
 
 ## Notes for next session
 
-All three foundational decisions are settled (decisions 01–03).
-Bootstrap is unblocked. The next session should:
+Section A (scaffolding) is done. Next concrete work is **Section B
+(database layer)** per `specs/phase-1-foundation/tasks.md`:
 
-1. Read `specs/phase-1-foundation/plan.md` and `tasks.md` (drafted
-   2026-05-02 alongside the decisions).
-2. Execute the scaffolding tasks: Poetry + ruff + pytest +
-   pre-commit, LICENSE / NOTICE / CONTRIBUTING / MAINTAINERS,
-   DCO CI check, dual-engine docker-compose.
-3. Pause for Eric before pushing to GitHub (the remote needs
-   his per-deploy approval per handoff standing rules).
-4. Begin Phase 1 implementation per the task list.
+1. Tasks 06–10: settings module, SQLAlchemy declarative models,
+   async session factory, Alembic init + first migration,
+   conftest.py with dual-engine fixture.
+2. After Section B: Section C (core engine + state-module
+   pattern + the no_tax module).
+3. Then Section D (SST data ingestion) and E (Minnesota end-to-end).
+4. **Pause before pushing to GitHub** — the remote needs Eric's
+   per-deploy approval per handoff standing rules.
 
-The bootstrap session does NOT need to fetch SST data or
-implement any state module on day one — scaffolding + initial
-schema is the right starting point.
+Eric needs to install Python 3.11+ and Poetry locally before
+`poetry install` can run; the work in Section B can proceed
+without it (Claude writes code; Eric runs `poetry install` when
+ready). CI on GitHub doesn't need anything local.

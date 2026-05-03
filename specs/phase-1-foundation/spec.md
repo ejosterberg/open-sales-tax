@@ -9,15 +9,46 @@
 
 ## Goal
 
-Ship a working OpenSalesTax v0.1 that an external user could `docker run`
-and immediately get a correct sales-tax calculation for any US address
-in **Minnesota** or **Wisconsin** (the two pilot states), plus zero-rate
-responses for the 5 no-sales-tax states (AK, DE, MT, NH, OR).
+Ship a working OpenSalesTax v0.1 that an external user could
+`docker run` and immediately get a correct sales-tax calculation for
+any US address in any of the **24 Streamlined Sales Tax (SST) member
+states**, plus zero-rate responses for the 5 no-sales-tax states
+(AK, DE, MT, NH, OR).
 
 Success looks like: a developer reads the README, runs one Docker
 command, hits `POST /v1/calculate` with `{address: "...", amount: ...}`
 for an MN address, and gets back the correct rate decomposition (state
-+ county + city + special) matching what the MN DOR would say.
++ county + city + special) matching what the MN DOR would say. Same
+call for an address in any other SST state returns at least the
+correct rate stack from official SST data.
+
+### Scope tiers
+
+Eric's priority is "MN working fast, then as many states as we can."
+Phase 1 ships in two coverage tiers:
+
+- **Tier 1 — Fully maintained** (deep per-state work, full taxability
+  matrix, 10+ test fixtures each, state-specific quirks handled):
+  - **Minnesota** — first; SC Books integration target
+  - **Wisconsin** — second; pairs with MN to validate per-state
+    divergence (clothing taxable WI, non-taxable MN)
+
+- **Tier 2 — Rate-only (rates + boundaries from SST data; default
+  taxability matrix; 3-5 spot-check fixtures each):**
+  - The remaining 22 SST states: AR, GA, IA, IN, KS, KY, MI, NE, NV,
+    NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY
+  - Default taxability: everything taxable except groceries (a
+    documented safe default with caveats); state maintainers can
+    upgrade to Tier 1 in subsequent phases
+  - `/v1/states` response marks tier explicitly so consumers know
+    what they're getting
+
+- **No-tax states** (5): AK, DE, MT, NH, OR — generic zero-rate
+  module
+
+- **Out of scope for Phase 1:** non-SST states (CA, TX, NY, FL, IL,
+  PA, etc.); Puerto Rico — these need per-state work and become
+  Phase 2+.
 
 ## In scope
 
@@ -305,14 +336,20 @@ Toggle via env var `OPENSALESTAX_AUTH_MODE=open|api_key`.
 - [ ] `docker compose --profile mariadb up` brings the API online
       in <60 seconds (acceptance includes BOTH engines working)
 - [ ] `curl localhost:8080/v1/health` returns 200 with version
-- [ ] `curl localhost:8080/v1/states` lists 52 states with MN, WI,
-      AK, DE, MT, NH, OR marked `supported: true`
+- [ ] `curl localhost:8080/v1/states` lists 52 states with all 24
+      SST states + 5 no-tax states marked supported. MN + WI
+      marked tier 1 (full taxability); the other 22 SST states
+      marked tier 2 (rate-only); non-SST sales-tax states
+      marked tier 0 (unsupported)
 - [ ] `curl localhost:8080/v1/rates?zip=55401` returns Minnesota
       jurisdictions with correct rate
 - [ ] `curl localhost:8080/v1/rates?zip=53202` returns Wisconsin
       (Milwaukee) jurisdictions with correct rate
 - [ ] `POST /v1/calculate` with a clothing line item in MN returns
       0% tax on that line; same in WI returns the WI rate
+- [ ] `POST /v1/calculate` works for at least 5 spot-check addresses
+      in each of the 22 tier-2 SST states (rate stack matches SST
+      official data)
 - [ ] CLI: `opensalestax data fetch --state MN --version <current>`
       successfully downloads + parses + inserts MN's current SST data
 - [ ] All tests pass against PostgreSQL AND MariaDB
