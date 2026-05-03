@@ -2339,6 +2339,198 @@ default taxability (everything taxable except groceries). To
     pipeline that this research found (the LB 1317 GLD reduced
     rate is a sub-state overlay, not a general-rate change).
 
+### OK -- Oklahoma
+
+- **Statewide rate:** **4.500% effective long-standing** (current
+  rate per 68 O.S. section 1354 -- the imposition statute in the
+  Oklahoma Sales Tax Code, Title 68 Chapter 25)
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: 40.
+- **Local jurisdictions:** counties (under 68 O.S. sections 1370
+  et seq.) and incorporated municipalities (under 68 O.S.
+  sections 2701 et seq.) may impose local sales taxes by voter
+  approval. Combined rates commonly fall in the **6.0%-11.5%**
+  range -- among the highest combined ranges in the United
+  States. Typical city + county stack adds +1.5% to +5.5% on top
+  of the 4.5% state rate. Per-jurisdiction rates flow through
+  the SST quarterly rate file via the inherited
+  :class:`SstStateModule` parser.
+- **MAJOR 2024 statutory change -- elimination of state-portion
+  grocery tax:** **House Bill 1955** (2024 session; signed by
+  Governor Stitt on **February 27, 2024**; effective **August
+  29, 2024**) amended 68 O.S. section 1357 (general exemptions)
+  and the food/food-ingredients definitions in 68 O.S. section
+  1352 to exempt the sale of "food and food ingredients" from
+  the state portion of sales tax (4.5% -> 0.000% state rate).
+  **Local sales taxes (county, city) STILL APPLY at the full
+  local rate** -- only the state portion was zeroed. Oklahoma's
+  definition of "food and food ingredients" expressly INCLUDES
+  bottled water, candy, and soft drinks (broader than the
+  standard SST uniform definition that excludes those three).
+  EXCLUDED from the exemption: prepared food, alcoholic
+  beverages, dietary supplements, tobacco, and marijuana
+  products -- those remain at the full 4.5% state rate.
+  Companion bill: S.B. 1283 (2024). Encoded with
+  ``rate_modifier=Decimal("0.000")`` per the AR/KS pattern; the
+  engine does not yet apply rate_modifier (deferred to v0.6+),
+  so until then it over-collects the 4.5% state portion on
+  grocery line items.
+- **Sales-tax holidays:** **ONE annual holiday** -- the
+  **Oklahoma Annual Sales Tax Holiday** (commonly "Back-to-
+  School") under **68 O.S. section 1357.10** (state-side
+  exemption) and **68 O.S. section 1377** (parallel
+  county/municipal-side exemption). First Friday in August at
+  12:01 a.m. through midnight on the following Sunday -- a
+  3-day window. Eligible items: clothing and footwear with a
+  sales price of LESS THAN $100 per item. The exemption is per
+  article, not per transaction. EXCLUDED: clothing accessories
+  (jewelry, handbags, briefcases, luggage, umbrellas, wallets,
+  watches, similar items); special clothing or footwear
+  primarily designed for athletic activity or protective use;
+  rentals of clothing or footwear. Notably narrow scope: OK's
+  holiday covers ONLY clothing and footwear -- NOT school
+  supplies, NOT school art supplies, NOT instructional
+  materials, NOT computers / electronics (contrast with AR's
+  26-52-444 which covers all of these). 2026 dates: **August 7
+  (Friday) through August 9 (Sunday)**.
+- **Threshold rules:** holiday-specific only -- clothing and
+  footwear under $100 per item during the August holiday.
+- **Notable peer-state difference -- digital goods NOT
+  taxable:** unlike Iowa (Iowa Code 423.5A), Indiana (Ind. Code
+  6-2.5-4-16.4), Arkansas (Act 141 of 2017), Kansas (2021 S.B.
+  50), and many other SST members, Oklahoma has NOT enacted a
+  sales-tax expansion to specified digital products. Per
+  Oklahoma Tax Commission letter rulings and **Oklahoma
+  Administrative Code section 710:65-19-156**, sales of digital
+  products delivered electronically (music, video, ringtones,
+  e-books, prewritten software downloads, software-maintenance
+  contracts delivered electronically, video-game console points
+  cards, online membership cards) are NOT subject to Oklahoma
+  sales and use tax. Underlying rationale: 68 O.S. section 1354
+  reaches only "tangible personal property" (and certain
+  enumerated services), and OK has not adopted the SST
+  "specified digital products" definitions. Prewritten software
+  on tangible storage media IS taxable as TPP; the same software
+  delivered electronically is NOT.
+- **Marketplace nexus quirk:** OK's marketplace facilitator
+  economic-nexus threshold is dramatically lower than its
+  remote-seller threshold -- **$10,000** for marketplace
+  facilitators versus **$100,000** for remote sellers (68 O.S.
+  section 1391 et seq.). Informational only; does not affect
+  rate calculation.
+- **DOR URL:** **https://oklahoma.gov/tax.html** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Title 68 -- Revenue and Taxation,
+  Chapter 25 -- Sales Tax Code):**
+  - 68 O.S. section 1352 -- definitions (including "food and
+    food ingredients" as amended by HB 1955 of 2024 to include
+    bottled water, candy, and soft drinks)
+  - 68 O.S. section 1354 -- tax levy / rate / sales subject to
+    tax (4.5% state rate; the imposition statute)
+  - 68 O.S. section 1357 -- general exemptions (prescription
+    drugs / insulin / medical oxygen exemption; food/food-
+    ingredients exemption added by HB 1955 of 2024 effective
+    2024-08-29)
+  - 68 O.S. section 1357.6 -- drugs and medical devices and
+    equipment (Medicare/Medicaid-reimbursed prescription medical
+    devices, eyeglasses, contact lenses, hearing aids)
+  - 68 O.S. section 1357.10 -- clothing/footwear sales tax
+    holiday (state-side; first Friday-Saturday-Sunday in August;
+    $100 per-item cap)
+  - 68 O.S. sections 1370 et seq. -- county sales tax
+    enabling statutes
+  - 68 O.S. section 1377 -- clothing/footwear holiday county-
+    side exemption (parallel to 1357.10)
+  - 68 O.S. section 1391 et seq. -- remote-seller and
+    marketplace-facilitator economic-nexus thresholds
+  - 68 O.S. sections 2701 et seq. -- municipal sales tax
+    enabling statutes
+  - **HB 1955 of 2024 session (Enrolled)** -- amended sections
+    1352 and 1357 to create the food/food-ingredients state-tax
+    exemption effective 2024-08-29; companion S.B. 1283
+- **Oklahoma Administrative Code citations:**
+  - OAC 710:65-13-511 -- Oklahoma Tax Commission rule
+    implementing the August clothing/footwear holiday
+  - OAC 710:65-19-156 -- Oklahoma Tax Commission rule
+    establishing that electronically-delivered digital products
+    and prewritten software are NOT taxable
+- *Sources for rate/taxability:*
+  - **Oklahoma Tax Commission** main page
+    (https://oklahoma.gov/tax.html), retrieved 2026-05-03 --
+    confirms 4.5% state rate
+  - **Oklahoma Tax Commission "State Sales Tax on Food and Food
+    Ingredients" guidance**
+    (https://oklahoma.gov/tax/businesses/state-sales-tax-on-food-and-food-ingredients.html),
+    retrieved 2026-05-03 -- confirms 0% state rate effective
+    2024-08-29 per HB 1955; lists exclusions (prepared food,
+    alcohol, dietary supplements, vitamins, OTC meds, toiletries,
+    pet food, seller-prepared items)
+  - **Oklahoma Tax Commission Sales Tax Holiday infographic**
+    (https://oklahoma.gov/content/dam/ok/en/tax/documents/resources/publications/infographics/SalesTaxHoliday.pdf),
+    retrieved 2026-05-03 -- 3-day August holiday for clothing
+    and footwear under $100; 2026 dates August 7-9
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference for 2026
+    dates of the August holiday (used as one input among many;
+    primary source is the OK Tax Commission)
+  - **Avalara guidance on Oklahoma digital products**
+    (https://www.avalara.com/blog/en/north-america/2019/02/state-by-state-guide-to-digital-products-and-sales-tax.html),
+    cross-referenced 2026-05-03 -- confirms OK does not tax
+    electronically-delivered digital products; primary source is
+    OAC 710:65-19-156 + OK Tax Commission letter rulings
+  - **Avalara coverage of HB 1955**
+    (https://www.avalara.com/blog/en/north-america/2024/04/oklahoma-exempts-food.html),
+    retrieved 2026-05-03 -- secondary confirmation of 2024-08-29
+    effective date for the state-portion grocery exemption
+  - **Justia codified statutes** for Title 68 (sections 1352,
+    1354, 1357, 1357.6, 1377), cross-referenced 2026-05-03
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Oklahoma is a full SST member
+- **Module file:** `src/opensalestax/states/oklahoma.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ok branch)
+- *Notes:*
+  - **HB 1955 (2024) is the headline finding.** The state-
+    portion grocery elimination effective 2024-08-29 is the
+    most significant Oklahoma sales-tax change in years and is
+    encoded with ``rate_modifier=Decimal("0.000")`` per the
+    AR/KS pattern. Until the engine wires through rate_modifier
+    (deferred to v0.6+), the engine over-collects the 4.5%
+    state portion on grocery line items in Oklahoma.
+  - **Digital goods exemption is the second notable finding.**
+    OK is one of a small minority of SST states that do NOT
+    tax electronically-delivered digital products (joining e.g.
+    Nevada). The basis is OAC 710:65-19-156 + OK Tax Commission
+    letter rulings; 68 O.S. section 1354 only reaches tangible
+    personal property and OK has not adopted the SST
+    "specified digital products" definitions.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    OK's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual OKR<...>.csv file is the
+    natural next maintenance task.
+  - **Holiday scope is notably narrow.** Unlike Arkansas (six
+    scopes including school supplies, school art supplies,
+    instructional materials, and electronics) or Texas (school
+    supplies under $100), Oklahoma's August holiday covers ONLY
+    clothing and footwear. A defensive regression test
+    (`test_oklahoma_holiday_excludes_school_supplies`) catches
+    a future maintainer who copies AR's multi-scope pattern.
+  - **Oklahoma's grocery definition is broader than SST.**
+    Bottled water, candy, and soft drinks are INCLUDED in the
+    OK food/food-ingredients exemption per HB 1955. The
+    standard SST uniform definition excludes those three; OK's
+    definition is intentionally more taxpayer-favorable.
+  - **Marketplace nexus threshold ($10K) is dramatically lower
+    than the remote-seller threshold ($100K)**. This was the
+    flagged tier-2 caveat in the prior `_tier2.py` docstring;
+    it does not affect rate calculation but is documented in
+    the module docstring for the next maintainer.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
