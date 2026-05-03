@@ -14,12 +14,13 @@ Add a new state by:
 4. Importing the new module here so it loads with the package
 """
 
+# Each import below is for its register() side-effect at package load.
 from opensalestax.states import (
-    _tier2,  # noqa: F401  -- side-effect: register 22 tier-2 SST states
-    california,  # noqa: F401  -- side-effect: register CA (tier 1, non-SST)
-    minnesota,  # noqa: F401  -- side-effect: register MN
-    no_tax,  # noqa: F401  -- side-effect: register 5 no-tax states
-    wisconsin,  # noqa: F401  -- side-effect: register WI
+    _tier2,  # noqa: F401
+    california,  # noqa: F401
+    minnesota,  # noqa: F401
+    no_tax,  # noqa: F401
+    wisconsin,  # noqa: F401
 )
 from opensalestax.states.protocol import (
     BoundaryRow,

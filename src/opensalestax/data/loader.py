@@ -147,127 +147,39 @@ async def load_state_data(
     the cache file isn't found.
     """
     state_abbrev = state_abbrev.upper()
-    state_module = get_state_module(state_abbrev)
-    if state_module is None:
-        raise LoaderError(
-            f"No state module registered for {state_abbrev!r}; "
-            f"cannot load. Add a module under opensalestax/states/ "
-            f"and register it via the registry."
-        )
-
-    # "Self-seeded" state modules (e.g. California in v0.2) generate
-    # their rates statically without needing an upstream file. The
-    # attribute is optional; absent = file-driven (the SST default).
+    state_module = _require_state_module(state_abbrev)
     self_seeded = bool(getattr(state_module, "self_seeded", False))
-
-    if self_seeded:
-        rates_file = None
-    else:
-        rates_file = find_cached_file(state_abbrev, version_label, "R", cache_dir)
-        if rates_file is None:
-            suggested = resolve_filename(state_abbrev, version_label, "R")
-            raise LoaderError(
-                f"No cached rates file found for {state_abbrev} {version_label}. "
-                f"Try `opensalestax data fetch {suggested}` first "
-                f"(or .zip variant)."
-            )
+    rates_file = _resolve_rates_file(state_abbrev, version_label, cache_dir, self_seeded)
 
     full_label = _full_label(state_abbrev, version_label)
-
-    # 1) State row -- find or create
     state_row = await _get_or_create_state(session, state_module)
-
-    # 2) Idempotency: drop any pre-existing DataVersion with this label.
-    #    Cascade rules on rates / boundaries handle the dependent rows.
     await _drop_existing_data_version(session, state_row.id, full_label)
+    data_version = await _create_data_version(session, state_row.id, full_label)
 
-    # 3) Fresh DataVersion
-    data_version = DataVersion(
-        state_id=state_row.id,
-        source="sst",
-        version_label=full_label,
-        notes=f"Loaded by opensalestax data load on {dt.datetime.now(tz=dt.UTC).isoformat()}",
-    )
-    session.add(data_version)
-    await session.flush()
-
-    # 4) Rates -- group by authority and insert.
-    # rates_file is None for self-seeded modules (CA); the state
-    # module's parse_rates ignores the path in that case.
-    rate_rows = list(state_module.parse_rates(rates_file, full_label))  # type: ignore[arg-type]
     authority_cache: dict[tuple[str, str], TaxAuthority] = {}
-    rates_loaded = 0
-    for row in rate_rows:
-        authority = await _get_or_create_authority(
-            session,
-            authority_cache,
-            state_row.id,
-            row.authority_name,
-            row.authority_type,
-        )
-        session.add(
-            Rate(
-                authority_id=authority.id,
-                rate_pct=row.rate_pct,
-                effective_from=row.effective_from,
-                effective_to=row.effective_to,
-                applies_to_categories=(
-                    list(row.applies_to_categories)
-                    if row.applies_to_categories is not None
-                    else None
-                ),
-                data_version_id=data_version.id,
-            )
-        )
-        rates_loaded += 1
-
-    # 5) Boundaries (optional). Self-seeded states have no boundary file
-    # in v0.2 either.
-    boundaries_loaded = 0
-    if load_boundaries and not self_seeded:
-        boundary_file = find_cached_file(state_abbrev, version_label, "B", cache_dir)
-        if boundary_file is not None:
-            for brow in state_module.parse_boundaries(boundary_file, full_label):
-                authority = await _get_or_create_authority(
-                    session,
-                    authority_cache,
-                    state_row.id,
-                    brow.authority_name,
-                    brow.authority_type,
-                )
-                session.add(
-                    Boundary(
-                        authority_id=authority.id,
-                        zip5=brow.zip5,
-                        zip4_low=brow.zip4_low,
-                        zip4_high=brow.zip4_high,
-                        address_pattern=brow.address_pattern,
-                        data_version_id=data_version.id,
-                    )
-                )
-                boundaries_loaded += 1
-
-    # 6) Taxability matrix -- pre-populate the categories the state
-    #    module knows about.
-    today = dt.date.today()
-    await _drop_existing_taxability(session, state_row.id)
-    taxability_loaded = 0
-    for category in DEFAULT_CATEGORIES:
-        rule = state_module.taxability_for(category, today)
-        if rule is None:
-            continue
-        session.add(
-            TaxabilityRule(
-                state_id=state_row.id,
-                item_category=rule.item_category,
-                is_taxable=rule.is_taxable,
-                rate_modifier=rule.rate_modifier,
-                notes=rule.notes,
-                effective_from=rule.effective_from,
-                effective_to=rule.effective_to,
-            )
-        )
-        taxability_loaded += 1
+    rates_loaded = await _load_rates(
+        session,
+        state_module,
+        rates_file,
+        full_label,
+        state_row.id,
+        data_version.id,
+        authority_cache,
+    )
+    boundaries_loaded = await _maybe_load_boundaries(
+        session,
+        state_module,
+        state_abbrev,
+        version_label,
+        cache_dir,
+        full_label,
+        state_row.id,
+        data_version.id,
+        authority_cache,
+        load_boundaries=load_boundaries,
+        self_seeded=self_seeded,
+    )
+    taxability_loaded = await _load_taxability(session, state_module, state_row.id)
 
     await session.commit()
 
@@ -282,6 +194,152 @@ async def load_state_data(
     )
     logger.info("loader: %s", summary)
     return summary
+
+
+# ---------------------------------------------------------------------------
+# load_state_data helpers (kept module-private for clarity)
+# ---------------------------------------------------------------------------
+def _require_state_module(state_abbrev: str) -> StateModule:
+    state_module = get_state_module(state_abbrev)
+    if state_module is None:
+        raise LoaderError(
+            f"No state module registered for {state_abbrev!r}; "
+            f"cannot load. Add a module under opensalestax/states/ "
+            f"and register it via the registry."
+        )
+    return state_module
+
+
+def _resolve_rates_file(
+    state_abbrev: str,
+    version_label: str,
+    cache_dir: Path | None,
+    self_seeded: bool,
+) -> Path | None:
+    """Return the cached rates file path, or None for self-seeded states."""
+    if self_seeded:
+        return None
+    rates_file = find_cached_file(state_abbrev, version_label, "R", cache_dir)
+    if rates_file is None:
+        suggested = resolve_filename(state_abbrev, version_label, "R")
+        raise LoaderError(
+            f"No cached rates file found for {state_abbrev} {version_label}. "
+            f"Try `opensalestax data fetch {suggested}` first "
+            f"(or .zip variant)."
+        )
+    return rates_file
+
+
+async def _create_data_version(
+    session: AsyncSession, state_id: int, full_label: str
+) -> DataVersion:
+    data_version = DataVersion(
+        state_id=state_id,
+        source="sst",
+        version_label=full_label,
+        notes=f"Loaded by opensalestax data load on {dt.datetime.now(tz=dt.UTC).isoformat()}",
+    )
+    session.add(data_version)
+    await session.flush()
+    return data_version
+
+
+async def _load_rates(
+    session: AsyncSession,
+    state_module: StateModule,
+    rates_file: Path | None,
+    full_label: str,
+    state_id: int,
+    data_version_id: int,
+    authority_cache: dict[tuple[str, str], TaxAuthority],
+) -> int:
+    """Insert rate rows yielded by the state module; return the count."""
+    rate_rows = list(state_module.parse_rates(rates_file, full_label))  # type: ignore[arg-type]
+    rates_loaded = 0
+    for row in rate_rows:
+        authority = await _get_or_create_authority(
+            session, authority_cache, state_id, row.authority_name, row.authority_type
+        )
+        session.add(
+            Rate(
+                authority_id=authority.id,
+                rate_pct=row.rate_pct,
+                effective_from=row.effective_from,
+                effective_to=row.effective_to,
+                applies_to_categories=(
+                    list(row.applies_to_categories)
+                    if row.applies_to_categories is not None
+                    else None
+                ),
+                data_version_id=data_version_id,
+            )
+        )
+        rates_loaded += 1
+    return rates_loaded
+
+
+async def _maybe_load_boundaries(
+    session: AsyncSession,
+    state_module: StateModule,
+    state_abbrev: str,
+    version_label: str,
+    cache_dir: Path | None,
+    full_label: str,
+    state_id: int,
+    data_version_id: int,
+    authority_cache: dict[tuple[str, str], TaxAuthority],
+    *,
+    load_boundaries: bool,
+    self_seeded: bool,
+) -> int:
+    """Insert boundary rows if a file exists and loading isn't suppressed."""
+    if not load_boundaries or self_seeded:
+        return 0
+    boundary_file = find_cached_file(state_abbrev, version_label, "B", cache_dir)
+    if boundary_file is None:
+        return 0
+
+    boundaries_loaded = 0
+    for brow in state_module.parse_boundaries(boundary_file, full_label):
+        authority = await _get_or_create_authority(
+            session, authority_cache, state_id, brow.authority_name, brow.authority_type
+        )
+        session.add(
+            Boundary(
+                authority_id=authority.id,
+                zip5=brow.zip5,
+                zip4_low=brow.zip4_low,
+                zip4_high=brow.zip4_high,
+                address_pattern=brow.address_pattern,
+                data_version_id=data_version_id,
+            )
+        )
+        boundaries_loaded += 1
+    return boundaries_loaded
+
+
+async def _load_taxability(session: AsyncSession, state_module: StateModule, state_id: int) -> int:
+    """Replace the state's taxability matrix with what the module reports today."""
+    today = dt.date.today()
+    await _drop_existing_taxability(session, state_id)
+    taxability_loaded = 0
+    for category in DEFAULT_CATEGORIES:
+        rule = state_module.taxability_for(category, today)
+        if rule is None:
+            continue
+        session.add(
+            TaxabilityRule(
+                state_id=state_id,
+                item_category=rule.item_category,
+                is_taxable=rule.is_taxable,
+                rate_modifier=rule.rate_modifier,
+                notes=rule.notes,
+                effective_from=rule.effective_from,
+                effective_to=rule.effective_to,
+            )
+        )
+        taxability_loaded += 1
+    return taxability_loaded
 
 
 async def purge_data_version(
