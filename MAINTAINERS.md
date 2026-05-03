@@ -39,20 +39,22 @@ requires a named maintainer.
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
 | Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
+| Nebraska | NE | _vacant — see issue tracker_ | _v0.8.x (SST tier-2 -> tier-1 promotion; LB 1317 of 2024 Good Life District 2.75% reduced state rate flows through SST quarterly file)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 18 other Streamlined Sales Tax member states ship as tier 2 —
+The 17 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, and IN were promoted to tier 1 in v0.8 -- see the table above.)
+(AR, GA, IA, IN were promoted to tier 1 in v0.8; NE was promoted in
+the v0.8.x ratchet -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI,
+States: KS, KY, MI, NV, NJ, NC, ND, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states
