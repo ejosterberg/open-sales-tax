@@ -1,0 +1,60 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Claude Code session local state
+.claude/
+
+# Python (in case the implementation lands on Python)
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.tox/
+
+# Node (in case the implementation lands on Node/TS)
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.next/
+.turbo/
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# Local data caches (downloaded SST files etc.)
+data/raw/
+data/cache/
+data/downloads/
+*.zip
+*.csv
+
+# Local secrets / dev config
+.env
+.env.local
+*.local.json
+config.local.*
+
+# Build artifacts
+target/
+out/
+*.tar.gz
+
+# Logs
+*.log
+logs/
