@@ -2448,6 +2448,225 @@ default taxability (everything taxable except groceries). To
     validate against an N.D. SST quarterly capture and override
     ``jurisdiction_types`` on the subclass if any code differs.
 
+### NJ -- New Jersey
+
+- **Statewide rate:** **6.625% effective 2018-01-01** (reduced from
+  6.875% effective 2017-01-01, which was reduced from 7.000% by
+  P.L. 2016, c. 57 -- the Transportation Trust Fund reauthorization
+  compromise that traded a sales-tax cut for a gas-tax increase)
+- **Tax model:** sales tax (SST member)
+- **Local jurisdictions:** **NONE** for general sales tax. NJ
+  imposes NO general municipal/county sales tax statewide. Two
+  narrow reduced-rate exceptions exist (UEZ + Salem County, both
+  half rate at 3.3125%) but are NOT modeled in v1 -- see Notes
+  below. Atlantic City Luxury Tax is a separate non-sales-tax
+  layer and out of scope.
+- **Sales-tax holidays:** **NONE current.** An annual
+  Back-to-School Sales Tax Holiday was enacted by P.L. 2022,
+  c. 21 (codified at the now-repealed N.J.S.A. 54:32B-8.66) and
+  ran in late August / early September of 2022 and 2023. The
+  Legislature REPEALED the holiday by P.L. 2024, c. 19 (signed
+  2024-06-28) before the 2024 window would have run; no holiday
+  has been held in 2024, 2025, or 2026, and none is scheduled.
+- **Threshold rules:** **NONE** for clothing -- NJ has a broad
+  year-round clothing exemption with no per-item dollar cap
+  (contrast with NY's $110-per-item threshold and MA's
+  $175-per-item threshold).
+- **DOR URL:** **https://www.state.nj.us/treasury/taxation/**
+  *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - N.J.S.A. section 54:32B-3 -- the imposition statute (sales
+    tax on tangible personal property at 6.625%)
+  - N.J.S.A. section 54:32B-2(g) -- definition of "tangible
+    personal property"
+  - N.J.S.A. section 54:32B-8.1 -- prescription drug exemption
+  - N.J.S.A. section 54:32B-8.2 -- food and food ingredients
+    exemption (groceries)
+  - N.J.S.A. section 54:32B-8.4 -- clothing and footwear
+    exemption (broad year-round)
+  - N.J.S.A. section 54:32B-8.45 -- Salem County half-rate
+    (3.3125%) for qualifying retail sales
+  - N.J.S.A. section 54:32B-3(a) -- imposition statute, as
+    amended by P.L. 2011, c. 49 to extend the tax base from
+    "tangible personal property" to "tangible personal property
+    or a specified digital product" (the operative citation
+    for digital-goods taxability in NJ)
+  - N.J.S.A. section 54:32B-2(zz) -- defined term "specified
+    digital product" (added by P.L. 2011, c. 49)
+  - N.J.S.A. section 54:32B-8.56 -- narrow exemption for
+    prewritten software delivered electronically AND used
+    directly and exclusively in the conduct of the purchaser's
+    business (added by P.L. 2011, c. 49; does not change the
+    general taxability of consumer-facing digital goods)
+  - N.J.S.A. section 54:32B-8.66 -- the now-REPEALED
+    Back-to-School Sales Tax Holiday section that ran in
+    2022 and 2023 (struck by P.L. 2024, c. 19)
+  - N.J.S.A. section 54:32B-14 -- seller's collection liability
+    for under-collected tax (cited in the UEZ deferral
+    rationale)
+  - N.J.S.A. section 54:32B-20 -- buyer refund process for
+    over-collected tax (cited in the UEZ + Salem County
+    deferral rationale)
+  - N.J.S.A. section 52:27H-80 -- Urban Enterprise Zones Act
+    half-rate (3.3125%) for qualifying retail purchases at
+    UZ-2-certified UEZ sellers; ~32 UEZ municipalities
+  - N.J.S.A. section 40:48-8.15 et seq. -- Atlantic City
+    Luxury Tax (3% on hotels / restaurants / alcohol /
+    amusements; separate from general sales tax)
+  - P.L. 2016, c. 57 -- the rate reduction (7% -> 6.875% ->
+    6.625%) and Transportation Trust Fund reauthorization
+  - P.L. 2011, c. 49 -- specified digital products inclusion
+    (amending 54:32B-3(a) and adding 54:32B-2(zz) and
+    54:32B-8.56)
+  - P.L. 2022, c. 21 -- annual Back-to-School Sales Tax
+    Holiday enactment (held 2022 and 2023 only; codified at
+    N.J.S.A. 54:32B-8.66)
+  - P.L. 2024, c. 19 -- REPEAL of the Back-to-School Sales
+    Tax Holiday (struck N.J.S.A. 54:32B-8.66; signed
+    2024-06-28; immediate effect, before the 2024 window)
+  - P.L. 1983, c. 303 -- original Urban Enterprise Zones Act
+  - P.L. 1981, c. 77 -- original Atlantic City Luxury Tax
+- *Sources for rate/taxability:*
+  - New Jersey Division of Taxation -- Sales and Use Tax
+    landing page (https://www.state.nj.us/treasury/taxation/),
+    retrieved 2026-05-03 -- confirms 6.625% statewide rate,
+    clothing / food / prescription-drug exemptions, NO general
+    local sales tax
+  - New Jersey Division of Taxation -- "Sales Tax Rate Change"
+    notice
+    (https://www.state.nj.us/treasury/taxation/ratechange/su-overview.shtml),
+    retrieved 2026-05-03 -- confirms the 7.000% -> 6.875% ->
+    6.625% rate ladder under P.L. 2016, c. 57
+  - New Jersey Division of Taxation -- "Sales Tax Exemption
+    Administration" guide (Publication ANJ-10),
+    retrieved 2026-05-03 -- elaborates clothing / food /
+    prescription drug exemption boundaries
+  - New Jersey Department of Community Affairs -- Urban
+    Enterprise Zone Tax Information page
+    (https://www.nj.gov/dca/divisions/dhcr/offices/ueztaxinfo.html),
+    retrieved 2026-05-03 -- authoritative current list of
+    designated UEZ municipalities and seller certification
+    requirements
+  - New Jersey Division of Taxation -- "Salem County Sales Tax
+    Information" notice,
+    retrieved 2026-05-03 -- elaborates the qualifying-retail
+    boundary and exclusions for the half-rate
+  - Atlantic City -- Atlantic City Luxury Tax / ACTRA program
+    information,
+    retrieved 2026-05-03 -- documents the 3% luxury tax + 9%
+    Tourism Promotion Fee structure (out of scope for this
+    engine but noted for integrator awareness)
+  - New Jersey Legislature online statutes (Title 54 Chapter
+    32B) at
+    https://www.njleg.state.nj.us/statutes/title-54.asp,
+    retrieved 2026-05-03 -- primary source for every statutory
+    citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms NJ is a full member
+- **Module file:** `src/opensalestax/states/new_jersey.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-nj branch)
+- *Notes:*
+  - **Urban Enterprise Zones (UEZ) -- DEFERRED IN v1**: Per
+    N.J.S.A. 52:27H-80, qualified retail purchases at certified
+    UEZ sellers tax at HALF the statewide rate (3.3125%) rather
+    than the full 6.625%. The reduced rate is **seller-
+    eligibility-restricted** (depends on the SELLER holding a
+    current UZ-2 Urban Enterprise Zone Business Certification)
+    and **category-restricted** (motor vehicles, certain
+    energy, and specified other items are excluded by statute
+    even at certified UEZ sellers). Encoding UEZ as a
+    geographic rate override keyed by ZIP / municipality would
+    systematically OVER-collect on non-certified sellers in UEZ
+    municipalities (the overwhelming majority of sellers in
+    any UEZ municipality are NOT UEZ-certified) and
+    UNDER-collect on the category-excluded purchases at
+    certified sellers. This is structurally similar to NV's
+    National Guard Sales Tax Holiday deferral (NRS 372.7282)
+    -- a non-geographic eligibility dimension the engine does
+    not currently model. A future PR -- gated on a per-seller
+    exemption / certification model landing in the calculation
+    API -- can re-enable UEZ as a seller-class-restricted
+    modifier. ~32 UEZ municipalities currently designated
+    (notable: Newark, Camden, Paterson, Jersey City, Elizabeth,
+    Trenton, Atlantic City, Asbury Park, Bayonne, Bridgeton,
+    Carteret, East Orange, Gloucester City, Guttenberg,
+    Hillside, Irvington, Kearny, Lakewood, Long Branch,
+    Millville, Mount Holly, New Brunswick, North Bergen,
+    Orange, Passaic, Pemberton, Perth Amboy, Phillipsburg,
+    Plainfield, Pleasantville, Roselle, Union City, Vineland,
+    West New York, Wildwood). Authoritative current list
+    maintained by the NJ DCA.
+  - **Salem County -- DEFERRED IN v1**: Per N.J.S.A.
+    54:32B-8.45, qualifying retail sales at retail stores in
+    Salem County (southern NJ on the Delaware River across
+    from Wilmington) tax at HALF the statewide rate (3.3125%).
+    The reduction exists to keep NJ retailers competitive with
+    no-sales-tax Delaware retailers across the Delaware
+    Memorial Bridge. Same seller / category eligibility
+    constraints as UEZ -- a geographic override would
+    over/under-collect on the eligibility / category edges.
+    Same deferred-locals pattern as NV (county add-ons), LA
+    (parishes), CO (home-rule cities), SC (county-option) --
+    see specs/decisions/05-louisiana-parishes.md for the
+    trade-off discussion.
+  - **Atlantic City Luxury Tax -- OUT OF SCOPE**: Per N.J.S.A.
+    40:48-8.15 et seq., Atlantic City imposes a 3% luxury tax
+    on hotel rooms / restaurant meals / alcoholic beverages /
+    cover charges / show / sporting / amusement tickets within
+    the city limits. State law also imposes an additional 9%
+    ACTRA (Atlantic City Tourism Promotion Fee) on hotel
+    rooms. Both are SEPARATE municipal / state tourism levies
+    that stack on top of the 6.625% state sales tax for items
+    in their defined category lists; they are NOT general
+    sales taxes and NOT modeled by this engine. An integrator
+    selling hotel-room or restaurant-meal transactions in
+    Atlantic City needs to add these layers outside this
+    engine.
+  - **Clothing exemption is BROAD and YEAR-ROUND** per
+    N.J.S.A. 54:32B-8.4 -- no per-item dollar cap, no date
+    restriction. Statutory exclusions (items that REMAIN
+    taxable): fur clothing (also subject to a separate
+    fur-clothing surtax), clothing accessories (jewelry,
+    handbags, briefcases, watches, similar items -- general
+    TPP), sport / recreational equipment, and protective
+    equipment for use other than as everyday clothing. NJ
+    joins PA, MA, MN, VT in the broad-exemption club; NY and
+    RI use threshold-based exemptions instead.
+  - **No current sales-tax holidays.** P.L. 2022, c. 21
+    enacted an annual Back-to-School Sales Tax Holiday
+    (codified at the now-REPEALED N.J.S.A. 54:32B-8.66) that
+    ran for a 10-day window in late August / early September
+    of 2022 and 2023, exempting clothing/footwear, school
+    supplies, school art supplies, school instructional
+    materials, sport or recreational equipment, and computers
+    (with a $3,000 per-item cap on computers and a $1,000
+    per-item cap on recreational equipment) from the 6.625%
+    sales tax. The Legislature REPEALED the holiday by P.L.
+    2024, c. 19 (Assembly Substitute A4702, signed by Governor
+    Murphy on 2024-06-28 as part of the FY2025 budget package),
+    with the repeal taking immediate effect before the 2024
+    holiday window would have run. **NJ has held no sales-tax
+    holiday in 2024, 2025, or 2026, and none is currently
+    scheduled for any future year.** Do NOT extrapolate the
+    2022/2023 dates / caps / categories to future years -- a
+    future re-enactment would be a discrete legislative event
+    with its own parameters; encode it explicitly when it
+    ships.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    NJ's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    which in NJ's case will only ever match the state-level
+    row (code 45) because NJ levies no general local sales
+    tax. Validating against an actual `NJR<...>.csv` file is
+    a low-priority maintenance task -- the only expected row
+    is the state-level 6.625% row.
+  - **Rate has been stable** at 6.625% since 2018-01-01; no
+    scheduled rate change is currently in the legislative
+    pipeline that this research found.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
