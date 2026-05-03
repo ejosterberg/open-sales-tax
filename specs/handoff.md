@@ -23,6 +23,25 @@ tier 2. Sales-tax holidays integrated end-to-end.
 
 5–10 minutes; saves you from re-deriving anything.
 
+## If you're spawning state-research agents (Phase 6+)
+
+Eric's directive from 2026-05-03: engage **multiple agents in
+parallel**, each researching and implementing one state, with
+references documented as we go. The orchestration is documented
+in three companion files:
+
+- **`specs/agent-briefs/per-state-research-brief.md`** — the
+  canonical instructions for ONE agent assigned to ONE state.
+  Spawn each per-state agent with this file as their primary
+  brief.
+- **`specs/agent-briefs/multi-agent-coordination.md`** — branch
+  naming (`feat/state-XX`), worktree strategy, conflict-surface
+  files, per-batch checklist for the orchestrator, suggested
+  Phase 6/7/8 batching.
+- **`specs/research/references.md`** — every external source
+  consulted so far, organized by state. Per-state agents MUST
+  append their sources here.
+
 ## v0.6 candidate priorities (rough order)
 
 Per `specs/current-state.md` "Next-session priorities":
