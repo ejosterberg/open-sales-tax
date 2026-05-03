@@ -48,16 +48,17 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.10.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.10.0) | 2026-05-03 | NJ, NC, ND, OH, OK tier-1 (Phase 7 Batch P3 — 5 more SST promotions) |
 | [v0.11.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.0) | 2026-05-03 | RI, SD, TN, UT, VT, WA, WV, WY tier-1 (Phase 7 Batch P4 — **final SST batch; all 22 SST members now tier-1**) |
 | [v0.11.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.1) | 2026-05-03 | Engine wires `rate_modifier` through; reduced grocery rates now applied correctly across IL/MO/MS/AR/KS/OK/TN/UT/VA/NC |
+| [v0.12.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.12.0) | 2026-05-03 | Maine tier-1 (5.5% + no-local + no-holidays) — 48 of 52 jurisdictions now tier-1 |
 
 ## Coverage (after v0.5)
 
 | Tier | Count | States |
 |---|---:|---|
-| **Tier 1** -- fully maintained | **47** | All 50 states except AL, HI, NM (and DC; PR remains tier-0 territorial regime) |
+| **Tier 1** -- fully maintained | **48** | All 50 states except AL, HI, NM, plus DC; PR remains tier-0 territorial regime |
 | **Tier 2** -- rate-only via SST data | **0** | (Phase 7 complete — every SST member promoted to tier-1) |
-| Unsupported | **5** | AL, HI, NM, PR, + 1 |
+| Unsupported | **4** | AL, HI, NM, PR |
 
-**47 of 52 jurisdictions are fully tier-1 maintained.** Phase 7 closed v0.11.0 — every SST member is now tier-1.
+**48 of 52 jurisdictions are fully tier-1 maintained.** Phase 7 closed v0.11.0; ME added in v0.12.0. Phase 6 Batch C remains: AL (home-rule), HI (GET), NM (GRT) — these need new abstractions.
 
 ## Feature ladder
 
