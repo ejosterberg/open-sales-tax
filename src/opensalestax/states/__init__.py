@@ -45,6 +45,7 @@ from opensalestax.states import (
     no_tax,  # noqa: F401
     north_carolina,  # noqa: F401
     north_dakota,  # noqa: F401
+    ohio,  # noqa: F401
     pennsylvania,  # noqa: F401
     south_carolina,  # noqa: F401
     texas,  # noqa: F401

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Tests for the 10 tier-2 SST state modules.
+"""Tests for the 9 tier-2 SST state modules.
 
 Validates that every tier-2 state's metadata is correctly set
 and the module satisfies the StateModule Protocol. Per-state
@@ -10,9 +10,9 @@ level guarantees.
 
 Arkansas (AR), Georgia (GA), Indiana (IN), Iowa (IA), Kansas
 (KS), Kentucky (KY), Michigan (MI), Nebraska (NE), Nevada (NV),
-New Jersey (NJ), North Carolina (NC), and North Dakota (ND) were
-promoted to tier 1 in v0.8/v0.9/v0.10; they now live in their
-dedicated modules under ``opensalestax/states/``.
+New Jersey (NJ), North Carolina (NC), North Dakota (ND), and
+Ohio (OH) were promoted to tier 1 in v0.8/v0.9/v0.10; they now
+live in their dedicated modules under ``opensalestax/states/``.
 """
 
 from __future__ import annotations
@@ -26,10 +26,9 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states._tier2 import TIER_2_CLASSES, TIER_2_STATES
 from opensalestax.states.protocol import StateModule
 
-# All 10 tier-2 states should be present (AR+GA+IA+IN+KS+KY+MI+NC+ND+NE+NJ+NV were promoted to tier 1 in v0.8/v0.9/v0.10).
+# All 9 tier-2 states should be present (AR+GA+IA+IN+KS+KY+MI+NC+ND+NE+NJ+NV+OH were promoted to tier 1 in v0.8/v0.9/v0.10).
 EXPECTED_TIER_2_ABBREVS = frozenset(
     {
-        "OH",
         "OK",
         "RI",
         "SD",
@@ -44,8 +43,8 @@ EXPECTED_TIER_2_ABBREVS = frozenset(
 
 
 def test_count_matches_expected() -> None:
-    assert len(TIER_2_STATES) == 10
-    assert len(TIER_2_CLASSES) == 10
+    assert len(TIER_2_STATES) == 9
+    assert len(TIER_2_CLASSES) == 9
     assert {s.state_abbrev for s in TIER_2_STATES} == EXPECTED_TIER_2_ABBREVS
 
 
@@ -107,7 +106,7 @@ def test_phase_1_states_all_registered() -> None:
     from opensalestax.states import supported_abbrevs
 
     abbrevs = supported_abbrevs()
-    # 10 tier-2 + MN+WI+AR+GA+IA+IN+KS+KY+MI+NC+ND+NE+NJ+NV (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
+    # 9 tier-2 + MN+WI+AR+GA+IA+IN+KS+KY+MI+NC+ND+NE+NJ+NV+OH (tier 1 SST) + AK, DE, MT, NH, OR (no-tax)
     expected = EXPECTED_TIER_2_ABBREVS | {
         "MN",
         "WI",
@@ -123,6 +122,7 @@ def test_phase_1_states_all_registered() -> None:
         "NE",
         "NJ",
         "NV",
+        "OH",
         "AK",
         "DE",
         "MT",

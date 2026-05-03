@@ -47,20 +47,21 @@ requires a named maintainer.
 | Nevada | NV | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1 promotion; statewide minimum 6.85% only -- per-county add-ons (Clark ~1.525%, Washoe ~1.415%) deferred. Nevada National Guard Sales Tax Holiday under NRS 372.7282 is buyer-eligibility-restricted and NOT modeled in v1 -- engine does not currently model buyer eligibility.)_ |
 | New Jersey | NJ | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; statewide 6.625% only -- NJ levies no general local sales tax. Urban Enterprise Zones (N.J.S.A. 52:27H-80, ~32 municipalities, half rate 3.3125%) and Salem County (N.J.S.A. 54:32B-8.45, half rate 3.3125%) are seller-eligibility-restricted reduced rates and NOT modeled in v1. Atlantic City Luxury Tax (N.J.S.A. 40:48-8.15, 3% on hotels/restaurants/alcohol/amusements) is a separate non-sales-tax layer and out of scope. Clothing is BROADLY EXEMPT year-round per N.J.S.A. 54:32B-8.4.)_ |
 | North Carolina | NC | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; unusual state-exempt-but-2%-local food county tax under N.C.G.S. section 105-468.1 encoded via rate_modifier=Decimal("2.000"); back-to-school holiday repealed effective 2014 by S.L. 2013-316)_ |
+| Ohio | OH | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; 2026 reverts to traditional 3-day back-to-school holiday under ORC 5739.02(B)(55) after HB 186 of 136th GA (signed 2025-12-19) cancelled the expanded 14-day section 5739.41 holiday for 2026)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 10 other Streamlined Sales Tax member states ship as tier 2 —
+The 9 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ in v0.10 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH in v0.10 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: OH, OK, RI,
+States: OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states

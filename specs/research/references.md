@@ -2870,6 +2870,187 @@ default taxability (everything taxable except groceries). To
     no scheduled change is currently in the legislative
     pipeline that this research found.
 
+## OH — Ohio
+
+- **Statewide rate:** **5.750%** ("five and three-fourths per
+  cent" per Ohio Rev. Code section 5739.02(A)(1)). The 5.75%
+  state rate has been in place since 2013-09-01 (raised from
+  5.5% by H.B. 59 of the 130th General Assembly).
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: 39.
+- **Local jurisdictions:** Ohio's 88 counties may impose
+  permissive county sales tax under Ohio Rev. Code section
+  5739.021 (typically 0.25%-1.5% in 0.25% increments by county
+  commissioner action and/or voter approval). Regional transit
+  authorities (notably Cuyahoga County's RTA) may impose
+  additional sales tax under section 5739.023. Combined county
+  rates typically fall in the **6.5%-8.0%** range.
+- **Sales-tax holidays:** **TWO statutory frameworks** -- ONE
+  active in 2026.
+  - **Traditional 3-day back-to-school holiday** under Ohio Rev.
+    Code section 5739.02(B)(55): first Friday of August + the
+    following Saturday + Sunday. Eligible items: clothing $75
+    or less per item; school supplies $20 or less per item;
+    school instructional materials $20 or less per item.
+  - **Expanded 14-day "most TPP" holiday** under Ohio Rev. Code
+    section 5739.41 (created by H.B. 33 of the 135th General
+    Assembly, 2023). Up to 14 days each summer covering most
+    TPP priced $500 or less per item. Subject to Tax
+    Commissioner certification of sufficient Expanded Sales
+    Tax Holiday Fund revenue. Categorical exclusions: motor
+    vehicles, watercraft, outboard motors, alcoholic beverages,
+    tobacco, vapor products.
+  - **History:**
+    - **2024:** EXPANDED holiday declared. Tuesday July 30 -
+      Thursday August 8, 2024 (10 days, $500-per-item cap).
+    - **2025:** EXPANDED holiday declared (~2-week window in
+      early August, $500-per-item cap).
+    - **2026:** EXPANDED holiday CANCELLED by **H.B. 186 of the
+      136th General Assembly** (signed by Governor DeWine on
+      **December 19, 2025**). HB 186 repurposed the Expanded
+      Sales Tax Holiday Fund to offset reduced school district
+      property tax collections, prohibiting any expanded
+      holiday in August 2026 and delaying certification of fund
+      revenue for a 2027 expanded holiday. Ohio reverts to the
+      traditional 3-day version under section 5739.02(B)(55).
+    - **2026 dates:** **Friday August 7, 2026 (12:00 a.m.)
+      through Sunday August 9, 2026 (11:59 p.m.)**, per the
+      Ohio Department of Taxation announcement.
+  - The two frameworks are mutually exclusive in any year. A
+    future maintainer adding 2027 must verify which framework
+    is in effect (depends on Tax Commissioner certification of
+    fund revenue and any further legislative action).
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.ohio.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Ohio Rev. Code Chapter 5739 -- Sales
+  Tax; Chapter 5741 -- Use Tax):**
+  - Ohio Rev. Code section 5739.01(B)(12) -- definition of
+    "sale" includes specified digital products provided for
+    permanent or less-than-permanent use
+  - Ohio Rev. Code section 5739.01(OOO) -- definition of
+    "specified digital product" (electronically transferred
+    digital audio-visual work, digital audio work, or digital
+    book)
+  - Ohio Rev. Code section 5739.02(A)(1) -- imposition of the
+    state sales tax at "five and three-fourths per cent"
+    (5.75%)
+  - Ohio Rev. Code section 5739.02(B)(2) -- exemption for
+    sales of food for human consumption off the premises
+    where sold (the grocery exemption)
+  - Ohio Rev. Code section 5739.02(B)(18) -- exemption for
+    sales of drugs for a human being that may be dispensed
+    only pursuant to a prescription
+  - Ohio Rev. Code section 5739.02(B)(55) -- traditional 3-day
+    back-to-school sales-tax holiday (first Friday of August +
+    Saturday + Sunday; clothing $75/less, supplies $20/less,
+    instructional materials $20/less)
+  - Ohio Rev. Code section 5739.021 -- permissive county sales
+    tax (the local-jurisdiction enabling statute)
+  - Ohio Rev. Code section 5739.023 -- transit authority sales
+    tax (regional transit authority enabling statute)
+  - Ohio Rev. Code section 5739.41 -- expanded sales tax
+    holiday framework (created by H.B. 33 of 135th General
+    Assembly, 2023; cancelled for 2026 by H.B. 186 of 136th
+    General Assembly, signed 2025-12-19)
+- *Sources for rate/taxability:*
+  - Ohio Department of Taxation landing page
+    (https://tax.ohio.gov/), retrieved 2026-05-03 -- confirms
+    5.75% state rate and Sales Tax Holiday landing
+  - Ohio Revised Code section 5739.02 on codes.ohio.gov
+    (https://codes.ohio.gov/ohio-revised-code/section-5739.02),
+    retrieved 2026-05-03 -- primary source for the imposition
+    rate and the (B)(2), (B)(18), (B)(55) exemptions
+  - Ohio Revised Code section 5739.01 on codes.ohio.gov
+    (https://codes.ohio.gov/ohio-revised-code/section-5739.01),
+    retrieved 2026-05-03 -- primary source for the (B)(12)
+    "sale" definition and the (OOO) "specified digital product"
+    definition
+  - Ohio Revised Code Chapter 5739 on codes.ohio.gov
+    (https://codes.ohio.gov/ohio-revised-code/chapter-5739),
+    retrieved 2026-05-03 -- chapter index
+  - Avalara compliance blog "Ohio sales tax holiday 2026:
+    Expanded holiday canceled"
+    (https://www.avalara.com/blog/en/north-america/2026/01/ohio-cancels-expanded-sales-tax-holiday-for-2026.html),
+    retrieved 2026-05-03 -- secondary cross-reference for the
+    HB 186 cancellation of the 2026 expanded holiday and the
+    reverted 3-day Friday-Sunday window with the $75 clothing /
+    $20 supplies / $20 instructional materials caps. Treated
+    as one input among many; primary source is the Ohio
+    Department of Taxation and the codified statute.
+  - Sovos regulatory update "Ohio Cancels August 2026 Expanded
+    Sales Tax Holiday"
+    (https://sovos.com/regulatory-updates/sut/ohio-cancels-august-2026-expanded-sales-tax-holiday/),
+    retrieved 2026-05-03 -- secondary cross-reference for the
+    HB 186 December 19, 2025 enactment date. Treated as one
+    input among many; primary source is the codified statute
+    and the Ohio Legislative Service Commission analysis.
+  - VATupdate news "Ohio Cancels Expanded August 2026 Sales
+    Tax Holiday, Retains Traditional Exemption Structure"
+    (https://www.vatupdate.com/2026/01/17/ohio-cancels-expanded-august-2026-sales-tax-holiday-retains-traditional-exemption-structure/),
+    retrieved 2026-05-03 -- third independent cross-reference
+    confirming August 7-9, 2026 dates and the per-category
+    caps. Treated as one input among many.
+  - Sales Tax Institute "Ohio Expands 2024 Sales Tax Holiday"
+    (https://www.salestaxinstitute.com/resources/ohio-expands-2024-sales-tax-holiday),
+    retrieved 2026-05-03 -- secondary cross-reference for the
+    2024 expanded-holiday history (Tuesday July 30 - Thursday
+    August 8, 2024; $500-per-item cap; HB 33 of 2023). Treated
+    as one input among many; primary source is the Ohio Rev.
+    Code section 5739.41 and the Department's Information
+    Releases.
+  - Ohio Legislature HB 186 page
+    (https://www.legislature.ohio.gov/legislation/136/hb186),
+    retrieved 2026-05-03 -- primary source for the bill text
+    and General Assembly metadata
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Ohio is a full member
+- **Module file:** `src/opensalestax/states/ohio.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-oh branch)
+- *Notes:*
+  - **SST jurisdiction-type code mapping is an ASSUMPTION:**
+    OH's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    documented in the module docstring. Validating against an
+    actual `OHR<...>.csv` file (and confirming how Cuyahoga
+    RTA / other transit-authority rows are encoded) is the
+    natural next maintenance task.
+  - **Holiday schema limitation -- per-category caps:** the
+    2026 holiday has DIFFERENT per-item caps for different
+    categories (clothing $75, school supplies $20,
+    instructional materials $20). The :class:`HolidayWindow`
+    schema's single ``max_amount_per_item`` field cannot
+    encode the per-category split; the module stores the
+    higher $75 cap and documents the lower $20 cap for
+    school_supplies and instructional_materials in the notes
+    field. A future schema enhancement allowing per-category
+    caps would let this be modeled with greater precision.
+  - **Two-framework holiday architecture:** Ohio is unique
+    among modeled states in having two mutually exclusive
+    sales-tax-holiday frameworks (the longstanding 3-day
+    section 5739.02(B)(55) holiday vs. the expanded 14-day
+    section 5739.41 holiday created by HB 33 of 2023). Each
+    year the legislature / Tax Commissioner picks one (or
+    neither). 2024 and 2025 used the expanded version; 2026
+    reverts to the traditional 3-day version after HB 186
+    cancellation. **Future maintainers must NOT extrapolate**
+    from any single year's pattern -- each year's holiday
+    framework must be verified against the Ohio Department of
+    Taxation's published guidance for that year and added
+    explicitly to ``Ohio.holidays_for``.
+  - **Digital goods:** Ohio's tax base for specified digital
+    products is defined explicitly at the "sale" level (section
+    5739.01(B)(12)) rather than via a separate imposition
+    statute -- both perpetual-license downloads and
+    subscription / streaming access fall in scope. Notable
+    contrast with peer state NV, where the tangibility
+    requirement of NRS 372.085 keeps electronically-delivered
+    digital products outside the sales-tax base.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
