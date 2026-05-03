@@ -91,10 +91,10 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
 
 @pytest.mark.asyncio
 async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
-    """CA (v0.2), TX/NY/FL (v0.3): all tier 1 non-SST."""
+    """CA (v0.2), TX/NY/FL (v0.3), SC (v0.6): all tier 1 non-SST."""
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("CA", "TX", "NY", "FL"):
+    for abbrev in ("CA", "TX", "NY", "FL", "SC"):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True

@@ -29,6 +29,7 @@ requires a named maintainer.
 |---|---|---|---|
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
+| South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 
 ### Tier 2 states (rate-only via SST data)
 

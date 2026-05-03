@@ -27,6 +27,7 @@ from opensalestax.states import (
     new_york,  # noqa: F401
     no_tax,  # noqa: F401
     pennsylvania,  # noqa: F401
+    south_carolina,  # noqa: F401
     texas,  # noqa: F401
     wisconsin,  # noqa: F401
 )
