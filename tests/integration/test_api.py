@@ -103,6 +103,17 @@ async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_virginia_is_tier_1_non_sst(client: AsyncClient) -> None:
+    """VA was promoted from tier 0 to tier 1 in Phase 6 Batch B."""
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["VA"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is False
+
+
+@pytest.mark.asyncio
 async def test_states_includes_dc_and_pr(client: AsyncClient) -> None:
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}

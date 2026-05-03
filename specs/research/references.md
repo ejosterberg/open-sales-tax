@@ -512,6 +512,100 @@ Format for each state:
 - **Module file:** `src/opensalestax/states/no_tax.py` (all 5 share)
 - **Last verified:** 2026-05-03
 
+### VA -- Virginia
+
+- **Statewide rate:** **5.300% effective 2013-07-01** (the
+  combined statewide minimum: 4.3% state portion + 1% mandatory
+  local option)
+- **Tax model:** sales tax (NOT SST; layered "state + mandatory
+  local + optional regional" structure)
+- **Local jurisdictions:** every locality imposes the 1% local
+  option (mandatory, so it functions as a statewide floor).
+  Regional add-ons:
+  - Central Virginia, Hampton Roads, Northern Virginia: **+0.7%**
+    regional transportation tax -> combined **6.0%**
+  - Historic Triangle (Williamsburg, James City County, York
+    County): **+1.0%** regional + Historic Triangle tax ->
+    combined **7.0%**
+  - Selected Southside localities (Charlotte, Danville,
+    Gloucester, Halifax, Henry, Northampton, Patrick,
+    Pittsylvania): **+1.0%** additional local -> combined **6.3%**
+  - All other localities: combined **5.3%** (the statewide minimum)
+
+  Per-region/per-locality rates are NOT modeled in v0.6; the
+  module ships the 5.3% statewide minimum only (similar to how
+  CA defers its ~1,700 CDTFA districts and SC defers local rates).
+- **Sales-tax holidays:** 1 statutory holiday (combined 3-day
+  August Sales Tax Holiday covering 4 scopes: school supplies,
+  clothing/footwear, Energy Star/WaterSense, hurricane
+  preparedness). Encoded as 4 separate ``HolidayWindow`` instances
+  to allow per-scope category matching. Per Va. Code 58.1-639.1
+  the holiday is set to **sunset July 1, 2030** unless renewed.
+- **Threshold rules:** the August holiday has tiered per-item
+  caps ($20 / $100 / $2,500 / $60-$350-$1,000); the lowest cap
+  in the hurricane scope is encoded today, with higher tiers
+  documented in ``HolidayWindow.notes`` for v0.6+ threshold-rule
+  enforcement.
+- **DOR URL:** **https://www.tax.virginia.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - Va. Code section 58.1-603 -- imposition of state sales tax
+    (4.3% state portion); retrieved
+    https://law.lis.virginia.gov/vacode/title58.1/chapter6/section58.1-603/
+    on 2026-05-03
+  - Va. Code section 58.1-605, 58.1-606 -- 1% mandatory local
+    option (cited via tax.virginia.gov rate breakdown)
+  - Va. Code section 58.1-609.10 -- miscellaneous exemptions
+    including subdivisions 9, 14, 22 (prescription drugs,
+    nonprescription drugs, veterinary prescriptions); retrieved
+    https://law.lis.virginia.gov/vacode/title58.1/chapter6/section58.1-609.10/
+    on 2026-05-03
+  - Va. Code section 58.1-611.1 -- exemption for food purchased
+    for human consumption and essential personal hygiene products
+    (state portion eliminated effective 2023-01-01; only 1% local
+    still applies); retrieved
+    https://law.lis.virginia.gov/vacode/title58.1/chapter6/section58.1-611.1/
+    on 2026-05-03
+  - Va. Code section 58.1-639.1 -- annual retail sales and use
+    tax holiday (effective until July 1, 2030); first Friday in
+    August through following Sunday; per-item caps for school
+    supplies $20, clothing/footwear $100, Energy Star/WaterSense
+    $2,500, generators $1,000, chainsaws $350, other hurricane
+    prep $60; retrieved
+    https://law.lis.virginia.gov/vacode/title58.1/chapter6/section58.1-639.1/
+    on 2026-05-03
+  - Virginia Tax Commissioner rulings 05-44, 14-178, 16-135 --
+    long-standing policy treating electronically-delivered
+    prewritten software as not constituting tangible personal
+    property under Va. Code 58.1-602 (digital goods non-taxable
+    when no tangible medium is involved). Cross-referenced via
+    the Virginia Tax website search results 2026-05-03.
+- *Sources for rate/taxability:* Virginia Department of Taxation
+  rate breakdown page (combined rates by locality) + Virginia
+  General Assembly online code (law.lis.virginia.gov) + Virginia
+  Tax Commissioner rulings (digital goods).
+- **Module file:** `src/opensalestax/states/virginia.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 6 Batch B)
+- *Notes:*
+  - VA's grocery rate is encoded with ``rate_modifier=1.000``
+    mirroring the IL pattern. The state 4.3% portion was
+    eliminated effective 2023-01-01; only the mandatory 1% local
+    survives, giving an effective 1% rate on food and personal
+    hygiene products. The engine doesn't yet wire rate_modifier
+    through (deferred to v0.6+); until then, retailers should
+    verify with the Virginia Department of Taxation.
+  - VA is one of the few states where digital downloads of
+    prewritten software are NOT taxable (when no tangible medium
+    is delivered). This contrasts with CA, TX, FL, MD, and NY,
+    all of which tax digital goods.
+  - The August holiday's hurricane scope has three tiered caps
+    ($60 / $350 / $1,000). The conservative $60 cap is encoded
+    today; the higher chainsaw and generator tiers are documented
+    in ``HolidayWindow.notes`` for v0.6+ threshold-rule work.
+  - Most Virginia localities also impose a separate **meals tax**
+    that is administered locally and not modeled here; the
+    "prepared_food" rule notes this for downstream callers.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
 22 states load via the generic `SstStateModule` in
