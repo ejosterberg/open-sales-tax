@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,12 +19,19 @@ from opensalestax.db.session import get_session
 
 router = APIRouter(tags=["rates"])
 
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+Zip5Q = Annotated[str, Query(min_length=5, max_length=5, pattern=r"^\d{5}$")]
+Zip4Q = Annotated[
+    str | None,
+    Query(min_length=4, max_length=4, pattern=r"^\d{4}$"),
+]
+
 
 @router.get("/rates", response_model=RatesResponse)
 async def get_rates(
-    zip5: str = Query(min_length=5, max_length=5, pattern=r"^\d{5}$"),
-    zip4: str | None = Query(default=None, min_length=4, max_length=4, pattern=r"^\d{4}$"),
-    session: AsyncSession = Depends(get_session),
+    zip5: Zip5Q,
+    session: SessionDep,
+    zip4: Zip4Q = None,
 ) -> RatesResponse:
     """Return the active jurisdictional rate stack for ``zip5`` (+ optional ``zip4``).
 

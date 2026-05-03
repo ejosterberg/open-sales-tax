@@ -15,6 +15,7 @@ Add a new state by:
 """
 
 from opensalestax.states import (
+    _tier2,  # noqa: F401  -- side-effect: register 22 tier-2 SST states
     minnesota,  # noqa: F401  -- side-effect: register MN
     no_tax,  # noqa: F401  -- side-effect: register 5 no-tax states
     wisconsin,  # noqa: F401  -- side-effect: register WI

@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,11 +20,13 @@ from opensalestax.db.session import get_session
 
 router = APIRouter(tags=["calculate"])
 
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
 
 @router.post("/calculate", response_model=CalculateResponse)
 async def calculate(
     body: CalculateRequest,
-    session: AsyncSession = Depends(get_session),
+    session: SessionDep,
 ) -> CalculateResponse:
     """Calculate sales tax for a list of line items at a given address.
 

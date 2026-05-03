@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,9 +16,11 @@ from opensalestax.db.session import get_session
 
 router = APIRouter(tags=["health"])
 
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
 
 @router.get("/health", response_model=HealthResponse)
-async def health(session: AsyncSession = Depends(get_session)) -> HealthResponse:
+async def health(session: SessionDep) -> HealthResponse:
     """Return service health.
 
     Reports the package version and a quick DB connectivity check.
