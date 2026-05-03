@@ -32,6 +32,7 @@ from opensalestax.states import (
     kansas,  # noqa: F401
     kentucky,  # noqa: F401
     louisiana,  # noqa: F401
+    maine,  # noqa: F401
     maryland,  # noqa: F401
     massachusetts,  # noqa: F401
     michigan,  # noqa: F401
