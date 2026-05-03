@@ -17,6 +17,7 @@ Add a new state by:
 from opensalestax.states import (
     minnesota,  # noqa: F401  -- side-effect: register MN
     no_tax,  # noqa: F401  -- side-effect: register 5 no-tax states
+    wisconsin,  # noqa: F401  -- side-effect: register WI
 )
 from opensalestax.states.protocol import (
     BoundaryRow,

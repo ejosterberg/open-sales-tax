@@ -35,7 +35,12 @@ logger = logging.getLogger(__name__)
 RATES_COLUMNS = 9
 BOUNDARY_COLUMNS = 89
 
-# Sentinel for "no end date" -- SST uses 29991231 to mean indefinite
+# Sentinels for "no end date". States have shipped at least two:
+# - 29991231 (used by MN -- year 2999)
+# - 99991231 (used by WI -- year 9999, the more common ISO sentinel)
+NO_END_DATE_SENTINELS = frozenset({"29991231", "99991231"})
+
+# Backwards-compatible alias for the original sentinel
 NO_END_DATE = "29991231"
 
 
@@ -185,7 +190,7 @@ def _parse_date(raw: str) -> dt.date:
 
 
 def _parse_end_date(raw: str) -> dt.date | None:
-    """Parse a YYYYMMDD string; treat the SST 29991231 sentinel as None (open-ended)."""
-    if raw == NO_END_DATE:
+    """Parse a YYYYMMDD string; treat any open-ended sentinel as None."""
+    if raw in NO_END_DATE_SENTINELS:
         return None
     return _parse_date(raw)
