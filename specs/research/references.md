@@ -3243,6 +3243,126 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+### **SD -- South Dakota**
+
+- **Statewide rate:** **4.2% effective 2023-07-01** per HB 1137
+  of the 98th SD Legislative Session (reduced from a prior
+  4.5% rate). **STATUTORY SUNSET 2027-06-30**: the 4.2% rate
+  expires by operation of HB 1137 on 2027-06-30 unless extended
+  by the legislature; reverts to 4.5% effective 2027-07-01
+  absent further action.
+- **Tax model:** sales tax (with parallel use tax under SDCL
+  chapter 10-46)
+- **Local jurisdictions:** municipalities (gross receipts tax
+  up to 2.0% per SDCL section 10-52-2; municipal special tax
+  up to 1.0% on prepared food / lodging / amusements per SDCL
+  section 10-52A-2) plus tribal gross receipts taxes on
+  reservation land (administered through SD DOR via
+  intergovernmental agreements). No general county sales tax.
+  Combined effective rates typically 4.2%-6.2%.
+- **Sales-tax holidays:** none. SD has never enacted a recurring
+  sales-tax holiday; confirmed against SD DOR and SDCL chapter
+  10-45 on 2026-05-03.
+- **Threshold rules:** none.
+- **DOR URL:** **https://dor.sd.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - SDCL section 10-45-1 -- definitions (tangible personal
+    property, retail sale, gross receipts)
+  - SDCL section 10-45-1.1 -- specified digital products
+    definitions (added by SB 207 of the 83rd SD Legislative
+    Session, 2008)
+  - **SDCL section 10-45-2** -- imposition of the state retail
+    sales tax (the 4.2% rate; the headline imposing statute)
+  - **SDCL section 10-45-2.4** -- food and food ingredients
+    subject to the full state sales tax (the statute that makes
+    SD a notable peer-state outlier on grocery taxation)
+  - **SDCL section 10-45-14** -- prescription drugs exemption
+    (and certain related medical equipment / insulin / oxygen)
+  - SDCL chapter 10-46 -- complementary use tax
+  - SDCL chapter 10-52 -- municipal non-ad-valorem taxes
+    (including the section 10-52-2 municipal gross receipts
+    tax up to 2.0%)
+  - SDCL chapter 10-52A -- municipal special tax (section
+    10-52A-2 up to 1.0% on prepared food / lodging /
+    amusements / alcoholic beverages)
+  - **SDCL section 10-64-2** -- Wayfair-era remote-seller
+    economic-nexus statute ($100,000 / 200-transaction
+    thresholds, sustained by *South Dakota v. Wayfair, Inc.*,
+    138 S. Ct. 2080 (2018))
+  - **HB 1137 of the 98th SD Legislative Session (2023)** --
+    reduced state sales tax rate from 4.5% to 4.2% effective
+    2023-07-01; included a statutory sunset reverting to 4.5%
+    on 2027-06-30 unless extended
+  - **Initiated Measure 28 (November 2024 ballot)** --
+    REJECTED by SD voters; would have eliminated the state
+    grocery tax (SDCL section 10-45-2.4 remains in force)
+- *Sources for rate/taxability:*
+  - **South Dakota Department of Revenue** main page
+    (https://dor.sd.gov/), retrieved 2026-05-03 -- confirms
+    4.2% state rate and references HB 1137 sunset
+  - **SD DOR sales-and-use-tax guidance** under the Business
+    Tax Division (https://dor.sd.gov/businesses/taxes/sales-use-tax/),
+    retrieved 2026-05-03 -- confirms full taxation of food /
+    food ingredients and the prescription-drug exemption
+  - **South Dakota Codified Laws** (Title 10, chapters 10-45,
+    10-46, 10-52, 10-52A, 10-64) via the SD Legislative
+    Research Council (https://sdlegislature.gov/Statutes/),
+    cross-referenced 2026-05-03
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms South Dakota is a full SST member
+  - **Sovos summary entry for SD**
+    (`specs/research/sovos-state-summary.md`) cross-referenced
+    2026-05-03; SD is one of the rows flagged for column drift
+    in the Sovos defect table -- DOR was used as primary source
+- **Module file:** `src/opensalestax/states/south_dakota.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-sd branch)
+- *Notes:*
+  - **Rate sunset (2027-06-30) is the headline maintenance
+    item.** Unlike most peer states whose rate is open-ended in
+    statute, SD's current 4.2% has a hard statutory expiration.
+    Maintainers must monitor SD legislative sessions in 2026 and
+    2027 for an extension bill, a further reduction, or
+    silent-default expiration. The module exports a documentary
+    constant ``SOUTH_DAKOTA_RATE_SUNSET_ISO = "2027-06-30"``
+    and a regression test guards both the constant and the
+    docstring's mention of the sunset.
+  - **Groceries fully taxed is the second notable finding.**
+    SD is one of a small minority of U.S. states (and the only
+    SST member of that group) that fully tax groceries at the
+    state rate. Initiated Measure 28 (Nov 2024) attempted to
+    repeal the rule and failed at the ballot box. A defensive
+    regression test (``test_south_dakota_groceries_are_taxable_regression``)
+    explicitly catches a contributor copy-pasting from a peer
+    SST state (IA / KS / KY / ND / NE -- all of which exempt
+    groceries) and accidentally flipping the rule.
+  - **Wayfair connection documented.** SD is the plaintiff in
+    *South Dakota v. Wayfair, Inc.*, 138 S. Ct. 2080 (2018),
+    which overturned *Quill Corp. v. North Dakota* (1992) and
+    established the modern economic-nexus regime. The Wayfair
+    statute itself (SDCL section 10-64-2) governs nexus, not
+    rate calculation -- but the case is so foundational to
+    every state's modern sales-tax-collection regime that the
+    docstring records the lineage. A regression test guards the
+    Wayfair citation in the docstring.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    SD's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual SDR<...>.csv file is the
+    natural next maintenance task.
+  - **Tribal taxes flow through the SST file.** South Dakota's
+    intergovernmental tax-collection agreements with multiple
+    Sioux nations (Cheyenne River, Crow Creek, Oglala, Rosebud,
+    Standing Rock, Yankton, plus several others) cause tribal
+    gross-receipts taxes on reservation land to be administered
+    by the SD DOR alongside municipal taxes. Per-jurisdiction
+    rates therefore appear in the SST quarterly rate file as
+    ordinary city/district rows; the inherited
+    ``SstStateModule`` parser handles them with no SD-specific
+    code.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
