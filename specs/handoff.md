@@ -2,132 +2,95 @@
 
 **For the next Claude Code session that opens this directory.**
 
-This project is **pre-development**. Specs and research are complete.
-Your job is to bootstrap the codebase.
+Phase 1 is **shipped as v0.1.0**. Live at
+[github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax),
+publicly visible, Apache 2.0 licensed, CI green on both
+PostgreSQL and MariaDB.
 
-## What to do, in order
-
-### 1. Read the specs
-
-5-10 minutes, in this order:
+## What to read first
 
 1. `specs/constitution.md` — non-negotiable principles
-2. `specs/current-state.md` — what exists (specs only — no code yet)
-3. `specs/research/data-sources.md` — what data is actually available
-4. `specs/research/prior-art.md` — what existing solutions do
-5. `specs/research/state-coverage.md` — per-state notes
-6. `specs/phase-1-foundation/spec.md` — what to build first
-7. `CLAUDE.md` (project root) — coding conventions + the "what NOT
-   to do" list
+2. `specs/current-state.md` — what's done, what's next (Phase 1 ✅)
+3. `specs/phase-1-foundation/acceptance-walkthrough.md` — honest
+   done/deferred per criterion + what v0.2 should ship next
+4. `specs/decisions/` — three locked-in decisions (language,
+   license, database)
 
-### 2. Propose the stack to Eric, get sign-off
+5–10 minutes; saves you from re-deriving anything.
 
-The constitution recommends **Python 3.11+ with FastAPI** (with
-PostgreSQL 15 + PostGIS). Strong second is **TypeScript + Node**
-(Fastify or Hono). Third is Go. Don't ship code until Eric confirms.
+## Phase 2 priorities (rough order)
 
-Make the proposal concrete:
-- Languages compared with one-paragraph trade-off
-- Default recommendation: Python + FastAPI
-- Reason: data-handling ergonomics + contributor-base size
-- Alternative if Eric prefers: Node + TypeScript
-- Eric decides; document the choice in
-  `specs/decisions/01-stack-choice.md`
+Per the v0.2 plan in
+`phase-1-foundation/acceptance-walkthrough.md`:
 
-### 3. On stack-pick approval, do the bootstrap
-
-Stack and license decisions made 2026-05-02 (see
-`specs/decisions/01-language-framework.md` and
-`specs/decisions/02-license.md`):
-
-- **Language:** Python 3.11+ with FastAPI ✅ confirmed
-- **License:** Apache 2.0 ✅ confirmed
-- **Database:** dual MariaDB + PostgreSQL via SQLAlchemy proposed;
-  **awaiting Eric's final confirmation** before scaffolding the DB
-  layer. Until confirmed, the scaffold can proceed without
-  `models.py` / `alembic/`.
-
-Bootstrap steps:
-
-1. **Initialize the Python scaffold** with `pyproject.toml`
-   (Poetry-managed), `ruff` for lint+format, `pytest` for tests,
-   `pre-commit` hooks. Pin Python to 3.11+.
-2. **Create LICENSE** at repo root with Apache 2.0 text + copyright
-   line: `Copyright 2026 Eric Osterberg and OpenSalesTax
-   contributors`.
-3. **Create NOTICE** (empty stub at repo root; populated as
-   third-party dependencies require attribution).
-4. **Add SPDX headers** convention: every Python source file starts
-   with `# SPDX-License-Identifier: Apache-2.0`. Document this in
-   CONTRIBUTING.md.
-5. **Configure DCO enforcement:**
-   - Add a CI check (GitHub Actions: `dco-check` action or
-     equivalent) that fails on commits without a `Signed-off-by:`
-     trailer.
-   - Add a CONTRIBUTING.md section explaining `git commit -s` and
-     linking to https://developercertificate.org.
-   - Add a pre-commit hook locally that warns (not blocks) on
-     missing sign-off, so contributors catch it before pushing.
-6. **Create CONTRIBUTING.md** covering: how to set up dev env, DCO
-   sign-off requirement, PR review expectations, the per-state
-   contributor pattern, the "do not reverse-engineer commercial
-   APIs" rule from constitution §2.
-7. **Create MAINTAINERS.md** with Eric as initial maintainer +
-   placeholder for per-state maintainers.
-8. **Initialize git** with first commit message
-   `chore: initial scaffold (Phase 1 begin)` — signed off
-   (`-s` flag) to set the example.
-9. **Create the GitHub repo** under
-   `ejosterberg/open-sales-tax` and push.
-10. **Once DB plan is confirmed by Eric:** add SQLAlchemy 2.x +
-    Alembic + drivers (`asyncpg` + `aiomysql` or `asyncmy`) to
-    `pyproject.toml`; scaffold `db/` and initial migration.
-11. **Start Phase 1** per `specs/phase-1-foundation/spec.md`.
-
-### 4. After scaffold, Phase 1 work begins
-
-Phase 1 brings online:
-
-- Database schema (rates, jurisdictions, states, etc.)
-- Two SST state modules (recommend MN + WI for the contrast)
-- Four API endpoints (calculate, rates, jurisdictions, health)
-- Docker image
-- CI on GitHub Actions
-- Basic OpenAPI docs auto-generated
-
-Roughly 4-6 sessions for Phase 1 if the stack is Python+FastAPI;
-5-7 for Node+TS; 6-8 for Go.
-
-### 5. Update `current-state.md` whenever something material ships
-
-The discipline that survives across sessions.
-
-## What you do NOT do
-
-- ❌ Pick the stack without asking Eric.
-- ❌ Implement a state module before the core schema + API are in.
-- ❌ Add commercial / paid data dependencies (Avalara, TaxJar feeds, etc.).
-- ❌ Make it un-self-hostable.
-- ❌ Skip the disclaimers (constitution §13).
-- ❌ Promise Eric this will replace Avalara on day one — it won't,
-  and that's fine. Day one is "free, works for 24 SST states,
-  good enough for a small business in those states."
+1. **`opensalestax data load --state <X> --version <Y>`** — wires
+   the existing fetcher + state-module parsers into the database.
+   This is the missing piece that makes "fetch upstream → query
+   the API → get a real rate" work end-to-end without manual SQL
+   seeding.
+2. **`opensalestax data activate`** — switch the live data
+   version per state.
+3. **API-key auth mode** — already plumbed in `settings.py` and
+   exposed in `/v1/openapi.json`; needs the middleware + an
+   `api_keys` table + a key-management CLI.
+4. **First non-SST tier-1 state** (California is the
+   highest-impact target per Sovos research).
+5. **Per-state address-fixture sweep** for the 22 tier-2 modules
+   — needs state-maintainer engagement, not just code.
 
 ## Standing rules (mirror Eric's other projects)
 
-- Standing permission to commit directly to the default branch.
-- Push still asks per-deploy.
-- No AI co-author trailers in commits — Eric's project-wide preference.
-- **DCO sign-off (`-s`) is required on every commit** once CI is in
-  place — including commits Claude makes on Eric's behalf. The
-  `Signed-off-by:` line should reflect Eric's identity (his name +
-  the email in his git config).
-- Run the test suite (when one exists) before declaring "done."
+- Standing permission to commit directly to `main`.
+- **Push allowed without per-deploy approval** (Eric granted in
+  the v0.1 ship-it conversation 2026-05-03).
+- No AI co-author trailers in commits.
+- **DCO sign-off (`-s`) is required on every commit**, including
+  Claude's. CI enforces this on every PR.
+- Run the test suite before declaring "done" (`poetry run pytest -q`).
+- Run SonarQube scan after each major feature batch
+  (~once per section). Token in `~/.claude/sonarqube-playbook.md`;
+  scanner CLI lives at
+  `/c/Users/ejosterberg/Documents/GITprojects/TicketsCADFixes/sonar-scanner-temp/`.
 - Append, don't edit, security audits.
+
+## Tooling notes
+
+- Python 3.11.15 installed via `uv python install 3.11`
+- Poetry 2.3.4 installed via `uv tool install poetry`
+- Project venv lives in
+  `~/AppData/Local/.../pypoetry/Cache/virtualenvs/opensalestax-DTELG93k-py3.11`
+- Local Docker not available on Eric's box (CI tests both DBs)
+- `gh` token has `gist, read:org, repo, workflow` scopes
+
+## What you do NOT do
+
+- ❌ Re-derive Phase 1 architecture from scratch — read the specs.
+- ❌ Add commercial / paid data dependencies (Avalara, TaxJar
+  feeds, etc.). Constitution §3.
+- ❌ Reverse-engineer commercial sales-tax APIs to derive
+  algorithms or schemas. Constitution §2.
+- ❌ Skip the disclaimer in any new endpoint. Constitution §13.
+- ❌ Promise that v0.1 supports CA, TX, NY, etc. — those are
+  Phase 2+. Communicate honestly.
+- ❌ Push to GitHub without DCO sign-off (CI will fail and
+  embarrass us).
+- ❌ Touch `specs/phase-1-foundation/spec.md` after the v0.1.0
+  tag — historical record. Add a `changes.md` if implementation
+  diverged.
+
+## Where to find things on disk
+
+- Repo root: `C:\Users\ejosterberg\Documents\GITprojects\sales_tax_api_service\`
+  (note: local directory name still `sales_tax_api_service`,
+  GitHub repo is `open-sales-tax`)
+- Settings global: `~/.claude/CLAUDE.md`
+- SonarQube playbook: `~/.claude/sonarqube-playbook.md`
+- Spec-kit playbook: `~/.claude/spec-kit-playbook.md`
 
 ## When you finish
 
-Update `current-state.md` to reflect what shipped. Update this
+Update `current-state.md` to reflect what shipped. If a phase
+completes, mark it ✅ and bump the "Status:" line. Update this
 `handoff.md` to point the next session at the next concrete piece
 of work. If you discovered something Eric should know but didn't
 build, add it to a "Deferred items" section in the next handoff.

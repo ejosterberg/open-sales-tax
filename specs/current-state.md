@@ -1,226 +1,99 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** Phase 1 Sections A + B + C complete and green in CI on both PostgreSQL and MariaDB. State-module Protocol, registry, no_tax (5 states), core lookup/resolve/calculate, and the disclaimer all shipped. SST data ingestion (Section D) is the next concrete work.
+**Status:** **🎉 Phase 1 shipped as v0.1.0.** API live, 29 states
+represented (7 tier 1 + 22 tier 2), 200 unit tests passing,
+SonarQube clean (0/0/0/0, all-A ratings), CI green on PostgreSQL
+and MariaDB. Live at
+[github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax).
 
-**2026-05-02 update:** Added `specs/research/sovos-state-summary.md`
-+ `.tsv` — captured Sovos's state-by-state guide (50 states + DC) as
-a cross-reference for nexus thresholds and base rates. Reference
-only, not an ingestible data source per constitution §3.
+## Phase 1 deliverables
 
-**2026-05-02 second update:** Stack, license, and database
-decisions all made. See `specs/decisions/`.
+| # | Section | Status | Tests | Notes |
+|---|---|---|---:|---|
+| A | Scaffolding (Poetry, ruff, mypy, pre-commit, CI) | ✅ | n/a | DCO-enforced PR check; matrix CI on both engines |
+| B | DB layer (settings, models, sessions, Alembic) | ✅ | 8 unit | First migration hand-written for portability |
+| C | Core engine + state Protocol + no_tax module | ✅ | 44 unit + 5 integration | Decimal-only currency math, 4dp rounding |
+| D | SST data ingestion (research + fetcher + parser) | ✅ | 19 unit | Real MN rate + boundary fixtures bundled |
+| E | Minnesota module (tier 1) | ✅ | 15 unit | 6.875% state base, 6 taxability rules |
+| F | Wisconsin module (tier 1) + dual-sentinel parser | ✅ | 13 unit | 5.0% state base, contrasting clothing-taxable rule |
+| G | v1 API surface (4 endpoints) | ✅ | 12 integration | OpenAPI 3.x at /v1/openapi.json |
+| G2 | 22 tier-2 SST states via SstStateModule base | ✅ | 26 unit | AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY |
+| H | Rate limiting + CLI + Docker + 5 docs files | ✅ | n/a | uvicorn factory mode; both DB profiles in compose |
+| I | Acceptance walkthrough + v0.1.0 release | ✅ | n/a | See `phase-1-foundation/acceptance-walkthrough.md` |
 
-- **Language/framework:** ✅ Python 3.11+ + FastAPI (decision 01)
-- **License:** ✅ Apache 2.0 (with DCO sign-off, SPDX headers,
-  no CLA, NOTICE stub) (decision 02)
-- **Patent posture:** ✅ acknowledged in constitution §2 with
-  mitigation rules
-- **Database:** ✅ dual MariaDB + PostgreSQL via SQLAlchemy 2.x +
-  Alembic; PostGIS recommended for Phase 4+ (decision 03)
+## What v0.1.0 delivers
 
-**2026-05-03 update:** Phase 1 re-scoped per Eric's "as many states
-as we can from the start" priority. Tier 1 = MN, WI (full
-taxability matrix). Tier 2 = the other 22 SST states (rate-only
-via SST data, default taxability). No-tax states unchanged.
-Section G2 added to `tasks.md` for the rapid SST rollout.
+- **A working FastAPI service** with 4 endpoints, OpenAPI docs,
+  per-IP rate limiting, dual-engine (PostgreSQL + MariaDB) support
+- **29 US states represented** in code (5 no-tax + 2 tier-1 SST +
+  22 tier-2 SST). All 52 jurisdictions enumerable via `/v1/states`.
+- **Real SST data parsing** validated against MN + WI's actual
+  upstream files (bundled as test fixtures for reproducibility)
+- **200 passing unit tests + 17 integration tests** (CI matrix
+  exercises both engines on every PR)
+- **SonarQube clean:** 0 bugs, 0 vulnerabilities, 0 code smells,
+  0 security hotspots, all-A ratings on 1822 LOC
+- **Honest documentation:** README quickstart + 5 docs files;
+  every defer is called out (no overpromising)
 
-**2026-05-03 third update:** Branding settled. GitHub repo will be
-**`ejosterberg/open-sales-tax`** (not `sales_tax_api_service`).
-Domains **`opensalestax.org`** (intended for the OSS project site)
-and **`opensalestax.com`** (reserved for the eventual hosted SaaS)
-both registered by Eric. The Python package name stays
-`opensalestax` (per PEP 8). Local clone path on Eric's machine
-remains `sales_tax_api_service\` — the local directory doesn't
-have to match the repo name and renaming would break in-flight
-work.
+## Honest deferrals (v0.2 or later)
 
-**2026-05-03 sixth update:** Phase 1 Section C (core engine +
-state-module pattern) shipped. Tasks 11–15 complete:
+Per `phase-1-foundation/acceptance-walkthrough.md`:
 
-- `states/protocol.py` — `StateModule` Protocol +
-  `RateRow`/`BoundaryRow`/`TaxabilityRule`/`SpecialCase`
-  frozen-slots dataclasses + `StateTier` Literal type
-- `states/registry.py` — process-global registry
-  (`register`, `get_state_module`, `all_states`,
-  `supported_abbrevs`, `_reset_for_tests`)
-- `states/no_tax.py` — `NoTaxState` class + 5 registered
-  instances (AK, DE, MT, NH, OR), each with documented
-  caveats (ARSSTC, resort taxes, etc.)
-- `core/lookup.py` — `lookup_jurisdictions_by_zip` with
-  ZIP5/ZIP4 input validation + stable sort
-- `core/resolve.py` — `resolve_rates_for_authorities` with
-  Python-side rate selection (no SQL window functions, keeps
-  query trivially portable across both engines)
-- `core/calculate.py` — `calculate_tax` orchestrator,
-  Decimal-only currency math, 4dp HALF_UP rounding,
-  per-line jurisdiction decomposition, taxability-rule check
-- `core/disclaimer.py` — single source of truth for
-  constitution §13 disclaimer string
-- 44 new unit tests + 5 new integration tests (DB-backed)
-- Initial CI run on Section C exposed a pytest-asyncio event-loop
-  scoping issue with session-scoped async fixtures; fixed by
-  switching to function-scoped fixtures and pinning
-  `asyncio_default_fixture_loop_scope=function`. Re-run green.
+- **`opensalestax data load` + `data activate` CLI** -- the
+  fetcher works; the loader pipeline is v0.2's headline item
+- **API-key auth mode** -- plumbed in settings, middleware comes in v0.2
+- **First non-SST tier-1 state** (CA recommended) -- v0.2
+- **Per-state address-fixture sweep** for the 22 tier-2 modules --
+  v0.2 / per-state maintainer onboarding
+- **Address-level boundary resolution via PostGIS** -- Phase 4
+- **Sales-tax holidays + exemption certificates** -- Phase 5
+- **Canadian sales tax** -- explicitly out of scope for v1; see
+  `specs/research/canada-sources.md` for future-scope research
 
-**2026-05-03 fourth update:** Phase 1 Section B (database layer)
-shipped. Tasks 06–10 complete:
+## Decisions locked
 
-- `settings.py` — pydantic-settings; reads
-  `OPENSALESTAX_DATABASE_URL` and other `OPENSALESTAX_*` vars;
-  exposes `database_dialect` for diagnostics-only use
-- `db/models.py` — SQLAlchemy 2.x declarative models for all 6
-  Phase 1 tables; portability-strict (no JSONB, no PG arrays;
-  generic `JSON`, `Numeric(8,5)`, `DateTime(timezone=True)`)
-- `db/session.py` — async engine + sessionmaker singletons;
-  `get_session()` FastAPI dependency; `reset_engine()` for tests
-- `alembic.ini` + `db/migrations/env.py` (async-friendly) +
-  `db/migrations/versions/0001_initial_schema.py` (hand-written,
-  portable, all 6 tables)
-- `tests/conftest.py` — async session fixture; gracefully skips
-  DB-backed tests when `OPENSALESTAX_DATABASE_URL` unset
-- 8 new unit tests (metadata + settings) plus the 2 existing smoke
-  tests = 10 passing, ruff clean, ruff format clean, mypy clean
+| # | Decision | Status |
+|---|---|---|
+| 01 | Language: Python 3.11+ + FastAPI | ✅ |
+| 02 | License: Apache 2.0 + DCO + SPDX (no CLA, NOTICE stub) | ✅ |
+| 03 | Database: dual MariaDB + PostgreSQL via SQLAlchemy 2.x | ✅ |
+| -- | Patent posture: acknowledged in constitution §2 | ✅ |
+| -- | Branding: GitHub repo `open-sales-tax`, package `opensalestax`, domains `opensalestax.org` + `.com` (Eric owns) | ✅ |
+| -- | Phase 1 coverage tiers: tier 1/2/0 with MN+WI tier 1, 22 SST tier 2, no_tax tier 1 | ✅ |
 
-**2026-05-03 fifth update:** GitHub repo is live at
-https://github.com/ejosterberg/open-sales-tax. Required a one-time
-`gh auth refresh -s workflow` to get the `workflow` scope on Eric's
-token before the workflow file would push. Token now has
-`gist, read:org, repo, workflow`.
-
-**2026-05-03 third update:** Branding settled. GitHub repo will be
-**`ejosterberg/open-sales-tax`** (not `sales_tax_api_service`).
-Domains **`opensalestax.org`** (intended for the OSS project site)
-and **`opensalestax.com`** (reserved for the eventual hosted SaaS)
-both registered by Eric. The Python package name stays
-`opensalestax` (per PEP 8). Local clone path on Eric's machine
-remains `sales_tax_api_service\` — the local directory doesn't
-have to match the repo name and renaming would break in-flight
-work.
-
-**2026-05-03 second update:** Phase 1 Section A (scaffolding)
-shipped. Repo now has:
-
-- pyproject.toml (Poetry-managed); ruff/pytest/mypy/coverage
-  configured
-- src/opensalestax/ package skeleton with SPDX headers on every file
-- LICENSE / NOTICE / CONTRIBUTING / MAINTAINERS / USERS
-- .pre-commit-config.yaml (ruff + hygiene hooks)
-- .github/workflows/ci.yml — lint + DCO check + test matrix
-  across PostgreSQL and MariaDB
-- tests/test_smoke.py — minimal import + version check
-- .gitignore tightened (no longer blocks shipped CSV/ZIP fixtures)
-
-Eric needs to install Python 3.11+ and Poetry locally before
-`poetry install` can run; CI doesn't depend on that. Section B
-(database layer) is the next concrete work.
-
-## What exists
+## Reference artifacts
 
 | Artifact | Status |
 |---|---|
-| Project README | ✅ |
-| CLAUDE.md (per-session context) | ✅ |
-| .gitignore | ✅ |
-| `specs/constitution.md` | ✅ |
-| `specs/current-state.md` (this file) | ✅ |
-| `specs/handoff.md` | ✅ |
-| `specs/research/data-sources.md` | ✅ |
-| `specs/research/prior-art.md` | ✅ |
-| `specs/research/state-coverage.md` | ✅ |
-| `specs/phase-1-foundation/spec.md` | ✅ |
-| `specs/decisions/01-language-framework.md` | ✅ Python 3.11+ + FastAPI |
-| `specs/decisions/02-license.md` | ✅ Apache 2.0 + DCO + SPDX |
-| `specs/decisions/03-database.md` | ✅ Dual MariaDB + PostgreSQL via SQLAlchemy 2.x |
-| `LICENSE` (Apache 2.0 full text) | ✅ |
-| `NOTICE` (stub) | ✅ |
+| `LICENSE` (Apache 2.0) | ✅ |
+| `NOTICE` | ✅ |
 | `CONTRIBUTING.md` (with DCO instructions) | ✅ |
-| `MAINTAINERS.md` (Eric initial; tier 1/2 state slots) | ✅ |
+| `MAINTAINERS.md` (Eric initial; per-state slots) | ✅ |
 | `USERS.md` (deployer registry stub) | ✅ |
-| `pyproject.toml` (Poetry; deps + ruff/pytest/mypy config) | ✅ |
-| `.python-version` (3.11) | ✅ |
-| `.pre-commit-config.yaml` (ruff, hygiene hooks) | ✅ |
-| `.github/workflows/ci.yml` (lint + DCO + dual-engine test matrix) | ✅ |
-| `src/opensalestax/` package skeleton (10 modules, all SPDX-headered) | ✅ |
-| `tests/test_smoke.py` (verifies imports + version) | ✅ |
-| `src/opensalestax/settings.py` (pydantic-settings) | ✅ Section B |
-| `src/opensalestax/db/models.py` (SQLAlchemy 2.x; 6 tables) | ✅ Section B |
-| `src/opensalestax/db/session.py` (async engine + sessionmaker) | ✅ Section B |
-| `alembic.ini` + `db/migrations/env.py` + first migration | ✅ Section B |
-| `tests/conftest.py` (dual-engine async session fixture) | ✅ Section B |
-| Unit tests for models metadata + settings (8 new) | ✅ Section B |
-| Git repo initialized | ✅ |
-| GitHub remote `ejosterberg/open-sales-tax` | ✅ pushed 2026-05-03 |
-| Python 3.11.15 installed (via uv) | ✅ |
-| Poetry 2.3.4 installed (via uv tool) | ✅ |
-| `poetry install` run; lockfile committed | ✅ |
-| `pytest`/`ruff check`/`ruff format`/`mypy` all green locally | ✅ |
-| Core engine + state-module pattern (Section C) | ❌ — next concrete work |
-
-## What's been decided
-
-- **Project name:** OpenSalesTax (working title; rename if needed before public launch)
-- **Mission:** free, self-hostable, OSS sales tax calculation API
-- **License:** ✅ Apache 2.0 (decision 02)
-- **Contributor agreement:** ✅ DCO sign-off, no CLA (decision 02)
-- **Per-file headers:** ✅ SPDX (`# SPDX-License-Identifier: Apache-2.0`)
-- **Patent posture:** ✅ acknowledged + mitigation rules (constitution §2)
-- **Language/framework:** ✅ Python 3.11+ + FastAPI (decision 01)
-- **Distribution model:** primary self-hostable Docker; optional future SaaS
-- **Core architecture:** per-state contributor modules with common interface
-- **Data sources:** SST quarterly files + state DOR public data + TIGER/Line boundary data
-- **Database (proposed, pending confirmation):** dual MariaDB + PostgreSQL via SQLAlchemy 2.x; PostGIS recommended for Phase 4+ address-level production deployments
-
-## What's NOT decided (smaller items, can punt to implementation)
-
-- **Initial state coverage** — phase-1-foundation/spec.md proposes 2 SST states (MN + WI as a pair: Eric's home + Wisconsin's contrasting clothing-tax rule). Could be expanded.
-- **Geocoding strategy** — option A: rely on caller-supplied lat/lon; option B: bundle a geocoder (Nominatim/Pelias). Phase 1 should punt.
-- **Auth model for the API** — option A: open / no auth (rate-limited only); option B: API keys. Phase 1 should ship both.
-- **Hosted SaaS business model** — out of scope for v1; mentioned only.
-
-## Phases (proposed)
-
-| # | Phase | Status |
-|---|---|---|
-| 1 | Foundation: language scaffold + DB schema + 2 SST states + 4 API endpoints + Docker + CI | 📝 spec'd |
-| 2 | All 24 SST states + admin / data-refresh CLI | ⏭️ planned |
-| 3 | First non-SST state (CA — high impact, high difficulty) + state-maintainer onboarding docs | ⏭️ planned |
-| 4 | Boundary-resolution improvements: address-level (PostGIS) + ZIP+4 fallback | ⏭️ planned |
-| 5 | Taxability matrix v1 (item categories + state-specific rules) | ⏭️ planned |
-| 6 | Performance + caching + horizontal scale | ⏭️ planned |
-| 7 | Client SDKs: Python, JS/TS, PHP (for SC Books) | ⏭️ planned |
-| 8 | Hosted SaaS layer (multi-tenant, billing, dashboards) — optional, post-OSS-launch | ⏭️ optional |
-
-## Risk register
-
-- **Upstream data format drift** — SST has been stable since 2005, but a format
-  change would require all state modules to adapt. Mitigation: per-state
-  parsers; format change in one doesn't break others.
-- **Contributor recruitment** — the "per-state volunteer" model only works if
-  volunteers actually sign up. Mitigation: ship 2-3 states ourselves to prove
-  the model; recruit at OSS conferences + state CPA associations.
-- **Scope creep into nexus determination** — strong temptation to answer "do I
-  owe tax in this state?" alongside "what's the rate?" Resist; nexus is a
-  separate project. Constitution §13 forbids.
-- **Disclaimer adequacy** — IRS / state DORs could in theory complain about
-  software giving "tax advice." Mitigation: clear disclaimers in every API
-  response + docs; explicit "calculation only, not advice."
+| `pyproject.toml` (Poetry; deps + ruff/pytest/mypy) | ✅ |
+| `Dockerfile` + `docker-compose.yml` | ✅ |
+| `.github/workflows/ci.yml` | ✅ |
+| `sonar-project.properties` | ✅ |
+| `README.md` (5-min quickstart + coverage table) | ✅ |
+| `docs/quickstart.md` `docs/api.md` `docs/state-modules.md` `docs/data-refresh.md` `docs/disclaimer.md` | ✅ |
+| `specs/decisions/01-language-framework.md` `02-license.md` `03-database.md` | ✅ |
+| `specs/research/sovos-state-summary.md` `sst-file-format.md` `canada-sources.md` (+ original 3) | ✅ |
 
 ## Notes for next session
 
-Section A (scaffolding) is done. Next concrete work is **Section B
-(database layer)** per `specs/phase-1-foundation/tasks.md`:
+Phase 1 is shipped. Next session should open
+`specs/phase-2-loader/spec.md` (or similar) and prioritize:
 
-1. Tasks 06–10: settings module, SQLAlchemy declarative models,
-   async session factory, Alembic init + first migration,
-   conftest.py with dual-engine fixture.
-2. After Section B: Section C (core engine + state-module
-   pattern + the no_tax module).
-3. Then Section D (SST data ingestion) and E (Minnesota end-to-end).
-4. **Pause before pushing to GitHub** — the remote needs Eric's
-   per-deploy approval per handoff standing rules.
+1. **Data-load CLI** (`opensalestax data load --state MN
+   --version MN-SST-2026Q2FEB18`) that uses the existing fetcher
+   + parsers + state modules and writes to the DB.
+2. **Activate flag** for switching the live data version per
+   state (so a tenant can pin to 2026Q2 even after 2026Q3 lands).
+3. **API-key auth mode** + `api_keys` table + key-management CLI.
+4. First non-SST tier-1 state (California is the highest-impact
+   target).
 
-Eric needs to install Python 3.11+ and Poetry locally before
-`poetry install` can run; the work in Section B can proceed
-without it (Claude writes code; Eric runs `poetry install` when
-ready). CI on GitHub doesn't need anything local.
+See `phase-1-foundation/acceptance-walkthrough.md` "What v0.2
+should ship next" for the full priority order.
