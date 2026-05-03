@@ -71,30 +71,41 @@ async def test_states_lists_all_52(client: AsyncClient) -> None:
 async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None:
     """All SST tier-1 + no-tax tier-1 states show tier=1.
 
-    AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
-    NC, ND, NJ, OH, OK in v0.10; RI in v0.11 -- all part of the
-    Phase 7 SST ratchet.
+    Phase 7 complete in v0.11.0: every SST member is now tier-1.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
     for abbrev in (
+        # Phase 1 SST tier-1
         "MN",
         "WI",
+        # v0.8 promotions
         "AR",
         "GA",
         "IA",
         "IN",
+        # v0.9 promotions
         "KS",
         "KY",
         "MI",
+        "NE",
+        "NV",
+        # v0.10 promotions
         "NC",
         "ND",
-        "NE",
         "NJ",
-        "NV",
         "OH",
         "OK",
+        # v0.11 promotions (final batch)
         "RI",
+        "SD",
+        "TN",
+        "UT",
+        "VT",
+        "WA",
+        "WV",
+        "WY",
+        # No-tax states
         "AK",
         "DE",
         "MT",
@@ -106,7 +117,12 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10; RI in v0.11. All SST tier-1."""
+    """Phase 7 complete: every SST member is tier-1.
+
+    AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
+    NC, ND, NJ, OH, OK in v0.10; RI, SD, TN, UT, VT, WA, WV, WY
+    in v0.11.
+    """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
     for abbrev in (
@@ -125,6 +141,13 @@ async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> Non
         "OH",
         "OK",
         "RI",
+        "SD",
+        "TN",
+        "UT",
+        "VT",
+        "WA",
+        "WV",
+        "WY",
     ):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1

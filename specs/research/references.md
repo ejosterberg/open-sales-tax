@@ -3415,6 +3415,1354 @@ default taxability (everything taxable except groceries). To
     a state-level row (no county/city/district to discover), the
     risk surface is small.
 
+### **SD -- South Dakota**
+
+- **Statewide rate:** **4.2% effective 2023-07-01** per HB 1137
+  of the 98th SD Legislative Session (reduced from a prior
+  4.5% rate). **STATUTORY SUNSET 2027-06-30**: the 4.2% rate
+  expires by operation of HB 1137 on 2027-06-30 unless extended
+  by the legislature; reverts to 4.5% effective 2027-07-01
+  absent further action.
+- **Tax model:** sales tax (with parallel use tax under SDCL
+  chapter 10-46)
+- **Local jurisdictions:** municipalities (gross receipts tax
+  up to 2.0% per SDCL section 10-52-2; municipal special tax
+  up to 1.0% on prepared food / lodging / amusements per SDCL
+  section 10-52A-2) plus tribal gross receipts taxes on
+  reservation land (administered through SD DOR via
+  intergovernmental agreements). No general county sales tax.
+  Combined effective rates typically 4.2%-6.2%.
+- **Sales-tax holidays:** none. SD has never enacted a recurring
+  sales-tax holiday; confirmed against SD DOR and SDCL chapter
+  10-45 on 2026-05-03.
+- **Threshold rules:** none.
+- **DOR URL:** **https://dor.sd.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - SDCL section 10-45-1 -- definitions (tangible personal
+    property, retail sale, gross receipts)
+  - SDCL section 10-45-1.1 -- specified digital products
+    definitions (added by SB 207 of the 83rd SD Legislative
+    Session, 2008)
+  - **SDCL section 10-45-2** -- imposition of the state retail
+    sales tax (the 4.2% rate; the headline imposing statute)
+  - **SDCL section 10-45-2.4** -- food and food ingredients
+    subject to the full state sales tax (the statute that makes
+    SD a notable peer-state outlier on grocery taxation)
+  - **SDCL section 10-45-14** -- prescription drugs exemption
+    (and certain related medical equipment / insulin / oxygen)
+  - SDCL chapter 10-46 -- complementary use tax
+  - SDCL chapter 10-52 -- municipal non-ad-valorem taxes
+    (including the section 10-52-2 municipal gross receipts
+    tax up to 2.0%)
+  - SDCL chapter 10-52A -- municipal special tax (section
+    10-52A-2 up to 1.0% on prepared food / lodging /
+    amusements / alcoholic beverages)
+  - **SDCL section 10-64-2** -- Wayfair-era remote-seller
+    economic-nexus statute ($100,000 / 200-transaction
+    thresholds, sustained by *South Dakota v. Wayfair, Inc.*,
+    138 S. Ct. 2080 (2018))
+  - **HB 1137 of the 98th SD Legislative Session (2023)** --
+    reduced state sales tax rate from 4.5% to 4.2% effective
+    2023-07-01; included a statutory sunset reverting to 4.5%
+    on 2027-06-30 unless extended
+  - **Initiated Measure 28 (November 2024 ballot)** --
+    REJECTED by SD voters; would have eliminated the state
+    grocery tax (SDCL section 10-45-2.4 remains in force)
+- *Sources for rate/taxability:*
+  - **South Dakota Department of Revenue** main page
+    (https://dor.sd.gov/), retrieved 2026-05-03 -- confirms
+    4.2% state rate and references HB 1137 sunset
+  - **SD DOR sales-and-use-tax guidance** under the Business
+    Tax Division (https://dor.sd.gov/businesses/taxes/sales-use-tax/),
+    retrieved 2026-05-03 -- confirms full taxation of food /
+    food ingredients and the prescription-drug exemption
+  - **South Dakota Codified Laws** (Title 10, chapters 10-45,
+    10-46, 10-52, 10-52A, 10-64) via the SD Legislative
+    Research Council (https://sdlegislature.gov/Statutes/),
+    cross-referenced 2026-05-03
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms South Dakota is a full SST member
+  - **Sovos summary entry for SD**
+    (`specs/research/sovos-state-summary.md`) cross-referenced
+    2026-05-03; SD is one of the rows flagged for column drift
+    in the Sovos defect table -- DOR was used as primary source
+- **Module file:** `src/opensalestax/states/south_dakota.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-sd branch)
+- *Notes:*
+  - **Rate sunset (2027-06-30) is the headline maintenance
+    item.** Unlike most peer states whose rate is open-ended in
+    statute, SD's current 4.2% has a hard statutory expiration.
+    Maintainers must monitor SD legislative sessions in 2026 and
+    2027 for an extension bill, a further reduction, or
+    silent-default expiration. The module exports a documentary
+    constant ``SOUTH_DAKOTA_RATE_SUNSET_ISO = "2027-06-30"``
+    and a regression test guards both the constant and the
+    docstring's mention of the sunset.
+  - **Groceries fully taxed is the second notable finding.**
+    SD is one of a small minority of U.S. states (and the only
+    SST member of that group) that fully tax groceries at the
+    state rate. Initiated Measure 28 (Nov 2024) attempted to
+    repeal the rule and failed at the ballot box. A defensive
+    regression test (``test_south_dakota_groceries_are_taxable_regression``)
+    explicitly catches a contributor copy-pasting from a peer
+    SST state (IA / KS / KY / ND / NE -- all of which exempt
+    groceries) and accidentally flipping the rule.
+  - **Wayfair connection documented.** SD is the plaintiff in
+    *South Dakota v. Wayfair, Inc.*, 138 S. Ct. 2080 (2018),
+    which overturned *Quill Corp. v. North Dakota* (1992) and
+    established the modern economic-nexus regime. The Wayfair
+    statute itself (SDCL section 10-64-2) governs nexus, not
+    rate calculation -- but the case is so foundational to
+    every state's modern sales-tax-collection regime that the
+    docstring records the lineage. A regression test guards the
+    Wayfair citation in the docstring.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    SD's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual SDR<...>.csv file is the
+    natural next maintenance task.
+  - **Tribal taxes flow through the SST file.** South Dakota's
+    intergovernmental tax-collection agreements with multiple
+    Sioux nations (Cheyenne River, Crow Creek, Oglala, Rosebud,
+    Standing Rock, Yankton, plus several others) cause tribal
+    gross-receipts taxes on reservation land to be administered
+    by the SD DOR alongside municipal taxes. Per-jurisdiction
+    rates therefore appear in the SST quarterly rate file as
+    ordinary city/district rows; the inherited
+    ``SstStateModule`` parser handles them with no SD-specific
+    code.
+
+### TN -- Tennessee
+
+- **Statewide rate:** **7.000% effective long-standing** (current
+  rate per Tenn. Code Ann. section 67-6-202 -- the imposition
+  statute in the Retailers' Sales Tax Act, Title 67 Chapter 6).
+  At 7.0% Tennessee has one of the highest single-state sales
+  tax rates in the United States (tied with IN, MS, RI; only
+  CA's 7.25% is higher).
+- **Tax model:** sales tax (SST -- **associate** member, since
+  October 1, 2005; verified 2026-05-03 against the SST member
+  roster on streamlinedsalestax.org). **Tennessee is the ONLY
+  Associate Member State** -- distinct from the 23 SST full
+  members. An Associate Member State per the Streamlined Sales
+  and Use Tax Agreement is a state determined by the SST
+  Governing Board to be substantially compliant with the
+  Agreement except that not all of the state's statutory or
+  rule changes are yet in effect, OR a state in compliance
+  with nearly all parts of the Agreement. Practical
+  implication: TN publishes rate / boundary files in the
+  canonical SST format (so the inherited SstStateModule parser
+  works without override), but TN has NOT adopted every
+  uniformity provision (most notably the reduced grocery rate
+  at section 67-6-228, which differs from the SST uniform full-
+  exemption pattern). State FIPS: 47.
+- **Local jurisdictions:** counties and incorporated cities may
+  levy a local option sales tax under the **1963 Local Option
+  Revenue Act** (Tenn. Code Ann. sections 67-6-701 through
+  67-6-716). Per Tenn. Code Ann. section 67-6-702(a)(1), the
+  combined county-plus-city local rate may not exceed **2.75%**
+  (approved by referendum). Combined rates therefore range
+  **7.0% to 9.75%**, most commonly **9.25%-9.75%** (most TN
+  counties have voted in at or near the maximum local cap). Per-
+  jurisdiction rates flow through the SST quarterly rate file
+  via the inherited :class:`SstStateModule` parser.
+- **Single-article cap (notable peculiarity):** per Tenn. Code
+  Ann. section 67-6-702(d), the local sales tax applies only to
+  the **first $1,600** of the sales price of any single article
+  of tangible personal property. There is also a state "single-
+  article tax" of 2.75% on the portion of the sales price
+  between $1,600 and $3,200 per single article (Tenn. Code Ann.
+  section 67-6-202(c)). The single-article cap is NOT modeled
+  in v1 of OpenSalesTax (engine treats every line item as a
+  single unit at a flat combined rate). Documented for the next
+  maintainer.
+- **REDUCED grocery rate (key TN-specific feature):** food and
+  food ingredients are TAXABLE at a **reduced state rate of
+  4.0%** per **Tenn. Code Ann. section 67-6-228** (stable since
+  2017-07-01). Rate history:
+
+    - Pre-July 2002: 6.0% (general state rate at the time)
+    - 2002-07-15 to 2007: phased reductions to 5.5%
+    - 2007 to 2013: 5.5% state rate on groceries
+    - 2013-07-01 to 2017-06-30: reduced to 5.0%
+    - **2017-07-01 onward: reduced to 4.0%** (current rate;
+      stable since July 1, 2017)
+
+  The reduced state rate applies ONLY to "food and food
+  ingredients" as defined in section 67-6-228 / 67-6-102, which
+  follows the SST uniform definition (excludes prepared food,
+  candy, dietary supplements, and alcoholic beverages -- those
+  remain at the general 7.0% state rate). LOCAL sales taxes
+  STILL APPLY to groceries at the FULL local rate; only the
+  state portion is reduced. Encoded with
+  ``rate_modifier=Decimal("4.000")`` mirroring the IL/MO/AR/OK
+  reduced-grocery-rate pattern. The engine does not yet apply
+  rate_modifier (deferred to v0.6+); until then it over-collects
+  the state portion of grocery line items in TN by 3 percentage
+  points (charging 7.0% instead of the statutory 4.0%).
+- **Sales-tax holidays:** **ONE recurring annual holiday for the
+  general public in 2026** -- the **Tennessee Sales Tax Holiday**
+  (commonly "Back-to-School") under **Tenn. Code Ann. section
+  67-6-393**. The statute fixes the holiday to a 3-day window
+  beginning at 12:01 a.m. on the last Friday of July and ending
+  at 11:59 p.m. on the following Sunday. **2026 dates: July 24
+  (Friday) through July 26 (Sunday)**. Per longstanding TN DOR
+  practice, when the literal "last Friday in July" would push
+  Sunday into August (as it does in 2026 -- last Friday is
+  July 31), the holiday uses the last full Friday-Sunday weekend
+  wholly within July. Eligible items per section 67-6-393:
+
+    - Clothing -- $100 OR LESS per item
+    - School supplies -- $100 OR LESS per item
+    - School art supplies -- $100 OR LESS per item
+    - Computers -- $1,500 OR LESS per item
+
+  Each scope is encoded as a separate :class:`HolidayWindow`
+  (4 windows total) so the engine can per-category match and
+  apply the correct per-item cap. The exemption covers BOTH
+  state and local sales tax. Exemption is per article (an item
+  priced above its category cap is fully taxable; no proration).
+- **Other 2026 holidays (NONE enacted as of promotion):** TN ran
+  one-time grocery sales-tax holidays in 2022 (Public Chapter
+  1003 of 2022; one month, August 1-31, 2022) and 2023 (Public
+  Chapter 377 of 2023; three months, August 1 - October 31,
+  2023). These were ad-hoc legislative actions, NOT recurring.
+  Several 2026 proposals exist (e.g., HB 1486 / SB 1785 to
+  exempt food sold to persons aged 65+ from July 1 to September
+  30, 2026; proposals for a fifth-day-of-each-month exemption)
+  but **NONE are enacted** as of 2026-05-03. The module models
+  ONLY the recurring back-to-school holiday.
+- **Threshold rules:** holiday-specific only -- per-item caps
+  for the 4 holiday scopes (clothing/school supplies/school art
+  supplies $100; computers $1,500). NO year-round threshold
+  exemptions (unlike NY's $110 clothing or MA's $175 clothing).
+- **Digital goods (notable early-adopter):** specified digital
+  products are TAXABLE at 7.0% per **Tenn. Code Ann. section
+  67-6-233**, effective **January 1, 2009** (originally added
+  by Public Chapter 530 of the 2008 General Assembly).
+  Tennessee was an early-adopter state for digital product
+  taxation, predating most peer SST states by several years
+  (Iowa: 2019; Indiana: 2018; Arkansas: 2018; Kansas: 2021).
+  Section 67-6-233 imposes the sales tax on the retail sale,
+  lease, licensing or use of specified digital products or
+  video game digital products transferred to or accessed by
+  subscribers or consumers in Tennessee.
+- **Wayfair note (informational):** Tennessee was the LOSING
+  party in the historical 1992 Quill Corp. v. North Dakota
+  physical-presence precedent that set the groundwork for the
+  Wayfair litigation 26 years later. After Wayfair (2018) TN
+  updated its own economic-nexus regime under Tenn. Code Ann.
+  section 67-6-501 and rules. Current threshold for remote
+  sellers: $100,000 in TN sales over the prior 12 months (no
+  transaction-count alternative). Marketplace facilitator
+  threshold: also $100,000 (Tenn. Code Ann. section 67-6-535
+  et seq.). Informational only -- the rate-calculation engine
+  does not gate on nexus.
+- **DOR URL:** **https://www.tn.gov/revenue.html** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Tenn. Code Ann. Title 67 -- Taxes and
+  Licenses, Chapter 6 -- Sales and Use Taxes):**
+  - Tenn. Code Ann. section 67-6-102 -- definitions (including
+    "food and food ingredients" and "prepared food" via SST
+    uniform definitions)
+  - Tenn. Code Ann. section 67-6-202 -- imposition of sales tax;
+    7.0% state rate (the imposition statute)
+  - Tenn. Code Ann. section 67-6-228 -- reduced 4.0% state rate
+    on food and food ingredients (current rate effective
+    2017-07-01)
+  - Tenn. Code Ann. section 67-6-233 -- taxation of specified
+    digital products and video game digital products (effective
+    2009-01-01 per Public Chapter 530 of 2008)
+  - Tenn. Code Ann. section 67-6-314 -- exemption for medical
+    equipment and devices
+  - Tenn. Code Ann. section 67-6-320 -- exemption for
+    prescription drugs (and OTC drugs dispensed pursuant to a
+    prescription); covers disposable medical supplies for IV
+    administration
+  - Tenn. Code Ann. section 67-6-393 -- back-to-school sales tax
+    holiday (4 scopes: clothing/$100, school supplies/$100,
+    school art supplies/$100, computers/$1500)
+  - Tenn. Code Ann. section 67-6-409 -- year-round exemption for
+    gun safes and firearm safety devices (effective 2021-07-01;
+    not modeled as a HolidayWindow because it is year-round
+    rather than a date-bounded holiday)
+  - Tenn. Code Ann. sections 67-6-501, 67-6-535 et seq. --
+    economic nexus and marketplace facilitator thresholds
+    (informational only; not used by rate-calculation engine)
+  - Tenn. Code Ann. sections 67-6-701 through 67-6-716 -- the
+    1963 Local Option Revenue Act (county and city local sales
+    taxes)
+  - Tenn. Code Ann. section 67-6-702 -- local option rates;
+    2.75% combined cap; single-article $1,600 cap on the local
+    portion; state "single-article tax" of 2.75% on the
+    portion between $1,600 and $3,200
+  - Public Chapter 377 of 2023 -- 3-month grocery holiday
+    (August - October 2023; ONE-TIME)
+  - Public Chapter 1003 of 2022 -- 1-month grocery holiday
+    (August 2022; ONE-TIME)
+  - Public Chapter 530 of 2008 -- enacted section 67-6-233
+    (digital products taxation, effective 2009-01-01)
+- *Sources for rate/taxability:*
+  - **Tennessee Department of Revenue main page**
+    (https://www.tn.gov/revenue.html), retrieved 2026-05-03 --
+    confirms 7.0% state rate
+  - **Tennessee Department of Revenue Sales Tax Holiday page**
+    (https://www.tn.gov/revenue/taxes/sales-and-use-tax/sales-tax-holiday.html),
+    referenced 2026-05-03
+  - **Tennessee DOR 2024 Annual Sales Tax Holiday press
+    release**
+    (https://www.tn.gov/revenue/news/2024/7/11/annual-sales-tax-holiday-happening-july-26---july-28.html),
+    retrieved 2026-05-03 -- confirms 2024 dates (July 26-28)
+    and the $100/$100/$1500 thresholds
+  - **Tennessee DOR 2025 Annual Sales Tax Holiday press
+    release**
+    (https://www.tn.gov/revenue/news/2025/7/11/annual-sales-tax-holiday-happening-july-25---july-27.html),
+    retrieved 2026-05-03 -- confirms 2025 dates (July 25-27)
+    and the $100/$100/$1500 thresholds; cites Tenn. Code section
+    67-6-393
+  - **Tennessee DOR Streamlined Sales Tax page**
+    (https://www.tn.gov/revenue/taxes/sales-and-use-tax/streamlined-sales-tax.html),
+    referenced 2026-05-03 -- confirms TN's SST associate-member
+    status and cites Public Chapter 377 of 2023 sourcing-
+    provision changes effective 2024-07-01
+  - **Tennessee DOR SUT-13 Sales and Use Tax Rates Overview**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058139672-SUT-13-Sales-and-Use-Tax-Rates-Overview),
+    referenced 2026-05-03 -- confirms 7.0% state rate, 4.0%
+    grocery rate, single-article cap mechanics
+  - **Tennessee DOR SUT-54 Prepared Food**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058231192-SUT-54-Prepared-Food-Definition-and-Tax-Rate),
+    referenced 2026-05-03 -- definition of prepared food and
+    confirmation it taxes at the general 7.0% rate
+  - **Tennessee DOR SUT-65 Specified Digital Products**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058688471-SUT-65-Specified-Digital-Products),
+    referenced 2026-05-03 -- confirms digital products
+    taxability per section 67-6-233 effective 2009-01-01
+  - **Tennessee DOR SUT-125 Sales of Prescription Drugs**
+    (https://revenue.support.tn.gov/hc/en-us/articles/360058688011-SUT-125-Sales-of-Prescription-Drugs),
+    referenced 2026-05-03 -- confirms section 67-6-320
+    prescription-drug exemption and 67-6-314 medical devices
+    cross-reference
+  - **Justia codified Tennessee statutes** for Title 67 Chapter
+    6 (sections 67-6-202, 228, 233, 314, 320, 393, 702),
+    cross-referenced 2026-05-03
+  - **FindLaw Tenn. Code section 67-6-393** (codes.findlaw.com),
+    cross-referenced 2026-05-03 -- statute text for back-to-
+    school holiday with $100/$100/$100/$1500 thresholds
+  - **Streamlined Sales Tax member roster + Tennessee detail
+    page** (https://www.streamlinedsalestax.org/state-details/tennessee),
+    cross-checked 2026-05-03 -- confirms TN's SST associate-
+    member status and details
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference for 2026
+    dates (July 24-26) of the back-to-school holiday
+  - **Avalara coverage of TN 2026 sales-tax-holiday and grocery-
+    holiday proposals**
+    (https://www.avalara.com/blog/en/north-america/2026/02/will-tennessee-exempt-groceries-from-sales-tax.html),
+    retrieved 2026-05-03 -- confirms NO 2026 grocery holiday
+    enacted at promotion time; documents pending HB 1486 / SB
+    1785 proposals for 65+ exemption (NOT enacted)
+  - **The Mountain Press article on 2026 grocery holiday
+    prospects**
+    (https://www.themountainpress.com/roane/news/grocery-tax-holiday-in-2026-looks-bleak/article_aaa593dd-05c2-5fe4-bb86-6b174317d6b1.html),
+    retrieved 2026-05-03 -- confirms no general-public grocery
+    holiday is scheduled for 2026
+  - **Innovate Tax 2026 Sales Tax holidays compendium**
+    (https://innovatetax.com/blog/2026-sales-tax-holidays/),
+    retrieved 2026-05-03 -- confirms TN 2026 dates as July 24-26
+- **Module file:** `src/opensalestax/states/tennessee.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-tn branch)
+- *Notes:*
+  - **TN is the only SST associate member.** All 22 other SST
+    members are full members. Practical implication: TN's
+    quarterly rate / boundary files use the canonical SST
+    format (inherited parser works without override), but TN
+    has not adopted every uniformity provision (notably the
+    reduced grocery rate, which differs from the SST uniform
+    full-exemption pattern).
+  - **Reduced grocery rate of 4.0% is the headline TN-specific
+    finding.** Encoded with rate_modifier=Decimal("4.000") per
+    the IL/MO/AR/OK pattern. Until v0.6+ wires through
+    rate_modifier, the engine over-collects the state portion
+    on TN grocery line items by 3 percentage points (charging
+    7.0% instead of the statutory 4.0%).
+  - **Back-to-school holiday has 4 distinct scopes** -- each
+    encoded as a separate HolidayWindow with its own per-item
+    cap. Defensive regression test
+    (`test_tennessee_holiday_scope_set`) catches a future
+    maintainer who drops a scope or copies a peer state's
+    different scope (e.g., AR's electronics scope or FL's
+    emergency-supplies scope).
+  - **2026 holiday dates require interpretation.** The literal
+    statutory reading "last Friday of July ... following Sunday"
+    would push Sunday into August in 2026 (last Friday is
+    July 31; Sunday would be August 2). Per longstanding TN DOR
+    practice the holiday uses the last full Friday-Sunday
+    weekend wholly within July, i.e., July 24-26 in 2026. All
+    independent 2026 secondary sources (Sales Tax Institute,
+    Innovate Tax, Avalara, Calvetti Ferguson) report July 24-26.
+    A future maintainer should re-verify against the TN DOR's
+    official 2026 press release once issued.
+  - **Digital goods early-adopter status.** TN was among the
+    first states to tax specified digital products (effective
+    2009-01-01, via section 67-6-233 added by Public Chapter
+    530 of 2008), predating Iowa (2019), Indiana (2018),
+    Arkansas (2018), and Kansas (2021).
+  - **NO 2026 grocery holiday enacted.** Multiple 2026-session
+    proposals exist (HB 1486 / SB 1785 for persons 65+ from
+    July 1 - September 30, 2026; fifth-day-of-each-month
+    proposals) but NONE are enacted at promotion time. The
+    module models ONLY the recurring back-to-school holiday.
+    If the General Assembly enacts a 2026 grocery holiday, the
+    module must be updated.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION.**
+    TN's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual TNR<...>.csv file is the
+    natural next maintenance task.
+  - **Single-article cap is NOT modeled.** Tenn. Code Ann.
+    section 67-6-702(d) limits the local portion to the first
+    $1,600 of any single article's sales price; section
+    67-6-202(c) imposes a state "single-article tax" of 2.75%
+    on the portion between $1,600 and $3,200. The engine treats
+    every line item as a single unit at a flat combined rate.
+    Documented for the next maintainer; would require engine
+    work to support (likely overlaps with the v0.6+ threshold-
+    rule feature).
+
+### UT -- Utah
+
+- **Statewide rate:** **4.85% statewide combined rate**, composed
+  of 4.70% state (Utah Code section 59-12-103(2)(a)(i)(A)) +
+  0.10% statewide-uniform local-option (Utah Code section
+  59-12-204) + 0.05% mass transit basic (Utah Code section
+  59-12-103(2)(a)(i)(C)). Effective in current composition since
+  the state-rate portion was raised from 4.65% to 4.70% on April
+  1, 2019 (SB 2001 of the 2018 Third Special Session); the other
+  two components have been stable for many years.
+- **Tax model:** sales tax (Utah Sales and Use Tax Act, Title 59
+  Chapter 12).
+- **Local jurisdictions:** counties, cities, towns, and special
+  transit districts may stack local sales taxes under various
+  enabling acts in Title 59 Chapter 12 Parts 2 and 4-22.
+  Combined rates typically range 6.10%-9.05% in the major metro
+  areas (Salt Lake County, Utah County, Davis County, Weber
+  County). UT is an SST member; per-jurisdiction rates flow
+  through the standard SST quarterly file.
+- **Sales-tax holidays:** **NONE.** Utah has NO state sales-tax
+  holiday in any year. Several legislative proposals to enact
+  a back-to-school holiday have been introduced in past
+  sessions (most recently HB 296 of the 2017 General Session)
+  and have failed to pass. Verified 2026-05-03 against Utah
+  State Tax Commission publications.
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.utah.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - Utah Code section 59-12-103 -- imposition statute and rate
+    composition (4.70% + 0.10% + 0.05% = 4.85%); also the
+    reduced-rate provision for food and food ingredients at
+    section 59-12-103(2)(a)(ii) (1.75% state-portion grocery
+    rate)
+  - Utah Code section 59-12-102 -- definitions, including the
+    "products transferred electronically" definition added by
+    Senate Bill 65 of the 2008 General Session (digital goods
+    in the sales-tax base)
+  - Utah Code section 59-12-104(11) -- prescription drug
+    exemption
+  - Utah Code section 59-12-204 -- statewide-uniform 0.10%
+    local-option sales tax (the second of the three components
+    in the 4.85% statewide rate)
+  - Utah Code section 59-12-603 -- county-administered
+    restaurant tax (~1.00%; separate non-sales-tax layer NOT
+    modeled in this engine)
+  - Utah Code section 20A-1-201.5 -- ballot publication
+    requirements (the basis on which Constitutional Amendment
+    A was struck from the 2024 ballot)
+  - Utah Code Title 58, Chapter 17b -- prescriber licensing
+    (referenced by the prescription-drug exemption in section
+    59-12-104(11))
+  - Senate Bill 65, Utah 2008 General Session -- expanded
+    sales-tax base to include "products transferred
+    electronically" (digital goods)
+  - House Bill 54, Utah 2023 General Session -- companion bill
+    to Constitutional Amendment A; would have eliminated the
+    1.75% state-portion grocery tax conditional on Amendment
+    A passing
+  - Title 24, Navajo Nation Code section 601 et seq. (Navajo
+    Nation Sales Tax) -- documented in module docstring as
+    deferred sub-state regime; NOT modeled in v1
+  - *Federal Indian-law preemption authority for the Navajo
+    Nation regime:* **Warren Trading Post v. Arizona Tax
+    Commission**, 380 U.S. 685 (1965); **Central Machinery Co.
+    v. Arizona Tax Commission**, 448 U.S. 160 (1980)
+- *Sources for rate/taxability:*
+  - **Utah State Tax Commission**, https://tax.utah.gov/
+    (retrieved 2026-05-03) -- the authoritative DOR; published
+    quarterly Sales and Use Tax Rate publications (the source
+    of the 4.85% statewide combined rate breakdown), Publication
+    25 (Sales and Use Tax General Information; the source for
+    the 3.00% composite grocery rate worked example), and the
+    sales-tax-holiday-disclaimer (no Utah state holiday).
+  - **Utah Code (le.utah.gov)**, https://le.utah.gov/xcode/
+    Title59/Chapter12/59-12.html?v=C59-12_2024 (retrieved
+    2026-05-03) -- the codified text of Title 59 Chapter 12.
+  - **Justia codified statutes** for Title 59 Chapter 12
+    (sections 102, 103, 104, 204, 603), cross-referenced
+    2026-05-03.
+  - **Utah Foundation, "Constitutional Amendment A: Income
+    Tax for Public Education"**, retrieved 2026-05-03 --
+    background on the income-tax earmark and the 2023-2024
+    legislative effort to enable grocery-tax elimination.
+  - **Streamlined Sales Tax member roster**,
+    https://www.streamlinedsalestax.org (retrieved 2026-05-03)
+    -- confirms Utah is a full SST member.
+  - **Avalara guidance on Utah digital products**,
+    https://www.avalara.com/blog/en/north-america/2019/02/state-by-state-guide-to-digital-products-and-sales-tax.html
+    (cross-referenced 2026-05-03) -- secondary confirmation
+    that UT taxes electronically-delivered digital goods;
+    primary source is Utah Code section 59-12-102 + SB 65 of
+    2008.
+  - **Navajo Tax Commission**, https://www.navajotax.org/
+    (retrieved 2026-05-03) -- the authority that administers
+    the Navajo Nation gross receipts tax (deferred sub-state
+    regime; not modeled).
+- **Module file:** `src/opensalestax/states/utah.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-ut branch)
+- *Notes:*
+  - **Statewide rate composition is the headline finding.** The
+    4.85% combined rate decomposes into 4.70% state + 0.10%
+    statewide-uniform local + 0.05% mass transit basic; all
+    three are imposed at the state level and uniform statewide.
+    Documented in the module docstring so future maintainers
+    can audit each component independently.
+  - **Reduced 1.75% state-portion grocery rate.** Encoded with
+    ``rate_modifier=Decimal("1.75")`` per Utah Code section
+    59-12-103(2)(a)(ii). Local rates apply to groceries at
+    full local rate; the composite tax on typical groceries in
+    jurisdictions with the standard 1.25% local stack is 3.00%.
+    Mirrors the IL / MO / VA / TN reduced-state-grocery-rate
+    patterns. Until v0.6+ wires the modifier through, the
+    engine over-collects 3.10 percentage points on grocery line
+    items in Utah.
+  - **Constitutional Amendment A (2024) was struck from the
+    ballot.** Amendment A would have removed the Utah
+    Constitution's earmark on income tax revenue (currently
+    restricted to education), enabling the legislature to enact
+    HB 54 (2023) and eliminate the 1.75% state-portion grocery
+    tax. The Utah Third District Court (affirmed by the Utah
+    Supreme Court) struck Amendment A from the November 5, 2024
+    ballot for failure to properly publish the amendment under
+    Utah Code section 20A-1-201.5. The 1.75% state-portion
+    grocery tax accordingly continues to apply; future
+    legislative sessions may revisit the constitutional
+    question.
+  - **Navajo Nation gross receipts tax is a DEFERRED sub-state
+    regime.** The Navajo Nation reservation extends into
+    northeastern Utah (San Juan County); sales by Navajo-
+    enrolled-member businesses on the reservation are subject
+    only to the Navajo Nation gross receipts tax (Title 24,
+    Navajo Nation Code section 601 et seq.), NOT Utah sales
+    tax, on the basis of long-standing federal Indian-law
+    preemption (Warren Trading Post / Central Machinery line of
+    Supreme Court cases). This engine does NOT model the
+    Navajo Nation regime in v1; calls to /v1/calculate for
+    addresses inside the reservation will return the standard
+    Utah sales tax rate, which is incorrect for sales by Navajo-
+    enrolled-member businesses. Operators serving Navajo Nation
+    businesses must apply an exemption certificate at the line-
+    item level. Structurally analogous to LA parishes, CO home-
+    rule cities, and AL self-administering municipalities --
+    a future :class:`SubJurisdiction` Protocol extension may
+    first-class-model these regimes in v1.0+.
+  - **NO state sales-tax holiday.** Verified 2026-05-03;
+    several legislative proposals (most recently HB 296 of
+    2017) have failed to enact one. ``holidays_for(year)``
+    returns an empty iterator unconditionally. A defensive
+    parametrized regression test
+    (``test_utah_holidays_always_empty``) catches a future
+    maintainer who tries to add a holiday without confirming
+    the legislature actually passed one.
+  - **Digital goods are taxable.** Notable peer-state difference
+    from Oklahoma (which does NOT tax digital goods per OAC
+    710:65-19-156). UT places digital goods in the sales-tax
+    base via SB 65 of 2008 amending Utah Code section 59-12-102.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION.**
+    UT's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual UTR<...>.csv file is the
+    natural next maintenance task.
+
+### VT -- Vermont
+
+- **Statewide rate:** **6.000% effective 1969-06-01 (current 6%
+  rate effective 2003-10-01)**. Vermont's general sales tax was
+  enacted by Act 144 of the 1969 Adjourned Session at 3%; the rate
+  was raised to 4% in 1982, to 5% in 1991, and to its current 6%
+  effective **October 1, 2003** by **Act 68 of the 2003
+  Legislative Session** as part of the education-funding reform
+  package. The 6% rate is the current rate per the imposition
+  statute at **Vt. Stat. Ann. tit. 32, section 9771**, has been
+  stable for 20+ years, and no rate change is currently in the
+  legislative pipeline.
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: **50**.
+- **Local jurisdictions:** counties impose **NO** sales tax;
+  incorporated municipalities (cities and towns) MAY adopt a
+  **Local Option Sales Tax (LOST)** of **EXACTLY 1%** under
+  **24 V.S.A. section 138** (originally enacted by Act 60 of
+  1997 -- the Equal Educational Opportunity Act -- expanded by
+  Act 68 of 2003). The local option rate is fixed at 1% by
+  statute (a town adopts it or does not -- no other rate is
+  permitted). Adoption requires both charter authorization and a
+  binding voter referendum. Approximately **17 of Vermont's ~247
+  incorporated municipalities** have opted in as of 2026,
+  including: Burlington, South Burlington, Williston,
+  Colchester, Essex Junction, Winooski, Stowe, Brattleboro,
+  Manchester, Killington, Dover, Wilmington, St. Albans Town,
+  Rutland Town, Middlebury, Montpelier, and Brandon (the precise
+  current list is the Vermont Department of Taxes
+  "Municipalities with a Local Option Tax" page at
+  https://tax.vermont.gov/business/lot/municipalities). Combined
+  rates in opted-in municipalities are **EXACTLY 7.0%**;
+  combined rates everywhere else are **EXACTLY 6.0%**. The VT
+  Department of Taxes administers the local option centrally
+  (sellers remit a single combined amount), making VT's local-
+  tax mechanics simpler than home-rule states like CO or
+  independent-locals states like AL. Per-municipality rate rows
+  flow through the SST quarterly rate file via the inherited
+  :class:`SstStateModule` parser; v1 ships state-only baseline
+  while LOST loading is deferred to per-municipality data
+  ingestion.
+- **Sales-tax holidays:** **NONE.** Vermont has never enacted a
+  sales-tax holiday and none is currently scheduled in any year
+  (verified 2026-05-03 against the Vermont Department of Taxes
+  Sales Tax landing page and the Sales Tax Institute holiday
+  compendium). Mirrors NJ, NE, DC, ID, IN, ND, MI, KY, NV, NC.
+- **Threshold rules:** **NONE** for clothing -- VT has a broad
+  year-round clothing exemption with no per-item dollar cap
+  (contrast with NY's $110-per-item threshold and MA's
+  $175-per-item threshold).
+- **DOR URL:** **https://tax.vermont.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (Title 32 -- Taxation and Finance,
+  Chapter 233 -- Sales and Use Tax; Title 24 -- Municipal and
+  County Government, section 138 for the local option):**
+  - **Vt. Stat. Ann. tit. 32, section 9771** -- imposition
+    statute (sales tax on tangible personal property at 6%)
+  - **Vt. Stat. Ann. tit. 32, section 9701(7)** -- definition of
+    "tangible personal property"
+  - **Vt. Stat. Ann. tit. 32, section 9701(31)(B)** -- defined
+    term "specified digital products" (added by H. 528 of the
+    2014 Legislative Session, Act 174 of 2014, effective
+    2015-07-01)
+  - **Vt. Stat. Ann. tit. 32, section 9741(2)** -- prescription-
+    drug exemption
+  - **Vt. Stat. Ann. tit. 32, section 9741(13)** -- food and
+    food ingredients exemption
+  - **Vt. Stat. Ann. tit. 32, section 9741(45)** -- broad
+    clothing exemption (one of only ~5 states with a year-round
+    broad clothing exemption: PA, MA, MN, NJ, VT)
+  - **Vt. Stat. Ann. tit. 32, chapter 225 (sections 9201-9281)**
+    -- separate **Vermont Meals and Rooms Tax** at 9% on
+    prepared food / hotel rooms; NOT a general sales tax and out
+    of scope for this engine
+  - **Vt. Stat. Ann. tit. 32, section 9242** -- separate 6%
+    Sugar-Sweetened Beverage tax (added by Act 18 of 2018) on
+    certain soft drinks; NOT a general sales tax and out of
+    scope
+  - **24 V.S.A. section 138** -- **Local Option Sales Tax**
+    enabling statute (1% fixed local rate; municipalities adopt
+    by charter + referendum)
+  - **Act 60 of 1997** (Equal Educational Opportunity Act) --
+    original enactment of the local-option framework
+  - **Act 68 of 2003** -- raised the state rate from 5% to 6%
+    effective 2003-10-01 and expanded the local-option framework
+  - **Act 174 of 2014 (H. 528)** -- brought specified digital
+    products into the sales-tax base effective 2015-07-01
+  - **VT Department of Taxes Reg. 1.9741(45)** -- regulatory
+    guidance on the clothing exemption (includes the exclusions
+    list: accessories, sport/recreational equipment, protective
+    equipment for non-everyday use)
+  - **VT Department of Taxes Reg. 1.9701(7)** -- regulatory
+    guidance distinguishing taxable prewritten ("canned")
+    software from non-taxable custom software developed for a
+    specific customer
+- *Sources for rate/taxability:*
+  - **Vermont Department of Taxes** main site
+    (https://tax.vermont.gov/), retrieved 2026-05-03 -- confirms
+    6% state rate
+  - **Vermont Department of Taxes "Sales and Use Tax" landing
+    page** (https://tax.vermont.gov/business/sales-and-use-tax),
+    retrieved 2026-05-03 -- confirms 6% state rate, taxability
+    overview, no sales-tax holiday
+  - **Vermont Department of Taxes "Local Option Tax" page**
+    (https://tax.vermont.gov/business/lot), retrieved
+    2026-05-03 -- confirms exactly-1% local rate under 24 V.S.A.
+    section 138; ~17 municipalities opted in
+  - **Vermont Department of Taxes "Municipalities with a Local
+    Option Tax" page**
+    (https://tax.vermont.gov/business/lot/municipalities),
+    retrieved 2026-05-03 -- authoritative list of LOST-adopted
+    municipalities (Burlington, South Burlington, Williston,
+    Brattleboro, Stowe, Manchester, Killington, Dover,
+    Wilmington, Montpelier, etc.)
+  - **Vermont Department of Taxes "Meals and Rooms Tax" page**
+    (https://tax.vermont.gov/business/meals-and-rooms-tax),
+    retrieved 2026-05-03 -- confirms separate 9% rate on
+    prepared food / hotel rooms
+  - **Vermont General Assembly statutes** -- Title 32 chapter
+    233 (sections 9701, 9741, 9771); Title 24 section 138 -- via
+    https://legislature.vermont.gov/statutes/title/32 and
+    https://legislature.vermont.gov/statutes/title/24,
+    cross-referenced 2026-05-03
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference confirming
+    Vermont has no sales-tax holiday in any year
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Vermont is a full SST member
+  - **Sovos summary** (specs/research/sovos-state-summary.md
+    line 123) -- secondary cross-check of the 6% state rate;
+    primary source is the VT Department of Taxes
+- **Module file:** `src/opensalestax/states/vermont.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-vt branch)
+- *Notes:*
+  - **Broad clothing exemption (32 V.S.A. 9741(45)) is the
+    headline VT-specific finding.** VT joins PA, MA, MN, NJ in
+    the small set of states that broadly exempt clothing year-
+    round with no per-item dollar cap. Encoded as
+    ``is_taxable=False`` with the statutory citation in the
+    rule's notes; a defensive regression test
+    (`test_vermont_clothing_is_exempt_year_round_no_threshold`)
+    catches a future maintainer who accidentally re-enables
+    clothing tax.
+  - **Local Option Sales Tax is fixed at exactly 1%.** Unlike
+    Colorado (home-rule cities can pick rates 1%-7.5%) or Texas
+    (cities can adopt 0.25%-2% in 0.125% increments), VT's local
+    option is binary: a town is either at 0% or at exactly 1%.
+    This makes the deferred-locals posture unusually clean --
+    when LOST loading lands, every adopting municipality has
+    EXACTLY the same rate, so the per-municipality rows in the
+    SST file have a single distinct rate value.
+  - **Combined rate is always exactly 6.0% or exactly 7.0%.**
+    No fractional combined rates exist in Vermont. Useful
+    invariant for future test fixtures.
+  - **Prepared food principally taxes under the 9% Meals and
+    Rooms Tax, not the 6% sales tax.** The general sales-tax
+    matrix marks prepared food as taxable at 6% as a
+    conservative default; integrators selling restaurant meals
+    in Vermont should apply the 9% Meals and Rooms Tax instead.
+    Documented prominently in the module docstring and in the
+    `prepared_food` rule's notes.
+  - **No sales-tax holiday in any year.** Verified explicitly;
+    a regression test
+    (`test_vermont_holidays_for_all_years_returns_empty`)
+    catches a future contributor who mistakenly extrapolates
+    from a neighboring SST state's August holiday framework.
+  - **Digital goods became taxable on 2015-07-01** per H. 528
+    of the 2014 Legislative Session (Act 174 of 2014). The
+    defined term "specified digital products" lives at
+    32 V.S.A. section 9701(31)(B). Custom software developed
+    for a specific customer is NOT taxable per Reg. 1.9701(7);
+    prewritten software (delivered by any means) IS taxable
+    as TPP.
+  - **No 2026Q2 VT SST file** has been captured to confirm the
+    jurisdiction-type codes empirically; the inherited default
+    mapping is taken from MN/WI 2026Q2 captures. The next
+    maintainer should validate against a VT SST quarterly capture
+    and override ``jurisdiction_types`` on the subclass if any
+    code differs.
+  - **Separate 6% Sugar-Sweetened Beverage tax** under 32
+    V.S.A. section 9242 (Act 18 of 2018) on certain soft drinks
+    is documented for completeness but outside the general
+    sales-tax base modeled by this engine.
+
+## WA -- Washington
+
+- **Statewide rate:** **6.500% effective 1983-07-01** (raised
+  from 5.4% to 6.5% by chapter 7, Laws of 1983 1st Ex. Sess.;
+  rate codified at RCW section 82.08.020(1). The 6.5% state
+  rate has been stable since.)
+- **Tax model:** sales tax (SST -- full member; verified
+  2026-05-03 against the SST member roster on
+  streamlinedsalestax.org). State FIPS: 53.
+- **Local jurisdictions:** Cities, counties, transit districts
+  (PTBA / RTA / TBD / HCT), public-facility districts (PFDs),
+  and various special-purpose districts may impose layered
+  local-option sales taxes under RCW chapter 82.14 and related
+  authorities:
+  - **RCW chapter 82.14** -- master local-option sales /
+    use tax chapter (county + city general local-option
+    typically 0.5% + optional 0.5% under RCW 82.14.030(1)
+    and 82.14.030(2))
+  - **RCW chapter 36.57A + RCW 82.14.045** -- public
+    transportation benefit areas (PTBAs); voter-approved
+    transit sales tax up to 0.9%
+  - **RCW 81.104.170 + RCW 82.14.0455** -- regional transit
+    authority (RTA) sales tax; Sound Transit (King /
+    Pierce / Snohomish RTA) imposes 1.4% under the ST3
+    expansion approved 2016-11-08
+  - **RCW 82.14.048 / 82.14.0485 / 82.14.0494** -- public
+    facility district (PFD) sales tax; voter-approved
+    typically 0.1%-0.2% for qualifying capital projects
+  - **RCW chapter 36.73 + RCW 82.14.0455** -- transportation
+    benefit district (TBD) sales tax; voter-approved up to
+    0.2% for transportation projects
+  - **RCW 82.14.340 / 82.14.450 / 82.14.460** -- county-level
+    voter-approved overlays for criminal justice / mental
+    health / chemical dependency programs
+
+  Combined statewide-plus-local general rates therefore range
+  from the **6.5% state-only floor** (in unincorporated areas
+  of low-tax counties with no special-district overlay) through
+  approximately **10.35% in parts of King County / Seattle**
+  (the highest combined retail rates in the country alongside
+  Chicago, IL and parts of LA County, CA -- verified 2026-05-03
+  against the WA Department of Revenue's Local Sales Tax Rate
+  Lookup tool). WA is one of only a handful of states (along
+  with CO and CA) where a single transaction's combined rate
+  can vary by more than 3 percentage points depending purely on
+  the buyer's specific street address. As an SST member, WA's
+  per-jurisdiction rates flow through the standard SST quarterly
+  rate file via the inherited :class:`SstStateModule` parser;
+  no manual loader needed.
+- **Sales-tax holidays:** **NONE.** Washington has **never**
+  enacted a recurring sales-tax holiday. Confirmed 2026-05-03
+  against the Washington Department of Revenue's published
+  guidance and a search of RCW chapter 82.08 for any periodic
+  exemption window. ``holidays_for(year)`` returns the empty
+  iterator for every year (mirrors KY, IN, MI, DC, ID, NE, ND,
+  NJ, NC, KS). The only periodic exemption-style relief WA has
+  implemented was a temporary 2024 manufacturing-input window
+  (chapter 419, Laws of 2024) which ran for a limited window in
+  2024 only and applied to a narrow set of qualifying
+  manufacturing inputs -- NOT a consumer-facing holiday and NOT
+  re-encoded as a recurring window.
+- **Threshold rules:** none. WA does NOT have a threshold-based
+  clothing exemption (contrast with NY's $110-per-item and MA's
+  $175-per-item).
+- **DOR URL:** **https://dor.wa.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (RCW Title 82, Chapter 8 -- retail sales
+  tax; Chapter 4 -- B&O tax + definitions; Chapter 14 -- local
+  option):**
+  - RCW section 82.08.020(1) -- imposition of the state retail
+    sales tax at 6.5% of the selling price
+  - RCW section 82.08.0281 -- exemption for prescription drugs
+    (plus insulin and certain related medical items via RCW
+    82.08.0283 et seq.)
+  - RCW section 82.08.0293 -- exemption for food and food
+    ingredients (added by chapter 7, Laws of 1977 1st Ex. Sess.
+    -- one of the oldest broad food sales-tax exemptions in
+    the country; uses the SST-uniform definition; excludes
+    candy, soft drinks, dietary supplements, prepared food,
+    and bottled water)
+  - RCW section 82.04.050 -- definition of "retail sale"
+    (extended in 2009 to include digital products / digital
+    codes / digital automated services per chapter 535, Laws
+    of 2009)
+  - RCW section 82.04.050(6) -- specifically the digital-
+    products / digital-codes / digital-automated-services
+    extension to the "retail sale" definition
+  - RCW section 82.04.192 -- defined terms for digital
+    products, digital codes, and digital automated services
+    (added by chapter 535, Laws of 2009; SST-uniform
+    definitions for the "specified digital products" subset
+    plus WA-specific extensions)
+  - RCW section 82.04.192(3)(b) -- statutory carve-outs from
+    the "digital automated services" definition (data-
+    processing services, professional services delivered
+    electronically, etc.)
+  - RCW chapter 82.04 -- the Business & Occupation (B&O) gross-
+    receipts tax (separate from sales tax; OUT OF SCOPE for
+    this engine -- see Notes below)
+  - RCW section 82.04.250 -- B&O retailing classification
+    (0.471%)
+  - RCW section 82.04.270 -- B&O wholesaling classification
+    (0.484%)
+  - RCW section 82.04.240 -- B&O manufacturing classification
+    (0.484%)
+  - RCW section 82.04.290 -- B&O service & other activities
+    classification (1.5% or 1.75% depending on annual gross
+    receipts)
+  - RCW chapter 82.14 -- local option sales / use tax (master
+    local-option chapter)
+  - RCW chapter 36.57A -- public transportation benefit areas
+    (PTBAs)
+  - RCW section 81.104.170 + RCW 82.14.0455 -- regional transit
+    authority (RTA) sales tax (Sound Transit ST3 1.4%)
+  - RCW chapter 36.73 -- transportation benefit districts
+    (TBDs)
+  - chapter 7, Laws of 1983 1st Ex. Sess. -- the rate increase
+    from 5.4% to 6.5% (the current rate has been stable since)
+  - chapter 7, Laws of 1977 1st Ex. Sess. -- the original food
+    sales-tax exemption (RCW 82.08.0293)
+  - chapter 535, Laws of 2009 (S.S.B. 5295) -- the digital-
+    products / digital-codes / digital-automated-services
+    extension to the retail sales-tax base; effective
+    2009-07-26
+  - chapter 419, Laws of 2024 -- the temporary 2024
+    manufacturing-input sales tax exemption window (NOT
+    re-encoded as a recurring holiday; documented for
+    completeness)
+- *Sources for rate/taxability:*
+  - Washington Department of Revenue -- Sales and Use Tax
+    landing page (https://dor.wa.gov/), retrieved 2026-05-03
+    -- confirms 6.5% statewide rate, food / prescription-drug
+    exemptions, broad digital-services tax base, and the
+    layered local-option overlay structure
+  - Washington Department of Revenue -- Local Sales Tax Rate
+    Lookup tool (https://dor.wa.gov/find-taxes-rates/sales-and-use-tax-rates/local-sales-and-use-tax-rates-by-address),
+    retrieved 2026-05-03 -- confirms the ~10.35% combined-rate
+    ceiling reached in parts of King County / Seattle and
+    documents address-level rate variance
+  - Washington Department of Revenue -- Business & Occupation
+    Tax landing page (https://dor.wa.gov/taxes-rates/business-occupation-tax),
+    retrieved 2026-05-03 -- confirms the B&O is a separate
+    seller-side gross-receipts tax (not a transactional sales
+    tax) with classification-based rates ranging from 0.471%
+    (retailing) to 1.75% (high-revenue services)
+  - Washington Department of Revenue -- Digital Products
+    sales-tax guidance (https://dor.wa.gov/education/industry-guides/digital-products),
+    retrieved 2026-05-03 -- elaborates the digital-products /
+    digital-codes / digital-automated-services taxability
+    rules including the statutory carve-outs in RCW
+    82.04.192(3)(b)
+  - Revised Code of Washington (RCW) Titles 82 and 36 via the
+    Washington Legislature's online code
+    (https://app.leg.wa.gov/rcw/), retrieved 2026-05-03 --
+    primary source for every statutory citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Washington is a full
+    member
+  - SST taxability matrix for Washington (published quarterly
+    on streamlinedsalestax.org) -- cross-checked 2026-05-03
+    for the food-and-food-ingredients exemption scope, the
+    prescription-drug exemption scope, and the digital-products
+    treatment
+- **Module file:** `src/opensalestax/states/washington.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wa branch; Phase 7 -- tier-2 to tier-1 promotion)
+- *Notes:*
+  - **Business & Occupation (B&O) tax is OUT OF SCOPE** per
+    RCW chapter 82.04. Washington uniquely (among the ~45
+    states with a general retail sales tax) also imposes a
+    separate B&O gross-receipts tax on persons engaging in
+    business activities within the state. The B&O is a
+    SELLER-SIDE tax on the seller's gross business income
+    (NOT a buyer-facing transactional sales tax that the
+    SELLER COLLECTS FROM THE BUYER), conceptually similar to
+    Ohio's CAT or Oregon's CAT. Rate varies by business
+    classification (0.471% retailing per RCW 82.04.250; 0.484%
+    wholesaling per RCW 82.04.270; 0.484% manufacturing per
+    RCW 82.04.240; 1.5%-1.75% service / other per RCW
+    82.04.290; assorted specialty rates per RCW 82.04.255 et
+    seq.). A seller operating in WA computes its B&O liability
+    via the WA DOR's E-File / My DOR system or accounting
+    integration -- NOT via OpenSalesTax. Some sellers pass the
+    B&O through to buyers as an explicit invoice line item
+    (e.g. "B&O surcharge: 0.471% added to invoice"); this is
+    a SELLER PRICING CHOICE, not a tax OpenSalesTax should
+    compute. An integrator wishing to model B&O surcharges as
+    buyer-visible line items must do so as a custom line-item
+    type outside this engine.
+  - **Wide combined-rate range (~6.5%-10.35%)** is the headline
+    integrator-awareness item. The combined retail sales-tax
+    rate at any specific WA address is the sum of the 6.5%
+    state rate plus every overlapping local-jurisdiction rate
+    applicable at that address (cities, counties, PTBAs, RTA
+    [Sound Transit ST3], PFDs, TBDs, criminal-justice /
+    public-safety overlays, etc.). King County / Seattle reaches
+    ~10.35% -- among the highest combined retail sales-tax
+    rates in the country alongside Chicago, IL and parts of
+    LA County, CA. Integrators must NOT assume a single
+    "Seattle area" or "King County" rate; the actual combined
+    rate at any given delivery address must come from the SST
+    quarterly file (or DOR's address-level rate lookup tool)
+    -- the inherited :class:`SstStateModule` parser handles
+    this automatically once the SST file is loaded.
+  - **Broad digital-services tax base** per RCW 82.04.050(6) +
+    RCW 82.04.192 (added by chapter 535, Laws of 2009; S.S.B.
+    5295 of the 61st Legislature; effective 2009-07-26).
+    Washington has one of the BROADEST digital-product tax
+    bases in the country: in addition to the SST-uniform
+    "specified digital products" (digital audio works, digital
+    audiovisual works, digital books), WA also taxes "digital
+    codes" (codes that allow the user to obtain digital
+    products) and "digital automated services" (services that
+    use one or more software applications to perform a service
+    for the customer). The digital-automated-services category
+    in particular reaches many cloud / SaaS / streaming
+    offerings that other states do NOT reach. Statutory
+    carve-outs in RCW 82.04.192(3)(b) exclude certain
+    enumerated services (data-processing services, professional
+    services delivered electronically, etc.); integrators
+    selling DAS-style services should consult RCW
+    82.04.192(3)(b) and applicable WA DOR Excise Tax Advisories
+    (ETAs) for ambiguous edge cases. The default
+    ``digital_goods`` rule is TAXABLE.
+  - **No clothing exemption, no threshold, no holiday.** WA
+    does NOT join the broad clothing-exemption states (PA, MA,
+    MN, NJ, VT) and does NOT have a threshold-based exemption
+    (NY $110, MA $175). The taxability rule for the
+    ``clothing`` category is TAXABLE year-round at 6.5% plus
+    local. The clothing rule's notes explicitly document all
+    three negatives so a future maintainer cannot accidentally
+    copy from an exempt-clothing state.
+  - **No sales-tax holiday history to backfill.** WA has never
+    enacted a consumer-facing back-to-school or general-purpose
+    sales-tax holiday. The 2024 manufacturing-input window
+    (chapter 419, Laws of 2024) was a one-time temporary
+    measure for a narrow set of qualifying manufacturing inputs
+    and is intentionally NOT re-encoded as a recurring window
+    -- doing so would risk a future maintainer extrapolating
+    it forward in violation of the "no extrapolation" rule
+    applied across all WA-style no-holiday states.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WA's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district),
+    which should match WA's structure given uniform SST file
+    formats observed across other member states. Validating
+    against an actual ``WAR<...>.csv`` file is a low-priority
+    maintenance task for the next quarterly data-refresh cycle.
+  - **Rate has been stable** at 6.5% since 1983-07-01; no
+    scheduled rate change for the general rate is currently in
+    the legislative pipeline that this research found.
+
+## WV -- West Virginia
+
+- **Statewide rate:** **6.000% effective 2003-01-01** (raised
+  from 5% to 6% by H.B. 2007 of the 2002 Second Extraordinary
+  Session; codified at W. Va. Code section 11-15-3. The 6%
+  state rate has been stable since 2003.)
+- **Tax model:** sales tax (consumers sales and service tax);
+  SST member -- full member effective October 1, 2005
+  (verified 2026-05-03 against the SST member roster on
+  streamlinedsalestax.org)
+- **Local jurisdictions:** West Virginia does NOT authorize a
+  general county sales tax. Local sales-tax authority is
+  limited to **municipal home-rule** participants under
+  **W. Va. Code section 8-13C** (the Municipal Home Rule
+  Pilot Program, made permanent by H.B. 4009 of the 2019
+  Regular Session). Participating municipalities may impose
+  a municipal sales and service tax of **up to 1.0%**, in
+  addition to the 6% state rate. ~50+ municipalities have
+  adopted the local 1% (Charleston, Huntington, Morgantown,
+  Wheeling, Parkersburg, Beckley, etc.), giving combined
+  rates in the **6.0%-7.0%** range. As an SST member, WV's
+  per-jurisdiction rates flow through the standard SST
+  quarterly file via the inherited
+  :class:`SstStateModule` parser.
+- **Notable rate exception -- the multi-year grocery phase-out
+  culminating in 0% on 2013-07-01 (W. Va. Code section
+  11-15-3a):** West Virginia's grocery sales tax was phased
+  down step-by-step over seven years and fully eliminated on
+  2013-07-01 -- one of the most documented multi-year
+  grocery-tax phase-outs in the country. The schedule:
+
+    * Pre-2006: full 6% (the general rate)
+    * Effective **2006-01-01: 5%** (H.B. 4346, 2005 Regular
+      Session)
+    * Effective **2007-07-01: 4%** (H.B. 4067, 2006 Regular
+      Session)
+    * Effective **2008-07-01: 3%** (H.B. 4006, 2008 Regular
+      Session)
+    * Effective **2012-01-01: 2%** (S.B. 234, 2011 Regular
+      Session)
+    * Effective **2012-07-01: 1%** (continuation of the
+      same phase-down)
+    * Effective **2013-07-01: 0%** -- the final step;
+      groceries have been fully exempt at the state level
+      ever since.
+
+  Encoded as ``is_taxable=False`` on the ``groceries``
+  TaxabilityRule. Items NOT meeting the SST "food and food
+  ingredients" definition (candy, soft drinks, dietary
+  supplements, prepared food) are NOT covered by the section
+  11-15-3a exemption and remain taxable at the general 6%
+  rate. Note: municipal home-rule sales taxes (under section
+  8-13C) generally also exempt food and food ingredients in
+  conformity with the state exemption, though per-municipality
+  variation is theoretically possible.
+- **Sales-tax holidays:** **ONE annual holiday** under
+  **W. Va. Code section 11-15-9o** (enacted by H.B. 2025,
+  2021 Regular Session). The holiday runs from 12:00 a.m.
+  on the **first Friday in August** through 11:59 p.m. on
+  the following **Monday** -- a 4-day window. The holiday is
+  multi-scope with FIVE distinct per-item caps:
+
+    * **Clothing and footwear**: $125 or less per item
+    * **School supplies**: $50 or less per item
+    * **School instructional materials**: $20 or less per item
+    * **Sports equipment**: $150 or less per item
+    * **Computers / tablets / laptops** for personal use:
+      $500 or less per item
+
+  Each scope is encoded as a SEPARATE :class:`HolidayWindow`
+  because :attr:`HolidayWindow.max_amount_per_item` is a
+  single-value field. **2026 dates: August 7 (Friday) -
+  August 10 (Monday), 2026** (first Friday in August 2026
+  is August 7).
+- **Threshold rules:** the August holiday's per-scope caps
+  function as threshold rules during the 4-day window.
+  Year-round threshold rules: none.
+- **DOR URL:** **https://tax.wv.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (W. Va. Code Chapter 11 -- Taxation,
+  Article 15 -- Consumers Sales and Service Tax, Article
+  15B -- Streamlined Sales and Use Tax Administration, and
+  W. Va. Code Chapter 8, Article 13C -- Municipal Home
+  Rule):**
+  - W. Va. Code section 11-15-3 -- 6% state consumers sales
+    and service tax (raised from 5% to 6% by H.B. 2007,
+    Second Extraordinary Session 2002, effective
+    2003-01-01)
+  - W. Va. Code section 11-15-3a -- exemption from the
+    state sales tax for food and food ingredients for
+    home consumption (the multi-year phase-out
+    statute; fully exempt at 0% effective 2013-07-01)
+  - W. Va. Code section 11-15-9 -- general exemptions list
+  - W. Va. Code section 11-15-9(a)(11) -- exemption for
+    drugs, durable medical goods, mobility-enhancing
+    equipment, and prosthetic devices dispensed upon
+    prescription
+  - W. Va. Code section 11-15-9o -- annual sales tax
+    holiday (enacted by H.B. 2025, 2021 Regular Session;
+    first Friday-Monday of August; 5 scopes with per-item
+    caps of $125 / $50 / $20 / $150 / $500)
+  - W. Va. Code section 11-15B-2 -- SST conforming
+    definitions article (incorporates uniform "specified
+    digital products," "food and food ingredients,"
+    "prepared food," "drugs sold by prescription," and
+    related definitions)
+  - W. Va. Code section 8-13C-1 et seq. -- Municipal Home
+    Rule program (general framework); section 8-13C-4
+    authorizes participating municipalities to impose a
+    municipal sales and service tax up to 1.0% in addition
+    to the state rate
+- *Sources for rate/taxability:*
+  - **West Virginia State Tax Department** main page
+    (https://tax.wv.gov/), retrieved 2026-05-03 -- confirms
+    6% state rate
+  - **West Virginia State Tax Department -- Sales and Use
+    Tax** publications page
+    (https://tax.wv.gov/Business/SalesAndUseTax/Pages/SalesAndUseTax.aspx),
+    retrieved 2026-05-03 -- primary source for taxability,
+    home-rule local-tax disposition, and prescription-drug
+    / grocery exemption mechanics
+  - **West Virginia State Tax Department -- Sales Tax
+    Holiday** page
+    (https://tax.wv.gov/Business/SalesAndUseTax/Pages/SalesTaxHoliday.aspx),
+    retrieved 2026-05-03 -- confirms 4-day August holiday
+    schedule (first Friday through following Monday) and
+    per-scope caps ($125 clothing, $50 school supplies, $20
+    instructional materials, $150 sports equipment, $500
+    computers/tablets/laptops); 2026 dates are August 7-10
+  - **West Virginia Legislature -- W. Va. Code online**
+    (https://code.wvlegislature.gov/), retrieved 2026-05-03
+    -- primary source for every statutory citation above
+    (Chapter 11 Article 15, Article 15B; Chapter 8 Article
+    13C)
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms West Virginia is a full SST
+    member effective October 1, 2005
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference for
+    2026 dates of the August holiday and per-scope caps
+    (used as one input among many; primary source is the
+    West Virginia State Tax Department)
+- **Module file:** `src/opensalestax/states/west_virginia.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wv branch)
+- *Notes:*
+  - **The grocery phase-out is the headline historical
+    finding.** West Virginia's seven-year, six-step
+    elimination of the state grocery sales tax (6% -> 5%
+    in 2006, 4% in 2007, 3% in 2008, 2% in early 2012, 1%
+    in mid-2012, 0% in mid-2013) is unusually well-
+    documented and is encoded in both the module docstring
+    and the ``groceries`` TaxabilityRule's ``notes`` field
+    so future maintainers do not lose the legislative
+    history. A regression test
+    (``test_west_virginia_groceries_exempt_with_phase_out_history``)
+    asserts the phase-out narrative remains in the rule's
+    notes.
+  - **The August holiday is multi-scope with five distinct
+    per-item caps.** Because :class:`HolidayWindow`'s
+    ``max_amount_per_item`` is a single ``Decimal`` value,
+    each scope is encoded as its own ``HolidayWindow`` --
+    the same pattern used by VA, MO, and other multi-scope-
+    holiday states. A regression test
+    (``test_west_virginia_holiday_per_scope_caps``) asserts
+    every cap matches the statute.
+  - **No general county sales tax.** West Virginia is one of
+    the few SST states that does not authorize a county
+    sales tax. All local sales-tax authority is via the
+    Municipal Home Rule program under W. Va. Code section
+    8-13C; ~50+ municipalities have adopted, but counties
+    cannot impose a sales tax.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WV's actual rate-file codes were not empirically
+    validated at promotion time. The module defaults to the
+    canonical MN/WI mapping (45=state, 00=county, 01=city,
+    63=district). Validating against an actual WVR<...>.csv
+    file is the natural next maintenance task. Note: since
+    WV does not authorize a general county sales tax, the
+    "00=county" mapping is largely vestigial for WV.
+  - **Digital goods / SST conformity.** West Virginia
+    adopted the SST uniform digital-products definitions in
+    section 11-15B-2 effective 2008. Specified digital
+    products and electronically-delivered prewritten
+    software are taxable at the general 6% rate, consistent
+    with the SST conforming-state norm.
+
+### **WY -- Wyoming** *(Phase 7 final SST promotion)*
+
+- **Statewide rate:** **4.0% effective 1993-07-01** (raised from
+  3% to 4% by Senate Enrolled Act 31 of the 1993 Wyoming
+  Legislature; in continuous effect since)
+- **Tax model:** sales tax (Selective Sales Tax Act of 1937, Wyo.
+  Stat. Title 39, Chapter 15, as amended)
+- **Local jurisdictions:** counties (general-purpose option up to
+  1% under Wyo. Stat. section 39-15-204(a)(i); specific-purpose
+  option up to 1% under Wyo. Stat. section 39-15-204(a)(iii));
+  combined rates typically 4%-7%
+- **Sales-tax holidays:** **NONE** -- WY has NEVER enacted a
+  sales-tax holiday of any kind
+- **Threshold rules:** none
+- **Digital goods:** **NOT TAXABLE** -- the sales-tax base is
+  statutorily limited to tangible personal property plus a
+  closed list of enumerated services per Wyo. Stat. section
+  39-15-103(a)(i); the Wyoming Legislature has NOT extended
+  the base to "specified digital products"
+- **Phase 7 milestone:** WY is the **FINAL Streamlined Sales Tax
+  member promoted from tier 2 to tier 1**. With this module
+  shipped, every SST member state has a fully-maintained tier-1
+  taxability matrix grounded in primary statutory sources. This
+  completes the SST tier-2 -> tier-1 ratchet that started in v0.8
+  with AR/GA/IA/IN, continued through v0.9 KS/KY/MI/NE/NV and
+  v0.10 NC/ND/NJ/OH/OK, and concludes at v0.11 with WY.
+- **DOR URL:** **https://revenue.wyo.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted:**
+  - Wyo. Stat. section 39-15-103(a)(i) -- imposition paragraph;
+    base limited to tangible personal property + enumerated
+    services
+  - Wyo. Stat. section 39-15-104(a) -- 4% state rate
+  - Wyo. Stat. section 39-15-105(a)(iii)(C) -- food-for-domestic-
+    home-consumption exemption (effective 2006-07-01 per Senate
+    Enrolled Act 64 of the 2006 Wyoming Legislature)
+  - Wyo. Stat. section 39-15-105(a)(viii) -- prescription drug
+    exemption (covers prescription drugs, insulin, hypodermic
+    syringes for human use, oxygen and oxygen-delivery
+    equipment for human use, prosthetic devices)
+  - Wyo. Stat. section 39-15-204(a)(i) -- general-purpose
+    county sales tax up to 1% ("5th penny")
+  - Wyo. Stat. section 39-15-204(a)(iii) -- specific-purpose
+    county sales tax up to 1% ("6th penny")
+- *Sources for rate/taxability:*
+  - **Wyoming Department of Revenue main page**
+    (https://revenue.wyo.gov/), retrieved 2026-05-03 --
+    confirms 4% state rate
+  - **Wyoming Department of Revenue Excise Tax Division**
+    (https://revenue.wyo.gov/divisions/excise-tax),
+    retrieved 2026-05-03 -- main excise-tax landing page;
+    confirms statewide 4% rate and lists current sales/use/
+    lodging tax rate chart for all 23 counties
+  - **Wyoming Department of Revenue Excise Tax Publications**
+    (https://revenue.wyo.gov/divisions/excise-tax/excise-tax-publications),
+    retrieved 2026-05-03 -- "Sales, Use and Lodging Tax Rate
+    Chart" published quarterly with current per-county
+    combined rates
+  - **Wyoming Department of Revenue Sales Tax FAQ**
+    (https://revenue.wyo.gov/divisions/excise-tax/sales-tax),
+    retrieved 2026-05-03 -- confirms food for domestic home
+    consumption exemption (since 2006), prescription drug
+    exemption, and the absence of any sales-tax holiday
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms Wyoming is a full SST member
+  - **Sovos State-by-State Guide** (specs/research/
+    sovos-state-summary.md), cross-referenced 2026-05-03 --
+    confirms 4.0% state rate, $100k economic-nexus threshold,
+    SST member status; no documented Sovos defects on the
+    WY row
+- **Module file:** `src/opensalestax/states/wyoming.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wy branch -- Phase 7 final SST promotion)
+- *Notes:*
+  - **Phase 7 completion is the historic finding.** With WY's
+    promotion every SST member state ships a fully-maintained
+    tier-1 taxability matrix; the SST tier-2 backlog is
+    EMPTY. The remaining tier-2 list (RI, SD, TN, UT, VT, WA,
+    WV) consists of 7 SST member states whose default
+    taxability matrix is sufficient placeholder until they are
+    individually promoted -- though after WY ships, the
+    tier-2 framework is no longer the canonical "where SST
+    members live before they're promoted" path; future state
+    promotions will be driven by individual contributor
+    interest rather than batch ratcheting.
+  - **Digital goods exemption is the second notable finding.**
+    WY is one of a small minority of SST states (joining MI,
+    NV, OK) that does NOT tax electronically-delivered digital
+    products. The basis is the statutory limitation in section
+    39-15-103(a)(i): the sales-tax base is "the sales price
+    paid for tangible personal property" plus a closed list of
+    enumerated services (lodging, communications, intrastate
+    transportation, admissions to places of amusement). The
+    Wyoming Legislature has NOT amended the Selective Sales
+    Tax Act to adopt the SST "specified digital products"
+    definitions. A defensive regression test
+    (`test_wyoming_digital_goods_NOT_taxable_with_statutory_citation`)
+    catches a future maintainer who copies a digital-goods-
+    taxable pattern from a peer SST state.
+  - **No-sales-tax-holiday is the third notable finding.**
+    Wyoming is one of the cleanest "no holidays in any year"
+    states (alongside MI, ID, IN, KY, NE, NJ, ND). A
+    defensive regression test
+    (`test_wyoming_holidays_for_all_years_returns_empty`)
+    locks in this position across 2024-2030. If a future
+    Legislature enacts a holiday, that test will fail -- the
+    appropriate response is to add the explicit
+    HolidayWindow rather than weaken the test.
+  - **Grocery exemption is dated.** The
+    food-for-domestic-home-consumption exemption is
+    relatively recent in WY's tax history -- enacted in 2006
+    under Senate Enrolled Act 64 and codified at Wyo. Stat.
+    section 39-15-105(a)(iii)(C). Before 2006-07-01, groceries
+    were taxable at the full state + local rate. The historical
+    cutoff matters if a downstream consumer needs to compute
+    historical Wyoming sales tax for any pre-2006 transaction
+    audit (the engine's TaxabilityRule.effective_from defaults
+    to 1900-01-01 in v1, which over-grants the exemption for
+    pre-2006 dates -- a v0.6+ improvement candidate but not
+    blocking for current-year calculations).
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WY's actual rate-file codes were not empirically validated
+    at promotion time. The module defaults to the canonical
+    MN/WI mapping (45=state, 00=county, 01=city, 63=district).
+    Validating against an actual WYR<...>.csv file is the
+    natural next maintenance task.
+  - **Local-option overlay is voter-driven.** Per-county rates
+    in WY shift over time as voters approve / sunset 5th-penny
+    and 6th-penny options. The SST quarterly file is the
+    authoritative source; ad-hoc rate updates between
+    quarterly files (rare in practice but possible) would
+    require an out-of-band data refresh.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

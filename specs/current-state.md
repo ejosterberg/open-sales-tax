@@ -46,16 +46,17 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.8.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.8.0) | 2026-05-03 | AR, GA, IA, IN tier-1 (Phase 7 Batch P1 — 4 SST tier-2→tier-1 promotions) |
 | [v0.9.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.9.0) | 2026-05-03 | KS, KY, MI, NE, NV tier-1 (Phase 7 Batch P2 — 5 more SST promotions) |
 | [v0.10.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.10.0) | 2026-05-03 | NJ, NC, ND, OH, OK tier-1 (Phase 7 Batch P3 — 5 more SST promotions) |
+| [v0.11.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.0) | 2026-05-03 | RI, SD, TN, UT, VT, WA, WV, WY tier-1 (Phase 7 Batch P4 — **final SST batch; all 22 SST members now tier-1**) |
 
 ## Coverage (after v0.5)
 
 | Tier | Count | States |
 |---|---:|---|
-| **Tier 1** -- fully maintained | **39** | MN, WI, CA, TX, NY, FL, PA, IL, MD, MA, AZ, AK, DE, MT, NH, OR, CT, DC, SC, VA, CO, ID, LA, MO, MS, AR, GA, IA, IN, KS, KY, MI, NE, NV, NC, ND, NJ, OH, OK |
-| **Tier 2** -- rate-only via SST data | **8** | RI, SD, TN, UT, VT, WA, WV, WY |
+| **Tier 1** -- fully maintained | **47** | All 50 states except AL, HI, NM (and DC; PR remains tier-0 territorial regime) |
+| **Tier 2** -- rate-only via SST data | **0** | (Phase 7 complete — every SST member promoted to tier-1) |
 | Unsupported | **5** | AL, HI, NM, PR, + 1 |
 
-**47 of 52 jurisdictions** with first-class engine support (39 tier-1 fully maintained + 8 tier-2 rate-only).
+**47 of 52 jurisdictions are fully tier-1 maintained.** Phase 7 closed v0.11.0 — every SST member is now tier-1.
 
 ## Feature ladder
 

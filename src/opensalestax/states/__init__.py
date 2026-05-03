@@ -50,9 +50,16 @@ from opensalestax.states import (
     pennsylvania,  # noqa: F401
     rhode_island,  # noqa: F401
     south_carolina,  # noqa: F401
+    south_dakota,  # noqa: F401
+    tennessee,  # noqa: F401
     texas,  # noqa: F401
+    utah,  # noqa: F401
+    vermont,  # noqa: F401
     virginia,  # noqa: F401
+    washington,  # noqa: F401
+    west_virginia,  # noqa: F401
     wisconsin,  # noqa: F401
+    wyoming,  # noqa: F401
 )
 from opensalestax.states.protocol import (
     BoundaryRow,

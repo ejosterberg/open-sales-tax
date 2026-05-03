@@ -51,19 +51,28 @@ requires a named maintainer.
 | Oklahoma | OK | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; HB 1955 of 2024 eliminated state-portion grocery tax effective 2024-08-29 -- locals still apply; August clothing/footwear $100 holiday under 68 O.S. 1357.10; digital goods NOT taxable per OAC 710:65-19-156)_ |
 | Rhode Island | RI | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1 promotion; statewide 7.0% only -- RI levies no general local sales tax (combined rate equals state rate everywhere; mirrors IN/KY/MI). Clothing exempt up to $250 per article per R.I. Gen. Laws § 44-18-30(27) with the excess above $250 taxable at 7%; the v0.10 engine does not yet enforce per-item thresholds, so the module encodes is_taxable=False to match the dominant case (everyday clothing under $250) -- under-collects on the excess-above-$250 portion of high-end items pending the v0.6 threshold-rules feature. No state sales-tax holiday.)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
+| South Dakota | SD | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; 4.2% per SDCL § 10-45-2 with **statutory sunset 2027-06-30** per HB 1137 of 2023 (reverts to 4.5% absent extension); groceries fully taxed; **Wayfair plaintiff state**)_ |
+| Tennessee | TN | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; SST associate member; 7.0% per Tenn. Code Ann. § 67-6-202; reduced 4.0% grocery rate via rate_modifier (§ 67-6-228); back-to-school holiday Jul 24-26, 2026 with 4 scopes)_ |
+| Utah | UT | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; rate composition 4.85% = 4.7% state + 0.10% statewide-uniform local + 0.05% mass transit per Utah Code § 59-12-103; reduced 1.75% grocery state rate via rate_modifier; **Navajo Nation deferred regime** under federal Indian-law preemption)_ |
+| Vermont | VT | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; 6.0% per Vt. Stat. Ann. tit. 32 § 9771; clothing EXEMPT year-round per § 9741(45) -- joins PA/MA/MN/NJ/RI broad-exemption club; Local Option Sales Tax 1% in ~17 towns deferred to per-municipality data)_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
+| Washington | WA | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; 6.5% per RCW § 82.08.020; combined rates up to ~10.35% (King County); broad digital-services tax base per RCW § 82.04.050(6) + § 82.04.192; **B&O gross-receipts tax under RCW chapter 82.04 is a separate seller-side tax and out of scope**)_ |
+| West Virginia | WV | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; 6.0% per W. Va. Code § 11-15-3; **groceries fully exempt since 2013** after a 7-year phase-out (6%→5%→4%→3%→2%→1%→0%); August holiday Aug 7-10, 2026 with 5 scope-specific windows)_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
+| Wyoming | WY | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1; **final SST promotion completing Phase 7**; 4.0% per Wyo. Stat. § 39-15-104; digital goods NOT taxable -- joins MI/NV/OK; no holidays ever)_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 7 other Streamlined Sales Tax member states ship as tier 2 —
-official SST data drives rates and boundaries, default taxability
-matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10; RI in v0.11 -- see the table above.)
+**Phase 7 complete in v0.11.0 — every SST member is now tier 1.**
 
-If you'd like to upgrade your state to tier 1, please open an issue.
+The 22 SST members were promoted across:
+- v0.1 ship (MN, WI)
+- v0.8 (AR, GA, IA, IN)
+- v0.9 (KS, KY, MI, NE, NV)
+- v0.10 (NJ, NC, ND, OH, OK)
+- v0.11 (RI, SD, TN, UT, VT, WA, WV, WY) — final batch
 
-States: SD, TN, UT, VT, WA, WV, WY.
+No SST states remain in tier-2.
 
 ### No-tax states
 
