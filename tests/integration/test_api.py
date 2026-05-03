@@ -71,8 +71,9 @@ async def test_states_lists_all_52(client: AsyncClient) -> None:
 async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None:
     """All SST tier-1 + no-tax tier-1 states show tier=1.
 
-    AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9 --
-    all part of the Phase 7 SST ratchet.
+    AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
+    NC promoted in the Phase 7 SST ratchet -- all part of the
+    SST tier-2 -> tier-1 program.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
@@ -86,6 +87,7 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
         "KS",
         "KY",
         "MI",
+        "NC",
         "NE",
         "NV",
         "AK",
@@ -99,10 +101,12 @@ async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9. All SST tier-1."""
+    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9;
+    NC promoted in the Phase 7 SST ratchet. All SST tier-1.
+    """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AR", "GA", "IA", "IN", "KS", "KY", "MI", "NE", "NV"):
+    for abbrev in ("AR", "GA", "IA", "IN", "KS", "KY", "MI", "NC", "NE", "NV"):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
