@@ -47,14 +47,6 @@ class Georgia(SstStateModule):
     state_fips = "13"
 
 
-class Iowa(SstStateModule):
-    """Iowa (IA) -- SST member, state base 6.0%, FIPS 19."""
-
-    state_abbrev = "IA"
-    state_name = "Iowa"
-    state_fips = "19"
-
-
 class Indiana(SstStateModule):
     """Indiana (IN) -- SST member, state base 7.0%, FIPS 18."""
 
@@ -226,7 +218,6 @@ class Wyoming(SstStateModule):
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
     Arkansas,
     Georgia,
-    Iowa,
     Indiana,
     Kansas,
     Kentucky,

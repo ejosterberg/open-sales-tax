@@ -1261,13 +1261,116 @@ Format for each state:
     2026 so a future maintainer must explicitly add data when
     holidays are reauthorized.
 
+## IA -- Iowa
+
+- **Statewide rate:** **6.000% effective 2008-07-01** (raised from
+  5% to 6% by Senate File 2400 of the 82nd General Assembly,
+  effective July 1, 2008; codified at Iowa Code section 423.2)
+- **Tax model:** sales tax (SST member -- per-jurisdiction rates
+  load via the standard SST quarterly file)
+- **Local jurisdictions:** counties + incorporated cities may
+  impose a 1% Local Option Sales Tax (LOST) under Iowa Code
+  chapter 423B by voter approval; combined rates typically 6-7%
+  statewide. SST member status means rate data flows through the
+  inherited :class:`SstStateModule` parser; no manual loader
+  needed.
+- **Sales-tax holidays:** 1 annual statutory holiday (Iowa Annual
+  Sales Tax Holiday, first Friday and Saturday in August, per
+  Iowa Code section 423.3(68); clothing/footwear under $100 per
+  article, accessories and athletic wear excluded)
+- **Threshold rules:** the August holiday's $100 per-article cap
+  is encoded as ``HolidayWindow.max_amount_per_item``. Note: the
+  statutory threshold is "less than $100" (strict <, not <=);
+  documented in HolidayWindow.notes for the v0.6+ threshold-rule
+  enforcement layer.
+- **DOR URL:** **https://tax.iowa.gov** *(retrieved 2026-05-03)*
+- **Statutes consulted:**
+  - Iowa Code section 423.2 -- imposition of state sales tax
+    (6% rate; raised from 5% effective 2008-07-01 by S.F. 2400,
+    82nd G.A.)
+  - Iowa Code section 423.3(57) -- exemption for food and food
+    ingredients (uniform SST definition; excludes prepared food,
+    candy, soft drinks, dietary supplements)
+  - Iowa Code section 423.3(60) -- exemption for prescription
+    drugs and related items (insulin, hypodermic syringes for
+    human use, oxygen equipment for human use, prosthetic
+    devices)
+  - Iowa Code section 423.3(68) -- annual sales tax holiday
+    (first Friday in August at 12:01 a.m. through following
+    Saturday at 11:59 p.m.; clothing and footwear under $100
+    per article; accessories and athletic / protective clothing
+    excluded)
+  - Iowa Code section 423.5A -- imposition of sales tax on
+    specified digital products (added by H.F. 779 of the 87th
+    G.A., effective 2019-01-01); covers digital audio works,
+    digital audiovisual works, digital books, and "other
+    digital products" delivered electronically -- whether sold
+    with a permanent right of use or under a subscription /
+    conditional access model
+  - Iowa Code section 423.3(47) -- USE-based exemption for
+    certain computer-related purchases by manufacturers /
+    insurers / financial institutions / commercial enterprises
+    (NOT modeled in the general taxability matrix; applies at
+    the line-item exemption-certificate level)
+  - Iowa Code chapter 423B -- Local Option Sales Tax authority
+    (city/county-level 1% LOST by voter approval)
+- *Sources for rate/taxability:* Iowa Department of Revenue
+  guidance pages (tax.iowa.gov) cross-referenced with the Iowa
+  General Assembly's online code (https://www.legis.iowa.gov)
+  and the Streamlined Sales Tax Project member roster
+  (https://www.streamlinedsalestax.org). Sovos summary entry
+  for Iowa was used as a starting cross-check (confirmed 6%
+  rate, sales tax holiday "first Friday and Saturday in
+  August", clothing/footwear focus); statutory citations
+  verified directly against Iowa Code chapter 423.
+- **Module file:** `src/opensalestax/states/iowa.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (Phase 7 -- first SST tier-2 -> tier-1 promotion)
+- *Notes:*
+  - IA is the FIRST SST tier-2 -> tier-1 promotion. The module
+    subclasses :class:`SstStateModule` per the brief's
+    "tier-2 -> tier-1" pattern (lines 124-141 of
+    `specs/agent-briefs/per-state-research-brief.md`); rate
+    parsing is inherited from the base, only the taxability
+    matrix and the August holiday are overridden. Other tier-2
+    SST promotions should follow this same pattern.
+  - SST jurisdiction-type code mapping for IA defaults to the
+    MN/WI scheme (00 county / 01 city / 45 state / 63 district)
+    inherited from :data:`opensalestax.states._sst_base._DEFAULT_JURISDICTION_TYPE`.
+    No 2026Q2 IA SST file has been captured to confirm the
+    codes empirically; the next maintainer should validate
+    against an Iowa SST quarterly capture and override
+    ``jurisdiction_types`` on the subclass if any code differs.
+    Documented as a follow-up rather than a blocker because
+    the SST file format is uniform across the membership in
+    every other state where we have data.
+  - Iowa is one of the few states that taxes specified digital
+    products explicitly via a dedicated statute (section 423.5A)
+    rather than via an interpretive expansion of the TPP
+    definition. The statute is broad: subscription / SaaS-style
+    digital media delivery is taxable in Iowa, in contrast to
+    e.g. Idaho where SaaS is excluded from TPP.
+  - The August holiday's "less than $100" threshold is strict
+    (an article priced at exactly $100 does NOT qualify). The
+    HolidayWindow.max_amount_per_item field stores this as
+    ``Decimal("100.00")``; downstream callers implementing the
+    threshold rule should compare with ``<``, not ``<=``.
+  - Iowa Code section 423.3(47) (manufacturer software exemption)
+    is a USE-based exemption that the general matrix does not
+    model. Downstream callers shipping software to Iowa
+    manufacturers should apply a line-item exemption certificate
+    rather than relying on the per-state default.
+
 ### Tier-2 SST states (rate-only, default taxability)
 
-22 states load via the generic `SstStateModule` in
+21 states load via the generic `SstStateModule` in
 `src/opensalestax/states/_tier2.py`:
 
-AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
+AR, GA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD,
 TN, UT, VT, WA, WV, WY
+
+(IA was promoted to tier 1 in v0.7.x -- see the IA section
+above for module details.)
 
 Each has a one-class entry there with state_abbrev + state_name +
 state_fips. They use the SST quarterly data files for rates and
