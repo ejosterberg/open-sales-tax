@@ -3243,6 +3243,195 @@ default taxability (everything taxable except groceries). To
     it does not affect rate calculation but is documented in
     the module docstring for the next maintainer.
 
+## WV -- West Virginia
+
+- **Statewide rate:** **6.000% effective 2003-01-01** (raised
+  from 5% to 6% by H.B. 2007 of the 2002 Second Extraordinary
+  Session; codified at W. Va. Code section 11-15-3. The 6%
+  state rate has been stable since 2003.)
+- **Tax model:** sales tax (consumers sales and service tax);
+  SST member -- full member effective October 1, 2005
+  (verified 2026-05-03 against the SST member roster on
+  streamlinedsalestax.org)
+- **Local jurisdictions:** West Virginia does NOT authorize a
+  general county sales tax. Local sales-tax authority is
+  limited to **municipal home-rule** participants under
+  **W. Va. Code section 8-13C** (the Municipal Home Rule
+  Pilot Program, made permanent by H.B. 4009 of the 2019
+  Regular Session). Participating municipalities may impose
+  a municipal sales and service tax of **up to 1.0%**, in
+  addition to the 6% state rate. ~50+ municipalities have
+  adopted the local 1% (Charleston, Huntington, Morgantown,
+  Wheeling, Parkersburg, Beckley, etc.), giving combined
+  rates in the **6.0%-7.0%** range. As an SST member, WV's
+  per-jurisdiction rates flow through the standard SST
+  quarterly file via the inherited
+  :class:`SstStateModule` parser.
+- **Notable rate exception -- the multi-year grocery phase-out
+  culminating in 0% on 2013-07-01 (W. Va. Code section
+  11-15-3a):** West Virginia's grocery sales tax was phased
+  down step-by-step over seven years and fully eliminated on
+  2013-07-01 -- one of the most documented multi-year
+  grocery-tax phase-outs in the country. The schedule:
+
+    * Pre-2006: full 6% (the general rate)
+    * Effective **2006-01-01: 5%** (H.B. 4346, 2005 Regular
+      Session)
+    * Effective **2007-07-01: 4%** (H.B. 4067, 2006 Regular
+      Session)
+    * Effective **2008-07-01: 3%** (H.B. 4006, 2008 Regular
+      Session)
+    * Effective **2012-01-01: 2%** (S.B. 234, 2011 Regular
+      Session)
+    * Effective **2012-07-01: 1%** (continuation of the
+      same phase-down)
+    * Effective **2013-07-01: 0%** -- the final step;
+      groceries have been fully exempt at the state level
+      ever since.
+
+  Encoded as ``is_taxable=False`` on the ``groceries``
+  TaxabilityRule. Items NOT meeting the SST "food and food
+  ingredients" definition (candy, soft drinks, dietary
+  supplements, prepared food) are NOT covered by the section
+  11-15-3a exemption and remain taxable at the general 6%
+  rate. Note: municipal home-rule sales taxes (under section
+  8-13C) generally also exempt food and food ingredients in
+  conformity with the state exemption, though per-municipality
+  variation is theoretically possible.
+- **Sales-tax holidays:** **ONE annual holiday** under
+  **W. Va. Code section 11-15-9o** (enacted by H.B. 2025,
+  2021 Regular Session). The holiday runs from 12:00 a.m.
+  on the **first Friday in August** through 11:59 p.m. on
+  the following **Monday** -- a 4-day window. The holiday is
+  multi-scope with FIVE distinct per-item caps:
+
+    * **Clothing and footwear**: $125 or less per item
+    * **School supplies**: $50 or less per item
+    * **School instructional materials**: $20 or less per item
+    * **Sports equipment**: $150 or less per item
+    * **Computers / tablets / laptops** for personal use:
+      $500 or less per item
+
+  Each scope is encoded as a SEPARATE :class:`HolidayWindow`
+  because :attr:`HolidayWindow.max_amount_per_item` is a
+  single-value field. **2026 dates: August 7 (Friday) -
+  August 10 (Monday), 2026** (first Friday in August 2026
+  is August 7).
+- **Threshold rules:** the August holiday's per-scope caps
+  function as threshold rules during the 4-day window.
+  Year-round threshold rules: none.
+- **DOR URL:** **https://tax.wv.gov/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (W. Va. Code Chapter 11 -- Taxation,
+  Article 15 -- Consumers Sales and Service Tax, Article
+  15B -- Streamlined Sales and Use Tax Administration, and
+  W. Va. Code Chapter 8, Article 13C -- Municipal Home
+  Rule):**
+  - W. Va. Code section 11-15-3 -- 6% state consumers sales
+    and service tax (raised from 5% to 6% by H.B. 2007,
+    Second Extraordinary Session 2002, effective
+    2003-01-01)
+  - W. Va. Code section 11-15-3a -- exemption from the
+    state sales tax for food and food ingredients for
+    home consumption (the multi-year phase-out
+    statute; fully exempt at 0% effective 2013-07-01)
+  - W. Va. Code section 11-15-9 -- general exemptions list
+  - W. Va. Code section 11-15-9(a)(11) -- exemption for
+    drugs, durable medical goods, mobility-enhancing
+    equipment, and prosthetic devices dispensed upon
+    prescription
+  - W. Va. Code section 11-15-9o -- annual sales tax
+    holiday (enacted by H.B. 2025, 2021 Regular Session;
+    first Friday-Monday of August; 5 scopes with per-item
+    caps of $125 / $50 / $20 / $150 / $500)
+  - W. Va. Code section 11-15B-2 -- SST conforming
+    definitions article (incorporates uniform "specified
+    digital products," "food and food ingredients,"
+    "prepared food," "drugs sold by prescription," and
+    related definitions)
+  - W. Va. Code section 8-13C-1 et seq. -- Municipal Home
+    Rule program (general framework); section 8-13C-4
+    authorizes participating municipalities to impose a
+    municipal sales and service tax up to 1.0% in addition
+    to the state rate
+- *Sources for rate/taxability:*
+  - **West Virginia State Tax Department** main page
+    (https://tax.wv.gov/), retrieved 2026-05-03 -- confirms
+    6% state rate
+  - **West Virginia State Tax Department -- Sales and Use
+    Tax** publications page
+    (https://tax.wv.gov/Business/SalesAndUseTax/Pages/SalesAndUseTax.aspx),
+    retrieved 2026-05-03 -- primary source for taxability,
+    home-rule local-tax disposition, and prescription-drug
+    / grocery exemption mechanics
+  - **West Virginia State Tax Department -- Sales Tax
+    Holiday** page
+    (https://tax.wv.gov/Business/SalesAndUseTax/Pages/SalesTaxHoliday.aspx),
+    retrieved 2026-05-03 -- confirms 4-day August holiday
+    schedule (first Friday through following Monday) and
+    per-scope caps ($125 clothing, $50 school supplies, $20
+    instructional materials, $150 sports equipment, $500
+    computers/tablets/laptops); 2026 dates are August 7-10
+  - **West Virginia Legislature -- W. Va. Code online**
+    (https://code.wvlegislature.gov/), retrieved 2026-05-03
+    -- primary source for every statutory citation above
+    (Chapter 11 Article 15, Article 15B; Chapter 8 Article
+    13C)
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms West Virginia is a full SST
+    member effective October 1, 2005
+  - **Sales Tax Institute holiday compendium**
+    (https://www.salestaxinstitute.com/resources/sales-tax-holidays),
+    retrieved 2026-05-03 -- secondary cross-reference for
+    2026 dates of the August holiday and per-scope caps
+    (used as one input among many; primary source is the
+    West Virginia State Tax Department)
+- **Module file:** `src/opensalestax/states/west_virginia.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-wv branch)
+- *Notes:*
+  - **The grocery phase-out is the headline historical
+    finding.** West Virginia's seven-year, six-step
+    elimination of the state grocery sales tax (6% -> 5%
+    in 2006, 4% in 2007, 3% in 2008, 2% in early 2012, 1%
+    in mid-2012, 0% in mid-2013) is unusually well-
+    documented and is encoded in both the module docstring
+    and the ``groceries`` TaxabilityRule's ``notes`` field
+    so future maintainers do not lose the legislative
+    history. A regression test
+    (``test_west_virginia_groceries_exempt_with_phase_out_history``)
+    asserts the phase-out narrative remains in the rule's
+    notes.
+  - **The August holiday is multi-scope with five distinct
+    per-item caps.** Because :class:`HolidayWindow`'s
+    ``max_amount_per_item`` is a single ``Decimal`` value,
+    each scope is encoded as its own ``HolidayWindow`` --
+    the same pattern used by VA, MO, and other multi-scope-
+    holiday states. A regression test
+    (``test_west_virginia_holiday_per_scope_caps``) asserts
+    every cap matches the statute.
+  - **No general county sales tax.** West Virginia is one of
+    the few SST states that does not authorize a county
+    sales tax. All local sales-tax authority is via the
+    Municipal Home Rule program under W. Va. Code section
+    8-13C; ~50+ municipalities have adopted, but counties
+    cannot impose a sales tax.
+  - **SST jurisdiction-type code mapping is an ASSUMPTION**:
+    WV's actual rate-file codes were not empirically
+    validated at promotion time. The module defaults to the
+    canonical MN/WI mapping (45=state, 00=county, 01=city,
+    63=district). Validating against an actual WVR<...>.csv
+    file is the natural next maintenance task. Note: since
+    WV does not authorize a general county sales tax, the
+    "00=county" mapping is largely vestigial for WV.
+  - **Digital goods / SST conformity.** West Virginia
+    adopted the SST uniform digital-products definitions in
+    section 11-15B-2 effective 2008. Specified digital
+    products and electronically-delivered prewritten
+    software are taxable at the general 6% rate, consistent
+    with the SST conforming-state norm.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

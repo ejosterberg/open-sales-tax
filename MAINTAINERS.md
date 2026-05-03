@@ -51,18 +51,19 @@ requires a named maintainer.
 | Oklahoma | OK | _vacant — see issue tracker_ | _v0.10 (SST tier-2 -> tier-1 promotion; HB 1955 of 2024 eliminated state-portion grocery tax effective 2024-08-29 -- locals still apply; August clothing/footwear $100 holiday under 68 O.S. 1357.10; digital goods NOT taxable per OAC 710:65-19-156)_ |
 | South Carolina | SC | _vacant — see issue tracker_ | _v0.6_ |
 | Virginia | VA | _vacant — see issue tracker_ | _v0.6_ |
+| West Virginia | WV | _vacant — see issue tracker_ | _v0.11 (SST tier-2 -> tier-1 promotion; grocery sales tax phased out 2006-2013, fully exempt at 0% effective 2013-07-01 per W. Va. Code section 11-15-3a; 4-day August holiday under W. Va. Code section 11-15-9o with five per-item caps -- $125 clothing, $50 supplies, $20 instructional, $150 sports, $500 computers; municipal home-rule local sales tax up to 1% under W. Va. Code section 8-13C, no general county sales tax)_ |
 | Wisconsin | WI | _vacant — see issue tracker_ | _Phase 1 ship_ |
 
 ### Tier 2 states (rate-only via SST data)
 
-The 8 other Streamlined Sales Tax member states ship as tier 2 —
+The 7 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10 -- see the table above.)
+(AR, GA, IA, IN promoted in v0.8; KS, KY, MI, NE, NV in v0.9; NC, ND, NJ, OH, OK in v0.10; WV in v0.11 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: RI, SD, TN, UT, VT, WA, WV, WY.
+States: RI, SD, TN, UT, VT, WA, WY.
 
 ### No-tax states
 
