@@ -2,8 +2,8 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """Tier-2 SST member states (rate-only via SST data, default taxability).
 
-The 14 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN,
-KS, KY, MI, NE are now tier 1). Each is a ~10-line subclass of
+The 13 SST members not yet promoted to tier 1 (MN, WI, AR, GA, IA, IN,
+KS, KY, MI, NE, NV are now tier 1). Each is a ~10-line subclass of
 :class:`SstStateModule` providing only the state-specific metadata
 (USPS abbreviation, full name, state FIPS).
 
@@ -24,25 +24,17 @@ from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
-# 14 tier-2 SST states. Order roughly alphabetical for readability.
+# 13 tier-2 SST states. Order roughly alphabetical for readability.
 # Sources:
 # - Sovos summary: specs/research/sovos-state-summary.md
 # - SST membership list: specs/research/state-coverage.md
 # - State FIPS codes: census.gov / NIST
 #
 # Arkansas (AR), Georgia (GA), Indiana (IN), Iowa (IA), Kansas (KS),
-# Kentucky (KY), Michigan (MI), and Nebraska (NE) were promoted to
-# tier 1 in v0.8/v0.9 -- see their dedicated modules in
+# Kentucky (KY), Michigan (MI), Nebraska (NE), and Nevada (NV) were
+# promoted to tier 1 in v0.8/v0.9 -- see their dedicated modules in
 # ``opensalestax/states/``.
 # ---------------------------------------------------------------------------
-
-
-class Nevada(SstStateModule):
-    """Nevada (NV) -- SST member, state base 6.85%, FIPS 32."""
-
-    state_abbrev = "NV"
-    state_name = "Nevada"
-    state_fips = "32"
 
 
 class NewJersey(SstStateModule):
@@ -163,10 +155,9 @@ class Wyoming(SstStateModule):
 
 
 # ---------------------------------------------------------------------------
-# Register all 14 instances at import time
+# Register all 13 instances at import time
 # ---------------------------------------------------------------------------
 TIER_2_CLASSES: tuple[type[SstStateModule], ...] = (
-    Nevada,
     NewJersey,
     NorthCarolina,
     NorthDakota,
