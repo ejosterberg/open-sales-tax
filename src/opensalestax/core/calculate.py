@@ -51,11 +51,18 @@ class LineItem:
 
 @dataclass(frozen=True, slots=True)
 class JurisdictionResult:
-    """One authority's contribution to the tax on a single line."""
+    """One authority's contribution to the tax on a single line.
+
+    ``tax`` is the dollar amount this authority contributes to the
+    line's tax total. The line's ``tax`` field equals the sum of
+    its jurisdictions' ``tax`` values (no rounding drift): the
+    engine quantizes per-jurisdiction first, then sums.
+    """
 
     name: str
     type: str
     rate_pct: Decimal
+    tax: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,23 +194,29 @@ async def _tax_one_line(
 
     resolved = await resolve_rates_for_authorities(session, authorities, eff_date, item.category)
     rate_pct = combined_rate_pct(resolved)
-    line_tax = (item.amount * rate_pct / Decimal("100")).quantize(
-        TAX_QUANTUM, rounding=ROUND_HALF_UP
-    )
+
+    # Quantize per-jurisdiction first so the breakdown reconciles
+    # exactly with the line total (line.tax == sum(j.tax for j in
+    # line.jurisdictions)). Accounting callers depend on this.
+    jurisdictions = [
+        JurisdictionResult(
+            name=r.authority.name,
+            type=r.authority.authority_type,
+            rate_pct=r.rate_pct,
+            tax=(item.amount * r.rate_pct / Decimal("100")).quantize(
+                TAX_QUANTUM, rounding=ROUND_HALF_UP
+            ),
+        )
+        for r in resolved
+    ]
+    line_tax = sum((j.tax for j in jurisdictions), Decimal("0"))
 
     return CalculatedLine(
         amount=item.amount,
         category=item.category,
         tax=line_tax,
         rate_pct=rate_pct,
-        jurisdictions=[
-            JurisdictionResult(
-                name=r.authority.name,
-                type=r.authority.authority_type,
-                rate_pct=r.rate_pct,
-            )
-            for r in resolved
-        ],
+        jurisdictions=jurisdictions,
     )
 
 

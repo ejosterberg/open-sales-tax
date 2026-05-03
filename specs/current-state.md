@@ -42,6 +42,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.5.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.5.0) | 2026-05-03 | Sales-tax holidays support |
 | [v0.6.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.6.0) | 2026-05-03 | CT, DC, SC, VA tier-1 (Batch A — 4 parallel agents) |
 | [v0.7.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.7.0) | 2026-05-03 | CO, ID, LA, MO, MS tier-1 (Batch B — 5 parallel agents) |
+| [v0.7.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.7.1) | 2026-05-03 | Per-jurisdiction tax dollar amount + OpenAPI examples + README "try it" recipes |
 
 ## Coverage (after v0.5)
 

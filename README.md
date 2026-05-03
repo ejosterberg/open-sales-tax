@@ -72,8 +72,8 @@ fetch / load / status / purge workflow.
 
 Auto-generated OpenAPI 3.x:
 - Spec: `GET /v1/openapi.json`
-- Swagger UI: `GET /v1/docs`
-- ReDoc: `GET /v1/redoc`
+- Swagger UI: `GET /v1/docs` (interactive "Try it out")
+- ReDoc: `GET /v1/redoc` (read-optimized)
 
 Endpoints:
 
@@ -85,6 +85,65 @@ Endpoints:
 | POST | `/v1/calculate` | Tax decomposition for line items |
 
 See [docs/api.md](docs/api.md) for request/response examples.
+
+## Try it out
+
+A live development instance runs at `http://10.32.161.126:8080`.
+Open `/v1/docs` in a browser for an interactive Swagger UI with
+"Try it out" buttons that prefill realistic request bodies.
+
+Or try these curl recipes:
+
+### 1. Health check
+
+```bash
+curl -s http://10.32.161.126:8080/v1/health
+# {"status":"ok","version":"0.7.1","database_connected":true}
+```
+
+### 2. List tier-1 states
+
+```bash
+curl -s http://10.32.161.126:8080/v1/states \
+  | jq '.states[] | select(.tier == 1) | .abbrev'
+```
+
+### 3. Calculate tax with per-jurisdiction breakdown
+
+```bash
+curl -s -X POST http://10.32.161.126:8080/v1/calculate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "address": {"zip5": "55401"},
+    "line_items": [
+      {"amount": "100.00", "category": "general"},
+      {"amount": "50.00", "category": "clothing"}
+    ]
+  }' | jq
+```
+
+The response includes per-line `jurisdictions[]` with `name`, `type`,
+`rate_pct`, and `tax` (dollar amount). The line's `tax` equals the
+sum of its jurisdictions' `tax` values exactly -- accounting callers
+can reconcile state/county/city/district splits.
+
+### 4. Inspect rate stack for a ZIP
+
+```bash
+curl -s 'http://10.32.161.126:8080/v1/rates?zip5=55401' | jq
+```
+
+### 5. Holiday-aware calculation (TX back-to-school)
+
+```bash
+# A $75 clothing item is exempt during the August holiday in Texas
+curl -s -X POST http://10.32.161.126:8080/v1/calculate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "address": {"zip5": "75201"},
+    "line_items": [{"amount": "75.00", "category": "clothing"}]
+  }' | jq '.lines[0].note'
+```
 
 ## Contributing
 

@@ -69,6 +69,7 @@ async def calculate(
                         name=j.name,
                         type=j.type,
                         rate_pct=j.rate_pct,
+                        tax=j.tax,
                     )
                     for j in line.jurisdictions
                 ],

@@ -146,6 +146,13 @@ async def test_full_jurisdiction_stack(async_session: AsyncSession) -> None:
     types = {j.type for j in line.jurisdictions}
     assert types == {"state", "county", "city"}
 
+    # Per-jurisdiction tax breakdown reconciles to the line total
+    by_type = {j.type: j for j in line.jurisdictions}
+    assert by_type["state"].tax == Decimal("6.0000")
+    assert by_type["county"].tax == Decimal("0.5000")
+    assert by_type["city"].tax == Decimal("1.0000")
+    assert sum((j.tax for j in line.jurisdictions), Decimal("0")) == line.tax
+
 
 @pytest.mark.asyncio
 async def test_taxability_rule_zeroes_out_clothing(async_session: AsyncSession) -> None:
