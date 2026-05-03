@@ -2,41 +2,45 @@
 
 **For the next Claude Code session that opens this directory.**
 
-Phase 1 is **shipped as v0.1.0**. Live at
+**v0.5.0 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax),
 publicly visible, Apache 2.0 licensed, CI green on both
-PostgreSQL and MariaDB.
+PostgreSQL and MariaDB. SonarQube 0/0/0/0 clean on 3601 LOC.
+
+Five releases shipped in the autonomous 2026-05-03 build session
+(v0.2 through v0.5). 16 of 52 jurisdictions at tier 1; 22 more at
+tier 2. Sales-tax holidays integrated end-to-end.
 
 ## What to read first
 
 1. `specs/constitution.md` — non-negotiable principles
-2. `specs/current-state.md` — what's done, what's next (Phase 1 ✅)
-3. `specs/phase-1-foundation/acceptance-walkthrough.md` — honest
-   done/deferred per criterion + what v0.2 should ship next
-4. `specs/decisions/` — three locked-in decisions (language,
+2. `specs/current-state.md` — what's done, what's next (latest
+   release status + feature ladder + v0.6 priorities)
+3. `specs/decisions/` — three locked-in decisions (language,
    license, database)
+4. `specs/phase-1-foundation/acceptance-walkthrough.md` — honest
+   done/deferred per Phase 1 criterion (historical context)
 
 5–10 minutes; saves you from re-deriving anything.
 
-## Phase 2 priorities (rough order)
+## v0.6 candidate priorities (rough order)
 
-Per the v0.2 plan in
-`phase-1-foundation/acceptance-walkthrough.md`:
+Per `specs/current-state.md` "Next-session priorities":
 
-1. **`opensalestax data load --state <X> --version <Y>`** — wires
-   the existing fetcher + state-module parsers into the database.
-   This is the missing piece that makes "fetch upstream → query
-   the API → get a real rate" work end-to-end without manual SQL
-   seeding.
-2. **`opensalestax data activate`** — switch the live data
-   version per state.
-3. **API-key auth mode** — already plumbed in `settings.py` and
-   exposed in `/v1/openapi.json`; needs the middleware + an
-   `api_keys` table + a key-management CLI.
-4. **First non-SST tier-1 state** (California is the
-   highest-impact target per Sovos research).
-5. **Per-state address-fixture sweep** for the 22 tier-2 modules
-   — needs state-maintainer engagement, not just code.
+1. **Threshold rules** for NY's <$110 and MA's <$175 clothing
+   exemptions. Same shape as the holidays max-amount cap;
+   structurally similar to v0.5 work.
+2. **`rate_modifier` engine wiring** so IL's 1% reduced grocery
+   rate produces correct tax amounts (modifier is stored in v0.4
+   but ignored by the engine).
+3. **More tier-1 states**: CT, DC, MO, MS, SC, VA — mostly
+   mechanical following the CA pattern.
+4. **2027 holiday data** for TX, FL, MA, MD once 2027 dates are
+   published.
+5. **CDTFA loader** for California's ~1,700 district rates --
+   first significant non-SST data ingestion.
+6. **PostGIS address-level resolution** -- v1.0 territory.
+7. **Client SDKs** (Python, JS/TS, PHP for SC Books integration).
 
 ## Standing rules (mirror Eric's other projects)
 
