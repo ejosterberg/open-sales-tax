@@ -38,6 +38,7 @@ requires a named maintainer.
 | Kansas | KS | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1; state grocery rate phased to 0% effective 2025-01-01 per K.S.A. 79-3603(p))_ |
 | Kentucky | KY | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1; state-only -- KY levies no local sales tax)_ |
 | Louisiana | LA | _vacant — see issue tracker_ | _v0.7 (state portion only; ~64 parishes deferred — see [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md))_ |
+| Michigan | MI | _vacant — see issue tracker_ | _v0.9 (SST tier-2 -> tier-1 promotion; state-only -- MI levies no general local sales tax; notable peer-state difference: digital goods NOT taxable per Treasury RAB 2023-22)_ |
 | Minnesota | MN | _vacant — see issue tracker_ | _Phase 1 ship_ |
 | Mississippi | MS | _vacant — see issue tracker_ | _v0.7_ |
 | Missouri | MO | _vacant — see issue tracker_ | _v0.7_ |
@@ -47,14 +48,14 @@ requires a named maintainer.
 
 ### Tier 2 states (rate-only via SST data)
 
-The 16 other Streamlined Sales Tax member states ship as tier 2 —
+The 15 other Streamlined Sales Tax member states ship as tier 2 —
 official SST data drives rates and boundaries, default taxability
 matrix applies (everything taxable except groceries).
-(AR, GA, IA, IN were promoted in v0.8; KS, KY in v0.9 -- see the table above.)
+(AR, GA, IA, IN were promoted in v0.8; KS, KY, MI in v0.9 -- see the table above.)
 
 If you'd like to upgrade your state to tier 1, please open an issue.
 
-States: MI, NE, NV, NJ, NC, ND, OH, OK, RI,
+States: NE, NV, NJ, NC, ND, OH, OK, RI,
 SD, TN, UT, VT, WA, WV, WY.
 
 ### No-tax states

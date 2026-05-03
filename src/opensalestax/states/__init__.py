@@ -34,6 +34,7 @@ from opensalestax.states import (
     louisiana,  # noqa: F401
     maryland,  # noqa: F401
     massachusetts,  # noqa: F401
+    michigan,  # noqa: F401
     minnesota,  # noqa: F401
     mississippi,  # noqa: F401
     missouri,  # noqa: F401

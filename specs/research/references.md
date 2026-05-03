@@ -1903,6 +1903,117 @@ default taxability (everything taxable except groceries). To
     1990; no scheduled change is currently in the legislative
     pipeline that this research found.
 
+### MI -- Michigan
+
+- **Statewide rate:** **6.000% effective 1994-05-01** (raised from
+  4% to 6% by Proposal A of 1994; constitutionalized at Article IX
+  section 8 of the Michigan Constitution; further increases require
+  a 3/4 supermajority of both legislative chambers)
+- **Tax model:** sales tax (General Sales Tax Act, Public Act 167
+  of 1933, codified at MCL Chapter 205; SST -- full member;
+  verified 2026-05-03 against the SST member roster on
+  streamlinedsalestax.org)
+- **Local jurisdictions:** **NONE** (no general local sales tax).
+  Michigan levies NO general local sales tax; the 6% state rate is
+  the entire combined rate at every Michigan address. Article IX
+  section 8 caps the state rate at 6% and (combined with the
+  General Sales Tax Act) preempts local general sales taxes
+  entirely. A handful of narrow industry-specific local taxes
+  exist (Wayne County / Detroit-area accommodations and
+  convention-facility taxes, stadium development taxes in select
+  counties, city utility-users taxes) but those are NOT general
+  sales taxes and are NOT modeled by this module. This mirrors
+  Indiana's no-local-tax landscape and contrasts with peer SST
+  states (WI counties typically add 0.5%; MN metro adds transit
+  districts).
+- **Sales-tax holidays:** **NONE.** Michigan has never enacted a
+  sales-tax holiday. Confirmed 2026-05-03 against the Michigan
+  Department of Treasury's published guidance and a search of the
+  General Sales Tax Act for any periodic exemption window.
+  ``holidays_for(year)`` returns the empty iterator for every year
+  (mirrors DC, ID, and IN).
+- **Threshold rules:** none.
+- **DOR URL:** **https://www.michigan.gov/treasury/** *(retrieved
+  2026-05-03)*
+- **Statutes consulted (MCL Chapter 205, General Sales Tax Act
+  + Use Tax Act parallels):**
+  - MCL section 205.52(1) -- 6% state sales tax rate
+    (constitutionalized at Mich. Const. Art. IX section 8)
+  - MCL section 205.51(1)(d) -- definition of "sale at retail" /
+    tangible personal property
+  - MCL section 205.54a(1)(g) -- Sales Tax Act exemption for
+    drugs sold for human use pursuant to a written prescription
+  - MCL section 205.54g(1)(a) -- food and food ingredients
+    exemption
+  - MCL section 205.54g(2) -- "prepared food" SST-uniform
+    definition (excluded from the food exemption)
+  - MCL section 205.94d -- Use Tax Act parallel exemption for
+    prescription drugs / insulin / oxygen
+  - Mich. Const. Art. IX section 8 -- 6% sales tax cap; 3/4
+    supermajority required for further increases
+- *Sources for rate/taxability:*
+  - Michigan Department of Treasury Sales and Use Tax landing
+    page (https://www.michigan.gov/treasury/business-taxpayers/
+    sales-use-tax), retrieved 2026-05-03 -- confirms 6% statewide
+    rate and no general local sales tax
+  - Michigan Department of Treasury **Revenue Administrative
+    Bulletin (RAB) 2023-22** (Sales of Computer Software and
+    Digital Products), retrieved 2026-05-03 -- primary source for
+    the digital-goods NOT-taxable position; supersedes RAB 2015-20
+    and earlier RAB 1999-5
+  - **Auto-Owners Insurance Co. v. Department of Treasury**, 313
+    Mich. App. 56 (2015), aff'd 500 Mich. 921 (2016) -- Michigan
+    appellate decision confirming that prewritten computer software
+    delivered electronically (no tangible medium) is not subject to
+    Michigan use tax; underpins the Treasury's RAB position
+  - Michigan Legislature online statutes (MCL Chapter 205) at
+    https://www.legislature.mi.gov/, retrieved 2026-05-03 --
+    primary source for every statutory citation above
+  - Streamlined Sales Tax member roster
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/member-states),
+    cross-checked 2026-05-03 -- confirms Michigan is a full member
+- **Module file:** `src/opensalestax/states/michigan.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-mi branch -- Phase 7 SST tier-2 to tier-1 promotion)
+- *Notes:*
+  - **No general local sales tax** is one of two headline
+    distinctions (alongside the digital-goods position). The
+    module's ``jurisdiction_types`` dict accepts ONLY the
+    state-level SST type code ``"45"`` so any unexpected non-state
+    row in a future quarterly file is silently dropped rather
+    than miscategorized as a sub-state authority Michigan doesn't
+    have. Documented prominently in the module docstring and
+    enforced by a regression test.
+  - **Digital goods are NOT taxable** -- a notable peer-state
+    difference. IA (section 423.5A, eff. 2019), IN (section
+    6-2.5-4-16.4, eff. 2018), and WI (section 77.52(1)(d), eff.
+    2010) all tax electronically-delivered specified digital
+    products; Michigan does not. Treasury's position is
+    administrative (RAB 2023-22) rather than statutory and rests
+    on the General Sales Tax Act's tangible-personal-property
+    limitation, supported by Auto-Owners. A future Michigan
+    Legislature could amend the Act; the rule should be re-
+    verified against the current RAB at every data refresh. The
+    digital_goods rule encodes ``is_taxable=False`` and a
+    regression test catches accidental flips.
+  - **Tangible-medium software still taxable.** Prewritten
+    computer software delivered on a tangible medium (disk, USB
+    drive, etc.) IS taxable as tangible personal property under
+    MCL section 205.51. The 'general' category covers this; only
+    the electronically-delivered case is excluded by the
+    digital_goods rule.
+  - **Narrow accommodations / convention-facility taxes** exist
+    in Wayne County (Detroit area), under the Michigan Convention
+    Facility Development Act, in stadium-district counties, and
+    in Detroit's municipal levies. These are NOT general sales
+    taxes and are NOT modeled by this module -- callers needing
+    lodging-specific calculations for the Detroit area should
+    apply the appropriate excise rate at the line-item level.
+  - **Rate is stable.** The 6% rate has been in place since
+    Proposal A of 1994; the 3/4-supermajority requirement at
+    Mich. Const. Art. IX section 8 makes increases politically
+    very difficult, so no scheduled change is expected.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

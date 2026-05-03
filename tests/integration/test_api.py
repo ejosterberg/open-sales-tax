@@ -71,21 +71,21 @@ async def test_states_lists_all_52(client: AsyncClient) -> None:
 async def test_states_marks_tier_1_states_correctly(client: AsyncClient) -> None:
     """All SST tier-1 + no-tax tier-1 states show tier=1.
 
-    AR, GA, IA, IN, KS, KY were promoted from tier 2 -> tier 1 in
-    v0.8/v0.9 as part of the Phase 7 SST ratchet.
+    AR, GA, IA, IN were promoted from tier 2 -> tier 1 in v0.8;
+    KS, KY, MI in v0.9 -- all part of the Phase 7 SST ratchet.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "KS", "KY", "AK", "DE", "MT", "NH", "OR"):
+    for abbrev in ("MN", "WI", "AR", "GA", "IA", "IN", "KS", "KY", "MI", "AK", "DE", "MT", "NH", "OR"):
         assert states_by_abbrev[abbrev]["tier"] == 1, f"{abbrev} should be tier 1"
 
 
 @pytest.mark.asyncio
 async def test_phase_7_sst_promotions_are_tier_1_sst(client: AsyncClient) -> None:
-    """AR, GA, IA, IN, KS, KY were all promoted from tier 2 to tier 1 in v0.8/v0.9."""
+    """AR, GA, IA, IN promoted in v0.8; KS, KY, MI in v0.9. All SST tier-1."""
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AR", "GA", "IA", "IN", "KS", "KY"):
+    for abbrev in ("AR", "GA", "IA", "IN", "KS", "KY", "MI"):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
@@ -149,19 +149,21 @@ async def test_indiana_is_tier_1_sst(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_kentucky_is_tier_1_sst(client: AsyncClient) -> None:
-    """KY was promoted from tier 2 to tier 1 in Phase 7.
+async def test_no_local_sales_tax_states_are_tier_1_sst(client: AsyncClient) -> None:
+    """KY and MI joined IN as tier-1 SST states with NO local sales tax.
 
-    Kentucky is an SST member with a 6.0% state rate (KRS 139.200)
-    and -- like Indiana -- NO local sales tax. The combined rate
-    at every KY address is exactly 6%.
+    Kentucky (KRS 139.200, 6.0%) and Michigan (MCL 205.52, 6.0%)
+    both have NO local sales tax — the combined rate at every KY
+    or MI address equals the state rate exactly. Indiana
+    (Ind. Code 6-2.5-2-2, 7.0%) has the same property.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    s = states_by_abbrev["KY"]
-    assert s["tier"] == 1
-    assert s["has_sales_tax"] is True
-    assert s["sst_member"] is True
+    for abbrev in ("KY", "MI"):
+        s = states_by_abbrev[abbrev]
+        assert s["tier"] == 1
+        assert s["has_sales_tax"] is True
+        assert s["sst_member"] is True
 
 
 @pytest.mark.asyncio
