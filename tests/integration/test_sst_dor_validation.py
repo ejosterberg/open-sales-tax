@@ -204,6 +204,67 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MN", "Hopkins", "55305", "1234", "8.525", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts)"),
     ("MN", "Bloomington", "55425", "1234", "9.025", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts + Bloomington 0.5%)"),
     ("MN", "St. Louis Park", "55416", "1234", "8.525", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts)"),
+    # Connecticut -- flat 6.35% statewide, NO local sales taxes anywhere
+    # in the state per Conn. Gen. Stat. section 12-408. The "Hartford"
+    # entry is a regression guard ensuring a future maintainer doesn't
+    # accidentally introduce phantom local rates.
+    ("CT", "Hartford", "06103", "1234", "6.350", "0.01", "CT DRS (Conn. Gen. Stat. section 12-408: flat 6.35% statewide, no locals anywhere in CT)"),
+    # Mississippi -- MS DOR + city authorizing acts (verified 2026-05-04)
+    # Jackson + Tupelo have general-retail city taxes; Hattiesburg /
+    # Gulfport / Biloxi have tourism-only taxes (hotels + restaurants
+    # only) so general-retail is the flat 7% statewide.
+    ("MS", "Jackson", "39201", "0001", "8.000", "0.05", "MS DOR (state 7% + Jackson 1% Special Sales Tax per Miss. Code Ann. section 27-65-241)"),
+    ("MS", "Tupelo", "38801", "0001", "7.250", "0.05", "MS DOR (state 7% + Tupelo 0.25% Water Procurement Facility Tax per H.B. 1685, Laws 2008)"),
+    ("MS", "Hattiesburg", "39401", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Hattiesburg's Tourism Tax applies to hotels+restaurants only, not general retail)"),
+    ("MS", "Gulfport", "39501", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
+    ("MS", "Biloxi", "39530", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
+    # South Carolina -- SC DOR Form ST-500 effective May 1, 2026
+    # All 10 covered cities; combined rates are state 6% + per-county
+    # local portion (no city-level rate; Myrtle Beach is the only SC
+    # city with its own tax and isn't in this set).
+    ("SC", "Columbia", "29201", "0001", "8.000", "0.05", "SC DOR ST-500 2026-05-01 (state 6% + Richland LO 1% + Richland TT 1%)"),
+    ("SC", "Charleston", "29401", "0001", "9.000", "0.05", "SC DOR ST-500 2026-05-01 (state 6% + Charleston LO 1% + TT 1% + ECI 1%)"),
+    ("SC", "Mount Pleasant", "29464", "0001", "9.000", "0.05", "SC DOR ST-500 (Charleston County 3% local)"),
+    ("SC", "North Charleston", "29406", "0001", "9.000", "0.05", "SC DOR ST-500 (Charleston County 3% local)"),
+    ("SC", "Rock Hill", "29730", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + York CP 1%)"),
+    ("SC", "Greenville", "29601", "0001", "6.000", "0.05", "SC DOR ST-500 (Greenville County has no local sales tax)"),
+    ("SC", "Summerville", "29483", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Dorchester TT 1%)"),
+    ("SC", "Spartanburg", "29301", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Spartanburg CP 1%)"),
+    ("SC", "Sumter", "29150", "0001", "8.000", "0.05", "SC DOR ST-500 (state 6% + Sumter LO 1% + CP 1%)"),
+    ("SC", "Goose Creek", "29445", "0001", "9.000", "0.05", "SC DOR ST-500 (state 6% + Berkeley LO 1% + TT 1% + ECI 1%)"),
+    # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
+    # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
+    # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg
+    # are outside all regional add-ons -> 5.3%.
+    ("VA", "Virginia Beach", "23451", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Hampton Roads 0.7%)"),
+    ("VA", "Norfolk", "23510", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Chesapeake", "23320", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Newport News", "23601", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Hampton", "23666", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Portsmouth", "23704", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Suffolk", "23434", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Arlington", "22201", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Northern VA 0.7%)"),
+    ("VA", "Alexandria", "22314", "0001", "6.000", "0.05", "VA Tax (Northern VA region)"),
+    ("VA", "Richmond", "23219", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Central VA 0.7%)"),
+    ("VA", "Roanoke", "24011", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
+    ("VA", "Lynchburg", "24501", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
+    # Missouri -- MO DOR 2026 Sales/Use Tax Rate Tables (verified 2026-05-04)
+    # Combined = state 4.225% + county + city (no special-district overlay).
+    # Tolerance 0.10 because some +4 ranges within MO cities have CID/TDD
+    # overlays that bump the actual rate above the city baseline; the
+    # bare combined math yields the engine answer at the city centroid.
+    ("MO", "Kansas City", "64108", "0001", "8.850", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + KC 3.25%)"),
+    ("MO", "St. Louis", "63103", "0001", "9.679", "0.10", "MO DOR (state 4.225% + St. Louis city 5.454%)"),
+    ("MO", "Springfield", "65806", "0001", "8.100", "0.10", "MO DOR (state 4.225% + Greene 1.75% + Springfield 2.125%)"),
+    ("MO", "Independence", "64055", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + Independence 2.875%)"),
+    ("MO", "Columbia", "65201", "0001", "7.975", "0.10", "MO DOR (state 4.225% + Boone 1.75% + Columbia 2.0%)"),
+    ("MO", "Lee's Summit", "64063", "0001", "8.350", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + Lee's Summit 2.75%)"),
+    ("MO", "O'Fallon", "63366", "0001", "7.950", "0.10", "MO DOR (state 4.225% + St. Charles 1.725% + O'Fallon 2.0%)"),
+    ("MO", "St. Joseph", "64501", "0001", "9.700", "0.10", "MO DOR (state 4.225% + Buchanan 1.6% + St. Joseph 3.875%)"),
+    ("MO", "St. Charles", "63301", "0001", "7.950", "0.10", "MO DOR (state 4.225% + St. Charles 1.725% + St. Charles city 2.0%)"),
+    ("MO", "Joplin", "64801", "0001", "8.725", "0.10", "MO DOR (state 4.225% + Jasper 1.375% + Joplin 3.125%)"),
+    ("MO", "Jefferson City", "65101", "0001", "7.850", "0.10", "MO DOR (state 4.225% + Cole 1.375% + Jefferson City 2.25%)"),
+    ("MO", "Cape Girardeau", "63701", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Cape Girardeau 1.5% + Cape Girardeau city 2.75%)"),
 ]
 
 

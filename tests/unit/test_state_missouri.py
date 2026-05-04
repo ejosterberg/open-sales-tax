@@ -75,12 +75,17 @@ def test_missouri_unknown_category_returns_none() -> None:
 
 
 def test_missouri_parse_rates_yields_4225_pct() -> None:
-    """Missouri's statewide rate is 4.225% (3.0% + 1.0% + 0.125% + 0.1%)."""
-    rows = list(MISSOURI.parse_rates(None, "v0.7-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+    """Missouri's statewide rate is 4.225% (3.0% + 1.0% + 0.125% + 0.1%).
+
+    Post-v0.25 the loader also yields per-county and per-city rows
+    for the 15 covered cities; we still verify the state row is
+    present and correct.
+    """
+    rows = list(MISSOURI.parse_rates(None, "v0.25-state-county-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "Missouri"
-    assert row.authority_type == "state"
     assert row.rate_pct == Decimal("4.225")
     assert row.effective_to is None
     assert row.parent_authority_name is None  # state-level rate has no parent
@@ -93,9 +98,25 @@ def test_missouri_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_missouri_parse_boundaries_returns_empty() -> None:
-    """v0.7 doesn't ship MO local boundaries (custom MO DOR loader deferred)."""
-    assert list(MISSOURI.parse_boundaries(None, "v0.7-statewide")) == []
+def test_missouri_parse_rates_yields_kansas_city_3_25_pct() -> None:
+    """Kansas City's city rate is 3.25% (Jackson County 1.375% under it)."""
+    rows = list(MISSOURI.parse_rates(None, "v0.25-state-county-city"))
+    by_name = {r.authority_name: r for r in rows}
+    kc = by_name["Kansas City"]
+    assert kc.authority_type == "city"
+    assert kc.rate_pct == Decimal("3.250")
+    assert kc.parent_authority_name == "Jackson County"
+    jackson_co = by_name["Jackson County"]
+    assert jackson_co.authority_type == "county"
+    assert jackson_co.rate_pct == Decimal("1.375")
+
+
+def test_missouri_parse_boundaries_yields_kansas_city_zips() -> None:
+    """KC ZIP 64108 must bind to state + Jackson County + Kansas City."""
+    rows = list(MISSOURI.parse_boundaries(None, "v0.25-state-county-city"))
+    kc_rows = [b for b in rows if b.zip5 == "64108"]
+    names = sorted(b.authority_name for b in kc_rows)
+    assert names == ["Jackson County", "Kansas City", "Missouri"]
 
 
 def test_missouri_special_cases_empty() -> None:

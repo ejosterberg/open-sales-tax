@@ -7,12 +7,18 @@ against the SST member roster). The general statewide rate is
 **6.35%** effective **2011-07-01** when the General Assembly raised
 it from 6.0% (Conn. Gen. Stat. section 12-408(1)(A)).
 
-Connecticut is a **state-only** sales-tax jurisdiction: there are no
-county or municipal sales taxes. The only sub-state taxing
-authority is the **Mashantucket Pequot Tribal Nation** reservation,
-whose retail sales fall outside CT's sales-tax regime under the
-1983 federal settlement act and tribal-state compact -- a special
-case the engine does not yet model.
+Connecticut is a **state-only** sales-tax jurisdiction: per Conn.
+Gen. Stat. section 12-408 there are **no** county or municipal
+sales taxes -- the entire 6.35% combined rate is the state portion,
+nothing is added at the local level anywhere in the state. This is
+unusual; only a handful of states (RI 7%, IN 7%, KY 6%, MI 6%, NJ
+6.625%) share the no-local-sales-tax pattern. The flat statewide
+rate applies in every CT ZIP code; a future maintainer adding
+"local" CT rates would be making a mistake. The only sub-state
+taxing authority is the **Mashantucket Pequot Tribal Nation**
+reservation, whose retail sales fall outside CT's sales-tax regime
+under the 1983 federal settlement act and tribal-state compact --
+a special case the engine does not yet model.
 
 In addition to the 6.35% general rate, section 12-408(1) imposes
 several CATEGORY-SPECIFIC rates that are **not modeled in v0.6**

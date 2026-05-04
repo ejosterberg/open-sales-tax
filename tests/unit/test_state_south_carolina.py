@@ -59,12 +59,17 @@ def test_south_carolina_unknown_category_returns_none() -> None:
 
 
 def test_south_carolina_parse_rates_yields_6pct() -> None:
-    """South Carolina's statewide rate is 6% effective 2007-06-01."""
-    rows = list(SOUTH_CAROLINA.parse_rates(None, "v0.6-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+    """South Carolina's statewide rate is 6% effective 2007-06-01.
+
+    Post-v0.25 the loader also yields per-county and per-city rows
+    for the 10 covered cities; we still verify the state row is
+    present and correct.
+    """
+    rows = list(SOUTH_CAROLINA.parse_rates(None, "v0.25-state-county-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "South Carolina"
-    assert row.authority_type == "state"
     assert row.rate_pct == Decimal("6.000")
     assert row.effective_from == dt.date(2007, 6, 1)
     assert row.effective_to is None
@@ -78,10 +83,32 @@ def test_south_carolina_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_south_carolina_parse_boundaries_returns_empty() -> None:
-    """v0.6 doesn't ship SC boundaries; per-county load deferred."""
-    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.6-statewide"))
-    assert rows == []
+def test_south_carolina_parse_rates_yields_charleston_county_3pct() -> None:
+    """Charleston County's local portion is 3% (LO + TT + ECI) per ST-500."""
+    rows = list(SOUTH_CAROLINA.parse_rates(None, "v0.25-state-county-city"))
+    charleston_co = next(r for r in rows if r.authority_name == "Charleston County")
+    assert charleston_co.authority_type == "county"
+    assert charleston_co.rate_pct == Decimal("3.000")
+    assert charleston_co.parent_authority_name == "South Carolina"
+
+
+def test_south_carolina_parse_boundaries_yields_charleston_zips() -> None:
+    """Charleston ZIP 29401 must bind to state + Charleston County + Charleston city."""
+    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.25-state-county-city"))
+    chs_rows = [b for b in rows if b.zip5 == "29401"]
+    names = sorted(b.authority_name for b in chs_rows)
+    assert names == ["Charleston", "Charleston County", "South Carolina"]
+
+
+def test_south_carolina_parse_rates_emits_greenville_at_zero_local() -> None:
+    """Greenville County has NO local sales tax per ST-500 -- combined 6%.
+
+    The county authority must still be emitted so the engine can resolve
+    Greenville ZIPs to a county; the rate is 0%.
+    """
+    rows = list(SOUTH_CAROLINA.parse_rates(None, "v0.25-state-county-city"))
+    greenville_co = next(r for r in rows if r.authority_name == "Greenville County")
+    assert greenville_co.rate_pct == Decimal("0.000")
 
 
 def test_south_carolina_special_cases_empty() -> None:

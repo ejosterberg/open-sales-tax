@@ -8,29 +8,22 @@ SC is **not** a Streamlined Sales Tax member. The statewide rate is
 section 12-36-1110 took the combined statewide rate from 5% to 6%
 on that date and it has been stable since).
 
-Local-jurisdiction model (NOT loaded in v0.6 -- documented for the
-next maintainer):
+Local-jurisdiction model:
 
-- **Local Option Sales Tax (LOST)** -- 1%, county-level
-- **Capital Project Sales Tax (CPST)** -- 1%, county-level
-- **School District Sales Tax (Education Capital Improvement)** --
-  up to 1%, county-level
-- **Transportation Tax** -- up to 1%, county-level
-- **Tourism Development Sales Tax** -- 1%, certain municipalities
-  (e.g., Myrtle Beach's separately-imposed 1% Tourism Development
-  Fee)
+- **Local Option (LO)** -- 1%, county-level
+- **Capital Project (CP)** -- 1%, county-level
+- **Education Capital Improvement (ECI)** -- 1%, county-level
+- **School District (SD)** -- 1%, county-level
+- **Transportation Tax (TT)** -- 1%, county-level
+- **Tourism Development (TD)** -- 1%, certain municipalities
+  (Myrtle Beach is the only one currently active)
 
-Combined rates currently range from 6% (no local) to 9% (counties
-that have stacked the maximum). v0.6 ships the **statewide rate
-only**; per-county and per-municipality rates require a
-boundary/ZIP loader, which is deferred until SC-specific data
-ingestion lands. Rationale: SC has no SST quarterly file, no public
-machine-readable rate-by-ZIP feed comparable to Texas's
-Comptroller file -- pulling the rates means scraping DOR PDFs and
-encoding county effective dates by hand, which is its own work
-package. This is documented honestly in the README rather than
-encoded as a few sample-county rates that would be misleading where
-they're missing.
+Combined county rates range from **6%** (Greenville, Oconee, Beaufort
+-- no local tax) to **9%** (Berkeley, Charleston, Jasper, Myrtle Beach
+municipal area). All 46 SC counties are seeded from the SC DOR
+ST-500 rate chart effective May 1, 2026 via
+:mod:`opensalestax.states.sc_data`; see that module for the per-
+county rates and the 10 covered cities' ZIP coverage.
 
 Taxability matrix (per S.C. Code Ann. Title 12, Chapter 36):
 
@@ -98,7 +91,6 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Iterable
-from decimal import Decimal
 from pathlib import Path
 
 from opensalestax.states.protocol import (
@@ -111,6 +103,12 @@ from opensalestax.states.protocol import (
     TaxabilityRule,
 )
 from opensalestax.states.registry import register
+from opensalestax.states.sc_data import (
+    SC_CITIES,
+    SC_COUNTY_RATE_PCT,
+    SC_STATE_EFFECTIVE_FROM,
+    SC_STATE_RATE_PCT,
+)
 
 _TAXABILITY: dict[str, TaxabilityRule] = {
     "clothing": TaxabilityRule(
@@ -195,33 +193,86 @@ class SouthCarolina:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield South Carolina's statewide 6% rate.
+        """Yield SC's state + per-county + per-city rates.
+
+        Counties yielded: only those touched by an SC_CITIES entry
+        (mirrors the AZ pattern of not loading rates for counties
+        without any covered city). Cities yielded: every SC_CITIES
+        entry; SC city rate is 0% in all cases (locals are
+        county-level), so the city authority is mainly a friendly
+        anchor for the per-city ZIP boundaries.
 
         ``source_file`` is intentionally ignored -- SC has no SST
-        upstream file. Pass ``None`` from the loader.
+        upstream file.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="South Carolina",
             authority_type="state",
-            rate_pct=Decimal("6.000"),
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=SC_STATE_RATE_PCT,
+            effective_from=SC_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        used_counties = {county for county, _, _ in SC_CITIES.values()}
+        for county_name in sorted(used_counties):
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=SC_COUNTY_RATE_PCT[county_name],
+                effective_from=SC_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="South Carolina",
+            )
+        for city_name, (county_name, city_rate, _zips) in sorted(SC_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=SC_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=county_name,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v0.6.
+        """Yield (state, county, city) boundary rows for each covered ZIP.
 
-        SC's per-county Local Option / Capital Project / School
-        District / Transportation / Tourism Development taxes vary
-        by county; loading them is deferred until an SC-specific
-        data-source decision is made (see module docstring).
+        The Census ZCTA load already provides state-level binding for
+        every SC ZIP. This method ADDS county + city bindings for the
+        10 covered cities (Columbia, Charleston, Mount Pleasant,
+        North Charleston, Rock Hill, Greenville, Summerville,
+        Spartanburg, Sumter, Goose Creek). ZIPs in covered counties
+        but outside the city list keep the Census state-only binding
+        -- a future ratchet should iterate the Census ZCTA->county
+        data for SC to add county-only bindings across the rest of
+        the state.
         """
         del source_file, version_label
-        return iter(())
+        for city_name, (county_name, _city_rate, zips) in SC_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="South Carolina",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return SC's taxability rule for ``item_category``."""

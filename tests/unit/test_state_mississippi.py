@@ -60,12 +60,18 @@ def test_mississippi_unknown_category_returns_none() -> None:
 
 def test_mississippi_parse_rates_yields_7pct() -> None:
     """Mississippi's statewide rate is 7% (the highest single statewide
-    rate in the country) effective 1992-07-01."""
-    rows = list(MISSISSIPPI.parse_rates(None, "v0.7-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+    rate in the country) effective 1992-07-01.
+
+    Post-v0.25 the loader also yields per-county and per-city rows
+    for the two cities with general-retail local taxes (Jackson 1%,
+    Tupelo 0.25%); we still verify the state row is present and
+    correct.
+    """
+    rows = list(MISSISSIPPI.parse_rates(None, "v0.25-state-county-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "Mississippi"
-    assert row.authority_type == "state"
     assert row.rate_pct == Decimal("7.000")
     assert row.effective_from == dt.date(1992, 7, 1)
     assert row.effective_to is None
@@ -79,10 +85,29 @@ def test_mississippi_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_mississippi_parse_boundaries_returns_empty() -> None:
-    """v0.7 doesn't ship MS boundaries; per-municipality load deferred."""
-    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.7-statewide"))
-    assert rows == []
+def test_mississippi_parse_rates_yields_jackson_and_tupelo() -> None:
+    """Post-v0.25 MS yields per-city general-retail local rates.
+
+    Only Jackson (1%) and Tupelo (0.25%) have authorizing acts for
+    a city-level surcharge on general retail. Other MS cities have
+    tourism-only taxes (hotels/restaurants) which are NOT modeled.
+    """
+    rows = list(MISSISSIPPI.parse_rates(None, "v0.25-state-county-city"))
+    by_name = {r.authority_name: r for r in rows}
+    assert by_name["Jackson"].authority_type == "city"
+    assert by_name["Jackson"].rate_pct == Decimal("1.000")
+    assert by_name["Jackson"].parent_authority_name == "Hinds County"
+    assert by_name["Tupelo"].authority_type == "city"
+    assert by_name["Tupelo"].rate_pct == Decimal("0.250")
+    assert by_name["Tupelo"].parent_authority_name == "Lee County"
+
+
+def test_mississippi_parse_boundaries_yields_jackson_zips() -> None:
+    """Jackson ZIP 39201 must bind to state + Hinds County + Jackson."""
+    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.25-state-county-city"))
+    jackson_rows = [b for b in rows if b.zip5 == "39201"]
+    names = sorted(b.authority_name for b in jackson_rows)
+    assert names == ["Hinds County", "Jackson", "Mississippi"]
 
 
 def test_mississippi_special_cases_empty() -> None:

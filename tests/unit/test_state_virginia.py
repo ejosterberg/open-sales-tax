@@ -76,16 +76,16 @@ def test_virginia_unknown_category_returns_none() -> None:
 def test_virginia_parse_rates_yields_statewide_minimum_53_pct() -> None:
     """VA's statewide minimum combined rate is 5.3% (4.3% state + 1% local).
 
-    Regional add-ons (Central VA, Hampton Roads, Northern VA at +0.7%;
-    Historic Triangle and selected Southside localities at +1%) are
-    deferred to per-locality boundary loading; v0.6 ships the
-    statewide minimum only.
+    Post-v0.25 the loader also yields per-district (Hampton Roads,
+    Northern Virginia, Central Virginia at +0.7%) and per-city
+    rows for the 12 covered cities; we still verify the state row
+    is present and correct.
     """
-    rows = list(VIRGINIA.parse_rates(None, "v0.6-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+    rows = list(VIRGINIA.parse_rates(None, "v0.25-state-district-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "Virginia"
-    assert row.authority_type == "state"
     assert row.rate_pct == Decimal("5.300")
     assert row.effective_from == dt.date(2013, 7, 1)
     assert row.effective_to is None
@@ -99,9 +99,32 @@ def test_virginia_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_virginia_parse_boundaries_returns_empty() -> None:
-    """v0.6 doesn't ship VA boundaries (regional add-ons deferred)."""
-    assert list(VIRGINIA.parse_boundaries(None, "v0.6-statewide")) == []
+def test_virginia_parse_rates_yields_three_regional_districts() -> None:
+    """Hampton Roads, Northern Virginia, Central Virginia districts at 0.7%."""
+    rows = list(VIRGINIA.parse_rates(None, "v0.25-state-district-city"))
+    districts = [r for r in rows if r.authority_type == "district"]
+    names = sorted(r.authority_name for r in districts)
+    assert names == ["Central Virginia Region", "Hampton Roads Region", "Northern Virginia Region"]
+    for r in districts:
+        assert r.rate_pct == Decimal("0.700")
+        assert r.parent_authority_name == "Virginia"
+
+
+def test_virginia_parse_boundaries_yields_virginia_beach_zips() -> None:
+    """VA Beach ZIP 23451 must bind to state + Hampton Roads district + VA Beach city."""
+    rows = list(VIRGINIA.parse_boundaries(None, "v0.25-state-district-city"))
+    vb_rows = [b for b in rows if b.zip5 == "23451"]
+    names = sorted(b.authority_name for b in vb_rows)
+    assert names == ["Hampton Roads Region", "Virginia", "Virginia Beach"]
+
+
+def test_virginia_parse_boundaries_roanoke_has_no_district() -> None:
+    """Roanoke is outside any regional add-on -- only state + city bindings."""
+    rows = list(VIRGINIA.parse_boundaries(None, "v0.25-state-district-city"))
+    roanoke_rows = [b for b in rows if b.zip5 == "24011"]
+    names = sorted(b.authority_name for b in roanoke_rows)
+    # No district binding for Roanoke (it lands at the 5.3% statewide minimum).
+    assert names == ["Roanoke", "Virginia"]
 
 
 def test_virginia_special_cases_empty() -> None:
