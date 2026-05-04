@@ -158,27 +158,49 @@ jobs:
         run: poetry run python -m opensalestax data load-zcta
 
       - name: Fetch + load all 24 SST states
-        # SST_STATES is the canonical USPS list from
-        # src/opensalestax/states/catalog.py (sst_member=True). Keep
-        # this list in sync if/when SST membership changes.
-        env:
-          SST_STATES: "AR GA IA IN KS KY MI MN NE NC ND NJ NV OH OK RI SD TN UT VT WA WV WI WY"
+        # SST publishes each state's quarterly file at its own cadence,
+        # so each (state, rate-version, boundary-version) triple is
+        # pinned individually. Keep this list in sync with the prod
+        # ~/sst-load.sh on the opensalestax-01 VM whenever SST publishes
+        # a new quarter for a given state.
         run: |
           set -euo pipefail
-          version="${{ steps.sst.outputs.version }}"
-          for state in $SST_STATES; do
-            echo "::group::Loading $state @ $version"
-            # Fetch both rates (R) and boundary (B) files. SST sometimes
-            # publishes only one extension (.csv vs .zip) per state per
-            # quarter; the fetcher transparently retries the alternate
-            # extension and caches whichever exists upstream.
+          declare -a STATES=(
+            "AR 2026Q2MAR02 2026Q2MAR02"
+            "GA 2026Q2FEB19 2026Q2FEB16"
+            "IA 2025Q3MAY30 2026Q1DEC09"
+            "IN 2008Q4MAY7  2005Q1JAN6"
+            "KS 2026Q2FEB18 2026Q2FEB18"
+            "KY 2012Q4Aug13 2013Q2MAR13"
+            "MI 2023Q1DEC22 2023Q1DEC15"
+            "MN 2026Q2FEB18 2026Q2FEB18"
+            "NC 2024Q3APR26 2026Q2FEB18"
+            "ND 2026Q2FEB11 2026Q2FEB19"
+            "NE 2026Q2FEB25 2026Q2APR20"
+            "NJ 2018Q1OCT16 2019Q2MAR27"
+            "NV 2025Q4NOV05 2025Q4NOV05"
+            "OH 2026Q1NOV28 2026Q1NOV28"
+            "OK 2026Q2FEB17 2026Q2APR01"
+            "RI 2019Q2MAR27 2019Q2MAR27"
+            "SD 2024Q1DEC12 2026Q2FEB23"
+            "TN 2025Q1MAR07 2026Q2FEB23"
+            "UT 2026Q2MAR20 2026Q2MAR20"
+            "VT 2026Q2FEB20 2026Q2FEB20"
+            "WA 2026Q2FEB26 2026Q2FEB26"
+            "WI 2026Q2FEB18 2026Q2FEB18"
+            "WV 2026Q1AUG14 2026Q1SEP02"
+            "WY 2026Q2APR1  2026Q2FEB23"
+          )
+          for entry in "${STATES[@]}"; do
+            read -r state rver bver <<< "$entry"
+            echo "::group::Loading $state (rate=$rver bdy=$bver)"
             poetry run python -m opensalestax data fetch \
-              --state "$state" --version "$version" --kind R
+              --state "$state" --version "$rver" --kind R
             poetry run python -m opensalestax data fetch \
-              --state "$state" --version "$version" --kind B || \
-              echo "::warning::No boundary file for $state @ $version (state may have boundary skip)"
+              --state "$state" --version "$bver" --kind B || \
+              echo "::warning::No boundary file for $state @ $bver"
             poetry run python -m opensalestax data load \
-              --state "$state" --version "$version"
+              --state "$state" --version "$rver" --boundary-version "$bver"
             echo "::endgroup::"
           done
 
