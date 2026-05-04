@@ -51,6 +51,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Nebraska -- NE DOR Local Sales and Use Tax Rates 2026-Q1
     ("NE", "Omaha", "68102", "1718", "7.000", "0.05", "NE DOR (state 5.5% + Omaha 1.5%)"),
     ("NE", "Lincoln", "68508", "2802", "7.250", "0.05", "NE DOR (state 5.5% + Lincoln 1.75%)"),
+    ("NE", "Norfolk", "68701", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Norfolk 2.0%)"),
+    ("NE", "Kearney", "68845", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Kearney 1.5%)"),
+    ("NE", "North Platte", "69101", "1234", "7.500", "0.05", "NE DOR (state 5.5% + North Platte 2.0%)"),
+    ("NE", "Grand Island", "68803", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Grand Island 2.0%)"),
+    ("NE", "Fremont", "68025", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Fremont 1.5%)"),
+    ("NE", "Beatrice", "68310", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Beatrice 2.0%)"),
+    ("NE", "Columbus", "68601", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Columbus 1.5%)"),
+    ("NE", "McCook", "69001", "1234", "7.500", "0.05", "NE DOR (state 5.5% + McCook 2.0%)"),
+    # Hastings (68901) friendly name 21415 is wired in ne_names.py but no
+    # validation row: ZIP 68901 routes to code 19595 (Grand Island) and
+    # 68902 misroutes to a SD overlap in the engine. Add a row once the
+    # engine resolves Hastings ZIPs to FIPS Place 21415 cleanly.
+    ("NE", "La Vista", "68128", "1234", "7.500", "0.05", "NE DOR (state 5.5% + La Vista 2.0%)"),
+    ("NE", "Gretna", "68138", "5000", "7.500", "0.05", "NE DOR (state 5.5% + Gretna 2.0%)"),
     # Nevada -- NV DOR Tax Rates by County 2026
     ("NV", "Las Vegas", "89101", "2402", "8.375", "0.05", "NV DOR (Clark County combined)"),
     ("NV", "Reno", "89501", "1606", "8.265", "0.05", "NV DOR (Washoe County combined)"),
