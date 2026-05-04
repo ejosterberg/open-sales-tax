@@ -1,15 +1,17 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** **v0.14.0 shipped.** Boundary data initiative complete
-— 41,702 ZIP boundaries across all 52 jurisdictions. **51 of 52
-major-city ZIPs return correct combined rates** (state + county
-where SST data is loaded; state-only via Census ZCTA elsewhere).
-Engine answers real US ZIPs end-to-end for the first time.
-Includes loader fixes for SST format drift (mixed-case record
-types, 90-column rows, .csv↔.zip extension fallback) and a new
-`data load-zcta` CLI command that seeds ZIP→state from the
-public-domain Census 2020 ZCTA→County file. 1127 unit tests.
+**Status:** **v0.21.0 shipped.** SST loader + lookup engine now
+matches every Tier-1 SST state's published DOR rate within 0.05%
+across **41 sampled city/ZIP+4 combos** (live regression test
+guards against drift on every deploy). Friendly authority names
+land on receipts for TN, OH, GA, KS, NE, WA, OK, NC, WI county,
+AR, IA (LOST districts), ND, SD, UT, WV — covering every major
+city in the SST member states. Multiple SST-loader correctness
+fixes shipped through v0.15-v0.20 (district triplet parsing,
+type-45 skip, OK 98XXX composite filter, NV single-digit codes,
+Census ZIP→state cross-border filter, type-4 vs type-z lookup
+precedence, loose ZIP+4 fallback). 1127 unit tests.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
 the gating dependency for proper home-rule / parish / municipal
@@ -56,6 +58,13 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.12.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.12.0) | 2026-05-03 | Maine tier-1 (5.5% + no-local + no-holidays) — 48 of 52 jurisdictions now tier-1 |
 | [v0.13.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.13.0) | 2026-05-03 | Phase 6 Batch C complete — AL, HI, NM, PR tier-1 (4 parallel agents). **All 52 jurisdictions are now tier-1 maintained.** Plus per-item taxable thresholds in the engine — NY $110 / MA $175 / RI $250 clothing exemptions now enforced. |
 | [v0.14.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.14.0) | 2026-05-03 | Boundary data initiative — 41,702 ZIP→authority boundaries across all 52 jurisdictions. SST refresh + new Census ZCTA loader (`data load-zcta`). Engine answers real US ZIPs at major cities for the first time. Multiple loader-robustness fixes (mixed-case SST record types, 90-column rows, csv↔zip fallback, idempotent boundary delete). |
+| [v0.15.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.15.0) | 2026-05-03 | SST loader: county-name lookup, NV single-digit jurisdiction-type fix, MN/Mpls under-collection fixed, multi-triplet district parsing |
+| [v0.16.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.16.0) | 2026-05-03 | Cross-border ZIP filter (Census ZIP→state); per-state jurisdiction_types merged with defaults rather than replaced |
+| [v0.17.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.17.0) | 2026-05-03 | Four SST correctness fixes: TN double-counting, WA L-code triplet over-collection, OK 98XXX composite filter, NC + VT + SD touch-ups |
+| [v0.18.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.18.0) | 2026-05-03 | GA Atlanta + OK OKC fixed; engine loose-fallback when ZIP+4 has no type-4 coverage; per-state validation tightened |
+| [v0.19.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.19.0) | 2026-05-03 | Friendly receipt authority names for TN, OH, GA, KS, NE |
+| [v0.20.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.20.0) | 2026-05-03 | Friendly names for WA / OK / NC + WI county; introduced live DOR-validation grid (25/25 pass) |
+| [v0.21.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.21.0) | 2026-05-03 | Friendly names for AR / IA / ND / SD / UT / WV; DOR validation grid expanded to 41 ZIPs, all pass |
 
 ## Coverage (after v0.5)
 

@@ -2,14 +2,40 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.5.0 is the latest release.** Live at
-[github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax),
-publicly visible, Apache 2.0 licensed, CI green on both
-PostgreSQL and MariaDB. SonarQube 0/0/0/0 clean on 3601 LOC.
+**v0.21.0 is the latest release.** Live at
+[github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
+and prod API at `http://10.32.161.126:8080` (also fronted by
+Cloudflare at `https://api.opensalestax.org`). All 52 jurisdictions
+are tier-1. SST loader/lookup engine matches every Tier-1 SST
+state's published DOR rate within 0.05% across 41 sampled ZIP+4s
+— the live regression test (`pytest -m liveapi
+tests/integration/test_sst_dor_validation.py`) is the single best
+guard against drift; **run it before every prod deploy.**
 
-Five releases shipped in the autonomous 2026-05-03 build session
-(v0.2 through v0.5). 16 of 52 jurisdictions at tier 1; 22 more at
-tier 2. Sales-tax holidays integrated end-to-end.
+## Where the iter-loop is currently focused
+
+Two parallel tracks:
+
+1. **Friendly authority names** — every batch of states whose
+   receipts still read `XX-city-NNNNN` instead of the city name.
+   Pattern: probe a known ZIP for that state, identify the missing
+   codes, look them up against the state's DOR (or Wikipedia/USPS
+   if DOR doesn't publish a code table), build
+   `src/opensalestax/states/<state>_names.py`, wire it into the
+   state class via `_authority_name`, add a probe unit test, drop
+   a row in the DOR-validation grid. Already done: TN, OH, GA, KS,
+   NE, WA, OK, NC, WI county, AR, IA (LOST districts), ND, SD,
+   UT, WV.
+2. **DOR-validation coverage** — keep adding ZIP+4 entries to
+   `tests/integration/test_sst_dor_validation.py`. 41 entries as
+   of v0.21.0. Each entry is one ZIP+4 + the published DOR rate
+   on a specific date.
+
+Remaining major-city friendly-name work (suggestion list, not
+exhaustive): UT districts (transit, county options); AR
+composite codes; KY non-flat (KY is flat 6%, no work); OH
+beyond Cleveland transit; specific NC transit districts; WA
+small cities outside Bellevue/Tacoma.
 
 ## What to read first
 
