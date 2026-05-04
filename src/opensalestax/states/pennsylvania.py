@@ -29,6 +29,16 @@ level (since Philadelphia is a coterminous city/county and the
 single 1%/2% local line on a PA receipt has no city/county
 distinction in practice).
 
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28). :meth:`Pennsylvania.parse_boundaries`
+iterates :data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits
+state + county bindings for every PA ZIP -- not just the ones in
+the top-15 city seed. Effect: every Pittsburgh suburb in Allegheny
+County (Monroeville, Bethel Park, McKeesport, etc.) now picks up
+the +1.0% Allegheny county tax, and every Philadelphia-County ZIP
+not in PA_CITIES picks up the +2.0% city/county tax, instead of
+falling back to state-only at 6.0%.
+
 Taxability matrix (per 72 P.S. Article II + Pa. Dept. of Revenue
 Retailer's Information Guide REV-717):
 
@@ -71,6 +81,8 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.pa_data import (
     PA_CITIES,
     PA_COUNTY_RATE_PCT,
@@ -180,15 +192,17 @@ class Pennsylvania:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield PA's state + per-county + per-city rates.
 
-        Counties yielded: only those touched by a covered PA_CITIES
-        entry. Cities yielded: every PA_CITIES entry. The city rate
-        is 0% in all cases -- the local tax (where it exists) is
-        encoded as the county rate per the implementation choice
-        documented in :mod:`pa_data` (Philadelphia city/county are
-        coterminous so the 2% sits naturally on the county; Allegheny
-        County's 1% likewise sits on the county). ``source_file`` is
-        intentionally ignored -- PA is non-SST and has no upstream
-        file.
+        Counties yielded: every county in :data:`PA_COUNTY_RATE_PCT`
+        (all 67 PA counties). The ZIP_COUNTY-driven boundary loader
+        binds every PA ZIP to its county, so every county must have
+        a queryable rate (even the 0% ones). Cities yielded: every
+        PA_CITIES entry. The city rate is 0% in all cases -- the
+        local tax (where it exists) is encoded as the county rate per
+        the implementation choice documented in :mod:`pa_data`
+        (Philadelphia city/county are coterminous so the 2% sits
+        naturally on the county; Allegheny County's 1% likewise sits
+        on the county). ``source_file`` is intentionally ignored --
+        PA is non-SST and has no upstream file.
         """
         del source_file, version_label
         yield RateRow(
@@ -199,57 +213,128 @@ class Pennsylvania:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_counties = {county for county, _, _ in PA_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a RateRow for every PA county. The ZIP_COUNTY-driven
+        # boundary loader binds every PA ZIP to its county, so every
+        # county must have a queryable rate (even the 0% ones).
+        for pa_county_name in sorted(PA_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=pa_county_name,
                 authority_type="county",
-                rate_pct=PA_COUNTY_RATE_PCT[county_name],
+                rate_pct=PA_COUNTY_RATE_PCT[pa_county_name],
                 effective_from=PA_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Pennsylvania",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(PA_CITIES.items()):
+        for city_name, (city_county, city_rate, _zips) in sorted(PA_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=PA_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every PA ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every PA ZIP. This method ADDS county + city bindings for the
-        15 covered cities. ZIPs in covered counties but outside the
-        city list keep the Census state-only binding; for the 65 PA
-        counties at 0% local that's correct (combined 6.0%). For
-        Allegheny County and Philadelphia County a future ratchet
-        should extend coverage to suburban municipalities so they
-        pick up the +1.0% / +2.0% county tax.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting a
+           PA county. This covers the entire state, not just the ZIPs
+           in the :data:`PA_CITIES` top-15 seed list -- so every
+           Pittsburgh suburb in Allegheny County (Monroeville, Bethel
+           Park, McKeesport, etc.) now picks up the +1.0% Allegheny
+           county tax instead of falling back to state-only at 6.0%.
+
+        2. Fall back to :data:`PA_CITIES` for any city ZIP missed by
+           the Census ZCTA pass (USPS-only / PO-box-only ZIPs that
+           aren't published as Census ZCTAs), then emit the city
+           BoundaryRow on top of the state + county stack so the
+           friendly city anchor is preserved.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`PA_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties and double-count
+        the local tax.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in PA_CITIES.items():
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in PA_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _rate, czs) in PA_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every PA ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed PA county.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "PA":
+                    continue
+                pa_county_name = county_name("PA", county_fips)
+                if pa_county_name is None or pa_county_name not in PA_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if pa_county_name == preferred_county:
+                        chosen_county = pa_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor for this ZIP -- take the first PA county.
+                chosen_county = pa_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                # ZIP is in a city but Census doesn't list the city's
+                # county at all (USPS-only / boundary-mismatch). Trust
+                # the city's declared county.
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Pennsylvania",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+        # Pass 2: city BoundaryRows for PA_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (USPS-only
+        # codes not in ZCTA) so we never regress city coverage.
+        for city_name, (county_name_for_city, _city_rate, zips) in PA_CITIES.items():
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="Pennsylvania",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="Pennsylvania",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=county_name_for_city,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

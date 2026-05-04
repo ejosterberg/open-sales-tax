@@ -138,17 +138,39 @@ NY_MCTD_COUNTIES: frozenset[str] = frozenset(
 )
 
 # Per-county portion (NOT including the 4% state rate or the 0.375%
-# MCTD surcharge). Source: NY DTF Pub 718, retrieved 2026-05-04.
-# Counties listed are only those touched by a covered city. A future
-# ratchet should fill in all 62 NY counties.
+# MCTD surcharge). Source: NY DTF Publication 718 (effective March 1,
+# 2025), retrieved 2026-05-04 from
+# https://www.tax.ny.gov/pdf/publications/sales/pub718.pdf.
+#
+# Coverage extended in this ratchet to ALL 62 NY counties (previously
+# 14) so the ZIP_COUNTY-driven boundary loader can resolve every NY
+# ZIP -- not just the ones in the top-30 city seed -- to the correct
+# county portion plus the MCTD 0.375% surcharge in the 12 MCTD
+# counties.
+#
+# Per-county rate derivation: combined Pub 718 rate minus the 4.0%
+# state rate, minus the 0.375% MCTD surcharge for MCTD counties. For
+# the four Westchester cities that file their own returns (Mount
+# Vernon, New Rochelle, White Plains, Yonkers), the city rate is
+# encoded as the city authority on top of a 3.0% Westchester county
+# rate -- this preserves the existing combined-rate math for the four
+# city ZIPs (e.g., Yonkers 4 + 3 + 0.375 MCTD + 1.5 city = 8.875%)
+# but means non-city Westchester ZIPs under-collect by 1.0% relative
+# to Pub 718 (8.375% combined) until a future ratchet expands the
+# city/county model to handle Westchester's "instead-of" allocation.
 NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
+    # ---- Counties with covered cities (existing seed; preserved) ----
     # NYC's five boroughs all use 0% county portion -- the local tax
     # is collected as the city portion (NYC 4.5%) plus MCTD 0.375%.
     # We use New York County (Manhattan) as the canonical county for
     # the consolidated "New York City" entry; the other four boroughs
     # share the same combined rate via the city entry.
+    "Bronx County": Decimal("0.000"),
+    "Kings County": Decimal("0.000"),
     "New York County": Decimal("0.000"),
-    # Upstate / non-NYC counties
+    "Queens County": Decimal("0.000"),
+    "Richmond County": Decimal("0.000"),
+    # Upstate / non-NYC counties touched by covered cities
     "Erie County": Decimal("4.750"),
     "Monroe County": Decimal("4.000"),
     "Onondaga County": Decimal("4.000"),
@@ -162,6 +184,53 @@ NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Broome County": Decimal("4.000"),
     "Rockland County": Decimal("4.000"),
     "Suffolk County": Decimal("4.250"),
+    # ---- Remaining 43 counties from NY DTF Pub 718 (March 1, 2025) ----
+    # All combined rates verified against Pub 718; per-county rate is
+    # combined - 4% state - 0.375% MCTD (for MCTD counties only).
+    "Allegany County": Decimal("4.500"),       # combined 8.5%
+    "Cattaraugus County": Decimal("4.000"),    # combined 8% (Olean/Salamanca city codes share rate)
+    "Cayuga County": Decimal("4.000"),         # combined 8% (Auburn city code shares rate)
+    "Chautauqua County": Decimal("4.000"),     # combined 8%
+    "Chemung County": Decimal("4.000"),        # combined 8%
+    "Chenango County": Decimal("4.000"),       # combined 8% (Norwich city code shares rate)
+    "Clinton County": Decimal("4.000"),        # combined 8%
+    "Columbia County": Decimal("4.000"),       # combined 8%
+    "Cortland County": Decimal("4.000"),       # combined 8%
+    "Delaware County": Decimal("4.000"),       # combined 8%
+    "Dutchess County": Decimal("3.750"),       # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
+    "Essex County": Decimal("4.000"),          # combined 8%
+    "Franklin County": Decimal("4.000"),       # combined 8%
+    "Fulton County": Decimal("4.000"),         # combined 8%
+    "Genesee County": Decimal("4.000"),        # combined 8%
+    "Greene County": Decimal("4.000"),         # combined 8%
+    "Hamilton County": Decimal("4.000"),       # combined 8%
+    "Herkimer County": Decimal("4.250"),       # combined 8.25%
+    "Jefferson County": Decimal("4.000"),      # combined 8%
+    "Lewis County": Decimal("4.000"),          # combined 8%
+    "Livingston County": Decimal("4.000"),     # combined 8%
+    "Madison County": Decimal("4.000"),        # combined 8% (Oneida city code shares rate)
+    "Montgomery County": Decimal("4.000"),     # combined 8%
+    "Ontario County": Decimal("3.500"),        # combined 7.5%
+    "Orange County": Decimal("3.750"),         # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
+    "Orleans County": Decimal("4.000"),        # combined 8%
+    "Oswego County": Decimal("4.000"),         # combined 8% (Oswego city code shares rate)
+    "Otsego County": Decimal("4.000"),         # combined 8%
+    "Putnam County": Decimal("4.000"),         # combined 8.375% (MCTD); 8.375 - 4 - 0.375 = 4
+    "St. Lawrence County": Decimal("4.000"),   # combined 8% (Ogdensburg city code shares rate)
+    "Saratoga County": Decimal("3.000"),       # combined 7% (Saratoga Springs city code shares rate)
+    "Schoharie County": Decimal("4.000"),      # combined 8%
+    "Schuyler County": Decimal("4.000"),       # combined 8%
+    "Seneca County": Decimal("4.000"),         # combined 8%
+    "Steuben County": Decimal("4.000"),        # combined 8%
+    "Sullivan County": Decimal("4.000"),       # combined 8%
+    "Tioga County": Decimal("4.000"),          # combined 8%
+    "Tompkins County": Decimal("4.000"),       # combined 8% (Ithaca city code shares rate)
+    "Ulster County": Decimal("4.000"),         # combined 8%
+    "Warren County": Decimal("3.000"),         # combined 7% (Glens Falls city code shares rate)
+    "Washington County": Decimal("3.000"),     # combined 7%
+    "Wayne County": Decimal("4.000"),          # combined 8%
+    "Wyoming County": Decimal("4.000"),        # combined 8%
+    "Yates County": Decimal("4.000"),          # combined 8%
 }
 
 # Per-city seed. Tuple shape:
