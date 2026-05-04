@@ -8,21 +8,24 @@ single statewide rate in the country and one of only a small number
 of states (along with IN, RI, TN, NJ, and CA's pre-district figure)
 that sits at or above 7% statewide.
 
-Local-jurisdiction model (NOT loaded in v0.7 -- documented for the
-next maintainer):
+Local-jurisdiction model:
 
 - Mississippi has very few local sales taxes. The state-imposed 7%
   rate is the bulk of what is collected statewide.
-- A small handful of municipalities have local "tourism" or
-  "infrastructure" taxes (e.g., Tupelo, Jackson, and the
-  Tunica County Tourism Tax), each authorized by individual local-
-  and-private-laws acts rather than a general local-option statute.
-- Per-municipality rates are deferred to a future release. v0.7
-  ships the **statewide rate only**; rationale mirrors the SC
-  decision -- there is no SST quarterly file, no public machine-
-  readable per-ZIP feed, and the handful of locals would each need
-  their authorizing local-and-private bill encoded by hand. This
-  is documented honestly rather than encoded as an incomplete set.
+- A small handful of municipalities have local "infrastructure"
+  taxes on **general retail** (Jackson 1% Special Sales Tax,
+  Tupelo 0.25% Water Procurement Facility Tax). These are seeded
+  via :mod:`opensalestax.states.ms_data` -- see that module for
+  citations and ZIP coverage.
+- A larger group of municipalities have **tourism** taxes that
+  apply only to hotels, restaurants, and rentals -- NOT general
+  retail (Hattiesburg, Gulfport, Biloxi, Tunica County). These
+  are NOT modeled because the engine does not yet support
+  per-category local taxability overrides; their general-retail
+  rate is correctly 7% via the Census ZCTA state-only fallback.
+- ZIPs not in a covered city's tuple receive the 7% statewide
+  rate, which is the correct answer everywhere outside Jackson
+  and Tupelo.
 
 Taxability matrix (per Miss. Code Ann. Title 27, Chapter 65):
 
@@ -124,6 +127,12 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.states.ms_data import (
+    MS_CITIES,
+    MS_COUNTY_RATE_PCT,
+    MS_STATE_EFFECTIVE_FROM,
+    MS_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -236,35 +245,76 @@ class Mississippi:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Mississippi's statewide 7% rate.
+        """Yield MS's state + per-county + per-city general-retail rates.
 
-        ``source_file`` is intentionally ignored -- MS has no SST
-        upstream file. Pass ``None`` from the loader.
+        Counties yielded: only those touched by an MS_CITIES entry.
+        Cities yielded: every MS_CITIES entry. ``source_file`` is
+        intentionally ignored -- MS has no SST upstream file.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="Mississippi",
             authority_type="state",
-            rate_pct=Decimal("7.000"),
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=MS_STATE_RATE_PCT,
+            effective_from=MS_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        used_counties = {county for county, _, _ in MS_CITIES.values()}
+        for county_name in sorted(used_counties):
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=MS_COUNTY_RATE_PCT[county_name],
+                effective_from=MS_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Mississippi",
+            )
+        for city_name, (county_name, city_rate, _zips) in sorted(MS_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=MS_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=county_name,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v0.7.
+        """Yield (state, county, city) boundary rows for each covered ZIP.
 
-        MS has very few local sales taxes (a handful of city tourism /
-        infrastructure taxes, the Tunica County Tourism Tax). Each is
-        authorized by an individual local-and-private-laws act rather
-        than a general local-option statute; loading them is deferred
-        until an MS-specific data-source decision is made (see module
-        docstring).
+        The Census ZCTA load already provides state-level binding for
+        every MS ZIP; this method ADDS county + city bindings for
+        Jackson and Tupelo (the only MS cities with general-retail
+        local rates). ZIPs outside the covered cities keep the
+        Census state-only binding (correct: flat 7%).
         """
         del source_file, version_label
-        return iter(())
+        for city_name, (county_name, _city_rate, zips) in MS_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Mississippi",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return MS's taxability rule for ``item_category``."""

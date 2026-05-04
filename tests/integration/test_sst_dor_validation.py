@@ -176,6 +176,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # entry is a regression guard ensuring a future maintainer doesn't
     # accidentally introduce phantom local rates.
     ("CT", "Hartford", "06103", "1234", "6.350", "0.01", "CT DRS (Conn. Gen. Stat. section 12-408: flat 6.35% statewide, no locals anywhere in CT)"),
+    # Mississippi -- MS DOR + city authorizing acts (verified 2026-05-04)
+    # Jackson + Tupelo have general-retail city taxes; Hattiesburg /
+    # Gulfport / Biloxi have tourism-only taxes (hotels + restaurants
+    # only) so general-retail is the flat 7% statewide.
+    ("MS", "Jackson", "39201", "0001", "8.000", "0.05", "MS DOR (state 7% + Jackson 1% Special Sales Tax per Miss. Code Ann. section 27-65-241)"),
+    ("MS", "Tupelo", "38801", "0001", "7.250", "0.05", "MS DOR (state 7% + Tupelo 0.25% Water Procurement Facility Tax per H.B. 1685, Laws 2008)"),
+    ("MS", "Hattiesburg", "39401", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Hattiesburg's Tourism Tax applies to hotels+restaurants only, not general retail)"),
+    ("MS", "Gulfport", "39501", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
+    ("MS", "Biloxi", "39530", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
 ]
 
 
