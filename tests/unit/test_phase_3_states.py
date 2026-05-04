@@ -32,14 +32,13 @@ PHASE_3_STATES = [
 ]
 
 # Subset that still ships ONLY the statewide row + empty boundaries.
-# Florida moved beyond statewide-only with the per-county DR-15DSS
-# loader (state 6% + per-county discretionary surtax + 30 covered
-# cities as ZIP-binding anchors); per-state behavior is asserted in
-# tests/unit/test_state_florida.py.
-STATEWIDE_ONLY_STATES = [
-    (TEXAS, "TX", "Texas", Decimal("6.250"), Texas),
-    (NEW_YORK, "NY", "New York", Decimal("4.000"), NewYork),
-]
+# Empty as of v0.26: TX shipped its top-50-city loader (test_state_texas)
+# and FL shipped per-county DR-15DSS coverage (test_state_florida).
+# NY graduated to a dedicated test_state_new_york module in v0.26.
+# This list is kept for shape compatibility with the parametrized tests
+# below; once NEW non-SST self_seeded states arrive, add them here
+# until they get per-state coverage.
+STATEWIDE_ONLY_STATES: list = []
 
 
 @pytest.mark.parametrize(
@@ -80,19 +79,30 @@ def test_is_registered(_instance, abbrev: str, _name, _rate, _cls) -> None:
     ids=lambda v: getattr(v, "__name__", str(v)),
 )
 def test_parse_rates_yields_statewide(instance, _abbrev, _name, rate: Decimal, _cls) -> None:
-    """TX/NY still ship statewide-only. FL has moved to per-county; see test_state_florida."""
+    """The first emitted row is the statewide rate at the expected percentage.
+
+    Empty parametrize set as of v0.26 (TX/FL/NY all moved beyond
+    statewide-only). Test stays as a guard for any future Phase 3 state.
+    """
     rows = list(instance.parse_rates(None, "v0.3-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
-    assert row.authority_type == "state"
-    assert row.rate_pct == rate
-    assert row.parent_authority_name is None
+    assert len(rows) >= 1
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1, "exactly one state-level rate expected"
+    assert state_rows[0].rate_pct == rate
+    assert state_rows[0].parent_authority_name is None
 
 
-@pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", STATEWIDE_ONLY_STATES)
-def test_parse_boundaries_returns_empty_in_v0_3(instance, _abbrev, _name, _rate, _cls) -> None:
-    """TX/NY still defer boundary loading. FL now seeds 30-city ZIP coverage."""
-    assert list(instance.parse_boundaries(None, "v0.3-statewide")) == []
+@pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_3_STATES)
+def test_parse_boundaries_emits_state_county_city(instance, _abbrev, _name, _rate, _cls) -> None:
+    """As of v0.26, TX and FL both seed boundaries (TX state+county+city;
+    FL state+county only). Test asserts each Phase 3 state emits at least
+    state + county BoundaryRows for its covered cities.
+    """
+    rows = list(instance.parse_boundaries(None, "v0.3-statewide"))
+    assert len(rows) > 0, f"{instance.state_abbrev} should seed boundaries"
+    types = {r.authority_type for r in rows}
+    assert "state" in types
+    assert "county" in types
 
 
 def test_florida_parse_rates_yields_state_plus_counties() -> None:
