@@ -24,6 +24,7 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name as _county_name
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
 from opensalestax.states.protocol import (
@@ -165,6 +166,10 @@ class SstStateModule:
     def _authority_name(self, code: str, authority_type: str) -> str:
         if authority_type == "state":
             return self.state_name
+        if authority_type == "county":
+            friendly = _county_name(self.state_abbrev, code)
+            if friendly is not None:
+                return friendly
         return f"{self.state_abbrev}-{authority_type}-{code}"
 
     def __repr__(self) -> str:

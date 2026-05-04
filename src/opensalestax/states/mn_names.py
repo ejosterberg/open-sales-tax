@@ -36,98 +36,11 @@ test fixtures. Cities not yet listed fall back to the
 
 from __future__ import annotations
 
-# ---------------------------------------------------------------------------
-# Counties (key = SST/FIPS county code, e.g. "053" for Hennepin)
-# ---------------------------------------------------------------------------
-MN_COUNTY_NAMES: dict[str, str] = {
-    "001": "Aitkin County",
-    "003": "Anoka County",
-    "005": "Becker County",
-    "007": "Beltrami County",
-    "009": "Benton County",
-    "011": "Big Stone County",
-    "013": "Blue Earth County",
-    "015": "Brown County",
-    "017": "Carlton County",
-    "019": "Carver County",
-    "021": "Cass County",
-    "023": "Chippewa County",
-    "025": "Chisago County",
-    "027": "Clay County",
-    "029": "Clearwater County",
-    "031": "Cook County",
-    "033": "Cottonwood County",
-    "035": "Crow Wing County",
-    "037": "Dakota County",
-    "039": "Dodge County",
-    "041": "Douglas County",
-    "043": "Faribault County",
-    "045": "Fillmore County",
-    "047": "Freeborn County",
-    "049": "Goodhue County",
-    "051": "Grant County",
-    "053": "Hennepin County",
-    "055": "Houston County",
-    "057": "Hubbard County",
-    "059": "Isanti County",
-    "061": "Itasca County",
-    "063": "Jackson County",
-    "065": "Kanabec County",
-    "067": "Kandiyohi County",
-    "069": "Kittson County",
-    "071": "Koochiching County",
-    "073": "Lac qui Parle County",
-    "075": "Lake County",
-    "077": "Lake of the Woods County",
-    "079": "Le Sueur County",
-    "081": "Lincoln County",
-    "083": "Lyon County",
-    "085": "McLeod County",
-    "087": "Mahnomen County",
-    "089": "Marshall County",
-    "091": "Martin County",
-    "093": "Meeker County",
-    "095": "Mille Lacs County",
-    "097": "Morrison County",
-    "099": "Mower County",
-    "101": "Murray County",
-    "103": "Nicollet County",
-    "105": "Nobles County",
-    "107": "Norman County",
-    "109": "Olmsted County",
-    "111": "Otter Tail County",
-    "113": "Pennington County",
-    "115": "Pine County",
-    "117": "Pipestone County",
-    "119": "Polk County",
-    "121": "Pope County",
-    "123": "Ramsey County",
-    "125": "Red Lake County",
-    "127": "Redwood County",
-    "129": "Renville County",
-    "131": "Rice County",
-    "133": "Rock County",
-    "135": "Roseau County",
-    "137": "St. Louis County",
-    "139": "Scott County",
-    "141": "Sherburne County",
-    "143": "Sibley County",
-    "145": "Stearns County",
-    "147": "Steele County",
-    "149": "Stevens County",
-    "151": "Swift County",
-    "153": "Todd County",
-    "155": "Traverse County",
-    "157": "Wabasha County",
-    "159": "Wadena County",
-    "161": "Waseca County",
-    "163": "Washington County",
-    "165": "Watonwan County",
-    "167": "Wilkin County",
-    "169": "Winona County",
-    "171": "Wright County",
-    "173": "Yellow Medicine County",
-}
+# Counties are looked up via the generic
+# :mod:`opensalestax.data.county_names` table (Census ZCTA->County
+# 2020 source); MN-specific entries here cover only the cities
+# and special districts that the SST jurisdiction codes don't
+# share with FIPS.
 
 # ---------------------------------------------------------------------------
 # Cities (key = SST jurisdiction_code from rate-file col3 for type-01 rows)
@@ -174,11 +87,6 @@ MN_DISTRICT_NAMES: dict[str, str] = {
 }
 
 
-def county_name(code: str) -> str | None:
-    """Return the friendly county name for a 3-digit FIPS code, or None."""
-    return MN_COUNTY_NAMES.get(code)
-
-
 def city_name(code: str) -> str | None:
     """Return the friendly city name for an SST city code, or None."""
     return MN_CITY_NAMES.get(code)
@@ -191,9 +99,7 @@ def district_name(code: str) -> str | None:
 
 __all__ = [
     "MN_CITY_NAMES",
-    "MN_COUNTY_NAMES",
     "MN_DISTRICT_NAMES",
     "city_name",
-    "county_name",
     "district_name",
 ]

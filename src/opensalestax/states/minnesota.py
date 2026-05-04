@@ -39,13 +39,11 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name as _generic_county_name
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
 from opensalestax.states.mn_names import (
     city_name as _mn_city_name,
-)
-from opensalestax.states.mn_names import (
-    county_name as _mn_county_name,
 )
 from opensalestax.states.mn_names import (
     district_name as _mn_district_name,
@@ -255,7 +253,7 @@ def _authority_name(code: str, authority_type: str) -> str:
     if authority_type == "state":
         return "Minnesota"
     if authority_type == "county":
-        name = _mn_county_name(code)
+        name = _generic_county_name("MN", code)
         if name is not None:
             return name
     elif authority_type == "city":
