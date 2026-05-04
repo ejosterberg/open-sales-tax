@@ -398,6 +398,12 @@ def _authority_name(code: str, authority_type: str) -> str:
         friendly = _ga_city(code)
         if friendly is not None:
             return friendly
+    elif authority_type == "district":
+        from opensalestax.states.ga_names import district_name as _ga_district
+
+        friendly = _ga_district(code)
+        if friendly is not None:
+            return friendly
     return f"GA-{authority_type}-{code}"
 
 

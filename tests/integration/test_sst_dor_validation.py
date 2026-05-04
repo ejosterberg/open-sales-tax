@@ -171,6 +171,23 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("AZ", "Flagstaff", "86001", "0001", "9.386", "0.01", "AZ DOR (state 5.6% + Coconino 1.3% + Flagstaff 2.486%)"),
     ("AZ", "Yuma", "85364", "0001", "8.412", "0.01", "AZ DOR (state 5.6% + Yuma 1.112% + Yuma city 1.7%)"),
     ("AZ", "Lake Havasu City", "86403", "0001", "7.600", "0.01", "AZ DOR (state 5.6% + Mohave 0.0% + Lake Havasu City 2.0%)"),
+    # AZ secondary Phoenix-metro cities (added v0.25 once seeded in az_data.py)
+    ("AZ", "Glendale", "85308", "1234", "9.200", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Glendale 2.9%)"),
+    ("AZ", "Surprise", "85388", "1234", "9.100", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Surprise 2.8%)"),
+    ("AZ", "Goodyear", "85338", "1234", "8.800", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Goodyear 2.5%)"),
+    ("AZ", "Gilbert", "85296", "1234", "8.300", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Gilbert 2.0%)"),
+    # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24)
+    ("TN", "Brentwood", "37027", "1234", "9.750", "0.05", "TN DOR (state 7% + Davidson 2.25% + IMPROVE Act 0.5%) -- post-v0.24 expired-record filter"),
+    ("TN", "Franklin", "37067", "1234", "9.750", "0.05", "TN DOR (state 7% + Williamson 2.75%) -- post-v0.24 expired-record filter"),
+    # OK Newcastle (city 51150) -- the McClain-side suburb of Norman
+    ("OK", "Newcastle", "73072", "1015", "9.000", "0.05", "OK DOR (state 4.5% + McClain 0.5% + Newcastle 4.0%)"),
+    # GA Alpharetta -- post-v0.24 fix dropped phantom Atlanta MOST overlay
+    ("GA", "Alpharetta", "30022", "1234", "7.750", "0.05", "GA DOR (state 4% + Fulton 3% + Fulton TSPLOST 0.75%) -- post-v0.24 expired-record filter"),
+    # MN suburbs
+    ("MN", "Eagan", "55121", "1234", "8.125", "0.05", "MN DOR (state + Dakota + 2 metro districts)"),
+    ("MN", "Hopkins", "55305", "1234", "8.525", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts)"),
+    ("MN", "Bloomington", "55425", "1234", "9.025", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts + Bloomington 0.5%)"),
+    ("MN", "St. Louis Park", "55416", "1234", "8.525", "0.05", "MN DOR (state + Hennepin + Hennepin transit + 2 metro districts)"),
 ]
 
 

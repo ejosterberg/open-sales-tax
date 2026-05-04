@@ -23,6 +23,7 @@ OK_CITY_NAMES: dict[str, str] = {
     "37800": "Bixby",
     "41850": "Lawton",
     "49200": "Moore",
+    "51150": "Newcastle",
     "52500": "Norman",
     "55000": "Oklahoma City",
     "59850": "Ponca City",
