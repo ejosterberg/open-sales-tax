@@ -44,6 +44,7 @@ from pathlib import Path
 
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
+from opensalestax.states._sst_base import _record_active_on
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -136,11 +137,14 @@ class Wisconsin:
         statewide rate.
         """
         del version_label
+        as_of = dt.date.today()
         seen_state_zips: set[str] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type != "z":
                 continue
             if not record.zip5_low:
+                continue
+            if not _record_active_on(record, as_of):
                 continue
             zip5 = record.zip5_low
             if zip5 not in seen_state_zips:

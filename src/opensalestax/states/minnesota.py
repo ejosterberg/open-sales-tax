@@ -43,6 +43,7 @@ from opensalestax.data.county_names import county_name as _generic_county_name
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
 from opensalestax.data.zip_state import zip_in_state
+from opensalestax.states._sst_base import _record_active_on
 from opensalestax.states.mn_names import (
     city_name as _mn_city_name,
 )
@@ -161,11 +162,14 @@ class Minnesota:
         only emitted once per parse pass.
         """
         del version_label
+        as_of = dt.date.today()
         seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
+                continue
+            if not _record_active_on(record, as_of):
                 continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None

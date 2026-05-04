@@ -117,7 +117,7 @@ def test_parse_rates_total_count_matches_known_codes() -> None:
 # ---------------------------------------------------------------------------
 # Boundary parsing
 # ---------------------------------------------------------------------------
-def test_parse_boundaries_emits_state_and_county_rows() -> None:
+def test_parse_boundaries_emits_state_and_county_rows(monkeypatch) -> None:
     """Each MN ZIP yields state, county, and -- where the SST file
     records them -- city and special-district BoundaryRows.
 
@@ -126,7 +126,22 @@ def test_parse_boundaries_emits_state_and_county_rows() -> None:
     statewide rate). City + district rows are required to match
     the MN DOR's per-ZIP+4 jurisdiction stack at
     revenue.state.mn.us/sales-tax-rate-calculator.
+
+    Pinned to 2018-01-01 because the sample fixture's effective
+    window is 2016-2019 -- the v0.24 effective-date filter in
+    parse_boundaries (added to fix TN double-counting from expired
+    records) would otherwise drop every fixture row.
     """
+    import datetime as dt
+
+    import opensalestax.states.minnesota as mn_module
+
+    class _PinnedDate(dt.date):
+        @classmethod
+        def today(cls):
+            return dt.date(2018, 1, 1)
+
+    monkeypatch.setattr(mn_module.dt, "date", _PinnedDate)
     fixture = state_fixture_dir("MN") / "MNB2026Q2FEB18-sample.csv"
     rows = list(MINNESOTA.parse_boundaries(fixture, "MN-SST-2026Q2FEB18"))
 
