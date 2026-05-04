@@ -1,11 +1,15 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** **v0.13.0 shipped.** Phase 6 Batch C complete — AL,
-HI, NM, PR added by 4 parallel sub-agents. **All 52 jurisdictions
-now tier-1 maintained.** Same release adds the threshold-rules
-engine (NY $110 below_exempt, MA $175 / RI $250 above_excess
-clothing exemptions). 1120 unit tests, ruff + mypy clean.
+**Status:** **v0.14.0 shipped.** Boundary data initiative complete
+— 41,702 ZIP boundaries across all 52 jurisdictions. **51 of 52
+major-city ZIPs return correct combined rates** (state + county
+where SST data is loaded; state-only via Census ZCTA elsewhere).
+Engine answers real US ZIPs end-to-end for the first time.
+Includes loader fixes for SST format drift (mixed-case record
+types, 90-column rows, .csv↔.zip extension fallback) and a new
+`data load-zcta` CLI command that seeds ZIP→state from the
+public-domain Census 2020 ZCTA→County file. 1127 unit tests.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
 the gating dependency for proper home-rule / parish / municipal
@@ -51,6 +55,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.11.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.1) | 2026-05-03 | Engine wires `rate_modifier` through; reduced grocery rates now applied correctly across IL/MO/MS/AR/KS/OK/TN/UT/VA/NC |
 | [v0.12.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.12.0) | 2026-05-03 | Maine tier-1 (5.5% + no-local + no-holidays) — 48 of 52 jurisdictions now tier-1 |
 | [v0.13.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.13.0) | 2026-05-03 | Phase 6 Batch C complete — AL, HI, NM, PR tier-1 (4 parallel agents). **All 52 jurisdictions are now tier-1 maintained.** Plus per-item taxable thresholds in the engine — NY $110 / MA $175 / RI $250 clothing exemptions now enforced. |
+| [v0.14.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.14.0) | 2026-05-03 | Boundary data initiative — 41,702 ZIP→authority boundaries across all 52 jurisdictions. SST refresh + new Census ZCTA loader (`data load-zcta`). Engine answers real US ZIPs at major cities for the first time. Multiple loader-robustness fixes (mixed-case SST record types, 90-column rows, csv↔zip fallback, idempotent boundary delete). |
 
 ## Coverage (after v0.5)
 
