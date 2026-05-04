@@ -27,6 +27,7 @@ from pathlib import Path
 from opensalestax.data.county_names import county_name as _county_name
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
+from opensalestax.data.zip_state import zip_in_state
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -121,25 +122,24 @@ class SstStateModule:
                 continue
             if not record.zip5_low:
                 continue
-            # SST boundary files publish records the loading state's
-            # tax authorities consider relevant -- which sometimes
-            # includes broad cross-border ZIP ranges (e.g. SD's file
-            # has a Z-record covering 51001-56136 that sweeps in MN
-            # / IA / NE / WI ZIPs, presumably for remote-seller use-
-            # tax notification purposes). Without the state-FIPS
-            # filter the engine would bind Minneapolis to South
-            # Dakota and over-collect. Drop any record whose
-            # state_fips disagrees with the module's own state.
-            if (
-                self.state_fips
-                and record.state_fips
-                and record.state_fips != self.state_fips
-            ):
-                continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
 
             for zip5 in _expand_zip5_range(record.zip5_low, record.zip5_high):
+                # Drop cross-border ZIPs: SST publishes records that
+                # claim ZIPs outside the loading state (e.g. SD's
+                # quarterly carries a Z-record covering 51001-56136
+                # which the range expansion would otherwise bind to
+                # Minnesota / Iowa / Nebraska / Wisconsin ZIPs).
+                # The Census ZCTA->county relationship file is the
+                # authoritative source for "which state is this ZIP
+                # physically in"; we drop any expansion that doesn't
+                # match the loading state. ZIPs not in the Census
+                # table (PO-box-only, business-only) pass through --
+                # treating "unknown" as "trust the SST file".
+                in_state = zip_in_state(zip5, self.state_abbrev)
+                if in_state is False:
+                    continue
                 for authority_type, authority_name in self._authority_bindings(record):
                     key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
                     if key in seen:

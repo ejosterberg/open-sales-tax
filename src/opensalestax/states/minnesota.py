@@ -42,6 +42,7 @@ from pathlib import Path
 from opensalestax.data.county_names import county_name as _generic_county_name
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
+from opensalestax.data.zip_state import zip_in_state
 from opensalestax.states.mn_names import (
     city_name as _mn_city_name,
 )
@@ -166,17 +167,18 @@ class Minnesota:
                 continue
             if not record.zip5_low:
                 continue
-            # Drop cross-border records (see _sst_base.parse_boundaries
-            # comment): MN's SST file occasionally lists broad ZIP
-            # ranges in records whose state_fips != "27", and the
-            # range expansion would otherwise bind out-of-state ZIPs
-            # to MN authorities.
-            if record.state_fips and record.state_fips != self.state_fips:
-                continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
 
             for zip5 in _expand_zip5_range(record.zip5_low, record.zip5_high):
+                # Drop cross-border ZIPs (see _sst_base.parse_boundaries
+                # comment): MN's SST file occasionally lists broad ZIP
+                # ranges that include out-of-state ZIPs; the Census
+                # ZCTA->state mapping is the authoritative source for
+                # "which state is this ZIP physically in".
+                in_state = zip_in_state(zip5, "MN")
+                if in_state is False:
+                    continue
                 for authority_type, authority_name in self._authority_bindings(record):
                     key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
                     if key in seen:
