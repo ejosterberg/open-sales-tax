@@ -2,15 +2,23 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.21.0 is the latest release.** Live at
+**v0.22.0 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at `http://10.32.161.126:8080` (also fronted by
 Cloudflare at `https://api.opensalestax.org`). All 52 jurisdictions
 are tier-1. SST loader/lookup engine matches every Tier-1 SST
-state's published DOR rate within 0.05% across 41 sampled ZIP+4s
+state's published DOR rate within 0.05% across 49 sampled ZIP+4s
 — the live regression test (`pytest -m liveapi
 tests/integration/test_sst_dor_validation.py`) is the single best
 guard against drift; **run it before every prod deploy.**
+
+**v0.22 deploy gotcha (learned the hard way 2026-05-04):** when the
+parser changes (e.g. v0.22's zero-pad of +4 ranges), every SST state
+must be RELOADED (`bash ~/sst-load.sh` on the prod VM, ~50 min) —
+just rebuilding the container isn't enough because the boundary rows
+are baked into the DB at load time. After ANY parser/loader/state-
+module change, plan for the full reload window before claiming the
+fix is live.
 
 ## Where the iter-loop is currently focused
 
