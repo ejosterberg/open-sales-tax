@@ -284,23 +284,53 @@ class Georgia:
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
         """Parse a Georgia SST boundary file into normalized BoundaryRow records.
 
-        Phase 1 only emits ZIP5-range records; Phase 4 will extend
-        this with ZIP+4 + address-level data from the ``4`` records.
+        Emits multiple bindings per ZIP (state always; county / city /
+        district where the SST file records them) using both type-z
+        ZIP-wide records and type-4 ZIP+4-precision records, matching
+        the modern SstStateModule.parse_boundaries logic. Without
+        this, Atlanta 30303 returned only state + Fulton County
+        (7.0%) and missed the 1.9% Atlanta city tax (which lives in
+        type-4 records' city_code column).
         """
         del version_label
+        from opensalestax.data.zip_state import zip_in_state
+        from opensalestax.states._sst_base import _expand_zip5_range
+
+        seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
-            if record.record_type != "z":
+            if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
                 continue
-            if record.county_fips:
-                yield BoundaryRow(
-                    authority_name=_authority_name(record.county_fips, "county"),
-                    authority_type="county",
-                    zip5=record.zip5_low,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+            zip4_low = record.zip4_low if record.record_type == "4" else None
+            zip4_high = record.zip4_high if record.record_type == "4" else None
+
+            for zip5 in _expand_zip5_range(record.zip5_low, record.zip5_high):
+                if zip_in_state(zip5, "GA") is False:
+                    continue
+                bindings: list[tuple[str, str]] = [("state", "Georgia")]
+                if record.county_fips:
+                    bindings.append(
+                        ("county", _authority_name(record.county_fips, "county"))
+                    )
+                if record.city_code:
+                    bindings.append(("city", _authority_name(record.city_code, "city")))
+                if record.district_code:
+                    bindings.append(
+                        ("district", _authority_name(record.district_code, "district"))
+                    )
+                for authority_type, authority_name in bindings:
+                    key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    yield BoundaryRow(
+                        authority_name=authority_name,
+                        authority_type=authority_type,  # type: ignore[arg-type]
+                        zip5=zip5,
+                        zip4_low=zip4_low,
+                        zip4_high=zip4_high,
+                    )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return GA's taxability rule for ``item_category`` on ``effective_date``.

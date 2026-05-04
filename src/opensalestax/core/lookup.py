@@ -127,6 +127,35 @@ async def lookup_jurisdictions_by_zip(
             (await session.execute(district_stmt)).scalars().all()
         )
 
+    # Loose fallback: if neither the precise type-4 query NOR
+    # the type-z fallback found any city/county binding for this
+    # ZIP+4 (e.g. OKC 73102-6107 isn't in any +4 range and the
+    # only type-z record was a filtered composite code), fall
+    # back to the loose union of any type-4 county/city for the
+    # ZIP. Most ZIPs are uniform within the city, so this gives
+    # the best-effort right answer instead of silently returning
+    # state-only when ZIP+4 is supplied but unrecognized.
+    if zip4 is not None and not precise_county_city_ids:
+        local_in_z = any(
+            a.authority_type in ("county", "city") for a in z_authorities
+        )
+        if not local_in_z:
+            loose_stmt = (
+                select(TaxAuthority)
+                .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+                .where(
+                    *base_filter(),
+                    Boundary.zip4_low.isnot(None),
+                    TaxAuthority.authority_type.in_(("county", "city")),
+                )
+                .options(*options)
+                .distinct()
+            )
+            loose_authorities = list(
+                (await session.execute(loose_stmt)).scalars().all()
+            )
+            precise_authorities = loose_authorities
+
     # Merge: state always; districts always; county/city prefer
     # type-4 over type-z when both exist for the SAME ZIP+4.
     seen_ids: set[int] = set()
