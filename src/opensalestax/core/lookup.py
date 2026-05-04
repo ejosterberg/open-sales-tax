@@ -56,61 +56,91 @@ async def lookup_jurisdictions_by_zip(
 
     options = (selectinload(TaxAuthority.state),)
 
-    # State authorities always apply -- pull them via the type-z
-    # (NULL +4) bindings since states are emitted at that level.
-    state_stmt = (
-        select(TaxAuthority)
-        .join(Boundary, Boundary.authority_id == TaxAuthority.id)
-        .where(
-            Boundary.zip5 == zip5,
-            Boundary.zip4_low.is_(None),
-            TaxAuthority.authority_type == "state",
-        )
-        .options(*options)
-        .distinct()
-    )
-    state_authorities = list((await session.execute(state_stmt)).scalars().all())
+    def base_filter():
+        return [Boundary.zip5 == zip5]
 
-    local_authorities: list[TaxAuthority] = []
+    # Type-4 (precise per-+4) county/city bindings, when caller
+    # supplied a +4 AND any type-4 record covers it. For TN-style
+    # encoding ("this +4 is in city X" vs "this +4 is in
+    # unincorporated county Y") the type-4 row is the precise
+    # truth and the type-z fallback would double-count.
+    precise_county_city_ids: set[int] = set()
     if zip4 is not None:
-        # Try the precise type-4 lookup first; if it returns
-        # anything, use it exclusively for the local layer.
         precise_stmt = (
             select(TaxAuthority)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
-                Boundary.zip5 == zip5,
+                *base_filter(),
                 Boundary.zip4_low.isnot(None),
                 Boundary.zip4_high.isnot(None),
                 Boundary.zip4_low <= zip4,
                 zip4 <= Boundary.zip4_high,
-                TaxAuthority.authority_type != "state",
+                TaxAuthority.authority_type.in_(("county", "city")),
             )
             .options(*options)
             .distinct()
         )
-        local_authorities = list((await session.execute(precise_stmt)).scalars().all())
+        precise_authorities = list(
+            (await session.execute(precise_stmt)).scalars().all()
+        )
+        precise_county_city_ids = {a.id for a in precise_authorities}
+    else:
+        precise_authorities = []
 
-    if not local_authorities:
-        # Fall back to type-z (no +4) local bindings.
-        fallback_stmt = (
+    # Type-z (NULL +4) bindings -- catches the always-applies
+    # state row, the metro / transit districts that aren't bound
+    # per-+4, and (when no precise type-4 row covered the +4) the
+    # zip-wide county/city fallback.
+    z_stmt = (
+        select(TaxAuthority)
+        .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+        .where(
+            *base_filter(),
+            Boundary.zip4_low.is_(None),
+        )
+        .options(*options)
+        .distinct()
+    )
+    z_authorities = list((await session.execute(z_stmt)).scalars().all())
+
+    # Districts ALWAYS apply (state-only / state+county / metro /
+    # transit) regardless of record type; pull them from the
+    # type-4 layer too so districts encoded only on per-+4 rows
+    # don't get dropped.
+    district_authorities: list[TaxAuthority] = []
+    if zip4 is not None:
+        district_stmt = (
             select(TaxAuthority)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
-                Boundary.zip5 == zip5,
-                Boundary.zip4_low.is_(None),
-                TaxAuthority.authority_type != "state",
+                *base_filter(),
+                Boundary.zip4_low.isnot(None),
+                Boundary.zip4_high.isnot(None),
+                Boundary.zip4_low <= zip4,
+                zip4 <= Boundary.zip4_high,
+                TaxAuthority.authority_type == "district",
             )
             .options(*options)
             .distinct()
         )
-        local_authorities = list((await session.execute(fallback_stmt)).scalars().all())
+        district_authorities = list(
+            (await session.execute(district_stmt)).scalars().all()
+        )
 
-    # De-dup across the two queries (state could be in both, paranoia).
+    # Merge: state always; districts always; county/city prefer
+    # type-4 over type-z when both exist for the SAME ZIP+4.
     seen_ids: set[int] = set()
     merged: list[TaxAuthority] = []
-    for auth in [*state_authorities, *local_authorities]:
+    for auth in [*precise_authorities, *district_authorities, *z_authorities]:
         if auth.id in seen_ids:
+            continue
+        # Drop type-z county/city when a precise type-4 county/
+        # city was found (TN-style alternation).
+        if (
+            auth.authority_type in ("county", "city")
+            and precise_county_city_ids
+            and auth.id not in precise_county_city_ids
+        ):
             continue
         seen_ids.add(auth.id)
         merged.append(auth)
