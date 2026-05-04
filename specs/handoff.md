@@ -2,15 +2,26 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.22.0 is the latest release.** Live at
+**v0.24.0 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at `http://10.32.161.126:8080` (also fronted by
 Cloudflare at `https://api.opensalestax.org`). All 52 jurisdictions
 are tier-1. SST loader/lookup engine matches every Tier-1 SST
-state's published DOR rate within 0.05% across 49 sampled ZIP+4s
-— the live regression test (`pytest -m liveapi
-tests/integration/test_sst_dor_validation.py`) is the single best
-guard against drift; **run it before every prod deploy.**
+state's published DOR rate within 0.05% across 89 sampled ZIP+4s.
+
+**Pre-built data dumps now ship with every release** (CI workflow
+`.github/workflows/build-data-dump.yml`). New users install via
+`opensalestax data restore` instead of the 50-minute manual
+`data fetch` + `data load` workflow. The manual path remains for
+users who want fresher-than-tag DOR data (`Refresh from source`
+section in README).
+
+**Multi-agent worktree pattern is the cadence.** When a /loop iter
+has multiple independent tracks (e.g. data work + bug fix + CI
+infra), spawn 3-6 sub-agents with `Agent({isolation: "worktree"})`,
+give each a self-contained brief stating what they CAN'T touch
+to avoid file conflicts, then merge their branches. Iter 8
+shipped 3 agents in parallel (~1900 lines, 1 hour wall-clock).
 
 **v0.22 deploy gotcha (learned the hard way 2026-05-04):** when the
 parser changes (e.g. v0.22's zero-pad of +4 ranges), every SST state
