@@ -125,6 +125,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("OH", "Youngstown", "44503", "1234", "7.500", "0.05", "OH DOR (state 5.75% + Mahoning 1.5% + WRTA 0.25%)"),
     # WA additional
     ("WA", "Tacoma", "98402", "3502", "10.400", "0.10", "WA DOR (state 6.5% + Tacoma combined ~3.9%)"),
+    ("WA", "Vancouver", "98660", "1234", "8.900", "0.05", "WA DOR (state 6.5% + Vancouver combined 2.4%)"),
+    ("WA", "Bellingham", "98225", "1234", "9.100", "0.05", "WA DOR (state 6.5% + Bellingham combined 2.6%)"),
+    ("WA", "Federal Way", "98003", "1234", "10.300", "0.10", "WA DOR (state 6.5% + Federal Way combined ~3.8%)"),
+    ("WA", "Renton", "98055", "1234", "10.500", "0.05", "WA DOR (state 6.5% + Renton combined 4.0%)"),
+    ("WA", "Olympia", "98501", "1234", "9.800", "0.05", "WA DOR (state 6.5% + Olympia combined 3.3%)"),
     # OK secondary cities (post-loose-fallback fix; was 12.625% / 13.25% pre-fix)
     ("OK", "Norman", "73069", "6107", "8.750", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Norman 4.125%)"),
     ("OK", "Moore", "73160", "2306", "8.500", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Moore 3.875%)"),
