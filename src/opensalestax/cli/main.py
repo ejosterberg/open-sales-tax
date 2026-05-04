@@ -186,6 +186,16 @@ def data_load(
         "-v",
         help="Version label (e.g. 2026Q2FEB18 or MN-SST-2026Q2FEB18).",
     ),
+    boundary_version: str | None = typer.Option(
+        None,
+        "--boundary-version",
+        "-b",
+        help=(
+            "Boundary file version label, when SST publishes the "
+            "boundary file under a different release date than "
+            "rates (common). Defaults to --version."
+        ),
+    ),
     cache_dir: Path | None = typer.Option(None, help="Override default cache directory."),
     skip_boundaries: bool = typer.Option(
         False,
@@ -204,6 +214,7 @@ def data_load(
             version=version,
             cache_dir=cache_dir,
             load_boundaries=not skip_boundaries,
+            boundary_version=boundary_version,
         )
     )
     typer.echo(
@@ -254,6 +265,7 @@ async def _load_async(
     version: str,
     cache_dir: Path | None,
     load_boundaries: bool,
+    boundary_version: str | None = None,
 ) -> LoadSummary:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -270,6 +282,7 @@ async def _load_async(
                     version_label=version,
                     cache_dir=cache_dir,
                     load_boundaries=load_boundaries,
+                    boundary_version_label=boundary_version,
                 )
             except LoaderError as exc:
                 typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)

@@ -132,6 +132,7 @@ async def load_state_data(
     cache_dir: Path | None = None,
     *,
     load_boundaries: bool = True,
+    boundary_version_label: str | None = None,
 ) -> LoadSummary:
     """Load a state's SST data from the cache into the database.
 
@@ -144,6 +145,12 @@ async def load_state_data(
     where the boundary file is too large to keep in test fixtures
     (most of them); skipping doesn't affect rate calculations as
     long as boundaries are loaded by some other path.
+
+    ``boundary_version_label`` lets the caller point at a boundary
+    file with a different release date than the rate file -- common
+    in the SST publishing schedule (e.g. GA rates 2026Q2FEB19 +
+    GA boundaries 2026Q2FEB16). If omitted, the rate
+    ``version_label`` is reused.
 
     Raises :class:`LoaderError` if the state isn't registered or
     the cache file isn't found.
@@ -172,7 +179,7 @@ async def load_state_data(
         session,
         state_module,
         state_abbrev,
-        version_label,
+        boundary_version_label or version_label,
         cache_dir,
         full_label,
         state_row.id,
