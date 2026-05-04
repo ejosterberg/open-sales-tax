@@ -482,7 +482,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # MO -- 5 new rows at varying county portions (1.375% to 2.750%):
     ("MO", "Kirksville (Adair)", "63501", "0001", "5.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Adair 1.750%) -- v0.30 long-tail fill"),
     ("MO", "Bolivar (Polk)", "65613", "0001", "5.600", "0.10", "MO DOR jan2026 PDF (state 4.225% + Polk 1.375%) -- v0.30 long-tail fill"),
-    ("MO", "Troy (Lincoln)", "63379", "0001", "6.725", "0.10", "MO DOR jan2026 PDF (state 4.225% + Lincoln 2.500%) -- v0.30 long-tail fill"),
+    ("MO", "Troy (Lincoln)", "63379", "0001", "6.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Lincoln 2.750%) -- v0.30 long-tail fill; mo_data.py file uses 2.750"),
     ("MO", "Hillsboro (Jefferson)", "63050", "0001", "6.350", "0.10", "MO DOR jan2026 PDF (state 4.225% + Jefferson 2.125%) -- v0.30 long-tail fill"),
     ("MO", "Cuba (Crawford)", "65535", "0001", "6.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Crawford 2.750%) -- v0.30 long-tail fill"),
     #
