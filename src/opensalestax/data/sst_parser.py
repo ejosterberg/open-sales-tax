@@ -226,13 +226,24 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
         # triplet so each district produces its own boundary; if
         # the row has no district triplets we still yield a single
         # record so state/county/city bindings are emitted.
+        #
+        # Skip triplets whose type is "45" (state) -- those are
+        # location-reference codes (e.g. WA's L1704 / L1708 alternate
+        # location IDs that all point at the state row, not real
+        # districts). Treating them as districts double-counts the
+        # state rate per code (WA Bellevue would otherwise return
+        # 29.3% from 5 phantom L-code "districts" at 3.8% each on
+        # top of the real state + city).
         triplets: list[tuple[str | None, str | None, str | None]] = []
         for start in range(29, len(cols) - 2, 3):
             cls = cols[start] or None
             code = cols[start + 1] or None
             type_ = cols[start + 2] or None
-            if cls or code or type_:
-                triplets.append((cls, code, type_))
+            if not (cls or code or type_):
+                continue
+            if type_ == "45":
+                continue
+            triplets.append((cls, code, type_))
 
         if not triplets:
             yield SstBoundaryRecord(
