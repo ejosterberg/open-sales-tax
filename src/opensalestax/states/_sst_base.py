@@ -121,6 +121,21 @@ class SstStateModule:
                 continue
             if not record.zip5_low:
                 continue
+            # SST boundary files publish records the loading state's
+            # tax authorities consider relevant -- which sometimes
+            # includes broad cross-border ZIP ranges (e.g. SD's file
+            # has a Z-record covering 51001-56136 that sweeps in MN
+            # / IA / NE / WI ZIPs, presumably for remote-seller use-
+            # tax notification purposes). Without the state-FIPS
+            # filter the engine would bind Minneapolis to South
+            # Dakota and over-collect. Drop any record whose
+            # state_fips disagrees with the module's own state.
+            if (
+                self.state_fips
+                and record.state_fips
+                and record.state_fips != self.state_fips
+            ):
+                continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
 

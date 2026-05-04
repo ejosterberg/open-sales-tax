@@ -110,6 +110,7 @@ class Minnesota:
 
     state_abbrev: str = "MN"
     state_name: str = "Minnesota"
+    state_fips: str = "27"
     sst_member: bool = True
     has_sales_tax: bool = True
     tier: StateTier = 1
@@ -164,6 +165,13 @@ class Minnesota:
             if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
+                continue
+            # Drop cross-border records (see _sst_base.parse_boundaries
+            # comment): MN's SST file occasionally lists broad ZIP
+            # ranges in records whose state_fips != "27", and the
+            # range expansion would otherwise bind out-of-state ZIPs
+            # to MN authorities.
+            if record.state_fips and record.state_fips != self.state_fips:
                 continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
