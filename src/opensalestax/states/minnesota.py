@@ -41,6 +41,15 @@ from pathlib import Path
 
 from opensalestax.data.sst import open_sst_csv
 from opensalestax.data.sst_parser import parse_boundary_csv, parse_rates_csv
+from opensalestax.states.mn_names import (
+    city_name as _mn_city_name,
+)
+from opensalestax.states.mn_names import (
+    county_name as _mn_county_name,
+)
+from opensalestax.states.mn_names import (
+    district_name as _mn_district_name,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -215,15 +224,33 @@ class Minnesota:
 
 
 def _authority_name(code: str, authority_type: str) -> str:
-    """Build a deterministic authority name from a SST jurisdiction code.
+    """Return the friendly authority name for a SST jurisdiction code.
 
-    Phase 1 doesn't have a code->human-name lookup table (that's
-    Phase 5 work). Names follow ``MN-<TYPE>-<CODE>`` so the engine
-    can group authorities consistently and integrators can join
-    against external code lists when needed.
+    Looks up the human-readable name from
+    :mod:`opensalestax.states.mn_names` -- the curated MN DOR
+    Fact Sheet 164 / 164S table -- so that calculator output
+    ("Minneapolis", "Hennepin County", "Hennepin County Transit
+    Sales Tax") matches what the MN DOR's calculator and what
+    M.S. 297A.99 requires on retail receipts.
+
+    Falls back to ``MN-<type>-<code>`` for any code not yet in
+    the lookup -- a clear placeholder that surfaces gaps without
+    silently breaking the load.
     """
     if authority_type == "state":
         return "Minnesota"
+    if authority_type == "county":
+        name = _mn_county_name(code)
+        if name is not None:
+            return name
+    elif authority_type == "city":
+        name = _mn_city_name(code)
+        if name is not None:
+            return name
+    elif authority_type == "district":
+        name = _mn_district_name(code)
+        if name is not None:
+            return name
     return f"MN-{authority_type}-{code}"
 
 
