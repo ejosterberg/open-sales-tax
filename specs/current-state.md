@@ -1,15 +1,16 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-03
-**Status:** **v0.7.0 shipped.** Phase 6 Batch B — 5 new tier-1
-states added in parallel by 5 sub-agents (CO, ID, LA, MO, MS).
-508 unit tests + 38 integration tests, CI matrix green on
-PostgreSQL + MariaDB, ruff + mypy clean.
+**Status:** **v0.13.0 shipped.** Phase 6 Batch C complete — AL,
+HI, NM, PR added by 4 parallel sub-agents. **All 52 jurisdictions
+now tier-1 maintained.** Same release adds the threshold-rules
+engine (NY $110 below_exempt, MA $175 / RI $250 above_excess
+clothing exemptions). 1120 unit tests, ruff + mypy clean.
 
-**v0.6 / Phase 6 buildout in progress, started 2026-05-03;
-Batches A + B shipped same day.** Two agents (CO, LA) flagged
-that proper home-rule / parish modeling needs a
-`SubJurisdiction` Protocol extension — captured in
+The CO/LA-flagged `SubJurisdiction` Protocol extension is now
+the gating dependency for proper home-rule / parish / municipal
+modeling on AL (~700+ home-rule cities), CO, LA, plus per-county
+surcharges on HI/NM. Captured in
 `specs/decisions/04-colorado-home-rule.md` and
 `specs/decisions/05-louisiana-parishes.md` for v1.0+ design.
 
@@ -49,16 +50,17 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.11.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.0) | 2026-05-03 | RI, SD, TN, UT, VT, WA, WV, WY tier-1 (Phase 7 Batch P4 — **final SST batch; all 22 SST members now tier-1**) |
 | [v0.11.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.11.1) | 2026-05-03 | Engine wires `rate_modifier` through; reduced grocery rates now applied correctly across IL/MO/MS/AR/KS/OK/TN/UT/VA/NC |
 | [v0.12.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.12.0) | 2026-05-03 | Maine tier-1 (5.5% + no-local + no-holidays) — 48 of 52 jurisdictions now tier-1 |
+| [v0.13.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.13.0) | 2026-05-03 | Phase 6 Batch C complete — AL, HI, NM, PR tier-1 (4 parallel agents). **All 52 jurisdictions are now tier-1 maintained.** Plus per-item taxable thresholds in the engine — NY $110 / MA $175 / RI $250 clothing exemptions now enforced. |
 
 ## Coverage (after v0.5)
 
 | Tier | Count | States |
 |---|---:|---|
-| **Tier 1** -- fully maintained | **48** | All 50 states except AL, HI, NM, plus DC; PR remains tier-0 territorial regime |
+| **Tier 1** -- fully maintained | **52** | Every US state, plus DC and Puerto Rico |
 | **Tier 2** -- rate-only via SST data | **0** | (Phase 7 complete — every SST member promoted to tier-1) |
-| Unsupported | **4** | AL, HI, NM, PR |
+| Unsupported | **0** | (Phase 6 Batch C complete — AL/HI/NM/PR all tier-1 in v0.13.0) |
 
-**48 of 52 jurisdictions are fully tier-1 maintained.** Phase 7 closed v0.11.0; ME added in v0.12.0. Phase 6 Batch C remains: AL (home-rule), HI (GET), NM (GRT) — these need new abstractions.
+**All 52 jurisdictions are fully tier-1 maintained.** Phase 7 closed in v0.11.0; ME added in v0.12.0; AL/HI/NM/PR added in v0.13.0. HI's General Excise Tax and NM's Gross Receipts Tax are encoded as sales taxes for API compatibility. Per-county/parish/home-rule local rates remain deferred behind the planned `SubJurisdiction` Protocol abstraction (decision docs 04 + 05).
 
 ## Feature ladder
 
@@ -79,7 +81,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | API-key auth mode + key-management CLI | Phase 2 | ✅ |
 | `self_seeded` non-SST loader path (CA pattern) | Phase 2 | ✅ |
 | Sales-tax holidays (per-state windows + engine integration) | v0.5 | ✅ |
-| Threshold rules (NY $110, MA $175 clothing) | v0.6+ | ⏭️ |
+| Threshold rules (NY $110 below_exempt, MA $175 / RI $250 above_excess) | v0.13 | ✅ |
 | `rate_modifier` engine wiring (IL reduced grocery rate) | v0.6+ | ⏭️ |
 | Address-level resolution via PostGIS | Phase 4 | ⏭️ |
 | Exemption certificates | Phase 5 | ⏭️ |

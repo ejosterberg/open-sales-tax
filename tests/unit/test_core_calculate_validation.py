@@ -9,10 +9,9 @@ input contract for LineItem and the lookup helpers.
 from __future__ import annotations
 
 from decimal import Decimal
+from types import SimpleNamespace
 
 import pytest
-
-from types import SimpleNamespace
 
 from opensalestax.core.calculate import (
     TAX_QUANTUM,
