@@ -51,6 +51,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Nebraska -- NE DOR Local Sales and Use Tax Rates 2026-Q1
     ("NE", "Omaha", "68102", "1718", "7.000", "0.05", "NE DOR (state 5.5% + Omaha 1.5%)"),
     ("NE", "Lincoln", "68508", "2802", "7.250", "0.05", "NE DOR (state 5.5% + Lincoln 1.75%)"),
+    ("NE", "Norfolk", "68701", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Norfolk 2.0%)"),
+    ("NE", "Kearney", "68845", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Kearney 1.5%)"),
+    ("NE", "North Platte", "69101", "1234", "7.500", "0.05", "NE DOR (state 5.5% + North Platte 2.0%)"),
+    ("NE", "Grand Island", "68803", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Grand Island 2.0%)"),
+    ("NE", "Fremont", "68025", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Fremont 1.5%)"),
+    ("NE", "Beatrice", "68310", "1234", "7.500", "0.05", "NE DOR (state 5.5% + Beatrice 2.0%)"),
+    ("NE", "Columbus", "68601", "1234", "7.000", "0.05", "NE DOR (state 5.5% + Columbus 1.5%)"),
+    ("NE", "McCook", "69001", "1234", "7.500", "0.05", "NE DOR (state 5.5% + McCook 2.0%)"),
+    # Hastings (68901) friendly name 21415 is wired in ne_names.py but no
+    # validation row: ZIP 68901 routes to code 19595 (Grand Island) and
+    # 68902 misroutes to a SD overlap in the engine. Add a row once the
+    # engine resolves Hastings ZIPs to FIPS Place 21415 cleanly.
+    ("NE", "La Vista", "68128", "1234", "7.500", "0.05", "NE DOR (state 5.5% + La Vista 2.0%)"),
+    ("NE", "Gretna", "68138", "5000", "7.500", "0.05", "NE DOR (state 5.5% + Gretna 2.0%)"),
     # Nevada -- NV DOR Tax Rates by County 2026
     ("NV", "Las Vegas", "89101", "2402", "8.375", "0.05", "NV DOR (Clark County combined)"),
     ("NV", "Reno", "89501", "1606", "8.265", "0.05", "NV DOR (Washoe County combined)"),
@@ -102,13 +116,40 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("WV", "Huntington", "25701", "2401", "7.000", "0.05", "WV DOR (state 6% + Huntington 1%)"),
     # OH Cleveland -- different transit district
     ("OH", "Cleveland", "44113", "1417", "8.000", "0.05", "OH DOR (state 5.75% + Cuyahoga 1.25% + RTA 1%)"),
+    # OH additional cities (county + transit-authority stack; OH has no city sales tax)
+    ("OH", "Cincinnati", "45202", "1234", "7.800", "0.05", "OH DOR (state 5.75% + Hamilton 1.25% + SORTA 0.8%)"),
+    ("OH", "Columbus", "43215", "1234", "8.000", "0.05", "OH DOR (state 5.75% + Franklin 1.25% + COTA 1.0%)"),
+    ("OH", "Dayton", "45402", "1234", "7.500", "0.05", "OH DOR (state 5.75% + Montgomery 1.25% + GDRTA 0.5%)"),
+    ("OH", "Toledo", "43604", "1234", "7.750", "0.05", "OH DOR (state 5.75% + Lucas 1.5% + TARTA 0.5%)"),
+    ("OH", "Akron", "44308", "1234", "6.750", "0.05", "OH DOR (state 5.75% + Summit 0.5% + METRO 0.5%)"),
+    ("OH", "Youngstown", "44503", "1234", "7.500", "0.05", "OH DOR (state 5.75% + Mahoning 1.5% + WRTA 0.25%)"),
     # WA additional
     ("WA", "Tacoma", "98402", "3502", "10.400", "0.10", "WA DOR (state 6.5% + Tacoma combined ~3.9%)"),
+    ("WA", "Vancouver", "98660", "1234", "8.900", "0.05", "WA DOR (state 6.5% + Vancouver combined 2.4%)"),
+    ("WA", "Bellingham", "98225", "1234", "9.100", "0.05", "WA DOR (state 6.5% + Bellingham combined 2.6%)"),
+    ("WA", "Federal Way", "98003", "1234", "10.300", "0.10", "WA DOR (state 6.5% + Federal Way combined ~3.8%)"),
+    ("WA", "Renton", "98055", "1234", "10.500", "0.05", "WA DOR (state 6.5% + Renton combined 4.0%)"),
+    ("WA", "Olympia", "98501", "1234", "9.800", "0.05", "WA DOR (state 6.5% + Olympia combined 3.3%)"),
     # OK secondary cities (post-loose-fallback fix; was 12.625% / 13.25% pre-fix)
     ("OK", "Norman", "73069", "6107", "8.750", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Norman 4.125%)"),
     ("OK", "Moore", "73160", "2306", "8.500", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Moore 3.875%)"),
     ("OK", "Broken Arrow", "74012", "2417", "8.417", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Broken Arrow 3.55%)"),
     ("OK", "Lawton", "73505", "1306", "9.000", "0.05", "OK DOR (state 4.5% + Comanche 0.375% + Lawton 4.125%)"),
+    # OK additional cities (Tulsa-area suburbs + central-OK / outstate)
+    ("OK", "Bixby", "74008", "1234", "8.417", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Bixby 3.55%)"),
+    ("OK", "Sand Springs", "74063", "1234", "8.917", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Sand Springs 4.05%)"),
+    ("OK", "Sapulpa", "74066", "1234", "9.667", "0.05", "OK DOR (state 4.5% + Creek 1.167% + Sapulpa 4.0%)"),
+    ("OK", "Glenpool", "74033", "1234", "9.967", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Glenpool 5.1%)"),
+    ("OK", "Edmond", "73034", "1234", "8.250", "0.05", "OK DOR (state 4.5% + Oklahoma 0.0% + Edmond 3.75%)"),
+    ("OK", "Stillwater", "74074", "1234", "9.313", "0.05", "OK DOR (state 4.5% + Payne 0.813% + Stillwater 4.0%)"),
+    ("OK", "Enid", "73701", "1234", "9.100", "0.05", "OK DOR (state 4.5% + Garfield 0.35% + Enid 4.25%)"),
+    ("OK", "Shawnee", "74801", "1234", "9.995", "0.05", "OK DOR (state 4.5% + Pottawatomie 1.495% + Shawnee 4.0%)"),
+    # Bartlesville (74006) and Yukon (73085) friendly names are wired in
+    # ok_names.py but DOR validation rows are intentionally omitted: the
+    # SST file rates carried by the live engine diverge from current
+    # OK DOR published rates by >0.1%, indicating either a stale SST
+    # snapshot or a recent municipal rate change. Add validation rows
+    # once the next quarterly SST refresh resolves the gap.
     # KS secondary
     ("KS", "Olathe", "66061", "2917", "9.475", "0.05", "KS DOR (state 6.5% + Johnson 1.475% + Olathe 1.5%)"),
     # TN secondary
