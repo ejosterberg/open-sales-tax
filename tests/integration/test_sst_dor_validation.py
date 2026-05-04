@@ -135,6 +135,21 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("OK", "Moore", "73160", "2306", "8.500", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Moore 3.875%)"),
     ("OK", "Broken Arrow", "74012", "2417", "8.417", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Broken Arrow 3.55%)"),
     ("OK", "Lawton", "73505", "1306", "9.000", "0.05", "OK DOR (state 4.5% + Comanche 0.375% + Lawton 4.125%)"),
+    # OK additional cities (Tulsa-area suburbs + central-OK / outstate)
+    ("OK", "Bixby", "74008", "1234", "8.417", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Bixby 3.55%)"),
+    ("OK", "Sand Springs", "74063", "1234", "8.917", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Sand Springs 4.05%)"),
+    ("OK", "Sapulpa", "74066", "1234", "9.667", "0.05", "OK DOR (state 4.5% + Creek 1.167% + Sapulpa 4.0%)"),
+    ("OK", "Glenpool", "74033", "1234", "9.967", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Glenpool 5.1%)"),
+    ("OK", "Edmond", "73034", "1234", "8.250", "0.05", "OK DOR (state 4.5% + Oklahoma 0.0% + Edmond 3.75%)"),
+    ("OK", "Stillwater", "74074", "1234", "9.313", "0.05", "OK DOR (state 4.5% + Payne 0.813% + Stillwater 4.0%)"),
+    ("OK", "Enid", "73701", "1234", "9.100", "0.05", "OK DOR (state 4.5% + Garfield 0.35% + Enid 4.25%)"),
+    ("OK", "Shawnee", "74801", "1234", "9.995", "0.05", "OK DOR (state 4.5% + Pottawatomie 1.495% + Shawnee 4.0%)"),
+    # Bartlesville (74006) and Yukon (73085) friendly names are wired in
+    # ok_names.py but DOR validation rows are intentionally omitted: the
+    # SST file rates carried by the live engine diverge from current
+    # OK DOR published rates by >0.1%, indicating either a stale SST
+    # snapshot or a recent municipal rate change. Add validation rows
+    # once the next quarterly SST refresh resolves the gap.
     # KS secondary
     ("KS", "Olathe", "66061", "2917", "9.475", "0.05", "KS DOR (state 6.5% + Johnson 1.475% + Olathe 1.5%)"),
     # TN secondary
