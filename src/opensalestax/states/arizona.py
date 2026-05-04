@@ -42,6 +42,8 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.az_data import (
     AZ_CITIES,
     AZ_COUNTY_RATE_PCT,
@@ -115,8 +117,10 @@ class Arizona:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield AZ's state TPT + per-county + per-city rates.
 
-        Counties yielded: only those touched by an AZ_CITIES entry.
-        Cities yielded: every AZ_CITIES entry.
+        All 15 AZ counties from :data:`AZ_COUNTY_RATE_PCT` are emitted
+        so the ZIP_COUNTY-driven boundary loader can resolve every AZ
+        ZIP to its county authority. Cities yielded: every
+        :data:`AZ_CITIES` entry.
         """
         del source_file, version_label
         yield RateRow(
@@ -127,45 +131,58 @@ class Arizona:
             effective_to=None,
             parent_authority_name=None,
         )
-        # Emit a county RateRow for every county touched by a covered city.
-        # Counties not used by any city are skipped to avoid loading rates
-        # without any matching boundary.
-        used_counties = {county for county, _, _ in AZ_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a county RateRow for every AZ county. The ZIP_COUNTY-
+        # driven boundary loader binds every AZ ZIP to its county, so
+        # every county must have a queryable rate.
+        for az_county_name in sorted(AZ_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=az_county_name,
                 authority_type="county",
-                rate_pct=AZ_COUNTY_RATE_PCT[county_name],
+                rate_pct=AZ_COUNTY_RATE_PCT[az_county_name],
                 effective_from=AZ_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Arizona",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(AZ_CITIES.items()):
+        for az_city_name, (az_city_county, city_rate, _zips) in sorted(AZ_CITIES.items()):
             yield RateRow(
-                authority_name=city_name,
+                authority_name=az_city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=AZ_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=az_city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every AZ ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every AZ ZIP. This method ADDS county + city bindings for the
-        48 covered cities. ZIPs in covered counties but outside the city
-        list don't get a county binding here -- they keep the state-
-        only binding from Census. A future ratchet should iterate the
-        Census ZCTA->county data for AZ to add county-only bindings
-        across the rest of the state.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` for
+           every ZIP in an AZ county and emit state + county bindings.
+           This covers the entire state, not just ZIPs in
+           :data:`AZ_CITIES`, so a ZIP outside the top-48 city seed
+           still resolves to state + county TPT.
+
+        2. For each :data:`AZ_CITIES` entry, additionally emit a city
+           BoundaryRow so the city's TPT portion is layered on top of
+           the state + county stack at its ZIPs.
+
+        A ZIP that crosses county lines yields one county BoundaryRow
+        per intersecting county.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in AZ_CITIES.items():
-            for zip5 in zips:
+        # Pass 1: state + county for every AZ ZIP per Census ZCTA.
+        zips_with_county_emitted: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "AZ":
+                    continue
+                az_county_name = county_name("AZ", county_fips)
+                if az_county_name is None or az_county_name not in AZ_COUNTY_RATE_PCT:
+                    continue
                 yield BoundaryRow(
                     authority_name="Arizona",
                     authority_type="state",
@@ -174,14 +191,36 @@ class Arizona:
                     zip4_high=None,
                 )
                 yield BoundaryRow(
-                    authority_name=county_name,
+                    authority_name=az_county_name,
                     authority_type="county",
                     zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )
+                zips_with_county_emitted.add(zip5)
+        # Pass 2: city BoundaryRows for AZ_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (PO-box-
+        # only ZIPs not in ZCTA, etc.) so we never regress city coverage.
+        for az_city_name, (az_city_county, _city_rate, zips) in AZ_CITIES.items():
+            for zip5 in zips:
+                if zip5 not in zips_with_county_emitted:
+                    yield BoundaryRow(
+                        authority_name="Arizona",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=az_city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    zips_with_county_emitted.add(zip5)
                 yield BoundaryRow(
-                    authority_name=city_name,
+                    authority_name=az_city_name,
                     authority_type="city",
                     zip5=zip5,
                     zip4_low=None,

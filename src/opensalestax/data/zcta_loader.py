@@ -68,6 +68,24 @@ class ZctaStateRow:
     state_abbrev: str
 
 
+@dataclass(frozen=True, slots=True)
+class ZctaCountyRow:
+    """One ZIP-to-county binding derived from the Census ZCTA file.
+
+    ``county_fips`` is the 3-digit county FIPS suffix (the last three
+    digits of the 5-digit county GEOID -- e.g. ``"086"`` for Miami-Dade,
+    ``"037"`` for Los Angeles, ``"013"`` for Maricopa). The 2-digit
+    state FIPS prefix is implicit in ``state_abbrev``.
+
+    A single ZIP can intersect multiple counties; the parser yields one
+    row per (ZIP, state, county) triple, deduplicated within the file.
+    """
+
+    zip5: str
+    state_abbrev: str
+    county_fips: str
+
+
 def download_zcta_county_file(
     dest_dir: Path | None = None,
     *,
@@ -136,6 +154,63 @@ def parse_zcta_state_rows(
             yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
 
 
+def parse_zcta_county_rows(
+    source_file: Path,
+    *,
+    abbrev_filter: Iterable[str] | None = None,
+) -> Iterator[ZctaCountyRow]:
+    """Parse the Census ZCTA->county file into deduped (ZIP, state, county) rows.
+
+    Unlike :func:`parse_zcta_state_rows` (which collapses to one row
+    per ZIP+state), this preserves the per-county breakdown so a state
+    module can emit a county-level boundary for every ZIP in the
+    state, regardless of whether the city is in any hand-curated seed
+    list. ZIPs that cross county lines yield one row per (ZIP, state,
+    county) triple.
+
+    ``abbrev_filter`` lets a caller restrict to a subset of states
+    (e.g. just ``{"FL", "AZ", "CA"}``); when None, every state in
+    ``FIPS_TO_ABBREV`` is emitted.
+    """
+    keep: set[str] | None = None
+    if abbrev_filter is not None:
+        keep = {a.upper() for a in abbrev_filter}
+
+    seen: set[tuple[str, str, str]] = set()
+    with source_file.open(encoding="utf-8-sig") as fp:
+        header_skipped = False
+        for raw in fp:
+            line = raw.rstrip("\r\n")
+            if not line:
+                continue
+            if not header_skipped:
+                header_skipped = True
+                continue
+            cols = line.split("|")
+            if len(cols) <= _COL_GEOID_COUNTY:
+                continue
+            zip5 = cols[_COL_GEOID_ZCTA].strip()
+            county_geoid = cols[_COL_GEOID_COUNTY].strip()
+            if not zip5 or not county_geoid or len(county_geoid) != 5:
+                continue
+            if not county_geoid.isdigit():
+                continue
+            state_fips = county_geoid[:2]
+            county_fips = county_geoid[2:]
+            abbrev = FIPS_TO_ABBREV.get(state_fips)
+            if abbrev is None:
+                continue
+            if keep is not None and abbrev not in keep:
+                continue
+            key = (zip5, abbrev, county_fips)
+            if key in seen:
+                continue
+            seen.add(key)
+            yield ZctaCountyRow(
+                zip5=zip5, state_abbrev=abbrev, county_fips=county_fips
+            )
+
+
 def default_zcta_dir() -> Path:
     """Cache directory for the ZCTA file. Honors ``OPENSALESTAX_DATA_DIR``."""
     override = os.environ.get("OPENSALESTAX_DATA_DIR")
@@ -147,8 +222,10 @@ def default_zcta_dir() -> Path:
 __all__ = [
     "ZCTA_COUNTY_FILENAME",
     "ZCTA_COUNTY_URL",
+    "ZctaCountyRow",
     "ZctaStateRow",
     "default_zcta_dir",
     "download_zcta_county_file",
+    "parse_zcta_county_rows",
     "parse_zcta_state_rows",
 ]

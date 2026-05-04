@@ -74,6 +74,8 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.ca_data import (
     CA_CITIES,
     CA_COUNTY_RATE_PCT,
@@ -153,10 +155,17 @@ class California:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield CA's state + per-county-district + per-city rates.
 
-        Counties yielded: only those touched by a CA_CITIES entry.
-        Cities yielded: every CA_CITIES entry. ``source_file`` is
-        intentionally ignored -- CA is non-SST and has no machine-
-        readable upstream rate file in v0.27.
+        Counties yielded: every county in :data:`CA_COUNTY_RATE_PCT`
+        so the ZIP_COUNTY-driven boundary loader can resolve any CA
+        ZIP in a covered county to its county district authority,
+        not just the ZIPs in the top-50 city seed. ZIPs in CA counties
+        not yet in :data:`CA_COUNTY_RATE_PCT` (a long tail of small /
+        rural counties) keep state-only binding from the Census ZCTA
+        load -- a future ratchet should expand the county table.
+        Cities yielded: every :data:`CA_CITIES` entry.
+
+        ``source_file`` is intentionally ignored -- CA is non-SST and
+        has no machine-readable upstream rate file in v0.27.
         """
         del source_file, version_label
         yield RateRow(
@@ -167,45 +176,67 @@ class California:
             effective_to=None,
             parent_authority_name=None,
         )
-        # Emit a county RateRow for every county touched by a covered
-        # city. Counties not used by any city are skipped to avoid
-        # loading rates without any matching boundary.
-        used_counties = {county for county, _, _ in CA_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a RateRow for every county in CA_COUNTY_RATE_PCT, not
+        # just those touched by a covered city. The ZIP_COUNTY-driven
+        # boundary loader binds every ZIP in these counties to the
+        # county authority, so every county must have a queryable rate.
+        for ca_county_name in sorted(CA_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=ca_county_name,
                 authority_type="county",
-                rate_pct=CA_COUNTY_RATE_PCT[county_name],
+                rate_pct=CA_COUNTY_RATE_PCT[ca_county_name],
                 effective_from=CA_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="California",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(CA_CITIES.items()):
+        for ca_city_name, (ca_city_county, city_rate, _zips) in sorted(CA_CITIES.items()):
             yield RateRow(
-                authority_name=city_name,
+                authority_name=ca_city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=CA_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=ca_city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every CA ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every CA ZIP. This method ADDS county + city bindings for the
-        50 covered cities. ZIPs in covered counties but outside the
-        city list keep the Census state-only binding (under-collects
-        local tax for any address in an incorporated city not on the
-        seed list, of which there are many in CA's ~480 incorporated
-        municipalities).
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` for
+           every ZIP in a CA county that's in :data:`CA_COUNTY_RATE_PCT`
+           and emit state + county bindings. This extends county-level
+           coverage well beyond the top-50 city seed -- e.g., Encinitas
+           (92024) in San Diego County now resolves to state 7.25% +
+           SD County 0.5% = 7.75% instead of state-only 7.25%.
+
+        2. For each :data:`CA_CITIES` entry, additionally emit a city
+           BoundaryRow so the city's district portion is layered on top
+           of the state + county stack at its ZIPs.
+
+        ZIPs in CA counties not yet in :data:`CA_COUNTY_RATE_PCT` (a
+        long tail of small / rural counties) keep state-only binding
+        from the Census ZCTA load. A future ratchet should expand
+        :data:`CA_COUNTY_RATE_PCT` to all 58 CA counties using the
+        CDTFA address-level Tax Rate Area dataset.
+
+        A ZIP that crosses county lines yields one county BoundaryRow
+        per intersecting county.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in CA_CITIES.items():
-            for zip5 in zips:
+        # Pass 1: state + county for every CA ZIP per Census ZCTA where
+        # the county's rate is known.
+        zips_with_county_emitted: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "CA":
+                    continue
+                ca_county_name = county_name("CA", county_fips)
+                if ca_county_name is None or ca_county_name not in CA_COUNTY_RATE_PCT:
+                    continue
                 yield BoundaryRow(
                     authority_name="California",
                     authority_type="state",
@@ -214,14 +245,36 @@ class California:
                     zip4_high=None,
                 )
                 yield BoundaryRow(
-                    authority_name=county_name,
+                    authority_name=ca_county_name,
                     authority_type="county",
                     zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )
+                zips_with_county_emitted.add(zip5)
+        # Pass 2: city BoundaryRows for CA_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (PO-box-
+        # only ZIPs not in ZCTA, etc.) so we never regress city coverage.
+        for ca_city_name, (ca_city_county, _city_rate, zips) in CA_CITIES.items():
+            for zip5 in zips:
+                if zip5 not in zips_with_county_emitted:
+                    yield BoundaryRow(
+                        authority_name="California",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=ca_city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    zips_with_county_emitted.add(zip5)
                 yield BoundaryRow(
-                    authority_name=city_name,
+                    authority_name=ca_city_name,
                     authority_type="city",
                     zip5=zip5,
                     zip4_low=None,

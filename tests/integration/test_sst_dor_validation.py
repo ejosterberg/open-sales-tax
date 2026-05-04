@@ -192,6 +192,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("AZ", "Sedona", "86336", "0001", "9.850", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Yavapai 0.75% + Sedona 3.5%)"),
     ("AZ", "San Luis", "85349", "0001", "10.712", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Yuma 1.112% + San Luis 4.0%)"),
     ("AZ", "Sahuarita", "85629", "0001", "8.100", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Pima 0.5% + Sahuarita 2.0%)"),
+    # AZ ZCTA->county expansion (post-zip_county loader): unincorporated
+    # ZIPs in covered counties but OUTSIDE the AZ_CITIES seed now resolve
+    # to state + county TPT via Census ZCTA rather than state-only. ZIPs
+    # representing unincorporated CDPs (Sun City, Green Valley) are
+    # ideal validation targets because there's no incorporated city
+    # adding its own TPT; the centroid rate is exactly state + county.
+    ("AZ", "Sun City", "85382", "0001", "6.300", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Maricopa 0.7%) -- unincorporated CDP; post-zip_county"),
+    ("AZ", "Green Valley", "85622", "0001", "6.100", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Pima 0.5%) -- unincorporated CDP; post-zip_county"),
+    ("AZ", "Vernon", "85936", "0001", "6.100", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Apache 0.5%) -- unincorporated; post-zip_county"),
     # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24)
     ("TN", "Brentwood", "37027", "1234", "9.750", "0.05", "TN DOR (state 7% + Davidson 2.25% + IMPROVE Act 0.5%) -- post-v0.24 expired-record filter"),
     ("TN", "Franklin", "37067", "1234", "9.750", "0.05", "TN DOR (state 7% + Williamson 2.75%) -- post-v0.24 expired-record filter"),
@@ -305,6 +314,12 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("FL", "Gainesville", "32601", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Alachua 1.5%)"),
     ("FL", "Lakeland", "33801", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Polk 1%)"),
     ("FL", "Cape Coral", "33904", "0001", "6.500", "0.05", "FL DOR DR-15DSS (state 6% + Lee 0.5% school)"),
+    # FL ZCTA->county expansion (post-zip_county loader): ZIPs OUTSIDE the
+    # FL_CITIES top-30 seed now resolve to state + county via Census ZCTA
+    # rather than the old state-only fallback. These rows guard the fix.
+    ("FL", "Miami Beach", "33139", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Miami-Dade 1%) -- post-zip_county; was state-only 6% before fix"),
+    ("FL", "Key West", "33040", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Monroe 1.5%) -- post-zip_county"),
+    ("FL", "Naples", "34102", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Collier 1.0%) -- post-zip_county"),
     # New York -- NY DTF Publication 718 (verified 2026-05-04;
     # cross-checked NYC + Buffalo + Yonkers against Avalara per-city pages)
     # Combined = state 4% + per-county + MCTD 0.375% (where applicable)
@@ -381,6 +396,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("CA", "Pasadena", "91101", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + LA 2.25% + city 0.75%)"),
     ("CA", "Thousand Oaks", "91320", "0001", "7.250", "0.05", "CDTFA Q2 2026 (state 7.25% only -- no county or city overlay)"),
     ("CA", "Vallejo", "94589", "0001", "9.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Solano 0.125% + city 1.875% Measures B+V)"),
+    # CA ZCTA->county expansion (post-zip_county loader): ZIPs in covered
+    # counties but OUTSIDE the CA_CITIES top-50 seed now resolve to
+    # state + county district via Census ZCTA rather than the old state-
+    # only fallback at 7.25%. The expected rate is the unincorporated /
+    # outside-incorporated-city rate at the centroid -- some ZIPs
+    # encompass incorporated cities with their own additional district
+    # tax, so the engine may under-report there until those cities are
+    # added to CA_CITIES (acceptable trade-off; a future ratchet should
+    # ingest the CDTFA per-city CSV).
+    ("CA", "Encinitas", "92024", "0001", "7.750", "0.05", "CDTFA Q2 2026 (state 7.25% + SD County 0.5%) -- post-zip_county; was state-only 7.25% before fix"),
+    ("CA", "Burbank (LA Co)", "91501", "0001", "9.500", "0.05", "CDTFA Q2 2026 (state 7.25% + LA County 2.25%) -- post-zip_county; under-reports Burbank's own 0.75% city tax pending CA_CITIES expansion"),
+    ("CA", "Temecula (Riverside Co)", "92590", "0001", "7.750", "0.05", "CDTFA Q2 2026 (state 7.25% + Riverside County 0.5%) -- post-zip_county; under-reports any Temecula city portion pending CA_CITIES expansion"),
     # Illinois -- IDOR Tax Rate Database / Tax Rate Finder (verified 2026-05-04).
     # Combined = state 6.25% + per-county + RTA (Cook 1.0% / Collar 0.75% / 0
     # downstate) + city home-rule. Tolerance 0.05% to absorb ZIP+4 micro-

@@ -53,6 +53,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.fl_data import (
     FL_CITIES,
     FL_COUNTY_SURTAX_PCT,
@@ -124,11 +126,13 @@ class Florida:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield FL's state + per-county discretionary-surtax rates.
 
-        Counties yielded: every county with a non-zero surtax PLUS
-        every county touched by a covered ``FL_CITIES`` entry (so that
-        zero-surtax counties hosting covered cities still get a county
-        authority for boundary binding). Florida has no city-level
-        sales tax, so no city ``RateRow`` rows are emitted.
+        All 67 FL counties from :data:`FL_COUNTY_SURTAX_PCT` are
+        emitted -- including the zero-surtax counties (e.g. Citrus) --
+        so that any FL ZIP bound to a county via the Census ZCTA->county
+        relationship can resolve cleanly. Zero-rate authorities sum to
+        no effect but preserve the rate-stack audit trail. Florida has
+        no city-level sales tax, so no city ``RateRow`` rows are
+        emitted.
 
         ``source_file`` is intentionally ignored -- FL is non-SST and
         has no upstream rate file consumed by this module.
@@ -142,21 +146,14 @@ class Florida:
             effective_to=None,
             parent_authority_name=None,
         )
-        # Counties to emit: any county with a non-zero surtax (so the
-        # rate is queryable for any ZIP later bound to it) plus any
-        # county touched by a covered city (so ZIPs in our city list
-        # can resolve to a county authority even where the surtax is
-        # zero, e.g. Citrus County).
-        cities_counties = {county for county, _ in FL_CITIES.values()}
-        nonzero_counties = {
-            name for name, rate in FL_COUNTY_SURTAX_PCT.items() if rate > 0
-        }
-        emitted = sorted(cities_counties | nonzero_counties)
-        for county_name in emitted:
+        # Emit a RateRow for every FL county. The ZIP_COUNTY-driven
+        # boundary loader binds every FL ZIP to its county/counties, so
+        # every county must have a queryable rate (even the 0% ones).
+        for fl_county_name in sorted(FL_COUNTY_SURTAX_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=fl_county_name,
                 authority_type="county",
-                rate_pct=FL_COUNTY_SURTAX_PCT[county_name],
+                rate_pct=FL_COUNTY_SURTAX_PCT[fl_county_name],
                 effective_from=FL_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Florida",
@@ -165,23 +162,43 @@ class Florida:
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county) boundary rows for each covered ZIP.
+        """Yield (state, county) boundary rows for every FL ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every FL ZIP. This method ADDS county bindings (and reaffirms
-        the state binding) for ZIPs in the 30 covered cities. Florida
-        has no city-level sales tax, so NO city ``BoundaryRow`` rows
-        are emitted -- the city is purely an organizational concept
-        in :mod:`fl_data` and does not become an authority.
+        Two passes:
 
-        ZIPs in covered counties but outside the city list keep the
-        Census state-only binding -- a future ratchet should iterate
-        the Census ZCTA->county data for FL to add county-only
-        bindings across the rest of the state.
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           FL county. This covers the entire state, not just the ZIPs
+           in the :data:`FL_CITIES` top-30 seed list -- so Miami Beach
+           (33139), Key West (33040), Naples (34102), and every other
+           FL ZIP resolves to its county's discretionary surtax
+           instead of falling back to state-only.
+
+        2. Fall back to :data:`FL_CITIES` for any city ZIP missed by
+           the Census ZCTA pass (USPS-only / PO-box-only ZIPs that
+           aren't published as Census ZCTAs, e.g. Jacksonville's
+           32099). This guards against city-coverage regressions.
+
+        A ZIP that crosses county lines yields one county BoundaryRow
+        per intersecting county; the engine picks the highest-precision
+        match at lookup time.
+
+        Florida has no city-level sales tax, so NO city
+        ``BoundaryRow`` rows are emitted -- :data:`FL_CITIES` is used
+        only as a regression-guard fallback and does not become a
+        city authority.
         """
         del source_file, version_label
-        for _city_name, (county_name, zips) in FL_CITIES.items():
-            for zip5 in zips:
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "FL":
+                    continue
+                fl_county_name = county_name("FL", county_fips)
+                if fl_county_name is None or fl_county_name not in FL_COUNTY_SURTAX_PCT:
+                    # County not in our DR-15DSS table; skip rather
+                    # than emit a boundary the engine can't resolve.
+                    continue
                 yield BoundaryRow(
                     authority_name="Florida",
                     authority_type="state",
@@ -190,12 +207,35 @@ class Florida:
                     zip4_high=None,
                 )
                 yield BoundaryRow(
-                    authority_name=county_name,
+                    authority_name=fl_county_name,
                     authority_type="county",
                     zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )
+                emitted_zips.add(zip5)
+        # Fallback pass: city ZIPs that aren't in Census ZCTA (USPS-only
+        # codes like Jacksonville's 32099). Use FL_CITIES' county
+        # binding so the city's ZIPs always resolve to a county.
+        for _city_name, (fl_city_county, zips) in FL_CITIES.items():
+            for zip5 in zips:
+                if zip5 in emitted_zips:
+                    continue
+                yield BoundaryRow(
+                    authority_name="Florida",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=fl_city_county,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                emitted_zips.add(zip5)
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         del effective_date
