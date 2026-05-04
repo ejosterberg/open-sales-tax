@@ -9,14 +9,17 @@ the buyer) but produces the same dollar result for retail sales.
 The statewide TPT base rate is **5.6%** per the Arizona
 Department of Revenue (azdor.gov).
 
-**v0.23 ships per-county + top-20-city coverage.** The 15 AZ
-counties and 20 largest cities (Phoenix, Tucson, Mesa, Chandler,
-Scottsdale, Glendale, Gilbert, Tempe, Peoria, Surprise, Yuma,
-Avondale, Goodyear, Buckeye, Flagstaff, Casa Grande, Lake Havasu
-City, Marana, Prescott, Prescott Valley) are seeded from the AZ
-DOR's monthly TPT Rate Table CSV. ZIPs not in the city list fall
-back to state + county where the county is covered by an explicit
-city, otherwise state-only via the Census ZCTA load.
+**v0.25 ships per-county + 48-city coverage.** All 15 AZ counties
+and 48 cities (the original top-20 plus a 2026-05-04 expansion
+covering Apache Junction, Bullhead City, Camp Verde, Carefree,
+Coolidge, Cottonwood, El Mirage, Eloy, Florence, Globe, Holbrook,
+Kingman, Litchfield Park, Maricopa-the-city, Nogales, Page,
+Payson, Queen Creek, Sahuarita, San Luis, Sedona, Show Low,
+Sierra Vista, Snowflake, Tolleson, Wickenburg, Williams, Winslow)
+are seeded from the AZ DOR's monthly TPT Rate Table CSV. ZIPs not
+in the city list fall back to state + county where the county is
+covered by an explicit city, otherwise state-only via the Census
+ZCTA load.
 
 Taxability matrix (per Ariz. Rev. Stat. 42-5061):
 
@@ -100,7 +103,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 
 
 class Arizona:
-    """Arizona state module (tier 1; state + per-county + top-20 cities)."""
+    """Arizona state module (tier 1; state + per-county + 48 cities)."""
 
     state_abbrev: str = "AZ"
     state_name: str = "Arizona"
@@ -154,7 +157,7 @@ class Arizona:
 
         The Census ZCTA load already provides state-level binding for
         every AZ ZIP. This method ADDS county + city bindings for the
-        top-20 cities. ZIPs in covered counties but outside the city
+        48 covered cities. ZIPs in covered counties but outside the city
         list don't get a county binding here -- they keep the state-
         only binding from Census. A future ratchet should iterate the
         Census ZCTA->county data for AZ to add county-only bindings
