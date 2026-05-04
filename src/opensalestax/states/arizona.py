@@ -174,30 +174,61 @@ class Arizona:
         per intersecting county.
         """
         del source_file, version_label
+        # Build the city-anchor county map first: when a ZIP is in
+        # AZ_CITIES, the city's declared county wins over any
+        # Census-listed alternate. Prevents double-counting for ZIPs
+        # that physically span county lines (e.g. Show Low 85901 lists
+        # both Apache and Navajo per Census, but the city is in Navajo).
+        city_county_for_zip: dict[str, str] = {}
+        for _city_name, (city_county, _rate, city_zips) in AZ_CITIES.items():
+            for cz in city_zips:
+                city_county_for_zip[cz] = city_county
+
         # Pass 1: state + county for every AZ ZIP per Census ZCTA.
+        # For each ZIP, emit at most one county: prefer the city-anchor
+        # county if the ZIP is in AZ_CITIES, otherwise the first
+        # Census-listed AZ county.
         zips_with_county_emitted: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
             for state_abbrev, county_fips in pairs:
                 if state_abbrev != "AZ":
                     continue
                 az_county_name = county_name("AZ", county_fips)
                 if az_county_name is None or az_county_name not in AZ_COUNTY_RATE_PCT:
                     continue
-                yield BoundaryRow(
-                    authority_name="Arizona",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=az_county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                zips_with_county_emitted.add(zip5)
+                if preferred_county is not None:
+                    if az_county_name == preferred_county:
+                        chosen_county = az_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor for this ZIP -- take the first AZ county.
+                chosen_county = az_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                # ZIP is in a city but Census doesn't list the city's
+                # county at all (e.g. ZIP entirely on the wrong side per
+                # Census). Trust the city's declared county.
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Arizona",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            zips_with_county_emitted.add(zip5)
         # Pass 2: city BoundaryRows for AZ_CITIES. Also emit state +
         # county for any city ZIP missed by the Census pass (PO-box-
         # only ZIPs not in ZCTA, etc.) so we never regress city coverage.

@@ -227,31 +227,53 @@ class California:
         per intersecting county.
         """
         del source_file, version_label
-        # Pass 1: state + county for every CA ZIP per Census ZCTA where
-        # the county's rate is known.
+        # Build city-anchor county map: when a ZIP is in CA_CITIES, the
+        # city's declared county wins over Census alternates. Prevents
+        # double-counting for ZIPs spanning county lines.
+        city_county_for_zip: dict[str, str] = {}
+        for _city_name, (city_county, _rate, city_zips) in CA_CITIES.items():
+            for cz in city_zips:
+                city_county_for_zip[cz] = city_county
+
+        # Pass 1: state + county for every CA ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed CA county.
         zips_with_county_emitted: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
             for state_abbrev, county_fips in pairs:
                 if state_abbrev != "CA":
                     continue
                 ca_county_name = county_name("CA", county_fips)
                 if ca_county_name is None or ca_county_name not in CA_COUNTY_RATE_PCT:
                     continue
-                yield BoundaryRow(
-                    authority_name="California",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=ca_county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                zips_with_county_emitted.add(zip5)
+                if preferred_county is not None:
+                    if ca_county_name == preferred_county:
+                        chosen_county = ca_county_name
+                        break
+                    continue
+                chosen_county = ca_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="California",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            zips_with_county_emitted.add(zip5)
         # Pass 2: city BoundaryRows for CA_CITIES. Also emit state +
         # county for any city ZIP missed by the Census pass (PO-box-
         # only ZIPs not in ZCTA, etc.) so we never regress city coverage.

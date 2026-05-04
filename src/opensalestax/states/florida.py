@@ -189,31 +189,51 @@ class Florida:
         city authority.
         """
         del source_file, version_label
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in FL_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, czs) in FL_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Emit at most one county per ZIP per Census ZCTA: prefer the
+        # city-anchor county if known, else first Census-listed county.
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
             for state_abbrev, county_fips in pairs:
                 if state_abbrev != "FL":
                     continue
                 fl_county_name = county_name("FL", county_fips)
                 if fl_county_name is None or fl_county_name not in FL_COUNTY_SURTAX_PCT:
-                    # County not in our DR-15DSS table; skip rather
-                    # than emit a boundary the engine can't resolve.
                     continue
-                yield BoundaryRow(
-                    authority_name="Florida",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=fl_county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                emitted_zips.add(zip5)
+                if preferred_county is not None:
+                    if fl_county_name == preferred_county:
+                        chosen_county = fl_county_name
+                        break
+                    continue
+                chosen_county = fl_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Florida",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
         # Fallback pass: city ZIPs that aren't in Census ZCTA (USPS-only
         # codes like Jacksonville's 32099). Use FL_CITIES' county
         # binding so the city's ZIPs always resolve to a county.
