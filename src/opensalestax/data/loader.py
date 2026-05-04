@@ -623,7 +623,18 @@ async def _get_or_create_state(session: AsyncSession, state_module: StateModule)
 async def _drop_existing_data_version(
     session: AsyncSession, state_id: int, full_label: str
 ) -> None:
-    """Drop a prior DataVersion + dependent rates and boundaries.
+    """Drop ALL prior DataVersions for the same state + source.
+
+    Pre-v0.29 this only dropped a DataVersion with the EXACT same
+    label, leaving older labels stacked on top of each other. Each
+    re-load with a different label (e.g. ``v0.27-cdtfa`` ->
+    ``v0.28-county-dedup``) created a new active DataVersion while
+    the old ones still owned valid boundaries + rates. The lookup
+    engine then returned the union, double-counting authorities.
+
+    Now we drop every DataVersion for this ``(state, source)`` pair
+    where source is inferred from the label prefix. A reload always
+    leaves exactly one current DataVersion per source.
 
     The DB-level FK on ``boundaries.data_version_id`` is
     ``ondelete=CASCADE``, but SQLAlchemy's session-level dependency
@@ -632,19 +643,38 @@ async def _drop_existing_data_version(
     boundaries (and rates, whose FK is ``ondelete=SET NULL``)
     before the DataVersion sidesteps both issues.
     """
-    existing = (
-        await session.execute(
-            select(DataVersion).where(
-                DataVersion.state_id == state_id,
-                DataVersion.version_label == full_label,
+    # Infer the source: full_label is e.g. ``MN-SST-2026Q2FEB18`` or
+    # ``CA-ZCTA-2020``. The source token is the second hyphen-separated
+    # part (lowercased) so we drop every DataVersion that came from the
+    # same upstream channel for this state, not just the one with the
+    # exact label being reloaded.
+    source = _infer_source_from_label(full_label)
+
+    candidates = list(
+        (
+            await session.execute(
+                select(DataVersion).where(DataVersion.state_id == state_id)
             )
         )
-    ).scalar_one_or_none()
-    if existing is None:
+        .scalars()
+        .all()
+    )
+    same_source = [
+        dv
+        for dv in candidates
+        if _infer_source_from_label(dv.version_label) == source
+    ]
+    if not same_source:
         return
 
+    same_source_ids = [dv.id for dv in same_source]
+
     boundaries_to_drop = list(
-        (await session.execute(select(Boundary).where(Boundary.data_version_id == existing.id)))
+        (
+            await session.execute(
+                select(Boundary).where(Boundary.data_version_id.in_(same_source_ids))
+            )
+        )
         .scalars()
         .all()
     )
@@ -654,7 +684,11 @@ async def _drop_existing_data_version(
         await session.flush()
 
     rates_to_drop = list(
-        (await session.execute(select(Rate).where(Rate.data_version_id == existing.id)))
+        (
+            await session.execute(
+                select(Rate).where(Rate.data_version_id.in_(same_source_ids))
+            )
+        )
         .scalars()
         .all()
     )
@@ -662,8 +696,27 @@ async def _drop_existing_data_version(
         await session.delete(rate)
     if rates_to_drop:
         await session.flush()
-    await session.delete(existing)
+
+    for dv in same_source:
+        await session.delete(dv)
     await session.flush()
+
+
+def _infer_source_from_label(full_label: str) -> str:
+    """Extract the canonical source token from a DataVersion label.
+
+    ``MN-SST-2026Q2FEB18`` -> ``"sst"``
+    ``CA-ZCTA-2020``       -> ``"zcta"``
+    ``AZ-SST-V0.23-TPT``   -> ``"sst"`` (any sub-label like ``v0.23-tpt``
+                                          stays under the parent source)
+
+    Falls back to the literal label (lowercased) if the format is
+    surprising, so we never accidentally collapse unrelated DataVersions.
+    """
+    parts = full_label.split("-", 2)
+    if len(parts) >= 2:
+        return parts[1].lower()
+    return full_label.lower()
 
 
 async def _drop_existing_taxability(session: AsyncSession, state_id: int) -> None:
