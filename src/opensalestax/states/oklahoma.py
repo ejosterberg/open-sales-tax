@@ -360,6 +360,28 @@ class Oklahoma(SstStateModule):
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_bindings(self, record):
+        """OK skips the 98XXX district codes (composite remote-seller rates).
+
+        Oklahoma's SST file publishes ~760 district codes in the
+        98000-98999 range whose rate equals the COMBINED city +
+        county portion at that ZIP, e.g. code 98193 at 4.017% =
+        Tulsa city 3.65% + Tulsa County 0.367%. They're a
+        convenience for remote sellers who don't want to look up
+        per-address rates -- not separate taxes. Treating them as
+        real districts double-counts the local layer. Real OK
+        districts use codes outside the 98XXX range, so the
+        filter is precise.
+        """
+        for auth_type, auth_name in super()._authority_bindings(record):
+            if (
+                auth_type == "district"
+                and record.district_code
+                and record.district_code.startswith("98")
+            ):
+                continue
+            yield (auth_type, auth_name)
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Oklahoma's annual Sales Tax Holiday under 68 O.S. section 1357.10.
 
