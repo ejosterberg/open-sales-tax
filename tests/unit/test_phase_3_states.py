@@ -64,18 +64,38 @@ def test_is_registered(_instance, abbrev: str, _name, _rate, _cls) -> None:
     "instance,_abbrev,_name,rate,_cls", PHASE_3_STATES, ids=lambda v: getattr(v, "__name__", str(v))
 )
 def test_parse_rates_yields_statewide(instance, _abbrev, _name, rate: Decimal, _cls) -> None:
+    """The first emitted row is the statewide rate at the expected percentage.
+
+    Some Phase 3 states (TX as of v0.26) additionally emit per-county,
+    per-transit-district, and per-city rates after the statewide row,
+    so we don't assert a specific row count -- only that the statewide
+    row leads.
+    """
     rows = list(instance.parse_rates(None, "v0.3-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
-    assert row.authority_type == "state"
-    assert row.rate_pct == rate
-    assert row.parent_authority_name is None
+    assert len(rows) >= 1
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1, "exactly one state-level rate expected"
+    assert state_rows[0].rate_pct == rate
+    assert state_rows[0].parent_authority_name is None
 
 
 @pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_3_STATES)
-def test_parse_boundaries_returns_empty_in_v0_3(instance, _abbrev, _name, _rate, _cls) -> None:
-    """All 3 defer boundary loading to a future section."""
-    assert list(instance.parse_boundaries(None, "v0.3-statewide")) == []
+def test_parse_boundaries_state_or_seeded(instance, _abbrev, _name, _rate, _cls) -> None:
+    """NY/FL still defer boundary loading; TX seeds its top-50 cities (v0.26).
+
+    For NY/FL the boundary list is empty (state-only via Census ZCTA);
+    for TX it emits state + county + (optional) transit + city rows
+    for every covered ZIP.
+    """
+    rows = list(instance.parse_boundaries(None, "v0.3-statewide"))
+    if instance.state_abbrev == "TX":
+        assert len(rows) > 0, "TX should seed boundaries for top-50 cities"
+        types = {r.authority_type for r in rows}
+        assert "state" in types
+        assert "county" in types
+        assert "city" in types
+    else:
+        assert rows == []
 
 
 @pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_3_STATES)

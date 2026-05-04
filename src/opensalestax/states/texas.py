@@ -5,30 +5,65 @@
 TX is **not** an SST member. Statewide rate is **6.25%** per the
 Texas Comptroller (comptroller.texas.gov). Local jurisdictions
 (cities, counties, transit authorities, special-purpose districts)
-can add up to 2% combined, capping the maximum at 8.25%.
+can add up to **2.0%** combined, capping the maximum combined rate
+at **8.25%** per Tex. Tax Code section 321.101(f).
 
-**Phase 3 ships statewide only.** Local-jurisdiction loading from
-the Comptroller's downloadable rate file is deferred to a future
-section -- TX uses origin-based sourcing for in-state sellers,
-which adds complexity to the boundary model.
+**v0.26 ships top-50-city coverage.** All 49 covered cities (the top
+50 by 2020 census population, minus Atascocita CDP) are seeded from
+:mod:`opensalestax.states.tx_data`, sourced from the Texas
+Comptroller's "City Sales and Use Tax Rates" + "Local Sales and Use
+Tax Rates" publications and cross-checked against Avalara per-city
+rate pages on 2026-05-04. The module emits four authority types:
+
+- **state** (Texas, 6.25%)
+- **county** (per-county portion; 0% for most TX counties, 0.5% for
+  El Paso County)
+- **district** (Metropolitan Transit Authority -- Houston METRO,
+  Dallas DART, Austin Capital Metro, San Antonio VIA+ATD, Fort
+  Worth FWTA, El Paso Sun Metro, Corpus Christi RTA)
+- **city** (combined municipal portion: city tax + EDC 4A/4B +
+  crime control + street maintenance + MDD, etc.)
+
+ZIPs not in :data:`tx_data.TX_CITIES` fall back to state-only at
+6.25% via the Census ZCTA load. This is a significant under-
+collection for suburban / unincorporated Texas; a future ratchet
+should add per-county boundary seeds for non-zero counties (today
+only El Paso County) and per-county fallback bindings for the
+~250 Texas counties with no county sales tax.
+
+**Sourcing model -- IMPORTANT:** Texas uses **origin-based
+sourcing** for in-state sellers (Tex. Tax Code section 321.203).
+The ZIP-based boundary table here is a **delivery-address
+approximation** that produces the correct rate for a buyer at that
+ZIP buying from a seller at the same ZIP -- the dominant case for
+brick-and-mortar retail and direct-to-consumer e-commerce delivered
+in-state. A future ratchet should expose the seller-vs-buyer
+distinction so the API caller can pick the right rule.
 
 Taxability matrix (per Tex. Tax Code Chapter 151):
 
 - **Clothing** -- TAXABLE (no exemption). Three annual sales-tax
-  holidays modify this temporarily; modeled when the holidays
-  feature lands.
+  holidays modify this temporarily; modeled below in
+  :meth:`Texas.holidays_for`.
 - **Groceries** -- NON-taxable for "food products" sold for off-
-  premise consumption (sec 151.314).
-- **Prescription drugs** -- NON-taxable (sec 151.313).
-- **Prepared food** -- taxable.
+  premise consumption (Tex. Tax Code section 151.314).
+- **Prescription drugs** -- NON-taxable (Tex. Tax Code section
+  151.313).
+- **Prepared food** -- TAXABLE.
 - **Digital goods** -- TAXABLE for downloaded software, music,
   ringtones, etc.
 
-Special note: TX has 3 annual sales-tax holidays (emergency-prep
-in April, Energy Star + WaterSense in May, back-to-school in
-August). Surface them via the holidays feature in v0.4+.
+Special note: TX has 3 annual sales-tax holidays (emergency
+preparation in April, Energy Star + WaterSense in May, back-to-
+school in August).
 
 State maintainer: vacant -- see MAINTAINERS.md.
+
+Disclaimer: this module is calculation infrastructure, not tax
+advice. Origin sourcing, single-purpose districts (TIF, MUD, etc.),
+and the local-cap interaction can produce surprising results at
+specific addresses. Verify against the Comptroller's Sales Tax
+Rate Locator before relying on these rates for compliance.
 """
 
 from __future__ import annotations
@@ -48,6 +83,13 @@ from opensalestax.states.protocol import (
     TaxabilityRule,
 )
 from opensalestax.states.registry import register
+from opensalestax.states.tx_data import (
+    TX_CITIES,
+    TX_COUNTY_RATE_PCT,
+    TX_STATE_EFFECTIVE_FROM,
+    TX_STATE_RATE_PCT,
+    TX_TRANSIT_DISTRICTS,
+)
 
 _TAXABILITY: dict[str, TaxabilityRule] = {
     "clothing": TaxabilityRule(
@@ -89,11 +131,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
     ),
 }
 
-_RATE_EFFECTIVE_FROM = dt.date(1990, 7, 1)
-
 
 class Texas:
-    """Texas state module (tier 1; statewide rate only in v0.3)."""
+    """Texas state module (tier 1; state + county + transit + city in v0.26)."""
 
     state_abbrev: str = "TX"
     state_name: str = "Texas"
@@ -103,21 +143,98 @@ class Texas:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
+        """Yield TX's state + per-county + per-transit + per-city rates.
+
+        Counties yielded: only those touched by a covered city.
+        Transit districts yielded: only those touched by a covered city.
+        Cities yielded: every TX_CITIES entry. ``source_file`` is
+        intentionally ignored -- TX is non-SST and has no upstream file.
+        """
         del source_file, version_label
         yield RateRow(
             authority_name="Texas",
             authority_type="state",
-            rate_pct=Decimal("6.250"),
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=TX_STATE_RATE_PCT,
+            effective_from=TX_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        used_counties = {county for county, _, _, _ in TX_CITIES.values()}
+        for county_name in sorted(used_counties):
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=TX_COUNTY_RATE_PCT[county_name],
+                effective_from=TX_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Texas",
+            )
+        used_transits = {
+            transit for _, transit, _, _ in TX_CITIES.values() if transit is not None
+        }
+        for transit_name in sorted(used_transits):
+            yield RateRow(
+                authority_name=transit_name,
+                authority_type="district",
+                rate_pct=TX_TRANSIT_DISTRICTS[transit_name],
+                effective_from=TX_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Texas",
+            )
+        for city_name, (county_name, _transit, city_rate, _zips) in sorted(TX_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=TX_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=county_name,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
+        """Yield (state, county, transit?, city) boundary rows for each covered ZIP.
+
+        The Census ZCTA load already provides state-level binding for
+        every TX ZIP. This method ADDS county + (optional) transit +
+        city bindings for the 49 covered cities. ZIPs in covered
+        counties but outside the city list keep the Census state-only
+        binding (under-collects local tax for any address in an
+        incorporated city not on the seed list).
+        """
         del source_file, version_label
-        return iter(())
+        for city_name, (county_name, transit_name, _city_rate, zips) in TX_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Texas",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                if transit_name is not None:
+                    yield BoundaryRow(
+                        authority_name=transit_name,
+                        authority_type="district",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         del effective_date

@@ -265,6 +265,32 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MO", "Joplin", "64801", "0001", "8.725", "0.10", "MO DOR (state 4.225% + Jasper 1.375% + Joplin 3.125%)"),
     ("MO", "Jefferson City", "65101", "0001", "7.850", "0.10", "MO DOR (state 4.225% + Cole 1.375% + Jefferson City 2.25%)"),
     ("MO", "Cape Girardeau", "63701", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Cape Girardeau 1.5% + Cape Girardeau city 2.75%)"),
+    # Texas -- Texas Comptroller of Public Accounts "City Sales and Use
+    # Tax Rates" + transit-authority publications (verified 2026-05-04).
+    # Almost every major TX city lands at the 8.25% local cap; Arlington
+    # is the famous DART/FWTA opt-out at 8.0%. Tolerance 0.05% to absorb
+    # ZIP+4 micro-variation for special-purpose districts (TIF/MUD/etc.)
+    # and the +4 "0001" centroid resolution.
+    ("TX", "Houston", "77002", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Houston 1.0% + METRO 1.0%)"),
+    ("TX", "Dallas", "75201", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Dallas 1.0% + DART 1.0%)"),
+    ("TX", "Austin", "78701", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Austin 1.0% + Capital Metro 1.0%)"),
+    ("TX", "San Antonio", "78205", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + city 1.375% + VIA+ATD 0.625%)"),
+    ("TX", "Fort Worth", "76102", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + city 1.5% + Trinity Metro 0.5%)"),
+    ("TX", "El Paso", "79901", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + El Paso Co 0.5% + city 1.0% + Sun Metro 0.5%)"),
+    ("TX", "Arlington", "76010", "0001", "8.000", "0.05", "TX Comptroller (state 6.25% + city 1.75%; opted out of DART/FWTA -- only major TX city below 8.25%)"),
+    ("TX", "Plano", "75024", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Plano 1.0% + DART 1.0%)"),
+    ("TX", "Frisco", "75034", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Frisco 2.0%; not a DART member)"),
+    ("TX", "Lubbock", "79401", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Lubbock 2.0%; no transit district)"),
+    ("TX", "Amarillo", "79101", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Amarillo 2.0%; no transit district)"),
+    ("TX", "Garland", "75040", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Garland 1.0% + DART 1.0%)"),
+    ("TX", "Irving", "75038", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Irving 1.0% + DART 1.0%)"),
+    ("TX", "Corpus Christi", "78401", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + city 1.5% + RTA 0.5%)"),
+    ("TX", "McAllen", "78501", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + McAllen 2.0%; Hidalgo Co. has no county tax)"),
+    ("TX", "Round Rock", "78664", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Round Rock 2.0%; not in Capital Metro)"),
+    ("TX", "Midland", "79701", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Midland 2.0%; no transit district)"),
+    ("TX", "Wichita Falls", "76301", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Wichita Falls 2.0%; no transit district)"),
+    ("TX", "Tyler", "75701", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Tyler 2.0%; no transit district)"),
+    ("TX", "College Station", "77840", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + College Station 2.0%; no transit district)"),
 ]
 
 
