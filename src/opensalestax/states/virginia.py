@@ -19,21 +19,37 @@ Regional add-ons:
 - **Central Virginia, Hampton Roads, Northern Virginia: +0.7%**
   regional transportation tax -> combined 6.0%. Modeled as
   ``district`` authorities seeded from
-  :mod:`opensalestax.states.va_data`. Top-12-city coverage in v0.25:
-  Virginia Beach / Norfolk / Chesapeake / Newport News / Hampton /
-  Portsmouth / Suffolk (Hampton Roads); Arlington / Alexandria
-  (Northern Virginia); Richmond (Central Virginia).
-- **Historic Triangle (Williamsburg, James City County, York
-  County): +1.0%** -- documented in :mod:`va_data` but NOT seeded
-  in v0.25 (none of the top-12 cities are in the Triangle).
+  :mod:`opensalestax.states.va_data`. Per-jurisdiction coverage
+  via :data:`opensalestax.states.va_data.VA_COUNTY_DISTRICT` (v0.31
+  ratchet) covers all 133 VA jurisdictions; the v0.25 top-12 city
+  seed is preserved as a friendly-anchor layer.
+- **Historic Triangle (Williamsburg city, James City County, York
+  County): +1.0%** -- now seeded in v0.31 via
+  :data:`VA_HISTORIC_TRIANGLE` as a SECOND district layer that
+  stacks ON TOP of Hampton Roads for the three overlapping
+  jurisdictions, yielding state 5.3% + HR 0.7% + Triangle 1.0% =
+  **7.0%** combined.
 - **Selected Southside localities (Charlotte, Danville, Gloucester,
   Halifax, Henry, Northampton, Patrick, Pittsylvania): +1.0%**
-  additional local -> combined 6.3%. Not seeded in v0.25.
+  additional local -> combined 6.3%. NOT modeled in v0.31; these
+  locality-specific +1.0% surcharges are filed under Va. Code
+  section 58.1-602 as "additional local" rather than a regional
+  district. A future ratchet should add them as per-county
+  ``district`` authorities (parallels the Historic Triangle
+  pattern).
 - Roanoke and Lynchburg are top-12 cities seeded with NO regional
   add-on; they correctly land at 5.3% via the state authority.
 
-ZIPs not in any covered city's tuple fall back to state-only at
-5.3% via the Census ZCTA load.
+**Statewide ZIP coverage via Census ZCTA**
+(v0.31 ratchet, parallels FL/AZ/CA in v0.28 and TX/NY/MO/IL/PA
+in v0.29). :meth:`Virginia.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits state +
+county + (district if mapped) bindings for every VA ZIP -- not
+just the ZIPs in the top-12 city seed. Effect: every Hampton Roads
+suburb in Isle of Wight County (e.g., Smithfield 23430) now picks
+up the +0.7% Hampton Roads district, and every Loudoun / Prince
+William / Fairfax County ZIP in Northern Virginia picks up the
++0.7% NoVA district -- instead of falling back to state-only.
 
 Taxability matrix (per Va. Code Chapter 6):
 
@@ -102,6 +118,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -114,7 +132,10 @@ from opensalestax.states.protocol import (
 from opensalestax.states.registry import register
 from opensalestax.states.va_data import (
     VA_CITIES,
+    VA_COUNTY_DISTRICT,
+    VA_COUNTY_RATE_PCT,
     VA_DISTRICT_RATE_PCT,
+    VA_HISTORIC_TRIANGLE,
     VA_STATE_EFFECTIVE_FROM,
     VA_STATE_RATE_PCT,
 )
@@ -227,14 +248,17 @@ class Virginia:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield VA's state + per-district + per-city rates.
+        """Yield VA's state + per-district + per-county + per-city rates.
 
-        Districts yielded: only those touched by a covered city
-        (Hampton Roads, Northern Virginia, Central Virginia).
-        Cities yielded: every VA_CITIES entry. The city rate is 0%
-        in all cases -- the city authority is purely a friendly
-        anchor for per-ZIP boundaries; the math comes from
-        state 5.3% + district 0.7% (where applicable).
+        Districts yielded: ALL four regional districts (Hampton Roads,
+        Northern Virginia, Central Virginia at 0.7%; Historic Triangle
+        at 1.0%). Counties yielded: ALL 133 VA jurisdictions (95
+        counties + 38 independent cities) at 0% -- the mandatory 1%
+        local is folded into the 5.3% state rate, so the county layer
+        exists ONLY to give every VA ZIP a county-level authority for
+        binding. Cities yielded: every :data:`VA_CITIES` entry; the
+        city rate is 0% in all cases (the engine treats the city
+        authority as a friendly anchor for per-ZIP boundaries).
 
         ``source_file`` is intentionally ignored -- VA has no SST
         upstream file.
@@ -248,14 +272,28 @@ class Virginia:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_districts = {
-            district for district, _ in VA_CITIES.values() if district is not None
-        }
-        for district_name in sorted(used_districts):
+        # Emit ALL four regional districts (the v0.25 set was the
+        # three +0.7% regions; v0.31 adds Historic Triangle at +1.0%
+        # for James City / York / Williamsburg).
+        for district_name in sorted(VA_DISTRICT_RATE_PCT):
             yield RateRow(
                 authority_name=district_name,
                 authority_type="district",
                 rate_pct=VA_DISTRICT_RATE_PCT[district_name],
+                effective_from=VA_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Virginia",
+            )
+        # Emit a RateRow for every VA jurisdiction (county or
+        # independent city). The ZIP_COUNTY-driven boundary loader
+        # binds every VA ZIP to its jurisdiction, so every one must
+        # have a queryable rate (uniformly 0% per the local-1%-in-
+        # state-rate fold).
+        for va_county_name in sorted(VA_COUNTY_RATE_PCT):
+            yield RateRow(
+                authority_name=va_county_name,
+                authority_type="county",
+                rate_pct=VA_COUNTY_RATE_PCT[va_county_name],
                 effective_from=VA_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Virginia",
@@ -277,32 +315,157 @@ class Virginia:
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, district?, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, district[, district2]][, city]) rows for every VA ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every VA ZIP; this method ADDS district + city bindings for the
-        12 covered cities. Cities outside a regional-add-on region
-        (Roanoke, Lynchburg) get state + city bindings only -- no
-        district -- so their combined rate is 5.3% (state) + 0% (city).
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county + (district if mapped) + (Historic
+           Triangle district if applicable) bindings for every ZIP
+           intersecting a VA jurisdiction. This covers the entire
+           state -- not just the ZIPs in the top-12 city seed -- so
+           every Loudoun / Prince William / Fairfax / Isle of Wight
+           ZIP picks up the appropriate +0.7% regional district
+           binding instead of falling back to state-only at 5.3%.
+
+        2. Fall back to :data:`VA_CITIES` for any city ZIP missed by
+           the Census ZCTA pass and emit the friendly-anchor city
+           BoundaryRow on top of the state + county + district stack.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor jurisdiction if the
+        ZIP is in :data:`VA_CITIES` (mapped via the city's declared
+        district -> jurisdictions). Without this, ZIPs that physically
+        span jurisdiction lines would get bound to BOTH and could
+        double-count any regional district add-on.
         """
         del source_file, version_label
-        for city_name, (district_name, zips) in VA_CITIES.items():
-            for zip5 in zips:
+
+        # Build city-anchor jurisdiction map for ZIPs that span lines.
+        # When a ZIP is in VA_CITIES, prefer the city's home jurisdiction
+        # (the FIPS county-equivalent name in VA_COUNTY_RATE_PCT).
+        # The mapping uses the friendly city name -> "<Name> city"
+        # canonical FIPS suffix that matches county_names.
+        city_to_jurisdiction: dict[str, str] = {
+            "Virginia Beach": "Virginia Beach city",
+            "Norfolk": "Norfolk city",
+            "Chesapeake": "Chesapeake city",
+            "Newport News": "Newport News city",
+            "Hampton": "Hampton city",
+            "Portsmouth": "Portsmouth city",
+            "Suffolk": "Suffolk city",
+            "Arlington": "Arlington County",
+            "Alexandria": "Alexandria city",
+            "Richmond": "Richmond city",
+            "Roanoke": "Roanoke city",
+            "Lynchburg": "Lynchburg city",
+        }
+        city_county_for_zip: dict[str, str] = {}
+        for cn, (_district, czs) in VA_CITIES.items():
+            jurisdiction = city_to_jurisdiction.get(cn)
+            if jurisdiction is None:
+                continue
+            for cz in czs:
+                city_county_for_zip[cz] = jurisdiction
+
+        # Pass 1: state + county + district for every VA ZIP per
+        # Census ZCTA. Emit at most one county per ZIP: prefer the
+        # city-anchor jurisdiction if known, else the first
+        # Census-listed VA jurisdiction.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "VA":
+                    continue
+                va_county_name = county_name("VA", county_fips)
+                if va_county_name is None or va_county_name not in VA_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if va_county_name == preferred_county:
+                        chosen_county = va_county_name
+                        break
+                    continue
+                chosen_county = va_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Virginia",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            district = VA_COUNTY_DISTRICT.get(chosen_county)
+            if district is not None:
                 yield BoundaryRow(
-                    authority_name="Virginia",
-                    authority_type="state",
+                    authority_name=district,
+                    authority_type="district",
                     zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )
-                if district_name is not None:
+            # Historic Triangle stacks on TOP of Hampton Roads for the
+            # three overlap jurisdictions (James City / York / Williamsburg).
+            if chosen_county in VA_HISTORIC_TRIANGLE:
+                yield BoundaryRow(
+                    authority_name="Historic Triangle Region",
+                    authority_type="district",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+            emitted_zips.add(zip5)
+
+        # Pass 2: city BoundaryRows for VA_CITIES. Also emit state +
+        # county + district for any city ZIP missed by the Census
+        # pass (USPS-only / PO-box-only ZIPs not in ZCTA).
+        for city_name, (district_name, zips) in VA_CITIES.items():
+            jurisdiction = city_to_jurisdiction.get(city_name)
+            for zip5 in zips:
+                if zip5 not in emitted_zips and jurisdiction is not None:
                     yield BoundaryRow(
-                        authority_name=district_name,
-                        authority_type="district",
+                        authority_name="Virginia",
+                        authority_type="state",
                         zip5=zip5,
                         zip4_low=None,
                         zip4_high=None,
                     )
+                    yield BoundaryRow(
+                        authority_name=jurisdiction,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    if district_name is not None:
+                        yield BoundaryRow(
+                            authority_name=district_name,
+                            authority_type="district",
+                            zip5=zip5,
+                            zip4_low=None,
+                            zip4_high=None,
+                        )
+                    if jurisdiction in VA_HISTORIC_TRIANGLE:
+                        yield BoundaryRow(
+                            authority_name="Historic Triangle Region",
+                            authority_type="district",
+                            zip5=zip5,
+                            zip4_low=None,
+                            zip4_high=None,
+                        )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

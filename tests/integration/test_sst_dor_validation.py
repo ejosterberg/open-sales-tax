@@ -272,6 +272,16 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("VA", "Richmond", "23219", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Central VA 0.7%)"),
     ("VA", "Roanoke", "24011", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
     ("VA", "Lynchburg", "24501", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
+    # v0.31 statewide-ZIP coverage validation: VA jurisdictions NOT
+    # in VA_CITIES. Pre-v0.31 these fell back to state-only at
+    # 5.300%; post-v0.31 they pick up the per-jurisdiction regional
+    # district binding.
+    ("VA", "Leesburg (Loudoun County)", "20175", "0001", "6.000", "0.05", "VA Tax (state 5.3% + Northern VA 0.7%; non-city ZIP in Loudoun)"),
+    ("VA", "Manassas (Prince William County)", "20109", "0001", "6.000", "0.05", "VA Tax (state 5.3% + Northern VA 0.7%; Prince William County ZIP)"),
+    ("VA", "Smithfield (Isle of Wight County)", "23430", "0001", "6.000", "0.05", "VA Tax (state 5.3% + Hampton Roads 0.7%; Isle of Wight County ZIP)"),
+    ("VA", "Williamsburg", "23185", "0001", "7.000", "0.05", "VA Tax (state 5.3% + Hampton Roads 0.7% + Historic Triangle 1.0% per Va. Code 58.1-606.1)"),
+    ("VA", "Mechanicsville (Hanover County)", "23111", "0001", "6.000", "0.05", "VA Tax (state 5.3% + Central VA 0.7%; Hanover County ZIP)"),
+    ("VA", "Charlottesville", "22902", "0001", "5.300", "0.05", "VA Tax (state 5.3% only; Charlottesville is outside all 4 regional districts)"),
     # Missouri -- MO DOR 2026 Sales/Use Tax Rate Tables (verified 2026-05-04)
     # Combined = state 4.225% + county + city (no special-district overlay).
     # Tolerance 0.10 because some +4 ranges within MO cities have CID/TDD
