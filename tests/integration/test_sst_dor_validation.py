@@ -171,6 +171,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("AZ", "Flagstaff", "86001", "0001", "9.386", "0.01", "AZ DOR (state 5.6% + Coconino 1.3% + Flagstaff 2.486%)"),
     ("AZ", "Yuma", "85364", "0001", "8.412", "0.01", "AZ DOR (state 5.6% + Yuma 1.112% + Yuma city 1.7%)"),
     ("AZ", "Lake Havasu City", "86403", "0001", "7.600", "0.01", "AZ DOR (state 5.6% + Mohave 0.0% + Lake Havasu City 2.0%)"),
+    # Connecticut -- flat 6.35% statewide, NO local sales taxes anywhere
+    # in the state per Conn. Gen. Stat. section 12-408. The "Hartford"
+    # entry is a regression guard ensuring a future maintainer doesn't
+    # accidentally introduce phantom local rates.
+    ("CT", "Hartford", "06103", "1234", "6.350", "0.01", "CT DRS (Conn. Gen. Stat. section 12-408: flat 6.35% statewide, no locals anywhere in CT)"),
 ]
 
 
