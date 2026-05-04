@@ -51,16 +51,59 @@ def test_is_registered(_instance, abbrev: str, _name, _rate, _cls) -> None:
 
 @pytest.mark.parametrize("instance,_abbrev,_name,rate,_cls", PHASE_4_STATES)
 def test_parse_rates_yields_statewide(instance, _abbrev, _name, rate: Decimal, _cls) -> None:
+    """The first emitted row is the statewide rate at the expected percentage.
+
+    Some Phase 4 states (AZ as of v0.23) additionally emit per-county
+    and per-city rates after the statewide row, so we don't assert a
+    specific row count -- only that the statewide row leads.
+    """
     rows = list(instance.parse_rates(None, "v0.4-statewide"))
-    assert len(rows) == 1
-    assert rows[0].rate_pct == rate
-    assert rows[0].authority_type == "state"
+    assert len(rows) >= 1
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1, "exactly one state-level rate expected"
+    assert state_rows[0].rate_pct == rate
 
 
 @pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_4_STATES)
 def test_general_taxable(instance, _abbrev, _name, _rate, _cls) -> None:
     rule = instance.taxability_for("general", dt.date(2026, 5, 3))
     assert rule is not None and rule.is_taxable is True
+
+
+class TestArizonaTPT:
+    """v0.23 ratchet: AZ now ships per-county + top-20-city TPT data."""
+
+    def test_state_county_city_rates_yielded(self) -> None:
+        rows = list(ARIZONA.parse_rates(None, "v0.23-tpt"))
+        # 1 state + 8 counties touched by AZ_CITIES + 20 cities = 29 rows
+        types = sorted(r.authority_type for r in rows)
+        assert types.count("state") == 1
+        assert types.count("county") >= 5
+        assert types.count("city") >= 15
+        # Phoenix specifically must appear with 2.8% city rate
+        phoenix = next(r for r in rows if r.authority_name == "Phoenix")
+        assert phoenix.authority_type == "city"
+        assert phoenix.rate_pct == Decimal("2.800")
+        # Maricopa County must appear with 0.7% county portion
+        maricopa = next(r for r in rows if r.authority_name == "Maricopa County")
+        assert maricopa.authority_type == "county"
+        assert maricopa.rate_pct == Decimal("0.700")
+
+    def test_phoenix_zip_emits_three_authorities(self) -> None:
+        """ZIP 85042 (Phoenix) must bind to state + Maricopa + Phoenix."""
+        rows = list(ARIZONA.parse_boundaries(None, "v0.23-tpt"))
+        phx_rows = [b for b in rows if b.zip5 == "85042"]
+        names = sorted(b.authority_name for b in phx_rows)
+        assert names == ["Arizona", "Maricopa County", "Phoenix"]
+
+    def test_combined_rate_phoenix_arithmetic(self) -> None:
+        """state 5.6% + Maricopa 0.7% + Phoenix 2.8% should sum to 9.1%."""
+        rows = list(ARIZONA.parse_rates(None, "v0.23-tpt"))
+        state = next(r for r in rows if r.authority_type == "state")
+        maricopa = next(r for r in rows if r.authority_name == "Maricopa County")
+        phoenix = next(r for r in rows if r.authority_name == "Phoenix")
+        combined = state.rate_pct + maricopa.rate_pct + phoenix.rate_pct
+        assert combined == Decimal("9.100")
 
 
 def test_pennsylvania_clothing_is_non_taxable() -> None:

@@ -9,9 +9,14 @@ the buyer) but produces the same dollar result for retail sales.
 The statewide TPT base rate is **5.6%** per the Arizona
 Department of Revenue (azdor.gov).
 
-**Phase 4 ships statewide only.** AZ's counties and (state-
-administered) cities add their own rates; combined rates range
-6.6%-11.2%. Loading per-jurisdiction rates is a future section.
+**v0.23 ships per-county + top-20-city coverage.** The 15 AZ
+counties and 20 largest cities (Phoenix, Tucson, Mesa, Chandler,
+Scottsdale, Glendale, Gilbert, Tempe, Peoria, Surprise, Yuma,
+Avondale, Goodyear, Buckeye, Flagstaff, Casa Grande, Lake Havasu
+City, Marana, Prescott, Prescott Valley) are seeded from the AZ
+DOR's monthly TPT Rate Table CSV. ZIPs not in the city list fall
+back to state + county where the county is covered by an explicit
+city, otherwise state-only via the Census ZCTA load.
 
 Taxability matrix (per Ariz. Rev. Stat. 42-5061):
 
@@ -32,9 +37,14 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Iterable
-from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.states.az_data import (
+    AZ_CITIES,
+    AZ_COUNTY_RATE_PCT,
+    AZ_STATE_EFFECTIVE_FROM,
+    AZ_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -90,7 +100,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 
 
 class Arizona:
-    """Arizona state module (tier 1; statewide TPT only)."""
+    """Arizona state module (tier 1; state + per-county + top-20 cities)."""
 
     state_abbrev: str = "AZ"
     state_name: str = "Arizona"
@@ -100,21 +110,80 @@ class Arizona:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
+        """Yield AZ's state TPT + per-county + per-city rates.
+
+        Counties yielded: only those touched by an AZ_CITIES entry.
+        Cities yielded: every AZ_CITIES entry.
+        """
         del source_file, version_label
         yield RateRow(
             authority_name="Arizona",
             authority_type="state",
-            rate_pct=Decimal("5.600"),
-            effective_from=dt.date(2013, 6, 1),
+            rate_pct=AZ_STATE_RATE_PCT,
+            effective_from=AZ_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        # Emit a county RateRow for every county touched by a covered city.
+        # Counties not used by any city are skipped to avoid loading rates
+        # without any matching boundary.
+        used_counties = {county for county, _, _ in AZ_CITIES.values()}
+        for county_name in sorted(used_counties):
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=AZ_COUNTY_RATE_PCT[county_name],
+                effective_from=AZ_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Arizona",
+            )
+        for city_name, (county_name, city_rate, _zips) in sorted(AZ_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=AZ_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=county_name,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
+        """Yield (state, county, city) boundary rows for each covered ZIP.
+
+        The Census ZCTA load already provides state-level binding for
+        every AZ ZIP. This method ADDS county + city bindings for the
+        top-20 cities. ZIPs in covered counties but outside the city
+        list don't get a county binding here -- they keep the state-
+        only binding from Census. A future ratchet should iterate the
+        Census ZCTA->county data for AZ to add county-only bindings
+        across the rest of the state.
+        """
         del source_file, version_label
-        return iter(())
+        for city_name, (county_name, _city_rate, zips) in AZ_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Arizona",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         del effective_date

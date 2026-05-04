@@ -186,11 +186,21 @@ class StateModule(Protocol):
     """Coverage tier: 0 unsupported, 1 fully maintained, 2 rate-only."""
 
     def parse_rates(self, source_file: Path, version_label: str) -> Iterable[RateRow]:
-        """Read upstream rate file, yield normalized :class:`RateRow` rows."""
+        """Read upstream rate file, yield normalized :class:`RateRow` rows.
+
+        ``source_file`` may be ``None`` (typed as ``Path`` for protocol
+        compatibility) for ``self_seeded`` states whose rates come from
+        embedded data, not an external file.
+        """
         ...
 
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
-        """Read upstream boundary file, yield normalized :class:`BoundaryRow` rows."""
+        """Read upstream boundary file, yield normalized :class:`BoundaryRow` rows.
+
+        ``source_file`` may be ``None`` (typed as ``Path`` for protocol
+        compatibility) for ``self_seeded`` states whose boundaries come
+        from embedded data, not an external file.
+        """
         ...
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:

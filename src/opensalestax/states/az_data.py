@@ -1,0 +1,184 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+"""Arizona TPT (Transaction Privilege Tax) rate + boundary data.
+
+Source: AZ DOR's monthly "All Business Classifications Tax Rate Table"
+CSV, business code 017 RETAIL. URL pattern:
+
+  https://azdor.gov/sites/default/files/document/
+    TPT_RATETABLE_ALL_<MMDDYYYY>.csv
+
+May 2026 file (effective 2026-05-01) used to seed the data below.
+County rates published in the CSV INCLUDE the 5.6% state portion;
+the per-county portion is derived as ``combined - 5.6``.
+
+This module ships an MVP coverage scope:
+
+- All 15 AZ counties with their per-county TPT portion
+- 20 largest AZ cities with per-city rates and their primary ZIPs
+
+ZIPs not in the city list fall back to state + county (or state-only
+where the county isn't covered by an explicit city). A future ratchet
+should expand city coverage and ingest the CSV directly so monthly DOR
+updates auto-flow.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+from decimal import Decimal
+
+# State rate effective since the last AZ TPT base-rate change (2013-06-01).
+AZ_STATE_RATE_PCT = Decimal("5.600")
+AZ_STATE_EFFECTIVE_FROM = dt.date(2013, 6, 1)
+
+# Per-county TPT portion (NOT including the 5.6% state rate).
+# Source: AZ DOR May 2026 CSV, business code 017, county-level rows.
+AZ_COUNTY_RATE_PCT: dict[str, Decimal] = {
+    "Apache County": Decimal("0.500"),
+    "Cochise County": Decimal("0.500"),
+    "Coconino County": Decimal("1.300"),
+    "Gila County": Decimal("1.000"),
+    "Graham County": Decimal("1.000"),
+    "Greenlee County": Decimal("0.500"),
+    "La Paz County": Decimal("1.000"),
+    "Maricopa County": Decimal("0.700"),
+    "Mohave County": Decimal("0.000"),
+    "Navajo County": Decimal("0.830"),
+    "Pima County": Decimal("0.500"),
+    "Pinal County": Decimal("1.100"),
+    "Santa Cruz County": Decimal("1.000"),
+    "Yavapai County": Decimal("0.750"),
+    "Yuma County": Decimal("1.112"),
+}
+
+# Per-city RETAIL rate (city portion only). Source: AZ DOR May 2026 CSV.
+# Each tuple: (county_name, city_rate_pct, [zip5s])
+# ZIPs are the primary delivery ZIPs for each city; not exhaustive but
+# covers the population centroids that consumers most often query.
+AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
+    "Phoenix": (
+        "Maricopa County",
+        Decimal("2.800"),
+        # Phoenix proper (excluding Glendale/Tempe/Mesa/Scottsdale interior ZIPs)
+        (
+            "85003", "85004", "85006", "85007", "85008", "85009", "85012", "85013",
+            "85014", "85015", "85016", "85017", "85018", "85019", "85020", "85021",
+            "85022", "85023", "85024", "85027", "85028", "85029", "85031", "85032",
+            "85033", "85034", "85035", "85037", "85040", "85041", "85042", "85043",
+            "85044", "85045", "85048", "85050", "85051", "85053", "85054", "85083",
+            "85085", "85086", "85087",
+        ),
+    ),
+    "Tucson": (
+        "Pima County",
+        Decimal("2.600"),
+        (
+            "85701", "85705", "85706", "85710", "85711", "85712", "85713", "85714",
+            "85715", "85716", "85718", "85719", "85730", "85735", "85737", "85741",
+            "85742", "85745", "85746", "85747", "85748", "85749", "85750", "85756",
+            "85757",
+        ),
+    ),
+    "Mesa": (
+        "Maricopa County",
+        Decimal("2.000"),
+        ("85201", "85202", "85203", "85204", "85205", "85206", "85207", "85208",
+         "85209", "85210", "85212", "85213", "85215"),
+    ),
+    "Chandler": (
+        "Maricopa County",
+        Decimal("1.500"),
+        ("85224", "85225", "85226", "85248", "85249", "85286"),
+    ),
+    "Scottsdale": (
+        "Maricopa County",
+        Decimal("1.700"),
+        ("85250", "85251", "85254", "85255", "85257", "85258", "85259", "85260",
+         "85262", "85266"),
+    ),
+    "Glendale": (
+        "Maricopa County",
+        Decimal("2.900"),
+        ("85301", "85302", "85303", "85304", "85305", "85306", "85307", "85308",
+         "85310"),
+    ),
+    "Gilbert": (
+        "Maricopa County",
+        Decimal("2.000"),
+        ("85233", "85234", "85295", "85296", "85297", "85298"),
+    ),
+    "Tempe": (
+        "Maricopa County",
+        Decimal("1.800"),
+        ("85281", "85282", "85283", "85284"),
+    ),
+    "Peoria": (
+        "Maricopa County",
+        Decimal("1.800"),
+        ("85345", "85381", "85382", "85383", "85385"),
+    ),
+    "Surprise": (
+        "Maricopa County",
+        Decimal("2.800"),
+        ("85374", "85378", "85379", "85387", "85388"),
+    ),
+    "Avondale": (
+        "Maricopa County",
+        Decimal("2.500"),
+        ("85323", "85392"),
+    ),
+    "Goodyear": (
+        "Maricopa County",
+        Decimal("2.500"),
+        ("85338", "85395"),
+    ),
+    "Buckeye": (
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85326", "85396"),
+    ),
+    "Yuma": (
+        "Yuma County",
+        Decimal("1.700"),
+        ("85364", "85365", "85367"),
+    ),
+    "Flagstaff": (
+        "Coconino County",
+        Decimal("2.486"),
+        ("86001", "86004", "86005"),
+    ),
+    "Casa Grande": (
+        "Pinal County",
+        Decimal("2.000"),
+        ("85122", "85194"),
+    ),
+    "Lake Havasu City": (
+        "Mohave County",
+        Decimal("2.000"),
+        ("86403", "86404", "86406"),
+    ),
+    "Marana": (
+        "Pima County",
+        Decimal("2.500"),
+        ("85653", "85658"),
+    ),
+    "Prescott": (
+        "Yavapai County",
+        Decimal("2.950"),
+        ("86301", "86303", "86305"),
+    ),
+    "Prescott Valley": (
+        "Yavapai County",
+        Decimal("2.830"),
+        ("86314", "86315"),
+    ),
+}
+
+
+__all__ = [
+    "AZ_STATE_RATE_PCT",
+    "AZ_STATE_EFFECTIVE_FROM",
+    "AZ_COUNTY_RATE_PCT",
+    "AZ_CITIES",
+]

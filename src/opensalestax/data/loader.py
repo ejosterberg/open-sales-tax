@@ -303,15 +303,25 @@ async def _maybe_load_boundaries(
     load_boundaries: bool,
     self_seeded: bool,
 ) -> int:
-    """Insert boundary rows if a file exists and loading isn't suppressed."""
-    if not load_boundaries or self_seeded:
+    """Insert boundary rows if a file exists and loading isn't suppressed.
+
+    For SST-backed states, the boundary file must be present in cache;
+    boundaries are loaded ONLY when one exists. For self_seeded states,
+    the state module yields boundaries from its own embedded data
+    (no upstream file), so we always invoke parse_boundaries with
+    source_file=None.
+    """
+    if not load_boundaries:
         return 0
-    boundary_file = find_cached_file(state_abbrev, version_label, "B", cache_dir)
-    if boundary_file is None:
-        return 0
+    if self_seeded:
+        boundary_file = None
+    else:
+        boundary_file = find_cached_file(state_abbrev, version_label, "B", cache_dir)
+        if boundary_file is None:
+            return 0
 
     boundaries_loaded = 0
-    for brow in state_module.parse_boundaries(boundary_file, full_label):
+    for brow in state_module.parse_boundaries(boundary_file, full_label):  # type: ignore[arg-type]
         authority = await _get_or_create_authority(
             session, authority_cache, state_id, brow.authority_name, brow.authority_type
         )
