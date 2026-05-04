@@ -5,7 +5,7 @@
 Source: SC DOR Form ST-500 "South Carolina Local Tax Designation by
 County" effective **May 1, 2026** (Rev. 3/9/2026), publication
 number 5182. Cross-checked against the SC DOR Local Sales Taxes
-page on dor.sc.gov.
+page on dor.sc.gov (audit refreshed 2026-05-04).
 
 Architecture: South Carolina's local sales taxes are **county-level
 only** -- there is no city-level general retail surcharge anywhere
@@ -18,12 +18,13 @@ in the state. Each county may impose any combination of:
 - Transportation Tax (TT) -- 1%
 
 Combined county totals (state 6% + locals) range from **6%** in
-Greenville and Oconee (no local tax) to **9%** in Berkeley,
-Charleston, Jasper, and the Myrtle Beach municipal area (3% of
-local taxes). This module ships **all 46 SC counties** rather than
-a top-N subset; the SC DOR table is small enough to encode in
-full and a county-complete dataset is more useful than a city
-sample.
+Beaufort, Greenville, and Oconee (no local tax -- the only three
+verified-zero counties per SC DOR ST-500 Rev. 3/9/2026) to **9%**
+in Berkeley, Charleston, Jasper, and the Myrtle Beach municipal
+area (3% of local taxes). This module ships **all 46 SC counties**
+rather than a top-N subset; the SC DOR table is small enough to
+encode in full and a county-complete dataset is more useful than
+a city sample.
 
 Boundary modeling: cities don't get separate authorities (since SC
 doesn't tax at the city level for general retail). Instead, each
@@ -36,11 +37,17 @@ Myrtle Beach is the lone SC municipality with its own tax (1%
 Tourism Development tax, plus the Horry County base) -- it's
 modeled as a city authority above Horry County.
 
-ZIPs not in :data:`SC_CITIES` fall back to state-only via the
-Census ZCTA load (correct rate for any address outside the seeded
-cities is the 6% state portion). A future ratchet should ingest
-the full SC ZCTA→county mapping to give every SC ZIP a county
-binding.
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28 and TX/NY/MO/IL/PA in v0.29).
+:meth:`SouthCarolina.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits state +
+county bindings for every SC ZIP -- not just the ZIPs seeded into
+:data:`SC_CITIES`. Effect: a Berkeley County ZIP outside Goose
+Creek city limits (e.g., Moncks Corner 29461, Hanahan 29410) now
+picks up the +3.0% Berkeley combined local rate for an 9.0%
+combined rate, instead of falling back to state-only at 6.0%.
+Similarly Aiken County ZIPs (e.g., 29801) pick up the +2.0% Aiken
+combined local for an 8.0% combined.
 """
 
 from __future__ import annotations
@@ -64,7 +71,7 @@ SC_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Anderson County": Decimal("1.000"),        # ECI -> 7%
     "Bamberg County": Decimal("2.000"),         # LO, CP -> 8%
     "Barnwell County": Decimal("2.000"),        # LO, CP -> 8%
-    "Beaufort County": Decimal("0.000"),        # No local -> 6%
+    "Beaufort County": Decimal("0.000"),        # verified 0% (no local) -> 6% per SC DOR ST-500 Rev. 3/9/2026
     "Berkeley County": Decimal("3.000"),        # LO, TT, ECI -> 9%
     "Calhoun County": Decimal("2.000"),         # LO, CP -> 8%
     "Charleston County": Decimal("3.000"),      # LO, TT, ECI -> 9%
@@ -80,7 +87,7 @@ SC_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Fairfield County": Decimal("1.000"),       # LO -> 7%
     "Florence County": Decimal("2.000"),        # LO, CP -> 8%
     "Georgetown County": Decimal("1.000"),      # CP -> 7%
-    "Greenville County": Decimal("0.000"),      # No local -> 6%
+    "Greenville County": Decimal("0.000"),      # verified 0% (no local) -> 6% per SC DOR ST-500 Rev. 3/9/2026
     "Greenwood County": Decimal("1.000"),       # CP -> 7%
     "Hampton County": Decimal("1.000"),         # LO -> 7%
     "Horry County": Decimal("2.000"),           # TT, ECI -> 8% (general retail; +TD in Myrtle Beach)
@@ -94,7 +101,7 @@ SC_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Marion County": Decimal("2.000"),          # LO, CP -> 8%
     "Marlboro County": Decimal("2.000"),        # LO, SD -> 8%
     "Newberry County": Decimal("1.000"),        # CP -> 7%
-    "Oconee County": Decimal("0.000"),          # No local -> 6%
+    "Oconee County": Decimal("0.000"),          # verified 0% (no local) -> 6% per SC DOR ST-500 Rev. 3/9/2026
     "Orangeburg County": Decimal("1.000"),      # CP -> 7%
     "Pickens County": Decimal("1.000"),         # LO -> 7%
     "Richland County": Decimal("2.000"),        # LO, TT -> 8%

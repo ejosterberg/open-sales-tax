@@ -183,3 +183,81 @@ def test_south_carolina_holiday_unknown_year_returns_empty() -> None:
     assert list(SOUTH_CAROLINA.holidays_for(2025)) == []
     assert list(SOUTH_CAROLINA.holidays_for(2027)) == []
     assert list(SOUTH_CAROLINA.holidays_for(2099)) == []
+
+
+# ---------------------------------------------------------------------------
+# Statewide ZIP coverage tests (parallels TX/NY/MO/IL/PA in v0.29)
+# ---------------------------------------------------------------------------
+def test_south_carolina_parse_rates_emits_all_46_counties() -> None:
+    """All 46 SC counties must be emitted as RateRows so the
+    ZIP_COUNTY-driven boundary loader can resolve every SC ZIP to a
+    queryable county authority.
+    """
+    rows = list(SOUTH_CAROLINA.parse_rates(None, "v0.31-statewide"))
+    counties = [r for r in rows if r.authority_type == "county"]
+    assert len(counties) == 46
+    # Spot-check a non-city county that previously was NOT emitted
+    # (Allendale County is in SC_COUNTY_RATE_PCT but not in SC_CITIES).
+    by_name = {r.authority_name: r for r in counties}
+    assert "Allendale County" in by_name
+    assert by_name["Allendale County"].rate_pct == Decimal("2.000")
+    # And a verified-zero county.
+    assert by_name["Beaufort County"].rate_pct == Decimal("0.000")
+
+
+def test_south_carolina_parse_boundaries_covers_non_city_zip() -> None:
+    """A ZIP outside any SC_CITIES entry must still bind to state +
+    county after the v0.31 statewide ratchet.
+
+    Aiken (29801) is in Aiken County (8% combined; 2% local) but is
+    NOT a seeded city. Under the prior boundary loader it would fall
+    back to state-only at 6%. After v0.31 it must bind to both
+    "South Carolina" AND "Aiken County" so the engine can return the
+    correct 8% combined rate.
+    """
+    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.31-statewide"))
+    aiken_rows = [b for b in rows if b.zip5 == "29801"]
+    names = sorted(b.authority_name for b in aiken_rows)
+    # No city anchor for 29801 -- only state + county.
+    assert names == ["Aiken County", "South Carolina"]
+
+
+def test_south_carolina_parse_boundaries_dedupes_county_per_zip() -> None:
+    """A ZIP must bind to AT MOST ONE county to avoid double-counting
+    the local tax. Many SC ZIPs span 2 counties in the Census ZCTA
+    relationship file; the loader must pick one (preferring the
+    city-anchor county where the ZIP is in SC_CITIES).
+    """
+    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.31-statewide"))
+    by_zip: dict[str, list[str]] = {}
+    for b in rows:
+        if b.authority_type == "county":
+            by_zip.setdefault(b.zip5, []).append(b.authority_name)
+    multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
+    assert multi == {}, (
+        f"Found ZIPs bound to multiple SC counties (would double-count "
+        f"local tax): {multi}"
+    )
+
+
+def test_south_carolina_parse_boundaries_charleston_city_still_bound() -> None:
+    """Charleston ZIP 29401 must still pick up its city authority
+    after the v0.31 ratchet (the Pass 2 fallback).
+    """
+    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.31-statewide"))
+    chs_rows = [b for b in rows if b.zip5 == "29401"]
+    names = sorted(b.authority_name for b in chs_rows)
+    assert names == ["Charleston", "Charleston County", "South Carolina"]
+
+
+def test_south_carolina_parse_boundaries_emits_many_zips() -> None:
+    """Sanity: post-v0.31 SC must emit boundary rows for hundreds of
+    ZIPs (the Census ZCTA file lists ~440 SC ZCTAs), not just the
+    ~50 ZIPs in SC_CITIES.
+    """
+    rows = list(SOUTH_CAROLINA.parse_boundaries(None, "v0.31-statewide"))
+    state_zips = {b.zip5 for b in rows if b.authority_type == "state"}
+    assert len(state_zips) > 300, (
+        f"Expected statewide ZCTA coverage (~440 SC ZIPs); got only "
+        f"{len(state_zips)} -- ratchet may not be wired correctly"
+    )

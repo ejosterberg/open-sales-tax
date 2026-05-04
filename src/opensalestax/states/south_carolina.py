@@ -18,12 +18,23 @@ Local-jurisdiction model:
 - **Tourism Development (TD)** -- 1%, certain municipalities
   (Myrtle Beach is the only one currently active)
 
-Combined county rates range from **6%** (Greenville, Oconee, Beaufort
--- no local tax) to **9%** (Berkeley, Charleston, Jasper, Myrtle Beach
-municipal area). All 46 SC counties are seeded from the SC DOR
-ST-500 rate chart effective May 1, 2026 via
+Combined county rates range from **6%** (Beaufort, Greenville,
+Oconee -- the only three verified-zero local-tax counties per SC
+DOR ST-500 Rev. 3/9/2026) to **9%** (Berkeley, Charleston, Jasper,
+Myrtle Beach municipal area). All 46 SC counties are seeded from
+the SC DOR ST-500 rate chart effective May 1, 2026 via
 :mod:`opensalestax.states.sc_data`; see that module for the per-
 county rates and the 10 covered cities' ZIP coverage.
+
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28 and TX/NY/MO/IL/PA in v0.29).
+:meth:`SouthCarolina.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits state +
+county bindings for every SC ZIP -- not just the ZIPs in the 10
+covered cities. Effect: a ZIP in Berkeley County outside the
+Goose Creek seed (e.g., Moncks Corner 29461) now picks up the
++3.0% Berkeley local for an 9.0% combined rate, instead of falling
+back to state-only at 6.0%.
 
 Taxability matrix (per S.C. Code Ann. Title 12, Chapter 36):
 
@@ -93,6 +104,8 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -195,12 +208,14 @@ class SouthCarolina:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield SC's state + per-county + per-city rates.
 
-        Counties yielded: only those touched by an SC_CITIES entry
-        (mirrors the AZ pattern of not loading rates for counties
-        without any covered city). Cities yielded: every SC_CITIES
-        entry; SC city rate is 0% in all cases (locals are
-        county-level), so the city authority is mainly a friendly
-        anchor for the per-city ZIP boundaries.
+        Counties yielded: every county in :data:`SC_COUNTY_RATE_PCT`
+        (all 46 SC counties). The ZIP_COUNTY-driven boundary loader
+        binds every SC ZIP to its county, so every county must have
+        a queryable rate (even the 0% ones -- Beaufort, Greenville,
+        Oconee). Cities yielded: every :data:`SC_CITIES` entry; SC
+        city rate is 0% in all cases (locals are county-level), so
+        the city authority is mainly a friendly anchor for the per-
+        city ZIP boundaries.
 
         ``source_file`` is intentionally ignored -- SC has no SST
         upstream file.
@@ -214,58 +229,128 @@ class SouthCarolina:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_counties = {county for county, _, _ in SC_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a RateRow for every SC county. The ZIP_COUNTY-driven
+        # boundary loader binds every SC ZIP to its county, so every
+        # county must have a queryable rate (even the 0% ones).
+        for sc_county_name in sorted(SC_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=sc_county_name,
                 authority_type="county",
-                rate_pct=SC_COUNTY_RATE_PCT[county_name],
+                rate_pct=SC_COUNTY_RATE_PCT[sc_county_name],
                 effective_from=SC_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="South Carolina",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(SC_CITIES.items()):
+        for city_name, (sc_city_county, city_rate, _zips) in sorted(SC_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=SC_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=sc_city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every SC ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every SC ZIP. This method ADDS county + city bindings for the
-        10 covered cities (Columbia, Charleston, Mount Pleasant,
-        North Charleston, Rock Hill, Greenville, Summerville,
-        Spartanburg, Sumter, Goose Creek). ZIPs in covered counties
-        but outside the city list keep the Census state-only binding
-        -- a future ratchet should iterate the Census ZCTA->county
-        data for SC to add county-only bindings across the rest of
-        the state.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           SC county. This covers the entire state -- not just the
+           ZIPs in the 10 covered cities -- so a Berkeley County ZIP
+           outside Goose Creek (e.g., Moncks Corner 29461) now picks
+           up the +3.0% Berkeley local for an 9.0% combined rate
+           instead of falling back to state-only at 6.0%.
+
+        2. Fall back to :data:`SC_CITIES` for any city ZIP missed by
+           the Census ZCTA pass (USPS-only / PO-box-only ZIPs that
+           aren't published as Census ZCTAs), then emit the city
+           BoundaryRow on top of the state + county stack so the
+           friendly city anchor is preserved.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`SC_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties and double-count
+        the local tax.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in SC_CITIES.items():
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in SC_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _rate, czs) in SC_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every SC ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed SC county.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "SC":
+                    continue
+                sc_county_name = county_name("SC", county_fips)
+                if sc_county_name is None or sc_county_name not in SC_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if sc_county_name == preferred_county:
+                        chosen_county = sc_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor for this ZIP -- take the first SC county.
+                chosen_county = sc_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                # ZIP is in a city but Census doesn't list the city's
+                # county at all (USPS-only / boundary-mismatch). Trust
+                # the city's declared county.
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="South Carolina",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+        # Pass 2: city BoundaryRows for SC_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (USPS-only
+        # codes not in ZCTA) so we never regress city coverage.
+        for city_name, (sc_city_county, _city_rate, zips) in SC_CITIES.items():
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="South Carolina",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="South Carolina",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=sc_city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

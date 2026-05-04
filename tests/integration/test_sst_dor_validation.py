@@ -246,6 +246,16 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("SC", "Spartanburg", "29301", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Spartanburg CP 1%)"),
     ("SC", "Sumter", "29150", "0001", "8.000", "0.05", "SC DOR ST-500 (state 6% + Sumter LO 1% + CP 1%)"),
     ("SC", "Goose Creek", "29445", "0001", "9.000", "0.05", "SC DOR ST-500 (state 6% + Berkeley LO 1% + TT 1% + ECI 1%)"),
+    # v0.31 statewide-ZIP coverage validation: ZIPs in counties that
+    # ARE touched by SC_CITIES but at addresses OUTSIDE the seeded
+    # city ZIPs. Pre-v0.31 these fell back to state-only at 6.000%;
+    # post-v0.31 they pick up the per-county local portion.
+    ("SC", "Moncks Corner (Berkeley County)", "29461", "0001", "9.000", "0.05", "SC DOR ST-500 (Berkeley County 3% local: LO + TT + ECI; non-city ZIP)"),
+    ("SC", "Lexington (Lexington County)", "29072", "0001", "7.000", "0.05", "SC DOR ST-500 (Lexington County 1% SD; non-city ZIP outside Columbia city limits)"),
+    ("SC", "Conway (Horry County)", "29526", "0001", "8.000", "0.05", "SC DOR ST-500 (Horry County 2% local: TT + ECI; non-Myrtle-Beach ZIP)"),
+    ("SC", "Hilton Head (Beaufort County)", "29928", "0001", "6.000", "0.05", "SC DOR ST-500 (Beaufort County verified 0% -- statewide ratchet binds to Beaufort County at 0% local)"),
+    ("SC", "Anderson (Anderson County)", "29621", "0001", "7.000", "0.05", "SC DOR ST-500 (Anderson County 1% ECI; non-city ZIP)"),
+    ("SC", "Florence (Florence County)", "29501", "0001", "8.000", "0.05", "SC DOR ST-500 (Florence County 2% local: LO + CP; non-city ZIP)"),
     # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
     # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
     # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg
