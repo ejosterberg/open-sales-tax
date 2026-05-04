@@ -140,7 +140,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("OK", "Sand Springs", "74063", "1234", "8.917", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Sand Springs 4.05%)"),
     ("OK", "Sapulpa", "74066", "1234", "9.667", "0.05", "OK DOR (state 4.5% + Creek 1.167% + Sapulpa 4.0%)"),
     ("OK", "Glenpool", "74033", "1234", "9.967", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Glenpool 5.1%)"),
-    ("OK", "Edmond", "73034", "1234", "8.250", "0.05", "OK DOR (state 4.5% + Oklahoma 0.0% + Edmond 3.75%)"),
+    ("OK", "Edmond", "73034", "1234", "9.000", "0.05", "OK DOR (state 4.5% + Logan County 0.75% + Edmond 3.75%; ZIP 73034 straddles OK/Logan; +4 1234 is in Logan)"),
     ("OK", "Stillwater", "74074", "1234", "9.313", "0.05", "OK DOR (state 4.5% + Payne 0.813% + Stillwater 4.0%)"),
     ("OK", "Enid", "73701", "1234", "9.100", "0.05", "OK DOR (state 4.5% + Garfield 0.35% + Enid 4.25%)"),
     ("OK", "Shawnee", "74801", "1234", "9.995", "0.05", "OK DOR (state 4.5% + Pottawatomie 1.495% + Shawnee 4.0%)"),
