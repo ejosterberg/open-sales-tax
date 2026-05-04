@@ -198,7 +198,12 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # representing unincorporated CDPs (Sun City, Green Valley) are
     # ideal validation targets because there's no incorporated city
     # adding its own TPT; the centroid rate is exactly state + county.
-    ("AZ", "Sun City", "85382", "0001", "6.300", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Maricopa 0.7%) -- unincorporated CDP; post-zip_county"),
+    # 85382 is a USPS "Peoria, AZ" ZIP that actually delivers to Sun City CDP +
+    # parts of incorporated Peoria. AZ DOR's rate lookup returns Peoria's
+    # combined rate (8.1%) for any 85382 address; the engine matches that
+    # because 85382 is in AZ_CITIES["Peoria"]. The earlier row asserting 6.3%
+    # (Maricopa-only, Sun City CDP) was wrong.
+    ("AZ", "Sun City / Peoria", "85382", "0001", "8.100", "0.05", "AZ DOR (state 5.6% + Maricopa 0.7% + Peoria 1.8%; AZ DOR rate lookup uses Peoria for any 85382)"),
     ("AZ", "Green Valley", "85622", "0001", "6.100", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Pima 0.5%) -- unincorporated CDP; post-zip_county"),
     ("AZ", "Vernon", "85936", "0001", "6.100", "0.05", "AZ DOR May 2026 CSV (state 5.6% + Apache 0.5%) -- unincorporated; post-zip_county"),
     # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24)
