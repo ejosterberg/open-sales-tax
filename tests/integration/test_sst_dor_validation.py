@@ -104,6 +104,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("OH", "Cleveland", "44113", "1417", "8.000", "0.05", "OH DOR (state 5.75% + Cuyahoga 1.25% + RTA 1%)"),
     # WA additional
     ("WA", "Tacoma", "98402", "3502", "10.400", "0.10", "WA DOR (state 6.5% + Tacoma combined ~3.9%)"),
+    # OK secondary cities (post-loose-fallback fix; was 12.625% / 13.25% pre-fix)
+    ("OK", "Norman", "73069", "6107", "8.750", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Norman 4.125%)"),
+    ("OK", "Moore", "73160", "2306", "8.500", "0.05", "OK DOR (state 4.5% + Cleveland 0.125% + Moore 3.875%)"),
+    ("OK", "Broken Arrow", "74012", "2417", "8.417", "0.05", "OK DOR (state 4.5% + Tulsa 0.367% + Broken Arrow 3.55%)"),
+    ("OK", "Lawton", "73505", "1306", "9.000", "0.05", "OK DOR (state 4.5% + Comanche 0.375% + Lawton 4.125%)"),
+    # KS secondary
+    ("KS", "Olathe", "66061", "2917", "9.475", "0.05", "KS DOR (state 6.5% + Johnson 1.475% + Olathe 1.5%)"),
+    # TN secondary
+    ("TN", "Clarksville", "37040", "1407", "9.500", "0.05", "TN DOR (state 7% + Montgomery 2.5%; Clarksville no separate city tax)"),
+    ("TN", "Murfreesboro", "37130", "2517", "9.750", "0.05", "TN DOR (state 7% + Rutherford 2.75%)"),
+    # SD additional
+    ("SD", "Aberdeen", "57401", "3306", "6.200", "0.05", "SD DOR (state 4.2% + Aberdeen 2%)"),
 ]
 
 
