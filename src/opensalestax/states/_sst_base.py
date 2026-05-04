@@ -112,6 +112,12 @@ class SstStateModule:
     jurisdiction_types: dict[str, str] = _DEFAULT_JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _DEFAULT_TAXABILITY
 
+    # Effective-date cutoff for boundary-file filtering. Defaults to
+    # ``None``, which means ``parse_boundaries`` uses today (via
+    # :meth:`_boundaries_as_of`). Tests can override per-instance to
+    # pin against a specific historical snapshot.
+    boundaries_as_of: dt.date | None = None
+
     def parse_rates(self, source_file: Path, version_label: str) -> Iterable[RateRow]:
         """Generic SST rates parser; subclasses rarely override."""
         del version_label
@@ -144,13 +150,31 @@ class SstStateModule:
         inclusively -- one Dakota County row covering 55120-55124
         becomes 5 boundaries -- so single-row range coverage isn't
         silently dropped.
+
+        **Effective-date filtering:** SST quarterly boundary files
+        retain HISTORICAL records (e.g. TN's 2026Q2 file carries
+        type-z rows that bound 37027 to Brentwood (city 54780) for
+        the window 2024-01-01..2024-03-31 alongside the currently
+        active row that bounds 37027 to Davidson County only). The
+        ``Boundary`` table has no effective_from/to columns -- so
+        loading every historical row would create a forever-growing
+        union of jurisdictions, double-counting cities that no
+        longer apply. Filter to records active on
+        :func:`_boundaries_as_of` (defaults to today) at parse time
+        so only currently-effective bindings reach the DB. State
+        modules can override the class attribute ``boundaries_as_of``
+        when they need to load a specific historical snapshot
+        (typically only useful for tests).
         """
         del version_label
+        as_of = self._boundaries_as_of()
         seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
+                continue
+            if not _record_active_on(record, as_of):
                 continue
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
@@ -217,8 +241,45 @@ class SstStateModule:
                 return friendly
         return f"{self.state_abbrev}-{authority_type}-{code}"
 
+    def _boundaries_as_of(self) -> dt.date:
+        """Return the cutoff date used to filter SST boundary records.
+
+        ``parse_boundaries`` consults this to drop expired and
+        future-dated rows -- the SST boundary file otherwise carries
+        years of historical bindings that, since :class:`Boundary`
+        has no effective_from/to columns, would all stack on top of
+        each other and create per-ZIP city/county "ghost" overlaps.
+        Subclasses or test fixtures can override the
+        :attr:`boundaries_as_of` class attribute to load a pinned
+        historical snapshot instead of "today".
+        """
+        return self.boundaries_as_of or dt.date.today()
+
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.state_abbrev} tier={self.tier}>"
+
+
+def _record_active_on(record, as_of: dt.date) -> bool:
+    """Return True when ``record`` is in effect on ``as_of``.
+
+    Mirrors :func:`opensalestax.data.sst_parser.active_only` but is
+    inlined as a per-record predicate so the boundary-parser
+    generator can short-circuit before doing the more expensive
+    ZIP-range expansion + per-state cross-border check.
+
+    A record is active when:
+
+    - ``effective_from <= as_of``, AND
+    - ``effective_to`` is None (open-ended) OR ``as_of <= effective_to``.
+
+    Records lacking an ``effective_from`` (defensively) are treated
+    as active so a malformed row isn't silently dropped twice.
+    """
+    eff_from = getattr(record, "effective_from", None)
+    eff_to = getattr(record, "effective_to", None)
+    if eff_from is not None and eff_from > as_of:
+        return False
+    return not (eff_to is not None and eff_to < as_of)
 
 
 def _expand_zip5_range(low: str, high: str) -> Iterable[str]:
