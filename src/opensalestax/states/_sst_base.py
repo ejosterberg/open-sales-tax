@@ -115,8 +115,16 @@ class SstStateModule:
     def parse_rates(self, source_file: Path, version_label: str) -> Iterable[RateRow]:
         """Generic SST rates parser; subclasses rarely override."""
         del version_label
+        # Merge the inclusive default mapping with any per-state
+        # override so subclasses can ADD codes (or rebind one) but
+        # never accidentally drop the defaults. Pre-fix, every
+        # state module shipped its own override that quietly
+        # excluded the new codes added to the default (single-digit
+        # '0'/'1', '49'/'69'/'79' districts), silently dropping
+        # those rate rows on load.
+        types = {**_DEFAULT_JURISDICTION_TYPE, **self.jurisdiction_types}
         for record in parse_rates_csv(open_sst_csv(source_file)):
-            authority_type = self.jurisdiction_types.get(record.jurisdiction_type)
+            authority_type = types.get(record.jurisdiction_type)
             if authority_type is None:
                 continue
             yield RateRow(
