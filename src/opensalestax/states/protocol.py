@@ -71,6 +71,21 @@ class BoundaryRow:
     address_pattern: str | None = None
 
 
+ThresholdSemantic = Literal["below_exempt", "above_excess"]
+"""Per-item price threshold semantics for taxability rules.
+
+- ``"below_exempt"`` -- if the item's amount is **strictly less than**
+  ``taxable_threshold_amount``, the line is fully exempt; at or above
+  the threshold the line is fully taxable. New York's $110-or-less
+  clothing exemption follows this pattern.
+- ``"above_excess"`` -- if the item's amount is **at or below**
+  ``taxable_threshold_amount``, the line is fully exempt; above the
+  threshold only the **excess** over the threshold is taxable.
+  Massachusetts's $175 clothing exemption and Rhode Island's $250
+  clothing exemption follow this pattern.
+"""
+
+
 @dataclass(frozen=True, slots=True)
 class TaxabilityRule:
     """A per-category taxability rule for a state.
@@ -84,6 +99,12 @@ class TaxabilityRule:
     item_category: str
     is_taxable: bool
     rate_modifier: Decimal | None = None
+    taxable_threshold_amount: Decimal | None = None
+    """Per-item price threshold for partial exemption. NULL = no threshold."""
+
+    threshold_semantic: ThresholdSemantic | None = None
+    """How ``taxable_threshold_amount`` is applied. NULL when no threshold."""
+
     notes: str | None = None
     effective_from: dt.date = field(default_factory=lambda: dt.date(1900, 1, 1))
     effective_to: dt.date | None = None

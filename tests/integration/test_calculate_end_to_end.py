@@ -411,3 +411,139 @@ async def test_rate_modifier_zero_zeroes_state_portion(async_session: AsyncSessi
     assert by_type["state"].tax == Decimal("0")
     assert by_type["county"].rate_pct == Decimal("2.000")
     assert by_type["county"].tax == Decimal("2.0000")
+
+
+async def _seed_threshold_state(
+    async_session: AsyncSession,
+    abbrev: str,
+    name: str,
+    zip5: str,
+    state_rate: Decimal,
+    threshold: Decimal,
+    semantic: str,
+    notes: str | None = None,
+) -> None:
+    """Seed a single-authority state with a clothing threshold rule."""
+    state = State(abbrev=abbrev, name=name, has_sales_tax=True, sst_member=False)
+    async_session.add(state)
+    await async_session.flush()
+    version = DataVersion(
+        state_id=state.id, source="test", version_label=f"{abbrev}-test-threshold"
+    )
+    async_session.add(version)
+    await async_session.flush()
+    state_auth = TaxAuthority(state_id=state.id, name=name, authority_type="state")
+    async_session.add(state_auth)
+    await async_session.flush()
+    async_session.add(
+        Rate(
+            authority_id=state_auth.id,
+            rate_pct=state_rate,
+            effective_from=dt.date(2020, 1, 1),
+            data_version_id=version.id,
+        )
+    )
+    async_session.add(Boundary(authority_id=state_auth.id, zip5=zip5, data_version_id=version.id))
+    async_session.add(
+        TaxabilityRule(
+            state_id=state.id,
+            item_category="clothing",
+            is_taxable=True,
+            taxable_threshold_amount=threshold,
+            threshold_semantic=semantic,
+            effective_from=dt.date(1900, 1, 1),
+            notes=notes,
+        )
+    )
+    await async_session.commit()
+
+
+@pytest.mark.asyncio
+async def test_threshold_below_exempt_zeros_under_cap(async_session: AsyncSession) -> None:
+    """``below_exempt`` semantic mirrors NY's $110 clothing exemption.
+
+    Items priced strictly under $110 are fully exempt; items at or
+    above $110 are fully taxable at the standard rate.
+    """
+    await _seed_threshold_state(
+        async_session,
+        abbrev="QS",
+        name="Quibble3",
+        zip5="33333",
+        state_rate=Decimal("4.000"),
+        threshold=Decimal("110.00"),
+        semantic="below_exempt",
+        notes="Quibble3: clothing under $110 is exempt.",
+    )
+
+    today = dt.date.today()
+    # $50 t-shirt -- under threshold, fully exempt.
+    cheap = (
+        await calculate_tax(
+            async_session,
+            zip5="33333",
+            line_items=[LineItem(amount=Decimal("50.00"), category="clothing")],
+            effective_date=today,
+        )
+    ).lines[0]
+    assert cheap.tax == Decimal("0")
+    assert cheap.note is not None
+    assert "exempt" in cheap.note.lower()
+
+    # $200 jacket -- at or above threshold, fully taxable.
+    pricey = (
+        await calculate_tax(
+            async_session,
+            zip5="33333",
+            line_items=[LineItem(amount=Decimal("200.00"), category="clothing")],
+            effective_date=today,
+        )
+    ).lines[0]
+    assert pricey.tax == Decimal("8.0000")  # 4% of $200
+    assert pricey.rate_pct == Decimal("4.000")
+
+
+@pytest.mark.asyncio
+async def test_threshold_above_excess_taxes_only_excess(async_session: AsyncSession) -> None:
+    """``above_excess`` semantic mirrors MA's $175 / RI's $250 clothing exemption.
+
+    Items at or below the threshold are fully exempt. Items above
+    the threshold are taxed only on the **excess** above it.
+    """
+    await _seed_threshold_state(
+        async_session,
+        abbrev="QT",
+        name="Quibble4",
+        zip5="44444",
+        state_rate=Decimal("6.250"),  # MA-like
+        threshold=Decimal("175.00"),
+        semantic="above_excess",
+        notes="Quibble4: first $175 of clothing is exempt.",
+    )
+
+    today = dt.date.today()
+    # $150 sweater -- under cap, fully exempt.
+    under = (
+        await calculate_tax(
+            async_session,
+            zip5="44444",
+            line_items=[LineItem(amount=Decimal("150.00"), category="clothing")],
+            effective_date=today,
+        )
+    ).lines[0]
+    assert under.tax == Decimal("0")
+    assert under.note is not None
+
+    # $300 suit -- $125 excess taxable; $125 * 6.25% = $7.8125.
+    over = (
+        await calculate_tax(
+            async_session,
+            zip5="44444",
+            line_items=[LineItem(amount=Decimal("300.00"), category="clothing")],
+            effective_date=today,
+        )
+    ).lines[0]
+    assert over.tax == Decimal("7.8125")
+    assert over.amount == Decimal("300.00")
+    assert over.note is not None
+    assert "excess" in over.note.lower() or "first" in over.note.lower()

@@ -12,11 +12,14 @@ from decimal import Decimal
 
 import pytest
 
+from types import SimpleNamespace
+
 from opensalestax.core.calculate import (
     TAX_QUANTUM,
     CalculatedLine,
     JurisdictionResult,
     LineItem,
+    _apply_threshold,
 )
 from opensalestax.core.lookup import lookup_jurisdictions_by_zip
 
@@ -111,3 +114,83 @@ def test_jurisdiction_breakdown_reconciles_to_line_total() -> None:
     # the point: per-jurisdiction is the source of truth so accounting
     # callers can reconcile state/county/city splits against the line.
     assert line.tax == Decimal("7.5243")
+
+
+def _threshold_rule(
+    threshold: Decimal,
+    semantic: str | None,
+    notes: str | None = None,
+) -> SimpleNamespace:
+    """Build a minimal stand-in for an ORM TaxabilityRule for the helper."""
+    return SimpleNamespace(
+        taxable_threshold_amount=threshold,
+        threshold_semantic=semantic,
+        notes=notes,
+    )
+
+
+class TestApplyThresholdBelowExempt:
+    """``below_exempt`` semantic: amount strictly < threshold -> fully exempt."""
+
+    def test_below_threshold_returns_zero_line(self) -> None:
+        rule = _threshold_rule(Decimal("110.00"), "below_exempt")
+        outcome = _apply_threshold(rule, Decimal("50.00"), "NY", "clothing")
+        assert outcome.zero_line is True
+        assert outcome.taxable_basis == Decimal("0")
+        assert outcome.note is not None
+
+    def test_at_threshold_taxes_full_amount(self) -> None:
+        rule = _threshold_rule(Decimal("110.00"), "below_exempt")
+        outcome = _apply_threshold(rule, Decimal("110.00"), "NY", "clothing")
+        assert outcome.zero_line is False
+        assert outcome.taxable_basis == Decimal("110.00")
+        assert outcome.note is None
+
+    def test_above_threshold_taxes_full_amount(self) -> None:
+        rule = _threshold_rule(Decimal("110.00"), "below_exempt")
+        outcome = _apply_threshold(rule, Decimal("250.00"), "NY", "clothing")
+        assert outcome.zero_line is False
+        assert outcome.taxable_basis == Decimal("250.00")
+
+    def test_uses_rule_notes_when_provided(self) -> None:
+        rule = _threshold_rule(
+            Decimal("110.00"), "below_exempt", notes="NY: clothing under $110 is exempt."
+        )
+        outcome = _apply_threshold(rule, Decimal("50.00"), "NY", "clothing")
+        assert outcome.note == "NY: clothing under $110 is exempt."
+
+
+class TestApplyThresholdAboveExcess:
+    """``above_excess`` semantic: tax only the excess above the threshold."""
+
+    def test_at_or_below_threshold_returns_zero_line(self) -> None:
+        rule = _threshold_rule(Decimal("175.00"), "above_excess")
+        # at threshold
+        outcome = _apply_threshold(rule, Decimal("175.00"), "MA", "clothing")
+        assert outcome.zero_line is True
+        # below threshold
+        outcome = _apply_threshold(rule, Decimal("100.00"), "MA", "clothing")
+        assert outcome.zero_line is True
+
+    def test_above_threshold_taxes_only_excess(self) -> None:
+        rule = _threshold_rule(Decimal("175.00"), "above_excess")
+        outcome = _apply_threshold(rule, Decimal("300.00"), "MA", "clothing")
+        assert outcome.zero_line is False
+        assert outcome.taxable_basis == Decimal("125.00")
+        assert outcome.note is not None
+        assert "first" in outcome.note.lower() or "excess" in outcome.note.lower()
+
+    def test_above_excess_rhode_island_250(self) -> None:
+        """RI's $250 clothing exemption -- $400 jacket has $150 taxable."""
+        rule = _threshold_rule(Decimal("250.00"), "above_excess")
+        outcome = _apply_threshold(rule, Decimal("400.00"), "RI", "clothing")
+        assert outcome.taxable_basis == Decimal("150.00")
+
+
+def test_apply_threshold_unknown_semantic_falls_back_to_full_basis() -> None:
+    """An unrecognized semantic value taxes the full amount (safest default)."""
+    rule = _threshold_rule(Decimal("100.00"), "made_up_semantic")
+    outcome = _apply_threshold(rule, Decimal("500.00"), "QQ", "clothing")
+    assert outcome.zero_line is False
+    assert outcome.taxable_basis == Decimal("500.00")
+    assert outcome.note is None

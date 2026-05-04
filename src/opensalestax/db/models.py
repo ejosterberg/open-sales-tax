@@ -228,6 +228,12 @@ class TaxabilityRule(Base):
     item_category: Mapped[str] = mapped_column(String(60), nullable=False)
     is_taxable: Mapped[bool] = mapped_column(Boolean, nullable=False)
     rate_modifier: Mapped[Decimal | None] = mapped_column(Numeric(8, 5), nullable=True)
+    taxable_threshold_amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    """Per-item price threshold for partial exemption (NY $110, MA $175, RI $250). NULL = no threshold."""
+
+    threshold_semantic: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    """'below_exempt' or 'above_excess'. NULL when ``taxable_threshold_amount`` is NULL."""
+
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     effective_from: Mapped[dt.date] = mapped_column(
         Date, nullable=False, default=dt.date(1900, 1, 1)

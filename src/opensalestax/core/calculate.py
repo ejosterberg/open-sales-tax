@@ -191,6 +191,19 @@ async def _tax_one_line(
             note = rule.notes or f"{item.category} is non-taxable in {state_abbrev}."
             return _zero_line(item, note=note)
 
+    # Threshold check -- a rule may exempt the line outright or limit
+    # the taxable basis to the excess over a per-item cap. NY <$110
+    # clothing is fully exempt; MA $175 / RI $250 clothing exempt the
+    # first N dollars and tax only the excess.
+    threshold_note: str | None = None
+    taxable_basis = item.amount
+    if rule is not None and rule.taxable_threshold_amount is not None:
+        outcome = _apply_threshold(rule, item.amount, state_abbrev, item.category)
+        if outcome.zero_line:
+            return _zero_line(item, note=outcome.note)
+        taxable_basis = outcome.taxable_basis
+        threshold_note = outcome.note
+
     resolved = await resolve_rates_for_authorities(session, authorities, eff_date, item.category)
 
     # Apply rate_modifier if the rule specifies one. The modifier
@@ -214,7 +227,7 @@ async def _tax_one_line(
             type=r.authority.authority_type,
             rate_pct=rate_overrides.get(r.authority.id, r.rate_pct),
             tax=(
-                item.amount * rate_overrides.get(r.authority.id, r.rate_pct) / Decimal("100")
+                taxable_basis * rate_overrides.get(r.authority.id, r.rate_pct) / Decimal("100")
             ).quantize(TAX_QUANTUM, rounding=ROUND_HALF_UP),
         )
         for r in resolved
@@ -228,6 +241,7 @@ async def _tax_one_line(
         tax=line_tax,
         rate_pct=rate_pct,
         jurisdictions=jurisdictions,
+        note=threshold_note,
     )
 
 
@@ -241,6 +255,57 @@ def _zero_line(item: LineItem, note: str | None) -> CalculatedLine:
         jurisdictions=[],
         note=note,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class _ThresholdOutcome:
+    """Result of applying a TaxabilityRule's threshold to a line.
+
+    ``zero_line`` -- the line is fully exempt; caller returns a
+        :func:`_zero_line`.
+    ``taxable_basis`` -- the dollar basis the per-jurisdiction rate
+        applies to. Equals the line amount when no exemption applies,
+        or ``amount - threshold`` for ``"above_excess"`` semantics.
+    ``note`` -- a human-readable explanation that flows onto the
+        returned :class:`CalculatedLine`.
+    """
+
+    zero_line: bool
+    taxable_basis: Decimal
+    note: str | None
+
+
+def _apply_threshold(
+    rule: TaxabilityRule,
+    amount: Decimal,
+    state_abbrev: str | None,
+    category: str,
+) -> _ThresholdOutcome:
+    """Compute the threshold outcome for a line.
+
+    ``below_exempt``: amount < threshold -> zero; otherwise full amount.
+    ``above_excess``: amount <= threshold -> zero; otherwise tax (amount - threshold).
+    """
+    threshold = rule.taxable_threshold_amount
+    assert threshold is not None  # caller checks
+    state_label = state_abbrev or "this state"
+    if rule.threshold_semantic == "below_exempt":
+        if amount < threshold:
+            note = rule.notes or f"{category} under ${threshold} is exempt in {state_label}."
+            return _ThresholdOutcome(zero_line=True, taxable_basis=Decimal("0"), note=note)
+        return _ThresholdOutcome(zero_line=False, taxable_basis=amount, note=None)
+    if rule.threshold_semantic == "above_excess":
+        if amount <= threshold:
+            note = rule.notes or f"{category} at or below ${threshold} is exempt in {state_label}."
+            return _ThresholdOutcome(zero_line=True, taxable_basis=Decimal("0"), note=note)
+        excess = amount - threshold
+        note = (
+            rule.notes
+            or f"{state_label}: first ${threshold} of {category} is exempt; tax applies to ${excess}."
+        )
+        return _ThresholdOutcome(zero_line=False, taxable_basis=excess, note=note)
+    # Unknown semantic -- treat as no threshold (safest default).
+    return _ThresholdOutcome(zero_line=False, taxable_basis=amount, note=None)
 
 
 async def _matching_holiday(

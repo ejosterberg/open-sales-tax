@@ -15,14 +15,14 @@ into the loader.
 
 Taxability matrix (per N.Y. Tax Law Article 28):
 
-- **Clothing** -- TAXABLE in this module's default rule.
-  **CAVEAT:** NY exempts clothing and footwear under $110 per
-  item from the **state** 4% tax (and the MTA 0.375%) but local
-  jurisdictions may opt back in. Modeling this needs the MTA +
-  per-locality data and the holidays/threshold-rule machinery
-  that lands in v0.4. v0.3 takes the conservative default
-  (taxable) and notes the threshold rule -- callers in retail
-  apparel scenarios should verify against NY DTF Pub 718-C.
+- **Clothing** -- TAXABLE with a state-level threshold:
+  clothing/footwear priced under $110 per item is exempt from
+  the state 4% rate (N.Y. Tax Law section 1115(a)(30)). The
+  ``below_exempt`` semantic encodes this. The MTA 0.375%
+  surcharge follows the same threshold; local jurisdictions may
+  opt back in (NY DTF Publication 718-C lists current local
+  treatment). v1 ships the state-portion threshold; per-locality
+  re-imposition lands when the MTA + local rate file is wired in.
 - **Groceries** -- NON-taxable for "food and food products"
   (sec 1115(a)(1)). Candy, soda, prepared food: taxable.
 - **Prescription drugs** -- NON-taxable.
@@ -59,14 +59,14 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
     "clothing": TaxabilityRule(
         item_category="clothing",
         is_taxable=True,
+        taxable_threshold_amount=Decimal("110.00"),
+        threshold_semantic="below_exempt",
         notes=(
-            "Clothing IS taxable by default in this v0.3 module. "
-            "NY exempts clothing/footwear under $110 per item from the "
-            "state 4% rate (and the 0.375% MTA surcharge) but local "
-            "jurisdictions may opt back in. Verify against NY DTF "
-            "Publication 718-C for retail apparel scenarios; full "
-            "modeling lands when the threshold-rule + holidays feature "
-            "ship in v0.4+."
+            "New York: clothing/footwear under $110 per item is exempt "
+            "from the state 4% rate (N.Y. Tax Law section 1115(a)(30)). "
+            "Items at or above $110 are fully taxable. The MTA 0.375% "
+            "surcharge follows the same threshold; local jurisdictions "
+            "may opt back in -- see NY DTF Publication 718-C."
         ),
     ),
     "groceries": TaxabilityRule(

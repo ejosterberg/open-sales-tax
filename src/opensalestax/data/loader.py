@@ -375,6 +375,8 @@ async def _load_taxability(session: AsyncSession, state_module: StateModule, sta
                 item_category=rule.item_category,
                 is_taxable=rule.is_taxable,
                 rate_modifier=rule.rate_modifier,
+                taxable_threshold_amount=rule.taxable_threshold_amount,
+                threshold_semantic=rule.threshold_semantic,
                 notes=rule.notes,
                 effective_from=rule.effective_from,
                 effective_to=rule.effective_to,

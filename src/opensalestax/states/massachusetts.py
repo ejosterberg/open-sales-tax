@@ -9,12 +9,11 @@ administered separately).
 
 Taxability matrix (per M.G.L. c. 64H):
 
-- **Clothing** -- TAXABLE by default in this v0.4 module.
-  **CAVEAT:** MA exempts clothing under **$175 per item** from
-  the state 6.25% (c. 64H s 6(k)). Modeling this needs the
-  threshold-rule machinery that lands alongside the holidays
-  feature in v0.5+. Retailers should treat under-$175 apparel
-  as non-taxable until the engine handles thresholds.
+- **Clothing** -- TAXABLE with a state-level threshold: the
+  first $175 per item is exempt from the 6.25% rate, and only
+  the **excess** above $175 is taxable (M.G.L. c. 64H s 6(k)).
+  The ``above_excess`` semantic encodes this: a $300 sweater
+  has $125 of taxable basis at 6.25%.
 - **Groceries** -- NON-taxable for "food and food products".
 - **Prescription drugs** -- NON-taxable.
 - **Prepared food** -- taxable. Local meals tax (0.75%) may apply.
@@ -48,12 +47,13 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
     "clothing": TaxabilityRule(
         item_category="clothing",
         is_taxable=True,
+        taxable_threshold_amount=Decimal("175.00"),
+        threshold_semantic="above_excess",
         notes=(
-            "Clothing is taxable BY DEFAULT in this v0.4 module. MA "
-            "exempts clothing under $175 per item (M.G.L. c. 64H s 6(k)); "
-            "full modeling needs the threshold-rule feature that lands "
-            "alongside holidays in v0.5+. Retailers selling under-$175 "
-            "apparel should treat it as non-taxable until then."
+            "Massachusetts: the first $175 of clothing per item is "
+            "exempt from the 6.25% rate (M.G.L. c. 64H s 6(k)); only the "
+            "excess above $175 is taxable. Items at or below $175 are "
+            "fully exempt."
         ),
     ),
     "groceries": TaxabilityRule(

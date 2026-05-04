@@ -51,34 +51,17 @@ surfaces during review. (Same defensive posture as IN.)
   Laws section 44-18-7.
 - **Clothing and footwear** -- **EXEMPT, with a $250-per-item
   threshold** per **R.I. Gen. Laws section 44-18-30(27)**. Items
-  priced UP TO $250 per article are fully exempt; for any single
-  article priced above $250, the FIRST $250 is exempt and only
-  the PORTION ABOVE $250 is taxable at 7%. RI joins the broad-
-  exemption club of clothing-exempting states (PA, MA, MN, NJ,
-  VT) but is the only one of that group with a per-item threshold
-  above which the excess becomes taxable. (NY's $110-per-item
-  threshold and MA's $175-per-item threshold work differently:
-  those states make the ENTIRE article taxable once it crosses
-  the threshold; RI's structure is an exemption-up-to-the-cap
-  with the excess taxed.) **ENGINE LIMITATION:** the v0.10
-  engine does not yet enforce per-item thresholds (the v0.6
-  threshold-rules feature is still on the roadmap -- see
-  ``specs/current-state.md``). The dominant retail mix in Rhode
-  Island is everyday clothing well under $250 (T-shirts, jeans,
-  kids' apparel, shoes, basic outerwear), so the module encodes
-  ``is_taxable=False`` to match the dominant case. This UNDER-
-  collects on the excess-above-$250 portion of high-end items
-  (formal wear, luxury garments, fur). A buyer purchasing a
-  $400 wool coat in RI should pay 7% on the $150 above the
-  threshold -- $10.50 -- which the engine currently does not
-  collect. The opposite encoding (``is_taxable=True``) would
-  OVER-collect on the entire population of everyday clothing
-  purchases under $250, which is the substantially larger
-  category by transaction count and dollar volume. The under-
-  collection on luxury items is the better trade-off until the
-  threshold-rules feature ships; the threshold is documented
-  prominently in this rule's ``notes`` so the v0.6 work can
-  enable correct enforcement.
+  priced AT OR BELOW $250 per article are fully exempt; for any
+  single article priced above $250, the FIRST $250 is exempt and
+  only the PORTION ABOVE $250 is taxable at 7%. RI joins the
+  broad-exemption club (PA, MA, MN, NJ, VT) but is the only one
+  of that group with a per-item threshold above which the excess
+  becomes taxable. (NY's $110 threshold makes the ENTIRE article
+  taxable once it crosses the cap; RI's structure is exemption-
+  up-to-the-cap with only the excess taxed.) The engine encodes
+  this via the ``above_excess`` threshold semantic on
+  TaxabilityRule, so a $400 wool coat correctly taxes the $150
+  above the cap at 7% ($10.50).
 - **Groceries (food and food ingredients)** -- EXEMPT per **R.I.
   Gen. Laws section 44-18-30(11)**. The exemption tracks the
   Streamlined Sales Tax Project's uniform definition of "food
@@ -168,36 +151,23 @@ _JURISDICTION_TYPE: dict[str, str] = {
 _TAXABILITY: dict[str, TaxabilityRule] = {
     "clothing": TaxabilityRule(
         item_category="clothing",
-        is_taxable=False,
+        is_taxable=True,
+        taxable_threshold_amount=Decimal("250.00"),
+        threshold_semantic="above_excess",
         notes=(
-            "Clothing and footwear are EXEMPT in Rhode Island UP TO "
-            "$250 per article per R.I. Gen. Laws section 44-18-30(27). "
-            "Items priced AT OR BELOW $250 per article are fully "
-            "exempt; for any single article priced ABOVE $250, the "
-            "FIRST $250 remains exempt and only the PORTION ABOVE "
-            "$250 is taxable at the 7% state rate. RI joins the "
-            "broad-clothing-exemption club (PA, MA, MN, NJ, VT) but "
-            "is the only one of that group with an excess-above-cap "
-            "tax structure (contrast with NY's $110-per-item "
-            "threshold and MA's $175-per-item threshold, where "
-            "crossing the threshold makes the ENTIRE article "
-            "taxable). ENGINE LIMITATION: the v0.10 engine does not "
-            "yet enforce per-item thresholds (the v0.6 threshold-"
-            "rules feature is still on the roadmap). This rule "
-            "encodes the dominant case (everyday clothing under "
-            "$250 -- T-shirts, jeans, kids' apparel, shoes, basic "
-            "outerwear) as is_taxable=False to match the substantial "
-            "majority of RI clothing transactions by count and "
-            "dollar volume. Trade-off: the engine UNDER-collects "
-            "the 7% on the excess-above-$250 portion of high-end "
-            "items (e.g. a $400 wool coat owes $10.50 on the $150 "
-            "above the cap). The opposite encoding (is_taxable=True) "
-            "would OVER-collect on the dominant everyday-clothing "
-            "population. Buyers entitled to enforcement of the cap "
-            "(or, conversely, sellers needing to remit the excess) "
-            "should track the $250 threshold per article outside the "
-            "engine until the threshold-rules feature ships. "
-            "Calculation only -- not legal or tax advice."
+            "Rhode Island: clothing and footwear are EXEMPT up to "
+            "$250 per article per R.I. Gen. Laws section 44-18-30(27); "
+            "for any single article priced above $250, the first "
+            "$250 remains exempt and only the portion above $250 is "
+            "taxable at the 7% state rate. RI joins the broad-"
+            "clothing-exemption club (PA, MA, MN, NJ, VT) but is the "
+            "only one of that group with an excess-above-cap tax "
+            "structure (contrast NY $110-per-item, where crossing "
+            "the threshold makes the ENTIRE article taxable). The "
+            "engine encodes this with the ``above_excess`` threshold "
+            "semantic so a $400 wool coat correctly taxes the $150 "
+            "above the cap at 7% ($10.50). Calculation only -- not "
+            "legal or tax advice."
         ),
     ),
     "groceries": TaxabilityRule(
@@ -308,11 +278,9 @@ class RhodeIsland(SstStateModule):
       combined rate at every RI address (mirrors IN/KY/MI).
     - **Clothing exempt up to $250 per article** with the excess
       above $250 taxable at 7% per R.I. Gen. Laws section
-      44-18-30(27). The v0.10 engine does not yet enforce per-
-      item thresholds; the module encodes ``is_taxable=False`` to
-      match the dominant case (everyday clothing under $250) and
-      documents the under-collection trade-off for high-end
-      items in the rule's notes.
+      44-18-30(27). Encoded via the ``above_excess`` threshold
+      semantic so a $400 wool coat correctly taxes the $150
+      above the cap at 7% ($10.50).
     - **No state sales-tax holiday.** RI has never enacted a
       recurring holiday; ``holidays_for`` returns empty for every
       year (mirrors DC/ID/IN/KY/MI/NE/NJ).

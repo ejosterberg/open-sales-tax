@@ -94,7 +94,9 @@ def test_rhode_island_not_in_tier2_anymore() -> None:
 @pytest.mark.parametrize(
     "category,expected_taxable",
     [
-        ("clothing", False),  # 44-18-30(27) -- exempt up to $250 (engine encodes dominant case)
+        # Clothing is taxable=True with above_excess threshold -- the engine
+        # exempts the first $250 per article and taxes only the excess.
+        ("clothing", True),
         ("groceries", False),  # 44-18-30(11)
         ("prescription_drugs", False),  # 44-18-30(28)
         ("prepared_food", True),  # excluded from grocery exemption
@@ -119,33 +121,33 @@ def test_rhode_island_unknown_category_returns_none() -> None:
     assert RHODE_ISLAND.taxability_for("alpaca-fur", dt.date(2026, 5, 3)) is None
 
 
-def test_rhode_island_clothing_documents_250_dollar_threshold() -> None:
-    """The clothing rule MUST document the $250-per-article exemption cap
-    from R.I. Gen. Laws section 44-18-30(27) and MUST explain the
-    encoding trade-off (engine encodes is_taxable=False to match the
-    dominant case of everyday clothing under $250; UNDER-collects on
-    the excess-above-$250 portion of high-end items).
+def test_rhode_island_clothing_uses_above_excess_threshold() -> None:
+    """The clothing rule MUST encode the $250-per-article exemption cap
+    from R.I. Gen. Laws section 44-18-30(27) using the engine's
+    ``above_excess`` threshold semantic so that items at or below
+    $250 are fully exempt and only the excess above $250 is taxed.
 
-    Without this documentation, a future maintainer might
-    accidentally flip the encoding without understanding the trade-off,
-    or the v0.6 threshold-rules feature work might miss the RI-
-    specific structure (excess-above-cap vs. NY/MA cliff-threshold).
+    This is the RI-specific structure (distinct from NY's cliff
+    threshold where crossing the cap makes the entire article
+    taxable); the engine relies on the threshold field rather than
+    on prose in ``notes``.
     """
     rule = RHODE_ISLAND.taxability_for("clothing", dt.date(2026, 5, 3))
     assert rule is not None
-    assert rule.is_taxable is False
+    assert rule.is_taxable is True
+    from decimal import Decimal as _D
+
+    assert rule.taxable_threshold_amount == _D("250.00")
+    assert rule.threshold_semantic == "above_excess"
+
     notes = rule.notes or ""
     # Statute must be cited.
     assert "44-18-30(27)" in notes
     # The $250 threshold must appear as a number.
     assert "$250" in notes or "250" in notes
-    # The trade-off direction must be documented for the v0.6 follow-up.
+    # The semantic must be flagged for human readers.
     notes_lower = notes.lower()
-    assert "under-collect" in notes_lower or "under collect" in notes_lower
-    # The engine-limitation context must be flagged.
-    assert "threshold" in notes_lower
-    # Clarify it is the dominant-case encoding.
-    assert "dominant" in notes_lower
+    assert "above_excess" in notes_lower or "excess" in notes_lower
 
 
 def test_rhode_island_groceries_cite_section_30_11() -> None:
