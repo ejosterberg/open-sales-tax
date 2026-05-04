@@ -116,6 +116,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("TN", "Murfreesboro", "37130", "2517", "9.750", "0.05", "TN DOR (state 7% + Rutherford 2.75%)"),
     # SD additional
     ("SD", "Aberdeen", "57401", "3306", "6.200", "0.05", "SD DOR (state 4.2% + Aberdeen 2%)"),
+    # AZ -- non-SST, top-20-city TPT loader (v0.23). State 5.6% + per-county + city.
+    # Tolerance is 0.01 because rates are exact (no boundary micro-variation; ZIPs map
+    # to a single city via the AZ_CITIES table).
+    ("AZ", "Phoenix", "85042", "0001", "9.100", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Maricopa 0.7% + Phoenix 2.8%)"),
+    ("AZ", "Phoenix downtown", "85003", "0001", "9.100", "0.01", "AZ DOR (Phoenix downtown)"),
+    ("AZ", "Scottsdale", "85251", "0001", "8.000", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Scottsdale 1.7%)"),
+    ("AZ", "Tucson", "85701", "0001", "8.700", "0.01", "AZ DOR (state 5.6% + Pima 0.5% + Tucson 2.6%)"),
+    ("AZ", "Mesa", "85201", "0001", "8.300", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Mesa 2.0%)"),
+    ("AZ", "Chandler", "85224", "0001", "7.800", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Chandler 1.5%)"),
+    ("AZ", "Glendale", "85301", "0001", "9.200", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Glendale 2.9%)"),
+    ("AZ", "Tempe", "85281", "0001", "8.100", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Tempe 1.8%)"),
+    ("AZ", "Flagstaff", "86001", "0001", "9.386", "0.01", "AZ DOR (state 5.6% + Coconino 1.3% + Flagstaff 2.486%)"),
+    ("AZ", "Yuma", "85364", "0001", "8.412", "0.01", "AZ DOR (state 5.6% + Yuma 1.112% + Yuma city 1.7%)"),
+    ("AZ", "Lake Havasu City", "86403", "0001", "7.600", "0.01", "AZ DOR (state 5.6% + Mohave 0.0% + Lake Havasu City 2.0%)"),
 ]
 
 
