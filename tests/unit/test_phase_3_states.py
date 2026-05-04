@@ -27,6 +27,16 @@ PHASE_3_STATES = [
     (FLORIDA, "FL", "Florida", Decimal("6.000"), Florida),
 ]
 
+# Subset that still ships ONLY the statewide row + empty boundaries.
+# Florida moved beyond statewide-only with the per-county DR-15DSS
+# loader (state 6% + per-county discretionary surtax + 30 covered
+# cities as ZIP-binding anchors); per-state behavior is asserted in
+# tests/unit/test_state_florida.py.
+STATEWIDE_ONLY_STATES = [
+    (TEXAS, "TX", "Texas", Decimal("6.250"), Texas),
+    (NEW_YORK, "NY", "New York", Decimal("4.000"), NewYork),
+]
+
 
 @pytest.mark.parametrize(
     "instance,abbrev,name,_rate,_cls", PHASE_3_STATES, ids=lambda v: getattr(v, "__name__", str(v))
@@ -61,9 +71,12 @@ def test_is_registered(_instance, abbrev: str, _name, _rate, _cls) -> None:
 
 
 @pytest.mark.parametrize(
-    "instance,_abbrev,_name,rate,_cls", PHASE_3_STATES, ids=lambda v: getattr(v, "__name__", str(v))
+    "instance,_abbrev,_name,rate,_cls",
+    STATEWIDE_ONLY_STATES,
+    ids=lambda v: getattr(v, "__name__", str(v)),
 )
 def test_parse_rates_yields_statewide(instance, _abbrev, _name, rate: Decimal, _cls) -> None:
+    """TX/NY still ship statewide-only. FL has moved to per-county; see test_state_florida."""
     rows = list(instance.parse_rates(None, "v0.3-statewide"))
     assert len(rows) == 1
     row = rows[0]
@@ -72,10 +85,31 @@ def test_parse_rates_yields_statewide(instance, _abbrev, _name, rate: Decimal, _
     assert row.parent_authority_name is None
 
 
-@pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_3_STATES)
+@pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", STATEWIDE_ONLY_STATES)
 def test_parse_boundaries_returns_empty_in_v0_3(instance, _abbrev, _name, _rate, _cls) -> None:
-    """All 3 defer boundary loading to a future section."""
+    """TX/NY still defer boundary loading. FL now seeds 30-city ZIP coverage."""
     assert list(instance.parse_boundaries(None, "v0.3-statewide")) == []
+
+
+def test_florida_parse_rates_yields_state_plus_counties() -> None:
+    """FL has moved beyond statewide-only: state 6% + per-county DR-15DSS."""
+    rows = list(FLORIDA.parse_rates(None, "fl-data"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    county_rows = [r for r in rows if r.authority_type == "county"]
+    assert len(state_rows) == 1
+    assert state_rows[0].rate_pct == Decimal("6.000")
+    # All but Citrus County (0% surtax) plus any other zero-surtax
+    # counties hosting a covered city should be in the county set.
+    assert len(county_rows) >= 60
+
+
+def test_florida_parse_boundaries_emits_state_and_county_rows() -> None:
+    """FL boundaries: state + county pairs for every covered city ZIP, NO city rows."""
+    rows = list(FLORIDA.parse_boundaries(None, "fl-data"))
+    assert all(r.authority_type in ("state", "county") for r in rows)
+    # Florida has no city-level sales tax -- city authorities are
+    # intentionally absent.
+    assert not any(r.authority_type == "city" for r in rows)
 
 
 @pytest.mark.parametrize("instance,_abbrev,_name,_rate,_cls", PHASE_3_STATES)

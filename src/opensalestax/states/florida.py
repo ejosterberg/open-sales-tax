@@ -4,11 +4,14 @@
 
 FL is **not** an SST member. Statewide rate is **6%** per the
 Florida Department of Revenue (floridarevenue.com). Counties may
-add a discretionary surtax (DR-15DSS) of 0.5%-2.5%; combined
-rates typically range 6.5%-8.5%.
+add a discretionary sales surtax (Form DR-15DSS) of 0% to 1.5%;
+combined statewide-plus-county rates therefore range **6.0%-7.5%**.
 
-**Phase 3 ships statewide only.** County surtax loading from
-DR-15DSS is deferred to a future section.
+Florida has **NO city-level general sales tax** anywhere in the
+state. The only modeled layers are state + county; cities are used
+purely as ZIP-binding anchors to produce friendly receipt
+descriptions. See :mod:`opensalestax.states.fl_data` for the per-
+county surtax table (all 67 counties) and the 30 covered cities.
 
 Taxability matrix (per Fla. Stat. Chapter 212):
 
@@ -23,10 +26,24 @@ Taxability matrix (per Fla. Stat. Chapter 212):
 - **Digital goods** -- TAXABLE for downloaded software and
   digital content.
 
+NOT modeled in this loader:
+
+- The **$5,000 single-item discretionary-surtax cap** (Fla. Stat.
+  212.054(2)(b)) -- the county surtax applies only to the first
+  $5,000 of any single item; the state 6% applies to the full
+  amount. Future enhancement once the engine supports per-
+  jurisdiction caps.
+- **Tourist Development Tax (TDT)** -- transient-rental tax,
+  separate from general sales tax.
+
 State maintainer: vacant -- see MAINTAINERS.md. FL's annual
 sales-tax holidays are extensive (typically 4-5 per year, set
 by annual legislation); a maintainer who tracks legislative
 sessions is ideal.
+
+DISCLAIMER: This is calculation infrastructure, not tax advice.
+Verify every rule against the current FL DOR DR-15DSS publication
+and Form DR-15 schedule before relying on it for compliance.
 """
 
 from __future__ import annotations
@@ -36,6 +53,12 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.states.fl_data import (
+    FL_CITIES,
+    FL_COUNTY_SURTAX_PCT,
+    FL_STATE_EFFECTIVE_FROM,
+    FL_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -87,11 +110,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
     ),
 }
 
-_RATE_EFFECTIVE_FROM = dt.date(1988, 2, 1)  # FL's 6% rate has been stable since 1988
-
 
 class Florida:
-    """Florida state module (tier 1; statewide rate only in v0.3)."""
+    """Florida state module (tier 1; state 6% + per-county discretionary surtax)."""
 
     state_abbrev: str = "FL"
     state_name: str = "Florida"
@@ -101,21 +122,80 @@ class Florida:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
+        """Yield FL's state + per-county discretionary-surtax rates.
+
+        Counties yielded: every county with a non-zero surtax PLUS
+        every county touched by a covered ``FL_CITIES`` entry (so that
+        zero-surtax counties hosting covered cities still get a county
+        authority for boundary binding). Florida has no city-level
+        sales tax, so no city ``RateRow`` rows are emitted.
+
+        ``source_file`` is intentionally ignored -- FL is non-SST and
+        has no upstream rate file consumed by this module.
+        """
         del source_file, version_label
         yield RateRow(
             authority_name="Florida",
             authority_type="state",
-            rate_pct=Decimal("6.000"),
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=FL_STATE_RATE_PCT,
+            effective_from=FL_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        # Counties to emit: any county with a non-zero surtax (so the
+        # rate is queryable for any ZIP later bound to it) plus any
+        # county touched by a covered city (so ZIPs in our city list
+        # can resolve to a county authority even where the surtax is
+        # zero, e.g. Citrus County).
+        cities_counties = {county for county, _ in FL_CITIES.values()}
+        nonzero_counties = {
+            name for name, rate in FL_COUNTY_SURTAX_PCT.items() if rate > 0
+        }
+        emitted = sorted(cities_counties | nonzero_counties)
+        for county_name in emitted:
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=FL_COUNTY_SURTAX_PCT[county_name],
+                effective_from=FL_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Florida",
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
+        """Yield (state, county) boundary rows for each covered ZIP.
+
+        The Census ZCTA load already provides state-level binding for
+        every FL ZIP. This method ADDS county bindings (and reaffirms
+        the state binding) for ZIPs in the 30 covered cities. Florida
+        has no city-level sales tax, so NO city ``BoundaryRow`` rows
+        are emitted -- the city is purely an organizational concept
+        in :mod:`fl_data` and does not become an authority.
+
+        ZIPs in covered counties but outside the city list keep the
+        Census state-only binding -- a future ratchet should iterate
+        the Census ZCTA->county data for FL to add county-only
+        bindings across the rest of the state.
+        """
         del source_file, version_label
-        return iter(())
+        for _city_name, (county_name, zips) in FL_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Florida",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         del effective_date

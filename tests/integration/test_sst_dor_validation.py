@@ -265,6 +265,27 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MO", "Joplin", "64801", "0001", "8.725", "0.10", "MO DOR (state 4.225% + Jasper 1.375% + Joplin 3.125%)"),
     ("MO", "Jefferson City", "65101", "0001", "7.850", "0.10", "MO DOR (state 4.225% + Cole 1.375% + Jefferson City 2.25%)"),
     ("MO", "Cape Girardeau", "63701", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Cape Girardeau 1.5% + Cape Girardeau city 2.75%)"),
+    # Florida -- FL DOR Form DR-15DSS effective Jan 1, 2026 (verified 2026-05-04)
+    # Combined = state 6% + per-county discretionary surtax. FL has NO city-
+    # level general sales tax anywhere; tolerance 0.05 because some +4
+    # ranges in covered cities sit in different counties (e.g., a few
+    # Jacksonville-postal ZIPs slip into Nassau or Clay counties; the
+    # FL_CITIES table excludes those when known).
+    ("FL", "Miami", "33130", "0001", "7.000", "0.05", "FL DOR DR-15DSS 2026 (state 6% + Miami-Dade 1%)"),
+    ("FL", "Hialeah", "33010", "0001", "7.000", "0.05", "FL DOR DR-15DSS (Miami-Dade 1%)"),
+    ("FL", "Orlando", "32801", "0001", "6.500", "0.05", "FL DOR DR-15DSS (state 6% + Orange school 0.5%)"),
+    ("FL", "Tampa", "33602", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Hillsborough 1.5% -- 0.5% indigent care + 1% community investment)"),
+    ("FL", "Jacksonville", "32202", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Duval 1.5%)"),
+    ("FL", "St. Petersburg", "33701", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Pinellas 1%)"),
+    ("FL", "Clearwater", "33755", "0001", "7.000", "0.05", "FL DOR DR-15DSS (Pinellas 1%)"),
+    ("FL", "Fort Lauderdale", "33301", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Broward 1%)"),
+    ("FL", "Hollywood", "33020", "0001", "7.000", "0.05", "FL DOR DR-15DSS (Broward 1%)"),
+    ("FL", "West Palm Beach", "33401", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Palm Beach 1%)"),
+    ("FL", "Boca Raton", "33432", "0001", "7.000", "0.05", "FL DOR DR-15DSS (Palm Beach 1%)"),
+    ("FL", "Tallahassee", "32301", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Leon 1.5%)"),
+    ("FL", "Gainesville", "32601", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Alachua 1.5%)"),
+    ("FL", "Lakeland", "33801", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Polk 1%)"),
+    ("FL", "Cape Coral", "33904", "0001", "6.500", "0.05", "FL DOR DR-15DSS (state 6% + Lee 0.5% school)"),
 ]
 
 
