@@ -332,6 +332,36 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("TX", "Wichita Falls", "76301", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Wichita Falls 2.0%; no transit district)"),
     ("TX", "Tyler", "75701", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Tyler 2.0%; no transit district)"),
     ("TX", "College Station", "77840", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + College Station 2.0%; no transit district)"),
+    # California -- CDTFA "California City and County Sales and Use Tax
+    # Rates" effective April 1, 2026 (Q2 2026), retrieved 2026-05-04.
+    # Cross-checked against Avalara per-city pages on the same date.
+    # Combined = state 7.25% + per-county district + per-city district.
+    # Tolerance 0.05% to absorb ZIP+4 micro-variation across CA's
+    # ~25,000 Tax Rate Areas (TRAs) -- the city-centroid rate is
+    # correct for the bulk of each ZIP but some edges may straddle
+    # special-district boundaries.
+    ("CA", "Los Angeles", "90001", "0001", "9.500", "0.05", "CDTFA Q2 2026 (state 7.25% + LA County 2.25% + city 0%)"),
+    ("CA", "San Diego", "92101", "0001", "7.750", "0.05", "CDTFA Q2 2026 (state 7.25% + SD County 0.5%)"),
+    ("CA", "San Jose", "95110", "0001", "9.375", "0.05", "CDTFA Q2 2026 (state 7.25% + Santa Clara 1.875% + city 0.25%)"),
+    ("CA", "San Francisco", "94102", "0001", "8.625", "0.05", "CDTFA Q2 2026 (state 7.25% + SF City+County 1.375%)"),
+    ("CA", "Fresno", "93701", "0001", "8.350", "0.05", "CDTFA Q2 2026 (state 7.25% + Fresno 0.225% + city 0.875%)"),
+    ("CA", "Sacramento", "95814", "0001", "8.750", "0.05", "CDTFA Q2 2026 (state 7.25% + Sac County 0.5% + city 1.0%)"),
+    ("CA", "Long Beach", "90802", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + LA 2.25% + city 0.75%)"),
+    ("CA", "Oakland", "94601", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Alameda 2.0% + city 1.0%)"),
+    ("CA", "Bakersfield", "93301", "0001", "8.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Kern 0% + city 1.0%)"),
+    ("CA", "Anaheim", "92801", "0001", "7.750", "0.05", "CDTFA Q2 2026 (state 7.25% + OC 0.5%; no city tax)"),
+    ("CA", "Santa Ana", "92701", "0001", "9.250", "0.05", "CDTFA Q2 2026 (state 7.25% + OC 0.5% + city 1.5%)"),
+    ("CA", "Riverside", "92501", "0001", "8.750", "0.05", "CDTFA Q2 2026 (state 7.25% + Riverside 0.5% + city 1.0% Measure Z)"),
+    ("CA", "Stockton", "95202", "0001", "9.000", "0.05", "CDTFA Q2 2026 (state 7.25% + SJ 0.5% + city 1.25%)"),
+    ("CA", "Chula Vista", "91910", "0001", "8.750", "0.05", "CDTFA Q2 2026 (state 7.25% + SD 0.5% + city 1.0%)"),
+    ("CA", "Fremont", "94536", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Alameda 2.0% + city 1.0%)"),
+    ("CA", "Hayward", "94541", "0001", "10.750", "0.05", "CDTFA Q2 2026 (state 7.25% + Alameda 2.0% + city 1.5% -- highest in this seed)"),
+    ("CA", "Modesto", "95350", "0001", "8.875", "0.05", "CDTFA Q2 2026 (state 7.25% + Stanislaus 0.125% + city 1.5%)"),
+    ("CA", "Oxnard", "93030", "0001", "9.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Ventura 0% + city 2.0% Measures E+O)"),
+    ("CA", "Glendale", "91201", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + LA 2.25% + city 0.75%) -- distinct from Glendale, AZ"),
+    ("CA", "Pasadena", "91101", "0001", "10.250", "0.05", "CDTFA Q2 2026 (state 7.25% + LA 2.25% + city 0.75%)"),
+    ("CA", "Thousand Oaks", "91320", "0001", "7.250", "0.05", "CDTFA Q2 2026 (state 7.25% only -- no county or city overlay)"),
+    ("CA", "Vallejo", "94589", "0001", "9.250", "0.05", "CDTFA Q2 2026 (state 7.25% + Solano 0.125% + city 1.875% Measures B+V)"),
 ]
 
 
