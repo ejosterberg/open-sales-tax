@@ -367,6 +367,21 @@ class Nevada(SstStateModule):
     has_sales_tax: bool = True
     tier: StateTier = 1
 
+    # Nevada's SST file uses jurisdiction-type "0" (single digit)
+    # for county rows -- not the typical "00" -- and the type-0
+    # rows carry the FULL combined county rate (state base 4.6%
+    # + county add-ons baked in). The state-level type-45 row
+    # publishes 0% so that the engine doesn't double-count.
+    # Mapping "0" to "county" is what makes Las Vegas (Clark
+    # County 8.375%) calculate correctly; without it the loader
+    # silently dropped every county row and the engine returned
+    # 0% for every NV ZIP.
+    jurisdiction_types: dict[str, str] = {
+        "45": "state",
+        "0": "county",
+        "63": "district",
+    }
+
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
 
