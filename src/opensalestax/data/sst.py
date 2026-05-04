@@ -38,14 +38,16 @@ import httpx
 SST_RATES_URL = "https://www.streamlinedsalestax.org/ratesandboundry/Rates/"
 SST_BOUNDARY_URL = "https://www.streamlinedsalestax.org/ratesandboundry/Boundary/"
 
-# Match SST quarterly filename pattern
+# Match SST quarterly filename pattern. SST sometimes publishes
+# single-digit days (INR2008Q4MAY7.csv, WYR2026Q2APR1.csv) so the
+# day is 1-2 digits, not strictly 2.
 _SST_FILENAME_RE = re.compile(
     r"^(?P<state>[A-Z]{2})"
     r"(?P<kind>[RB])"
     r"(?P<year>\d{4})"
     r"Q(?P<quarter>[1-4])"
     r"(?P<month>[A-Z]{3})"
-    r"(?P<day>\d{2})"
+    r"(?P<day>\d{1,2})"
     r"\.(?P<ext>csv|zip)$",
     re.IGNORECASE,
 )

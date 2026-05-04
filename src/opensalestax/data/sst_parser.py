@@ -132,9 +132,12 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             continue
 
         cols = stripped.split(",")
-        if len(cols) != BOUNDARY_COLUMNS:
+        # Tolerate trailing columns: newer SST quarterlies (SD 2026Q2,
+        # WA 2026Q2) ship 90-column rows; older schema is 89. Reject
+        # only when the row is too SHORT to safely index core fields.
+        if len(cols) < BOUNDARY_COLUMNS:
             logger.warning(
-                "boundary row %d has %d columns, expected %d; skipping",
+                "boundary row %d has %d columns, expected at least %d; skipping",
                 line_num,
                 len(cols),
                 BOUNDARY_COLUMNS,

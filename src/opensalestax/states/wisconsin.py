@@ -127,18 +127,34 @@ class Wisconsin:
             )
 
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
-        """Parse a WI SST boundary file into normalized BoundaryRow records."""
+        """Parse a WI SST boundary file into normalized BoundaryRow records.
+
+        Each ``z`` record produces a state-level boundary plus a
+        county-level boundary for the same ZIP. The state binding
+        is essential -- without it the engine's lookup join returns
+        only the county authority, silently dropping WI's 5%
+        statewide rate.
+        """
         del version_label
+        seen_state_zips: set[str] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type != "z":
                 continue
             if not record.zip5_low:
                 continue
+            zip5 = record.zip5_low
+            if zip5 not in seen_state_zips:
+                seen_state_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name="Wisconsin",
+                    authority_type="state",
+                    zip5=zip5,
+                )
             if record.county_fips:
                 yield BoundaryRow(
                     authority_name=_authority_name(record.county_fips, "county"),
                     authority_type="county",
-                    zip5=record.zip5_low,
+                    zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )

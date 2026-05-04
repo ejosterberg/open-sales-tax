@@ -133,21 +133,33 @@ class Minnesota:
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
         """Parse an MN SST boundary file into normalized BoundaryRow records.
 
-        Phase 1 only emits ZIP5-range records; Phase 4 will extend
-        this with ZIP+4 + address-level data from the ``4`` records.
+        Each ``z`` record produces a state-level boundary plus a
+        county-level boundary for the same ZIP. Without the state
+        binding the engine's lookup join would return only the
+        county authority, silently dropping MN's 6.875% statewide
+        rate. Phase 4 will extend this with ZIP+4 + address-level
+        data from the ``4`` records.
         """
         del version_label
+        seen_state_zips: set[str] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type != "z":
                 continue
             if not record.zip5_low:
                 continue
-            # County row -- assign to the county authority for that FIPS code.
+            zip5 = record.zip5_low
+            if zip5 not in seen_state_zips:
+                seen_state_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name="Minnesota",
+                    authority_type="state",
+                    zip5=zip5,
+                )
             if record.county_fips:
                 yield BoundaryRow(
                     authority_name=_authority_name(record.county_fips, "county"),
                     authority_type="county",
-                    zip5=record.zip5_low,
+                    zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )

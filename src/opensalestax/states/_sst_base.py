@@ -105,17 +105,39 @@ class SstStateModule:
             )
 
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
-        """Generic SST boundary parser yielding county-level ZIP records."""
+        """Generic SST boundary parser yielding state + county ZIP records.
+
+        Each ``z`` record produces TWO BoundaryRow rows -- one binding
+        the ZIP to the state authority and one binding it to the county
+        authority. The state binding is essential: without it, the
+        engine's ``lookup_jurisdictions_by_zip`` join finds the county
+        but nothing at the state level, so a ZIP that only matches a
+        county boundary returns county-only tax (silently dropping the
+        state's much larger statutory rate). MN ZIP 55401 should yield
+        the 6.875% MN state rate plus 0.15% Hennepin County, not just
+        Hennepin's 0.15%.
+        """
         del version_label
+        seen_state_zips: set[str] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
             if record.record_type != "z":
                 continue
-            if not record.zip5_low or not record.county_fips:
+            if not record.zip5_low:
+                continue
+            zip5 = record.zip5_low
+            if zip5 not in seen_state_zips:
+                seen_state_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name=self.state_name,
+                    authority_type="state",
+                    zip5=zip5,
+                )
+            if not record.county_fips:
                 continue
             yield BoundaryRow(
                 authority_name=self._authority_name(record.county_fips, "county"),
                 authority_type="county",
-                zip5=record.zip5_low,
+                zip5=zip5,
                 zip4_low=None,
                 zip4_high=None,
             )

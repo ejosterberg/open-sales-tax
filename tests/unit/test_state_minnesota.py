@@ -117,17 +117,30 @@ def test_parse_rates_total_count_matches_known_codes() -> None:
 # ---------------------------------------------------------------------------
 # Boundary parsing
 # ---------------------------------------------------------------------------
-def test_parse_boundaries_emits_zip_records() -> None:
-    """Boundary rows for known MN ZIPs come through with county info."""
+def test_parse_boundaries_emits_state_and_county_rows() -> None:
+    """Each MN ZIP yields BOTH a state and a county BoundaryRow.
+
+    The state row is essential: without it the engine's lookup
+    join finds only the county authority and silently drops MN's
+    6.875% statewide rate.
+    """
     fixture = state_fixture_dir("MN") / "MNB2026Q2FEB18-sample.csv"
     rows = list(MINNESOTA.parse_boundaries(fixture, "MN-SST-2026Q2FEB18"))
 
-    # Each boundary row references a county authority for some MN ZIP5
     assert rows
+    types = {row.authority_type for row in rows}
+    assert "state" in types
+    assert "county" in types
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    county_rows = [r for r in rows if r.authority_type == "county"]
+    assert all(r.authority_name == "Minnesota" for r in state_rows)
+    # State boundaries are deduped per-ZIP
+    assert len({r.zip5 for r in state_rows}) == len(state_rows)
     for row in rows:
-        assert row.authority_type == "county"
         assert len(row.zip5) == 5
         assert row.zip5.isdigit()
+    # Every county-bound ZIP also has a state-bound row
+    assert {r.zip5 for r in county_rows} <= {r.zip5 for r in state_rows}
 
 
 # ---------------------------------------------------------------------------
