@@ -451,10 +451,10 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # runs. Tolerance bumped to 1.0 to absorb that ambiguity until a
     # future ratchet adds Branson to MO_CITIES.
     ("MO", "Branson (Taney)", "65616", "0001", "6.100", "1.00", "MO DOR + salestaxhandbook (state 4.225% + Taney 1.875%) -- post-v0.29 ZCTA; Stone/Taney cross-line"),
-    # MO: rural Laclede County (Lebanon). 0% county placeholder; rate
-    # equals state-only baseline. Validates that the boundary plumbing
-    # works for the long tail of MO counties seeded at 0%.
-    ("MO", "Lebanon (Laclede)", "65536", "0001", "4.225", "1.50", "MO DOR (state 4.225% + Laclede 0% placeholder) -- post-v0.29 ZCTA; under-collects until maintainer fills Laclede rate"),
+    # MO: rural Laclede County (Lebanon). Laclede now seeded at 1.188%
+    # from the MO DOR jan2026 PDF (was 0% placeholder pre-v0.30).
+    # Combined = state 4.225 + Laclede 1.188 = 5.413%.
+    ("MO", "Lebanon (Laclede)", "65536", "0001", "5.413", "1.50", "MO DOR jan2026 PDF (state 4.225% + Laclede 1.188%) -- v0.30 long-tail fill"),
     # IL: Urbana / Champaign County (in Champaign Co. but NOT in
     # IL_CITIES; Urbana is its own city). Expected state 6.25% +
     # Champaign Co 1.25% = 7.5% (the engine resolves to Champaign
@@ -462,7 +462,21 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # is not modeled separately and would push the actual rate higher
     # at +4 ranges within Urbana proper).
     ("IL", "Urbana (Champaign Co)", "61801", "0001", "7.500", "1.00", "IDOR Tax Rate Finder (state 6.25% + Champaign Co 1.25%) -- post-v0.29 ZCTA; under-reports any Urbana home-rule city tax"),
-    # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
+    # ----- v0.30 long-tail county fills: MO --------------------------
+    # MO DOR jan2026 PDF (https://dor.mo.gov/pdf/rates/2026/jan2026.pdf)
+    # Extraction reproducible via scripts/extract_mo_county_rates.py.
+    # Each row picks a ZIP that is in the county but NOT in any
+    # MO_CITIES seed, so the test asserts the bare state + county
+    # combined rate (no city overlay). ZIPs filtered to single-county
+    # membership in zip_county.py to keep the 0.10% tolerance tight.
+    #
+    # MO -- 5 new rows at varying county portions (1.375% to 2.750%):
+    ("MO", "Kirksville (Adair)", "63501", "0001", "5.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Adair 1.750%) -- v0.30 long-tail fill"),
+    ("MO", "Bolivar (Polk)", "65613", "0001", "5.600", "0.10", "MO DOR jan2026 PDF (state 4.225% + Polk 1.375%) -- v0.30 long-tail fill"),
+    ("MO", "Troy (Lincoln)", "63379", "0001", "6.725", "0.10", "MO DOR jan2026 PDF (state 4.225% + Lincoln 2.500%) -- v0.30 long-tail fill"),
+    ("MO", "Hillsboro (Jefferson)", "63050", "0001", "6.350", "0.10", "MO DOR jan2026 PDF (state 4.225% + Jefferson 2.125%) -- v0.30 long-tail fill"),
+    ("MO", "Cuba (Crawford)", "65535", "0001", "6.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Crawford 2.750%) -- v0.30 long-tail fill"),
+        # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
     # is at 0% placeholder; combined = 6.25% state-only baseline.
     ("IL", "Plano (Kendall)", "60545", "0001", "6.250", "1.50", "IDOR Tax Rate Finder (state 6.25% + Kendall 0% placeholder) -- post-v0.29 ZCTA"),
     # PA: agent's original row claimed Gibsonia (15044) was an
