@@ -265,6 +265,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MO", "Joplin", "64801", "0001", "8.725", "0.10", "MO DOR (state 4.225% + Jasper 1.375% + Joplin 3.125%)"),
     ("MO", "Jefferson City", "65101", "0001", "7.850", "0.10", "MO DOR (state 4.225% + Cole 1.375% + Jefferson City 2.25%)"),
     ("MO", "Cape Girardeau", "63701", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Cape Girardeau 1.5% + Cape Girardeau city 2.75%)"),
+    # Pennsylvania -- PA Dept of Revenue rate schedule (verified 2026-05-04)
+    # Statewide 6% per 72 P.S. section 7202(a). Local taxes ONLY in:
+    #   - Allegheny County (Pittsburgh): +1.0% per 72 P.S. section 7202
+    #     -> 7.000% combined
+    #   - Philadelphia City/County (coterminous): +2.0% per 72 P.S.
+    #     section 7202(b) and 61 Pa. Code section 60.16 -> 8.000% combined
+    # All other 65 PA counties land at the 6.000% statewide flat. The
+    # rows for Allentown / Erie / Reading / Scranton / Lancaster /
+    # Harrisburg are regression guards: a future maintainer adding
+    # county-level entries must NOT accidentally introduce phantom
+    # local rates outside Allegheny + Philadelphia.
+    ("PA", "Philadelphia", "19102", "0001", "8.000", "0.05", "PA DOR (state 6% + Philadelphia 2% per 72 P.S. section 7202(b))"),
+    ("PA", "Pittsburgh", "15222", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1% per 72 P.S. section 7202)"),
+    ("PA", "Allentown", "18101", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lehigh County has no local tax)"),
+    ("PA", "Erie", "16501", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Erie County has no local tax)"),
+    ("PA", "Reading", "19601", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Berks County has no local tax)"),
+    ("PA", "Scranton", "18503", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lackawanna County has no local tax)"),
+    ("PA", "Lancaster", "17602", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lancaster County has no local tax)"),
+    ("PA", "Harrisburg", "17101", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Dauphin County has no local tax)"),
     # Florida -- FL DOR Form DR-15DSS effective Jan 1, 2026 (verified 2026-05-04)
     # Combined = state 6% + per-county discretionary surtax. FL has NO city-
     # level general sales tax anywhere; tolerance 0.05 because some +4
