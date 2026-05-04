@@ -5113,6 +5113,197 @@ default taxability (everything taxable except groceries). To
     municipalities will require per-city data ingestion since
     most home-rule cities publish their rate ordinances directly
     rather than via a centralized feed.
+### HI -- Hawaii
+
+- **Statewide rate:** **4.000% effective 1965-01-01** (Act 155, SLH
+  1965 raised the general retail GET rate from 3.5% to 4.0%
+  effective 1965-01-01; the 4.0% rate has been stable for the 60+
+  years since)
+- **Tax model:** **General Excise Tax (GET)** under HRS Chapter 237
+  -- **NOT a sales tax**. The GET is a gross-receipts tax imposed on
+  the SELLER's gross income for the privilege of doing business in
+  Hawaii, not a transactional tax on the buyer. Sellers commonly
+  pass the GET through to buyers as a visible line item under HRS §
+  237-49. **For OpenSalesTax v1, the GET is encoded as if it were a
+  4.0% sales tax** for API consumer compatibility (per the per-state
+  research brief; mirrors the AZ TPT-as-sales-tax encoding). The
+  GET-vs-sales-tax legal distinction is documented in the module
+  docstring; the API consumer experiences the same tax-amount
+  output either way. (NOT SST -- verified 2026-05-03 against the
+  SST membership list at streamlinedsalestax.org.)
+- **Local jurisdictions:** **County surcharges (0.5% each, deferred
+  in v1).** All four Hawaii counties have enacted a 0.5% county
+  surcharge under HRS § 46-16.8 as of 2026:
+  - **Honolulu County** (the entire island of Oahu, City and County
+    of Honolulu) -- **0.5% effective 2007-01-01** (longest-running
+    surcharge)
+  - **Kauai County** (Kauai) -- **0.5% effective 2019-01-01**
+  - **Hawaii County** (the Big Island) -- **0.5% effective
+    2020-01-01**
+  - **Maui County** (Maui, Molokai, Lanai, Kahoolawe) -- **0.5%
+    effective 2024-01-01** (most recent enactment)
+  - Combined effective rate is **4.5% at every inhabited Hawaii
+    address** as of 2026. Per-county data ingestion is **deferred**
+    pending a Hawaii boundary loader (mirrors CO/SC/MO/MS/NV
+    documented-deferral pattern). API consumers in v1 receive the
+    state-only 4.0% rate -- an **under-collection of 0.5 percentage
+    points on every Hawaii address**, called out explicitly in the
+    module docstring AND the general taxability rule's notes.
+- **Statutory reduced GET rates (NOT modeled in v1):**
+  - **0.5% wholesale** (intermediary sales between licensed
+    wholesalers) -- HRS § 237-13(2)(A); B2B nuance, not surfaced via
+    consumer-facing API
+  - **0.15% insurance commissions** -- HRS § 237-13(7); industry-
+    specific, not surfaced via consumer-facing API
+- **GET pass-through grossing-up rates (seller-pricing nuance, not
+  modeled in v1):** when a seller passes the GET through to the
+  buyer at a "grossed up" rate covering both the GET on the sale
+  AND the GET on the pass-through itself, Hawaii law caps the
+  visible pass-through at:
+  - **4.1666%** = 0.04 / (1 - 0.04) for neighbor islands at the
+    bare 4.0% GET
+  - **4.7120%** = 0.045 / (1 - 0.045) on Oahu at the combined
+    4.5% rate
+  - Documented in Department of Taxation Tax Information Release
+    No. 2018-07. The OpenSalesTax engine returns the bare statutory
+    rate (4.0% in v1; 4.5% on Oahu when surcharges are encoded);
+    pass-through grossing-up is a seller-pricing concern outside
+    the calculation engine.
+- **Sales-tax holidays:** **NONE.** Hawaii has never enacted a
+  recurring GET holiday. Bills proposing GET holidays for back-to-
+  school or hurricane preparedness have been introduced in past
+  sessions but none have passed into law. Confirmed 2026-05-03
+  against the Hawaii Department of Taxation published guidance and
+  current statute. The module's ``holidays_for(year)`` returns an
+  empty iterator for every year, with a regression test in
+  ``test_state_hawaii.py`` that exercises 2024-2030.
+- **Threshold rules:** none.
+- **DOR URL:** **https://tax.hawaii.gov/** *(retrieved 2026-05-03)*
+- **Statutes consulted (HRS Chapter 237 unless noted):**
+  - § 237-13(2)(A) -- general retail/services rate (4.0%) and
+    wholesale rate (0.5%)
+  - § 237-13(7) -- insurance commissions rate (0.15%)
+  - § 237-24.3(6) -- exemption for prescription drugs and
+    prosthetic devices
+  - § 237-49 -- visible pass-through of GET to buyer permitted
+  - § 235-55.85 -- (Chapter 235 income-tax) refundable food/excise
+    tax credit available to qualifying low-income filers; this is
+    an INCOME-TAX credit, NOT a GET-side grocery exemption (Hawaii
+    fully taxes groceries at the GET rate)
+  - § 46-16.8 -- county surcharge on state tax (authorizes the
+    0.5% per-county surcharges enacted by Honolulu/Kauai/Hawaii
+    County/Maui)
+  - § 461 (referenced by § 237-24.3(6)) -- pharmacy practice;
+    defines persons authorized to issue prescriptions
+  - Act 155, SLH 1965 -- enacted 3.5% -> 4.0% rate increase
+    effective 1965-01-01
+- *Sources for rate/taxability:*
+  - Hawaii Department of Taxation home page
+    (https://tax.hawaii.gov/) retrieved 2026-05-03 -- primary
+    landing page; confirmed GET-not-sales-tax model and current
+    4.0% general / 4.5% on Oahu rates
+  - Hawaii Department of Taxation, "An Introduction to the General
+    Excise Tax" (Tax Facts and General Excise Tax brochure)
+    retrieved 2026-05-03 -- primary source for the GET legal model
+    description (gross-receipts tax on seller; visible pass-through
+    permitted but not required; pass-through grossing-up rates)
+  - Hawaii Department of Taxation, Tax Information Release
+    No. 2018-07 ("Maximum Visible Pass-On Rates of the General
+    Excise Tax (GET) and Use Tax") retrieved 2026-05-03 --
+    documented the 4.1666% / 4.7120% pass-through grossing-up
+    caps for the bare 4.0% / Oahu 4.5% rates
+  - Hawaii Department of Taxation, Tax Information Release
+    No. 2018-09 ("Tax Treatment of Income from Software Sales")
+    retrieved 2026-05-03 -- confirmed gross income from software
+    sales (canned, custom, downloaded, remotely accessed/SaaS) is
+    subject to GET; basis for the broad digital_goods taxability
+    encoding
+  - Hawaii Revised Statutes, Chapter 237
+    (https://www.capitol.hawaii.gov/hrscurrent/Vol04_Ch0201-0257/HRS0237/)
+    retrieved 2026-05-03 -- primary statutory source for GET
+    imposition, definitions, exemptions, and rates
+  - Hawaii Revised Statutes, Section 46-16.8
+    (https://www.capitol.hawaii.gov/hrscurrent/Vol01_Ch0001-0042F/HRS0046/HRS_0046-0016_0008.htm)
+    retrieved 2026-05-03 -- primary statutory source for county
+    surcharge authorization and the per-county enactment dates
+    (Honolulu 2007, Kauai 2019, Hawaii County 2020, Maui 2024)
+  - Hawaii Revised Statutes, Section 235-55.85
+    (https://www.capitol.hawaii.gov/hrscurrent/Vol04_Ch0201-0257/HRS0235/HRS_0235-0055_0085.htm)
+    retrieved 2026-05-03 -- primary source for the refundable
+    food/excise income-tax credit; confirmed it is an income-tax
+    credit, NOT a GET-side grocery exemption
+  - Streamlined Sales Tax membership list
+    (https://www.streamlinedsalestax.org/about-us/about-sstgb/state-info)
+    retrieved 2026-05-03 -- confirmed Hawaii is NOT an SST member
+- **Module file:** `src/opensalestax/states/hawaii.py`
+- **Last verified:** 2026-05-03 by per-state agent (Phase 6 Batch C
+  non-SST tier-0 -> tier-1 ratchet, GET-as-sales-tax API encoding)
+- *Notes:*
+  - Hawaii is the **canonical example** of "non-sales-tax state
+    encoded as a sales tax for API purposes" in the OpenSalesTax
+    codebase. Future GRT/GET states (NM is the remaining one) can
+    follow the same pattern unless/until a dedicated ``tax_model``
+    Protocol attribute is added (deliberate v1.0+ deferral; the
+    per-state research brief explicitly forbids this state-level
+    agent from proposing the schema change).
+  - Hawaii's tax base is unusually broad for a US state because
+    the GET is a gross-receipts tax that historically applied to
+    nearly all gross income, not just retail sales of tangible
+    personal property. This means **services are generally taxable**
+    in Hawaii (a notable peer-state difference vs. most other US
+    states which tax only enumerated services); legal services,
+    accounting services, real-estate commissions, professional
+    services, etc. are all subject to the 4.0% GET. The v1 module
+    encodes only the standard 6 line-item categories
+    (clothing/groceries/prescription_drugs/prepared_food/
+    digital_goods/general); a "service" category is not in the v1
+    baseline matrix, so HI's services-taxable nuance is documented
+    here for follow-up if a "service" category is added later.
+  - **Groceries are fully taxable in Hawaii** at the 4.0% GET rate
+    -- a striking peer-state difference. Most US states either
+    fully exempt groceries (~30 states) or apply a reduced grocery
+    rate (~7 states using rate_modifier in OpenSalesTax). Only a
+    handful of states (HI, ID, MS, SD, AL, KS pre-phase-out) tax
+    groceries at the full standard rate. Hawaii's grocery-cost
+    relief comes through the income-tax food/excise credit under
+    HRS § 235-55.85, NOT through a GET exemption -- a structural
+    parallel to Idaho's "groceries taxable + income-tax credit"
+    arrangement. Integrators must NOT assume groceries are exempt
+    in Hawaii; the module's groceries TaxabilityRule.notes calls
+    this out explicitly with the controlling statute (Chapter 237
+    has no grocery exemption) and the income-tax credit
+    distinction (HRS § 235-55.85 is a Chapter 235 income-tax
+    credit, not a Chapter 237 GET exemption). A regression test
+    in ``test_state_hawaii.py`` asserts the notes mention
+    ``235-55.85`` and ``income-tax credit``.
+  - **Per-county surcharge under-collection** is the most material
+    integrator-facing limitation of the v1 HI module. Honolulu
+    County (Oahu, by far the most populous Hawaii jurisdiction)
+    has had a 0.5% surcharge since 2007; the v1 engine
+    under-collects 0.5% on every Honolulu transaction. Three
+    other counties (Kauai 2019, Hawaii County 2020, Maui 2024)
+    have followed. Combined Hawaii rate is **4.5% on every
+    inhabited Hawaiian address** as of 2026 -- the v1 engine
+    returns 4.0%. This is an intentional documented deferral
+    (mirrors the CO home-rule, LA parishes, MO local-only,
+    MS local-only, NV per-county deferrals); per-state agents
+    were explicitly forbidden from designing the per-county
+    boundary path for HI in this batch. The module docstring AND
+    the general taxability rule's notes call this out so an
+    integrator does not silently miscompute Hawaii tax. A
+    regression test in ``test_state_hawaii.py`` asserts the
+    docstring documents all four counties and cites
+    ``HRS § 46-16.8``.
+  - **GET pass-through grossing-up** (4.1666% on bare 4.0% rate;
+    4.7120% on Oahu's 4.5% combined rate) is a seller-pricing
+    concern documented in Hawaii DOT Tax Information Release No.
+    2018-07. The OpenSalesTax engine intentionally does NOT
+    compute or apply these grossed-up rates -- it returns the
+    statutory tax-on-base, the same answer an API consumer
+    expects from a sales-tax engine. Sellers needing the
+    grossed-up rate for invoice presentation should compute it
+    themselves from the engine's bare-rate output. Documented
+    here so the absence is not mistaken for an oversight.
 
 ## §4. Per-state references — TEMPLATE for new entries
 

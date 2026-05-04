@@ -160,15 +160,16 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
     """States without a loaded module show tier 0.
 
     CA was promoted in v0.2; TX/NY/FL in v0.3; PA/IL/MD/MA/AZ in v0.4;
-    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7; AL in v0.13.
-    NM, HI, PR remain tier 0 until their state modules ship. (NM
-    uses the Gross Receipts Tax model and waits on a separate
-    non-sales-tax abstraction; HI uses the General Excise Tax
-    model.)
+    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7; ME in v0.12;
+    AL/HI in v0.13 (Phase 6 Batch C; HI's General Excise Tax is
+    encoded as a sales tax for API purposes). NM and PR remain
+    tier 0 until their state modules ship. (NM uses the Gross
+    Receipts Tax model and waits on a separate non-sales-tax
+    abstraction.)
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("HI", "NM"):
+    for abbrev in ("NM", "PR"):
         assert states_by_abbrev[abbrev]["tier"] == 0
 
 
@@ -197,8 +198,10 @@ async def test_alabama_is_tier_1_non_sst(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
     """CA (v0.2), TX/NY/FL (v0.3), CT/DC/SC (v0.6), CO/ID/LA/MO/MS (v0.7),
-    ME (Phase 8, non-SST, no local tax), AL (v0.13, non-SST,
-    home-rule-deferred): all tier 1 non-SST.
+    ME (v0.12, non-SST, no local tax), AL (v0.13, non-SST,
+    home-rule-deferred), HI (v0.13, non-SST, GET model encoded as
+    sales tax with per-county surcharges deferred): all tier 1
+    non-SST.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
@@ -212,6 +215,7 @@ async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
         "DC",
         "SC",
         "CO",
+        "HI",
         "ID",
         "LA",
         "ME",

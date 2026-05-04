@@ -33,6 +33,7 @@ requires a named maintainer.
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |
 | District of Columbia | DC | _vacant — see issue tracker_ | _v0.6_ |
 | Georgia | GA | _vacant — see issue tracker_ | _v0.8 (promoted from tier 2; state-only grocery exemption per O.C.G.A. § 48-8-3(57) -- locals still tax groceries)_ |
+| Hawaii | HI | _vacant — see issue tracker_ | _Phase 6 Batch C (non-SST tier-0 -> tier-1; **General Excise Tax model** under HRS Chapter 237 -- NOT a sales tax. GET is a gross-receipts tax on the seller, encoded as if 4.0% sales tax for API purposes per HRS § 237-13(2)(A) effective 1965-01-01 (Act 155, SLH 1965). Per-county 0.5% surcharges under HRS § 46-16.8 (Honolulu since 2007, Kauai since 2019, Hawaii County since 2020, Maui since 2024 -- combined 4.5% on every inhabited island as of 2026) DEFERRED pending per-county data ingestion. Groceries fully taxed (peer-state difference); income-tax food/excise credit under HRS § 235-55.85 is NOT a GET-side exemption. Prescription drugs exempt per HRS § 237-24.3(6). Digital goods broadly taxable per TIR 2018-09. No GET holiday.)_ |
 | Idaho | ID | _vacant — see issue tracker_ | _v0.7_ |
 | Indiana | IN | _vacant — see issue tracker_ | _v0.8 (SST tier-2 -> tier-1 promotion; state-only -- IN levies no local sales tax)_ |
 | Iowa | IA | _vacant — see issue tracker_ | _v0.8 (SST tier-2 -> tier-1 promotion)_ |
