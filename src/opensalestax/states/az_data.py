@@ -15,7 +15,9 @@ the per-county portion is derived as ``combined - 5.6``.
 This module ships an MVP coverage scope:
 
 - All 15 AZ counties with their per-county TPT portion
-- 20 largest AZ cities with per-city rates and their primary ZIPs
+- 48 AZ cities with per-city rates and their primary ZIPs (top-20 by
+  population plus the next ~28 from the same DOR CSV; verified
+  2026-05-04 against TPT_RATETABLE_ALL_05012026.csv)
 
 ZIPs not in the city list fall back to state + county (or state-only
 where the county isn't covered by an explicit city). A future ratchet
@@ -172,6 +174,168 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Yavapai County",
         Decimal("2.830"),
         ("86314", "86315"),
+    ),
+    # --- 2026-05-04 expansion: next ~28 cities from the same source
+    # (TPT_RATETABLE_ALL_05012026.csv, BusinessCode 017 RETAIL).
+    # County + ZIP mappings cross-checked against USPS / Wikipedia city
+    # pages on 2026-05-04. Sun City and Anthem are CDPs without their
+    # own TPT codes in the CSV and are intentionally omitted.
+    # --- Maricopa County (additional Phoenix-metro cities) ---
+    "Wickenburg": (
+        "Maricopa County",
+        Decimal("2.200"),
+        ("85390",),
+    ),
+    "Tolleson": (
+        "Maricopa County",
+        Decimal("2.500"),
+        ("85353",),
+    ),
+    "Litchfield Park": (
+        "Maricopa County",
+        Decimal("2.800"),
+        ("85340",),
+    ),
+    "El Mirage": (
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85335",),
+    ),
+    "Carefree": (
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85377",),
+    ),
+    "Queen Creek": (
+        "Maricopa County",
+        Decimal("2.250"),
+        ("85140", "85142", "85143"),
+    ),
+    # --- Pinal County ---
+    "Apache Junction": (
+        "Pinal County",
+        Decimal("2.400"),
+        ("85119", "85120"),
+    ),
+    "Maricopa": (
+        # The CITY of Maricopa (TPT code MP) sits in PINAL County, not
+        # Maricopa County. Distinct entity from Maricopa County itself.
+        "Pinal County",
+        Decimal("2.500"),
+        ("85138", "85139"),
+    ),
+    "Eloy": (
+        "Pinal County",
+        Decimal("3.000"),
+        ("85131",),
+    ),
+    "Florence": (
+        "Pinal County",
+        Decimal("2.000"),
+        ("85132",),
+    ),
+    "Coolidge": (
+        "Pinal County",
+        Decimal("3.000"),
+        ("85128",),
+    ),
+    # --- Mohave County ---
+    "Bullhead City": (
+        "Mohave County",
+        Decimal("2.000"),
+        ("86429", "86430", "86442"),
+    ),
+    "Kingman": (
+        "Mohave County",
+        Decimal("2.500"),
+        ("86401", "86409"),
+    ),
+    # --- Cochise County (newly online via Sierra Vista) ---
+    "Sierra Vista": (
+        "Cochise County",
+        Decimal("1.950"),
+        ("85635", "85650"),
+    ),
+    # --- Pima County (additional, beyond Tucson + Marana) ---
+    "Sahuarita": (
+        "Pima County",
+        Decimal("2.000"),
+        ("85629",),
+    ),
+    # --- Yuma County (additional, beyond Yuma) ---
+    "San Luis": (
+        "Yuma County",
+        Decimal("4.000"),
+        ("85349",),
+    ),
+    # --- Santa Cruz County (newly online via Nogales) ---
+    "Nogales": (
+        "Santa Cruz County",
+        Decimal("2.000"),
+        ("85621",),
+    ),
+    # --- Gila County (newly online via Globe + Payson) ---
+    "Globe": (
+        "Gila County",
+        Decimal("3.300"),
+        ("85501",),
+    ),
+    "Payson": (
+        "Gila County",
+        Decimal("3.880"),
+        ("85541",),
+    ),
+    # --- Coconino County (additional, beyond Flagstaff) ---
+    "Page": (
+        "Coconino County",
+        Decimal("3.000"),
+        ("86040",),
+    ),
+    "Williams": (
+        "Coconino County",
+        Decimal("3.500"),
+        ("86046",),
+    ),
+    # --- Navajo County (newly online via Show Low + others) ---
+    "Show Low": (
+        "Navajo County",
+        Decimal("2.000"),
+        ("85901",),
+    ),
+    "Snowflake": (
+        "Navajo County",
+        Decimal("3.000"),
+        ("85937",),
+    ),
+    "Holbrook": (
+        "Navajo County",
+        Decimal("3.000"),
+        ("86025",),
+    ),
+    "Winslow": (
+        "Navajo County",
+        Decimal("3.000"),
+        ("86047",),
+    ),
+    # --- Yavapai County (additional, beyond Prescott + Prescott Valley) ---
+    "Camp Verde": (
+        "Yavapai County",
+        Decimal("3.650"),
+        ("86322",),
+    ),
+    "Cottonwood": (
+        "Yavapai County",
+        Decimal("3.500"),
+        ("86326",),
+    ),
+    "Sedona": (
+        # Sedona straddles the Yavapai/Coconino county line; the larger
+        # share (uptown + west Sedona, ZIP 86336) sits in Yavapai. The
+        # 86351 ZIP (Village of Oak Creek, just south of Sedona proper)
+        # is also in Yavapai.
+        "Yavapai County",
+        Decimal("3.500"),
+        ("86336", "86351"),
     ),
 }
 

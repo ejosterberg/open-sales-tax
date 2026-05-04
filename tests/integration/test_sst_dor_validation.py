@@ -176,6 +176,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("AZ", "Surprise", "85388", "1234", "9.100", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Surprise 2.8%)"),
     ("AZ", "Goodyear", "85338", "1234", "8.800", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Goodyear 2.5%)"),
     ("AZ", "Gilbert", "85296", "1234", "8.300", "0.01", "AZ DOR (state 5.6% + Maricopa 0.7% + Gilbert 2.0%)"),
+    # AZ -- 2026-05-04 expansion (v0.25): representative sample of the 28 newly
+    # added cities. Includes every city that brings a previously-uncovered
+    # county online (Sierra Vista/Cochise, Nogales/Santa Cruz, Globe & Payson/
+    # Gila, Show Low/Navajo) plus one from each other touched county.
+    ("AZ", "Sierra Vista", "85635", "0001", "8.050", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Cochise 0.5% + Sierra Vista 1.95%)"),
+    ("AZ", "Nogales", "85621", "0001", "8.600", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Santa Cruz 1.0% + Nogales 2.0%)"),
+    ("AZ", "Page", "86040", "0001", "9.900", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Coconino 1.3% + Page 3.0%)"),
+    ("AZ", "Show Low", "85901", "0001", "8.430", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Navajo 0.83% + Show Low 2.0%)"),
+    ("AZ", "Apache Junction", "85119", "0001", "9.100", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Pinal 1.1% + Apache Junction 2.4%)"),
+    ("AZ", "Queen Creek", "85140", "0001", "8.550", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Maricopa 0.7% + Queen Creek 2.25%)"),
+    ("AZ", "Maricopa", "85138", "0001", "9.200", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Pinal 1.1% + Maricopa city 2.5%)"),
+    ("AZ", "Globe", "85501", "0001", "9.900", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Gila 1.0% + Globe 3.3%)"),
+    ("AZ", "Payson", "85541", "0001", "10.480", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Gila 1.0% + Payson 3.88%)"),
+    ("AZ", "Sedona", "86336", "0001", "9.850", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Yavapai 0.75% + Sedona 3.5%)"),
+    ("AZ", "San Luis", "85349", "0001", "10.712", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Yuma 1.112% + San Luis 4.0%)"),
+    ("AZ", "Sahuarita", "85629", "0001", "8.100", "0.01", "AZ DOR May 2026 CSV (state 5.6% + Pima 0.5% + Sahuarita 2.0%)"),
     # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24)
     ("TN", "Brentwood", "37027", "1234", "9.750", "0.05", "TN DOR (state 7% + Davidson 2.25% + IMPROVE Act 0.5%) -- post-v0.24 expired-record filter"),
     ("TN", "Franklin", "37067", "1234", "9.750", "0.05", "TN DOR (state 7% + Williamson 2.75%) -- post-v0.24 expired-record filter"),
