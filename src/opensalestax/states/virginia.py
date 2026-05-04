@@ -14,21 +14,26 @@ Chapter 6):
 - **Combined statewide minimum: 5.3%** -- the headline rate
   consumers see in localities without a regional add-on.
 
-Regional add-ons (NOT modeled at the v0.6 state-only level; see
-references.md for full per-region detail):
+Regional add-ons:
 
 - **Central Virginia, Hampton Roads, Northern Virginia: +0.7%**
-  regional transportation tax -> combined 6.0%
+  regional transportation tax -> combined 6.0%. Modeled as
+  ``district`` authorities seeded from
+  :mod:`opensalestax.states.va_data`. Top-12-city coverage in v0.25:
+  Virginia Beach / Norfolk / Chesapeake / Newport News / Hampton /
+  Portsmouth / Suffolk (Hampton Roads); Arlington / Alexandria
+  (Northern Virginia); Richmond (Central Virginia).
 - **Historic Triangle (Williamsburg, James City County, York
-  County): +1.0%** regional + Historic Triangle tax -> combined
-  7.0%
+  County): +1.0%** -- documented in :mod:`va_data` but NOT seeded
+  in v0.25 (none of the top-12 cities are in the Triangle).
 - **Selected Southside localities (Charlotte, Danville, Gloucester,
   Halifax, Henry, Northampton, Patrick, Pittsylvania): +1.0%**
-  additional local -> combined 6.3%
+  additional local -> combined 6.3%. Not seeded in v0.25.
+- Roanoke and Lynchburg are top-12 cities seeded with NO regional
+  add-on; they correctly land at 5.3% via the state authority.
 
-Loading these regional rates requires district/locality-level
-boundary modeling and is deferred to a later phase (similar to
-how SC/CA defer their local-rate landscape).
+ZIPs not in any covered city's tuple fall back to state-only at
+5.3% via the Census ZCTA load.
 
 Taxability matrix (per Va. Code Chapter 6):
 
@@ -107,6 +112,12 @@ from opensalestax.states.protocol import (
     TaxabilityRule,
 )
 from opensalestax.states.registry import register
+from opensalestax.states.va_data import (
+    VA_CITIES,
+    VA_DISTRICT_RATE_PCT,
+    VA_STATE_EFFECTIVE_FROM,
+    VA_STATE_RATE_PCT,
+)
 
 # Virginia taxability matrix per Va. Code Title 58.1, Chapter 6.
 _TAXABILITY: dict[str, TaxabilityRule] = {
@@ -216,33 +227,89 @@ class Virginia:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Virginia's statewide minimum 5.3% combined rate.
+        """Yield VA's state + per-district + per-city rates.
+
+        Districts yielded: only those touched by a covered city
+        (Hampton Roads, Northern Virginia, Central Virginia).
+        Cities yielded: every VA_CITIES entry. The city rate is 0%
+        in all cases -- the city authority is purely a friendly
+        anchor for per-ZIP boundaries; the math comes from
+        state 5.3% + district 0.7% (where applicable).
 
         ``source_file`` is intentionally ignored -- VA has no SST
-        upstream file. Regional add-ons (taking certain areas to
-        6.0%, 6.3%, or 7.0%) are deferred to per-locality boundary
-        loading; see the module docstring.
+        upstream file.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="Virginia",
             authority_type="state",
-            rate_pct=_STATEWIDE_MINIMUM_RATE_PCT,
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=VA_STATE_RATE_PCT,
+            effective_from=VA_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        used_districts = {
+            district for district, _ in VA_CITIES.values() if district is not None
+        }
+        for district_name in sorted(used_districts):
+            yield RateRow(
+                authority_name=district_name,
+                authority_type="district",
+                rate_pct=VA_DISTRICT_RATE_PCT[district_name],
+                effective_from=VA_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Virginia",
+            )
+        for city_name, (city_district, _zips) in sorted(VA_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=Decimal("0.000"),
+                effective_from=VA_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                # Cities sit under their district when one applies, else
+                # under the state. The engine's authority-stacking layer
+                # uses parent_authority_name only as a label; rate math
+                # comes from authority lookups via boundary bindings.
+                parent_authority_name=city_district or "Virginia",
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v0.6.
+        """Yield (state, district?, city) boundary rows for each covered ZIP.
 
-        Regional/locality boundary loading is deferred to a future
-        phase along with the regional rate add-ons.
+        The Census ZCTA load already provides state-level binding for
+        every VA ZIP; this method ADDS district + city bindings for the
+        12 covered cities. Cities outside a regional-add-on region
+        (Roanoke, Lynchburg) get state + city bindings only -- no
+        district -- so their combined rate is 5.3% (state) + 0% (city).
         """
         del source_file, version_label
-        return iter(())
+        for city_name, (district_name, zips) in VA_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Virginia",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                if district_name is not None:
+                    yield BoundaryRow(
+                        authority_name=district_name,
+                        authority_type="district",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return VA's taxability rule for ``item_category``."""

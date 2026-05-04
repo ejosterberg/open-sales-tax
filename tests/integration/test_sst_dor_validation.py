@@ -199,6 +199,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("SC", "Spartanburg", "29301", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Spartanburg CP 1%)"),
     ("SC", "Sumter", "29150", "0001", "8.000", "0.05", "SC DOR ST-500 (state 6% + Sumter LO 1% + CP 1%)"),
     ("SC", "Goose Creek", "29445", "0001", "9.000", "0.05", "SC DOR ST-500 (state 6% + Berkeley LO 1% + TT 1% + ECI 1%)"),
+    # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
+    # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
+    # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg
+    # are outside all regional add-ons -> 5.3%.
+    ("VA", "Virginia Beach", "23451", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Hampton Roads 0.7%)"),
+    ("VA", "Norfolk", "23510", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Chesapeake", "23320", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Newport News", "23601", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Hampton", "23666", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Portsmouth", "23704", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Suffolk", "23434", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    ("VA", "Arlington", "22201", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Northern VA 0.7%)"),
+    ("VA", "Alexandria", "22314", "0001", "6.000", "0.05", "VA Tax (Northern VA region)"),
+    ("VA", "Richmond", "23219", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Central VA 0.7%)"),
+    ("VA", "Roanoke", "24011", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
+    ("VA", "Lynchburg", "24501", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
 ]
 
 
