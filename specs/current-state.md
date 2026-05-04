@@ -1,20 +1,19 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-04
-**Status:** **v0.25.0 shipped.** SST loader + lookup engine now
-matches every Tier-1 SST state's published DOR rate within 0.05%
-across **153 sampled city/ZIP+4 combos** on the live engine.
-Coverage explosion this iter: 5 newly-seeded non-SST states
-(CT/MO/MS/SC/VA) move from state-only to per-county + per-city,
-Arizona widens 20→48 cities, GA gets district friendly names
-(Fulton TSPLOST, DeKalb MARTA), OK gets Newcastle, plus 14 DOR
-regression rows for cities that became correct after v0.24's
-expired-record filter (TN Brentwood/Franklin, GA Alpharetta,
-MN suburbs, AZ secondary cities). Pre-built data dumps now ship
-with every release via the CI workflow at
-`.github/workflows/build-data-dump.yml` — new users go from
-`pip install` to working in <2 min via `opensalestax data restore`.
-1317 unit tests, mypy clean, ruff clean.
+**Status:** **v0.26.0 shipped.** SST loader + lookup engine now
+matches every published DOR rate within 0.05% across **201 sampled
+city/ZIP+4 combos** on the live engine. Big-three non-SST states
+(TX, NY, FL) finally have per-county + per-city coverage:
+- TX: 49 cities + 7 transit districts (Houston METRO, Dallas DART,
+  Austin Cap Metro, San Antonio VIA+ATD, Fort Worth Trinity, El Paso
+  Sun Metro, Corpus Christi RTA), all at 8.25% cap except Arlington
+  (8.0%, opted out of DART/FWTA)
+- NY: 30 cities including NYC (8.875% all 5 boroughs), MCTD encoded
+  as a separate district authority in 12 downstate counties
+- FL: all 67 counties + 30 cities (FL has no city sales tax; cities
+  are ZIP-binding anchors only)
+1460 unit tests pass, mypy clean, ruff clean.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
 the gating dependency for proper home-rule / parish / municipal
@@ -72,6 +71,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.23.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.23.0) | 2026-05-04 | Arizona TPT loader: per-county + top-20-city seeded from AZ DOR May 2026 CSV. Phoenix 5.6% → 9.10% combined. Loader fix: `_maybe_load_boundaries` now invokes `parse_boundaries(None, ...)` for self_seeded states. DOR grid 49 → 60 ZIPs. |
 | [v0.24.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.24.0) | 2026-05-04 | TN Brentwood 14.75% → 9.75% (parser now filters expired boundary records via `_record_active_on`); backported to MN/WI/GA. New `opensalestax data restore` CLI + CI workflow that pre-builds a Postgres pg_dump per release tag — new-user install goes from 50 min to <2 min. 30 new friendly names (NE x11, OH x3 transit, WA x6, OK x10). 3 parallel sub-agents in worktrees shipped 1900+ lines. DOR grid 60 → 89 ZIPs. |
 | [v0.25.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.25.0) | 2026-05-04 | 5 newly-seeded non-SST states (CT/MO/MS/SC/VA) move from state-only to per-county + per-city. Arizona widens 20 → 48 cities (4 new counties online: Cochise/Santa Cruz/Gila/Navajo). GA district friendly names (Fulton TSPLOST, DeKalb MARTA, Fayette District). OK Newcastle (city 51150). 2 parallel sub-agents in worktrees shipped ~600 lines of state data. DOR grid 89 → 153 ZIPs. |
+| [v0.26.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.26.0) | 2026-05-04 | The big-three non-SST states (TX/NY/FL) shipped per-county + per-city coverage in one push via 3 parallel sub-agents. TX 49 cities + 7 transit districts. NY 30 cities including NYC consolidated (8.875%) + MCTD as separate authority. FL all 67 counties + 30 cities (FL has no city tax). DOR grid 153 → 201 ZIPs. |
 
 ## Coverage (after v0.5)
 
