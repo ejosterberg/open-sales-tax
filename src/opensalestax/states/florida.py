@@ -202,9 +202,11 @@ class Florida:
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "FL":
-                    continue
+            # ZIP_COUNTY values are frozensets, so iteration order is
+            # non-deterministic; sort by FIPS so cross-county ZIPs pick
+            # the same county across Python interpreter restarts.
+            sorted_fl_pairs = sorted(cf for sa, cf in pairs if sa == "FL")
+            for county_fips in sorted_fl_pairs:
                 fl_county_name = county_name("FL", county_fips)
                 if fl_county_name is None or fl_county_name not in FL_COUNTY_SURTAX_PCT:
                     continue

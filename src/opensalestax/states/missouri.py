@@ -361,9 +361,9 @@ class Missouri:
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "MO":
-                    continue
+            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
+            sorted_mo_pairs = sorted(cf for sa, cf in pairs if sa == "MO")
+            for county_fips in sorted_mo_pairs:
                 mo_county_name = county_name("MO", county_fips)
                 if mo_county_name is None or mo_county_name not in MO_COUNTY_RATE_PCT:
                     continue

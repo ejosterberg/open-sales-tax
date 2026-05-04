@@ -243,9 +243,9 @@ class Illinois:
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "IL":
-                    continue
+            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
+            sorted_il_pairs = sorted(cf for sa, cf in pairs if sa == "IL")
+            for county_fips in sorted_il_pairs:
                 il_county_name = county_name("IL", county_fips)
                 if il_county_name is None or il_county_name not in IL_COUNTY_RATE_PCT:
                     continue

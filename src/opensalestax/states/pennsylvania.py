@@ -277,9 +277,9 @@ class Pennsylvania:
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "PA":
-                    continue
+            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
+            sorted_pa_pairs = sorted(cf for sa, cf in pairs if sa == "PA")
+            for county_fips in sorted_pa_pairs:
                 pa_county_name = county_name("PA", county_fips)
                 if pa_county_name is None or pa_county_name not in PA_COUNTY_RATE_PCT:
                     continue

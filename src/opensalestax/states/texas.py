@@ -248,9 +248,9 @@ class Texas:
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "TX":
-                    continue
+            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
+            sorted_tx_pairs = sorted(cf for sa, cf in pairs if sa == "TX")
+            for county_fips in sorted_tx_pairs:
                 tx_county_name = county_name("TX", county_fips)
                 if tx_county_name is None or tx_county_name not in TX_COUNTY_RATE_PCT:
                     continue
