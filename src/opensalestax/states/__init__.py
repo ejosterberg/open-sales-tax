@@ -44,6 +44,7 @@ from opensalestax.states import (
     nebraska,  # noqa: F401
     nevada,  # noqa: F401
     new_jersey,  # noqa: F401
+    new_mexico,  # noqa: F401
     new_york,  # noqa: F401
     no_tax,  # noqa: F401
     north_carolina,  # noqa: F401

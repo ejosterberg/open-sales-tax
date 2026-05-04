@@ -5305,6 +5305,169 @@ default taxability (everything taxable except groceries). To
     themselves from the engine's bare-rate output. Documented
     here so the absence is not mistaken for an oversight.
 
+### NM -- New Mexico
+
+- **Statewide rate:** **4.875% effective 2023-07-01** (reduced from
+  5.000% by HB 163 of the 2022 Regular Session of the New Mexico
+  Legislature, signed 2022-03-08, amending NMSA 7-9-4). A further
+  contingent reduction to 4.500% remains on the books in HB 163 but
+  is gated on revenue triggers that have NOT been met as of the 2026
+  verification date.
+- **Tax model:** **Gross Receipts Tax (GRT) -- NOT a sales tax.**
+  Imposed on the SELLER's gross receipts under NMSA 1978 Chapter 7,
+  Article 9 ("Gross Receipts and Compensating Tax Act"). Sellers
+  commonly pass GRT through to buyers as a market practice, making
+  the consumer-facing math equivalent to a sales tax. This module
+  encodes NM as if a sales tax for OpenSalesTax v1 API-shape
+  compatibility (same approach as HI's GET); the legal-incidence
+  distinction does not change the calculation. A formal
+  ``tax_model`` enum on ``StateModule`` is deferred to v1.0+ when
+  HI/NM/AZ-style abstractions can be designed once.
+- **SST membership:** **NOT a Streamlined Sales Tax member**
+  (verified 2026-05-03 against streamlinedsalestax.org membership
+  list; NM is not on the SST roster).
+- **Local jurisdictions:** **33 counties + ~106 municipalities**,
+  each independently imposing local-option GRT increments under
+  NMSA 7-19-10 et seq. (county) and 7-19D-1 et seq. (municipal).
+  Combined rates range from about **5.5%** (unincorporated rural
+  areas with minimal county add-on) to about **9.5%** in the
+  densest urban codes (Albuquerque, Santa Fe, Las Cruces). A
+  handful of special-district codes can push above 9.5%.
+  **NOT MODELED in v1** -- the deferral mirrors CO/LA/SC/MS/MO/NV
+  precedent. The TRD publishes a quarterly Gross Receipts Tax Rate
+  Schedule (FYI-200 companion CSV / PDF) mapping every NM
+  "location code" to its combined rate; the per-county loader is
+  the natural next contribution.
+- **Sales-tax holiday:** **Annual Back-to-School Tax-Free Holiday**
+  per **NMSA 7-9-95** as **amended by HB 218 of the 2025 Regular
+  Session** (signed April 2025), which moved the date formula
+  from "first Friday in August through following Sunday" (the
+  original 2005 enactment timing) to "**last Friday in July
+  through following Sunday**" because NM public-school calendars
+  now start earlier. **For 2026: July 31 - August 2, 2026** (last
+  Friday in July 2026 is July 31). **2025 was the first year
+  under the new formula** (July 25-27, 2025 per TRD announcement).
+  Six statutory scopes each with their own per-item dollar cap:
+  - Clothing/footwear: < $100 per article (excludes athletic /
+    protective gear and accessories like jewelry, handbags,
+    luggage, umbrellas, wallets, watches)
+  - Bookbags, backpacks, maps, globes: < $100 per article
+  - Computers (desktop, laptop, tablet, notebook, e-readers with
+    computing functions): <= $1,000 per article
+  - Computer-related items (keyboards, monitors, mice, speakers,
+    etc.): <= $500 per article
+  - Handheld calculators: < $200 per article
+  - School supplies (notebooks, paper, pencils, pens, art
+    supplies): < $30 per article
+  Per **TRD FYI-203**, the holiday is a **deduction the SELLER
+  may claim, not an automatic exemption** -- retailers may opt in
+  or out per transaction; non-participating sellers must remit
+  GRT and may recover from the customer. The OpenSalesTax engine
+  has no merchant-election concept in v1; module yields the
+  windows unconditionally. Encoded as **six separate**
+  ``HolidayWindow`` **instances** (one per scope) so the engine
+  applies per-item caps independently. The holiday applies to
+  STATE AND LOCAL GRT.
+- **Threshold rules:** none year-round (per-item dollar caps
+  apply only during the August holiday).
+- **DOR URL:** **https://www.tax.newmexico.gov/**
+  *(retrieved 2026-05-03)*
+- **Holiday announcement:**
+  https://www.tax.newmexico.gov/news-alerts/tax-holiday/
+  *(retrieved 2026-05-03; page documents 2025 holiday as
+  July 25-27 with the four headline scopes / per-item caps)*
+- **Statutes consulted (NMSA 1978 Chapter 7 unless noted):**
+  - 7-9-4 -- imposition and rate (4.875% state portion since
+    2023-07-01)
+  - 7-9-3.5 -- definition of "property" subject to GRT (amended
+    by HB 6 of 2019 to include specified digital goods effective
+    2019-07-01)
+  - 7-9-73.2 -- deduction for prescription drugs, oxygen, and
+    medical cannabis (enacted 1998; expanded multiple times)
+  - 7-9-92 -- deduction for sale of food at retail food store
+    (effective 2005-01-01; "food" cross-references federal SNAP
+    definition at 7 USCA 2012(k)(1))
+  - 7-9-95 -- annual back-to-school tax-free holiday deduction
+    (enacted 2005; date formula amended by HB 218 of 2025 from
+    "first Friday in August" to "last Friday in July")
+  - 7-1-6.46 -- distribution to municipalities; offset for food
+    deduction and health care practitioner services deduction
+    (the "hold-harmless" mechanism that makes the section 7-9-92
+    food deduction effectively bind both state and local layers)
+  - 7-1-6.47 -- distribution to counties; same offset mechanism
+- **Acts consulted:**
+  - HB 163 of 2022 Regular Session (signed 2022-03-08) --
+    reduced the state-portion GRT rate from 5.000% to 4.875%
+    effective 2023-07-01; established a contingent further
+    reduction to 4.500% gated on revenue triggers that have not
+    fired
+  - HB 6 of 2019 Regular Session (signed 2019-04-04) -- expanded
+    GRT base to include specified digital goods effective
+    2019-07-01; also added economic-nexus and marketplace-
+    facilitator provisions
+  - HB 218 of 2025 Regular Session (signed April 2025) --
+    amended NMSA 7-9-95 to move the back-to-school holiday from
+    "first Friday in August" to "last Friday in July through
+    following Sunday"; per-item dollar caps unchanged
+- **Sources for rate/taxability cross-checks:**
+  - TRD "Gross Receipts Tax Rates" page
+    (https://www.tax.newmexico.gov/all-nm-taxes/current-historic-tax-rates-overview/gross-receipts-tax-rates/)
+    -- confirms 4.875% statewide; pointer to TRD location-code
+    map for combined rates
+  - TRD Tax Holiday news alert
+    (https://www.tax.newmexico.gov/news-alerts/tax-holiday/) --
+    quotes the 2025 holiday timing as July 25-27, 2025
+    (confirming HB 218's "last Friday in July" formula)
+  - Sales Tax Institute "New Mexico Tax Rate Drops" article
+    (https://www.salestaxinstitute.com/resources/new-mexico-gross-receipts-tax-rate-drops-to-4-875-on-july-1-2023)
+    -- confirms 4.875% effective date 2023-07-01 attributable to
+    HB 163 of 2022
+  - Sovos regulatory update "New Mexico Moves Annual Tax Holiday
+    To July" -- confirms HB 218 of 2025 enactment moving the
+    holiday date formula
+  - Avalara digital-goods state guide -- confirms HB 6 of 2019
+    digital-goods inclusion effective 2019-07-01
+- **Module file:** `src/opensalestax/states/new_mexico.py`
+- **Last verified:** 2026-05-03 by the NM tier-0->tier-1 agent
+- *Notes:*
+  - The GRT-vs-sales-tax legal model is the most important
+    documentation point in the module; future maintainers MUST
+    not assume "sales tax" semantics when implementing
+    nexus-determination logic, exemption-certificate handling,
+    or returns-filing layers (NM filing is on the seller as a
+    GRT return, not a buyer-facing sales-tax remittance).
+  - The grocery-deduction hold-harmless mechanism is unusual --
+    most state-level grocery exemptions (e.g., GA, NC's reduced
+    rate) leave locals to make their own choice. NM uses the
+    state general fund to reimburse counties / municipalities,
+    so groceries are effectively zero-tax at every NM address.
+    A future per-county loader MUST NOT re-add grocery taxation
+    even if a literal reading of a county ordinance would
+    suggest it; the hold-harmless layer at NMSA 7-1-6.46 /
+    7-1-6.47 supersedes.
+  - The HB 218 of 2025 amendment to NMSA 7-9-95 is a foot-gun:
+    older Justia statute summaries and many third-party sources
+    (Sales Tax Handbook, Avalara's older articles) still quote
+    the "first Friday in August" formula because the change is
+    recent. The TRD's 2025 holiday announcement (July 25-27,
+    2025) is the dispositive verification that HB 218 did pass
+    and is in effect; the 2026 dates (July 31 - August 2, 2026)
+    follow from the same "last Friday in July" formula.
+  - The merchant-election quirk on the back-to-school holiday is
+    distinctive and operationally important. POS / checkout
+    integrators MUST surface a per-line-item or per-transaction
+    elect-in/out toggle; otherwise either (a) the merchant
+    over-collects (charges GRT during the holiday and pockets
+    the float / has to refund), or (b) under-collects (treats
+    the holiday as automatic and is liable for the deduction
+    they didn't actually claim on their CRS-1 return).
+  - The contingent further-reduction to 4.500% in HB 163 of 2022
+    is worth a calendar reminder for any maintainer -- the rate
+    has been at 4.875% since 2023-07-01, but if NM revenue
+    growth ever triggers the reduction the ``parse_rates``
+    method needs an ``effective_to`` and a 4.500% successor
+    row.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
