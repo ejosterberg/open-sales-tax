@@ -25,7 +25,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.core.disclaimer import disclaimer
-from opensalestax.core.lookup import lookup_jurisdictions_by_zip
+from opensalestax.core.lookup import (
+    lookup_jurisdictions_by_zip,
+    lookup_jurisdictions_by_zip5_loose,
+)
 from opensalestax.core.resolve import resolve_rates_for_authorities
 from opensalestax.db.models import HolidayPeriod, State, TaxabilityRule
 
@@ -109,7 +112,20 @@ async def calculate_tax(
         )
 
     eff_date = effective_date or dt.date.today()
-    authorities = await lookup_jurisdictions_by_zip(session, zip5, zip4)
+    # Prefer the strict ZIP+4 lookup when the caller supplies a +4
+    # (precise per-+4 boundary match). When no +4 is supplied, fall
+    # back to the loose lookup so that authorities only bound at
+    # the +4 level (e.g. Minneapolis on ZIP 55417, where the city
+    # code lives in type-4 records but no type-z record carries it)
+    # still surface in the result. The loose lookup may over-count
+    # for ZIPs that genuinely span multiple cities with different
+    # rates -- callers wanting per-address precision should pass a
+    # ZIP+4. ``DISTINCT`` on TaxAuthority means duplicate boundary
+    # rows for the same authority don't double-count.
+    if zip4 is not None:
+        authorities = await lookup_jurisdictions_by_zip(session, zip5, zip4)
+    else:
+        authorities = await lookup_jurisdictions_by_zip5_loose(session, zip5)
     state_abbrev = _resolve_state_abbrev(authorities)
     no_jurisdiction_note = _no_jurisdiction_note(zip5, zip4) if not authorities else None
 
