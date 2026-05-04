@@ -306,11 +306,11 @@ jobs:
           if-no-files-found: error
 
       - name: Attach dump to GitHub release
-        # Only fires for tag pushes (not workflow_dispatch on a tag that
-        # has no release yet); the action no-ops cleanly if the release
-        # doesn't exist and `fail_on_unmatched_files` will catch upload
-        # errors loudly.
-        if: github.event_name == 'push'
+        # Fires for tag pushes (creates the asset) AND for
+        # workflow_dispatch when the input ``tag`` matches an existing
+        # release (lets us retroactively backfill a missing dump).
+        # The action no-ops if the release doesn't exist; we set
+        # fail_on_unmatched_files so an upload regression is loud.
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
