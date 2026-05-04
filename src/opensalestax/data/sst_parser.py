@@ -67,12 +67,28 @@ class SstRateRecord:
 
 @dataclass(frozen=True, slots=True)
 class SstBoundaryRecord:
-    """One parsed `z`-type row from an SST boundary CSV.
+    """One parsed `z`- or `4`-type row from an SST boundary CSV.
 
-    Phase 1 only consumes ``z`` (ZIP-range) records. ``4`` (FIPS+9-digit-ZIP)
-    records are parsed but yielded with ``record_type="4"`` and only the
-    common columns populated; tier-2 modules can ignore them. Phase 4 will
-    grow this dataclass to cover FIPS+9-digit-ZIP details.
+    Both record types share the state/county/city columns. ``4``
+    records additionally carry ZIP+4 ranges (zip4_low/high) for
+    address-precision matching; ``z`` records cover the full ZIP5
+    with no +4 narrowing. Both record types may also carry a
+    special-district binding (intra_state_class + jurisdiction
+    code/type), which the rate file's type-63 rows match against
+    via ``district_code``.
+
+    Column reference (1-indexed; SST publishes the layout in their
+    Boundary File Format Specification, validated against MN/WI
+    2026Q2 + cross-checked against the MN DOR sales-tax-rate
+    calculator):
+
+    - col18 zip5_low / col19 zip4_low / col20 zip5_high /
+      col21 zip4_high  -> address range
+    - col23 state FIPS / col25 county FIPS / col26 city code
+    - col30 intra-state class ('ST' = special district, 'IN' =
+      municipal/intra-state, blank = no extra binding)
+    - col31 SST jurisdiction code (matches col3 in the rate file)
+    - col32 SST jurisdiction type (matches col2 in the rate file)
     """
 
     record_type: str  # 'z' or '4'
@@ -80,10 +96,28 @@ class SstBoundaryRecord:
     effective_to: dt.date | None
     zip5_low: str
     zip5_high: str
+    zip4_low: str | None
+    zip4_high: str | None
     state_fips: str
     county_fips: str | None
+    city_code: str | None
+    """SST city/local jurisdiction code from col26. Maps to the
+    ``jurisdiction_code`` of a type-01 (city) rate row."""
+
+    intra_state_class: str | None
+    """col30: 'ST' = special district, 'IN' = intra-state /
+    municipal, blank = no extra binding."""
+
+    district_code: str | None
+    """col31: SST jurisdiction code for a special district.
+    Maps to the ``jurisdiction_code`` of a non-state rate row
+    whose ``jurisdiction_type`` equals ``district_type``."""
+
+    district_type: str | None
+    """col32: SST jurisdiction-type code (matches type-63 etc.)."""
+
     raw_columns: tuple[str, ...]
-    """All 89 columns retained for state-specific column extraction."""
+    """All 89+ columns retained for state-specific column extraction."""
 
 
 def parse_rates_csv(lines: Iterable[str]) -> Iterator[SstRateRecord]:
@@ -159,14 +193,25 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
         try:
             zip5_low = cols[17] or ""
             zip5_high = cols[19] or zip5_low
+            zip4_low_raw = cols[18] or ""
+            zip4_high_raw = cols[20] or zip4_low_raw
             yield SstBoundaryRecord(
                 record_type=record_type,
                 effective_from=_parse_date(cols[1]),
                 effective_to=_parse_end_date(cols[2]),
                 zip5_low=zip5_low,
                 zip5_high=zip5_high,
+                # SST publishes ZIP+4 fields only on type-4 rows;
+                # type-z rows leave them blank (treated as None so
+                # the engine's "no +4 range" branch matches).
+                zip4_low=(zip4_low_raw or None) if record_type == "4" else None,
+                zip4_high=(zip4_high_raw or None) if record_type == "4" else None,
                 state_fips=cols[22],
                 county_fips=cols[24] or None,
+                city_code=cols[25] or None,
+                intra_state_class=cols[29] or None,
+                district_code=cols[30] or None,
+                district_type=cols[31] or None,
                 raw_columns=tuple(cols),
             )
         except ValueError as exc:

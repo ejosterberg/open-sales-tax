@@ -133,36 +133,66 @@ class Minnesota:
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
         """Parse an MN SST boundary file into normalized BoundaryRow records.
 
-        Each ``z`` record produces a state-level boundary plus a
-        county-level boundary for the same ZIP. Without the state
-        binding the engine's lookup join would return only the
-        county authority, silently dropping MN's 6.875% statewide
-        rate. Phase 4 will extend this with ZIP+4 + address-level
-        data from the ``4`` records.
+        Emits multiple bindings per ZIP: state, county (always),
+        plus city and special-district (where the SST file
+        records them). The MN DOR sales-tax-rate calculator at
+        revenue.state.mn.us/sales-tax-rate-calculator stacks these
+        same authorities; without all four levels the engine
+        under-collects by the city + district portion (e.g. ZIP
+        55417-2130 owes 9.025% combined; missing Minneapolis 0.5%
+        + Hennepin County Transit 0.5% + Metro Area Transportation
+        0.75% + Metro Area Tax for Housing 0.25% drops it to
+        7.025%).
+
+        Both record types contribute:
+        - ``z`` records cover the full ZIP5 (zip4 fields blank);
+          they bind state/county/city/district at the ZIP-level.
+        - ``4`` records carry ZIP+4 ranges (zip4_low/high) for
+          address-precision matching.
+
+        Per-ZIP de-duplication keeps the boundary table compact:
+        the same (authority, zip5, zip4_low, zip4_high) tuple is
+        only emitted once per parse pass.
         """
         del version_label
-        seen_state_zips: set[str] = set()
+        seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
-            if record.record_type != "z":
+            if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
                 continue
             zip5 = record.zip5_low
-            if zip5 not in seen_state_zips:
-                seen_state_zips.add(zip5)
+            zip4_low = record.zip4_low if record.record_type == "4" else None
+            zip4_high = record.zip4_high if record.record_type == "4" else None
+
+            for authority_type, authority_name in self._authority_bindings(record):
+                key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
+                if key in seen:
+                    continue
+                seen.add(key)
                 yield BoundaryRow(
-                    authority_name="Minnesota",
-                    authority_type="state",
+                    authority_name=authority_name,
+                    authority_type=authority_type,
                     zip5=zip5,
+                    zip4_low=zip4_low,
+                    zip4_high=zip4_high,
                 )
-            if record.county_fips:
-                yield BoundaryRow(
-                    authority_name=_authority_name(record.county_fips, "county"),
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+
+    @staticmethod
+    def _authority_bindings(record):
+        """Yield (authority_type, authority_name) pairs for one boundary record.
+
+        Order matches the engine's display preference (state ->
+        county -> city -> district) so the per-jurisdiction
+        breakdown reads top-down.
+        """
+        yield ("state", "Minnesota")
+        if record.county_fips:
+            yield ("county", _authority_name(record.county_fips, "county"))
+        if record.city_code:
+            yield ("city", _authority_name(record.city_code, "city"))
+        if record.district_code:
+            yield ("district", _authority_name(record.district_code, "district"))
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return MN's taxability rule for a category on the given date.

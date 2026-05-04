@@ -118,11 +118,14 @@ def test_parse_rates_total_count_matches_known_codes() -> None:
 # Boundary parsing
 # ---------------------------------------------------------------------------
 def test_parse_boundaries_emits_state_and_county_rows() -> None:
-    """Each MN ZIP yields BOTH a state and a county BoundaryRow.
+    """Each MN ZIP yields state, county, and -- where the SST file
+    records them -- city and special-district BoundaryRows.
 
-    The state row is essential: without it the engine's lookup
-    join finds only the county authority and silently drops MN's
-    6.875% statewide rate.
+    The state binding is essential (without it the engine's lookup
+    join finds only the county and silently drops MN's 6.875%
+    statewide rate). City + district rows are required to match
+    the MN DOR's per-ZIP+4 jurisdiction stack at
+    revenue.state.mn.us/sales-tax-rate-calculator.
     """
     fixture = state_fixture_dir("MN") / "MNB2026Q2FEB18-sample.csv"
     rows = list(MINNESOTA.parse_boundaries(fixture, "MN-SST-2026Q2FEB18"))
@@ -134,13 +137,19 @@ def test_parse_boundaries_emits_state_and_county_rows() -> None:
     state_rows = [r for r in rows if r.authority_type == "state"]
     county_rows = [r for r in rows if r.authority_type == "county"]
     assert all(r.authority_name == "Minnesota" for r in state_rows)
-    # State boundaries are deduped per-ZIP
-    assert len({r.zip5 for r in state_rows}) == len(state_rows)
     for row in rows:
         assert len(row.zip5) == 5
         assert row.zip5.isdigit()
     # Every county-bound ZIP also has a state-bound row
     assert {r.zip5 for r in county_rows} <= {r.zip5 for r in state_rows}
+    # The (auth_type, auth_name, zip5, zip4_low, zip4_high) tuple is
+    # de-duplicated -- the same binding is never emitted twice in
+    # one parse pass.
+    keys = [
+        (r.authority_type, r.authority_name, r.zip5, r.zip4_low, r.zip4_high)
+        for r in rows
+    ]
+    assert len(keys) == len(set(keys))
 
 
 # ---------------------------------------------------------------------------

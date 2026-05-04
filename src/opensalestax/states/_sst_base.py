@@ -105,42 +105,53 @@ class SstStateModule:
             )
 
     def parse_boundaries(self, source_file: Path, version_label: str) -> Iterable[BoundaryRow]:
-        """Generic SST boundary parser yielding state + county ZIP records.
+        """Generic SST boundary parser yielding state + county + city + district.
 
-        Each ``z`` record produces TWO BoundaryRow rows -- one binding
-        the ZIP to the state authority and one binding it to the county
-        authority. The state binding is essential: without it, the
-        engine's ``lookup_jurisdictions_by_zip`` join finds the county
-        but nothing at the state level, so a ZIP that only matches a
-        county boundary returns county-only tax (silently dropping the
-        state's much larger statutory rate). MN ZIP 55401 should yield
-        the 6.875% MN state rate plus 0.15% Hennepin County, not just
-        Hennepin's 0.15%.
+        Both ``z`` (ZIP5) and ``4`` (ZIP+4) records contribute. For
+        each record we emit a BoundaryRow per authority that the
+        SST file binds to the ZIP -- state always, plus county /
+        city / special-district whenever the record's columns name
+        one. ZIP+4 ranges from type-4 records narrow the binding
+        for address-precision matching; type-z records leave the
+        +4 fields NULL and apply to the entire ZIP5.
+
+        Per-ZIP de-duplication keeps the boundary table compact:
+        the same (authority, zip5, zip4_low, zip4_high) tuple is
+        only emitted once per parse pass.
         """
         del version_label
-        seen_state_zips: set[str] = set()
+        seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
-            if record.record_type != "z":
+            if record.record_type not in {"z", "4"}:
                 continue
             if not record.zip5_low:
                 continue
             zip5 = record.zip5_low
-            if zip5 not in seen_state_zips:
-                seen_state_zips.add(zip5)
+            zip4_low = record.zip4_low if record.record_type == "4" else None
+            zip4_high = record.zip4_high if record.record_type == "4" else None
+
+            for authority_type, authority_name in self._authority_bindings(record):
+                key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
+                if key in seen:
+                    continue
+                seen.add(key)
                 yield BoundaryRow(
-                    authority_name=self.state_name,
-                    authority_type="state",
+                    authority_name=authority_name,
+                    authority_type=authority_type,
                     zip5=zip5,
+                    zip4_low=zip4_low,
+                    zip4_high=zip4_high,
                 )
-            if not record.county_fips:
-                continue
-            yield BoundaryRow(
-                authority_name=self._authority_name(record.county_fips, "county"),
-                authority_type="county",
-                zip5=zip5,
-                zip4_low=None,
-                zip4_high=None,
-            )
+
+    def _authority_bindings(self, record):
+        """Yield (authority_type, authority_name) pairs for one boundary record."""
+        yield ("state", self.state_name)
+        if record.county_fips:
+            yield ("county", self._authority_name(record.county_fips, "county"))
+        if record.city_code:
+            yield ("city", self._authority_name(record.city_code, "city"))
+        if record.district_code:
+            yield ("district", self._authority_name(record.district_code, "district"))
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return the default tier-2 taxability rule for a category."""
