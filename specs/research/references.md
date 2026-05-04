@@ -5468,6 +5468,214 @@ default taxability (everything taxable except groceries). To
     method needs an ``effective_to`` and a 4.500% successor
     row.
 
+### **PR -- Puerto Rico** *(Phase 8 -- US territory tier-0 -> tier-1)*
+
+- **Statewide rate:** **11.5% combined effective 2015-07-01**
+  (10.5% state portion per 13 L.P.R.A. § 32021 + 1.0% municipal
+  portion per 13 L.P.R.A. § 32024; uniform across all 78 PR
+  municipalities)
+- **Tax model:** sales tax (Impuesto sobre Ventas y Uso -- IVU --
+  per Codigo de Rentas Internas de Puerto Rico, Subtitle D,
+  Chapters 1-3, codified at 13 L.P.R.A. §§ 32001 et seq.). The
+  IVU is structurally a sales tax (imposed on the buyer at the
+  point of retail sale, collected by the seller, remitted to the
+  Departamento de Hacienda) -- **distinct from Hawaii's GET
+  (seller-side gross receipts) and New Mexico's GRT (seller-side
+  gross receipts)**, so the OpenSalesTax encoding follows the
+  standard sales-tax shape.
+- **Local jurisdictions:** none with rate variation. PR has 78
+  municipalities ("municipios"), but the 1.0% municipal IVU is
+  STATUTORILY UNIFORM across all of them per 13 L.P.R.A. § 32024
+  -- there is no per-municipality rate variation. The 1.0%
+  municipal portion is centrally collected by the Departamento
+  de Hacienda alongside the 10.5% state portion and then
+  distributed to the municipalities. Encoded in OpenSalesTax as
+  a single combined 11.5% territory-level rate row (mirrors the
+  IN/KY/MI/RI/ME no-local-tax pattern).
+- **Sales-tax holidays:** ad hoc annual "Dias sin IVU" (Days
+  without IVU) back-to-school holiday covering school uniforms
+  and school supplies, typically a mid-July weekend. **NOT
+  permanent** -- enacted by the legislature each year via
+  separate legislation, with variable scope. **2026 status: NOT
+  YET ANNOUNCED by the Departamento de Hacienda at module ship
+  date (2026-05-03).** ``holidays_for(year)`` returns empty for
+  every year until an official Carta Circular is published; a
+  regression test pins this position across 2024-2030.
+- **Threshold rules:** none currently encoded. (The 4% Special
+  IVU on B2B services per 13 L.P.R.A. § 32022 is not a
+  threshold rule but a separate parallel tax base; OUT OF SCOPE
+  for v1 retail engine.)
+- **Territorial status:** **Puerto Rico is a US TERRITORY
+  (commonwealth), not a US state.** Its tax authority is the
+  **Departamento de Hacienda de Puerto Rico** (PR Treasury
+  Department), NOT a US state DOR or US federal agency. PR is
+  NOT an SST member -- SST membership is limited to US states.
+  PR is the only US-territory entry in the OpenSalesTax catalog;
+  no other US territories (USVI, Guam, American Samoa, Northern
+  Mariana Islands) are in the catalog at this time.
+- **DOR URL:** **https://hacienda.pr.gov/** *(retrieved
+  2026-05-03; Spanish-default; Departamento de Hacienda de
+  Puerto Rico main site)*
+- **Statutes consulted:**
+  - **13 L.P.R.A. § 32011** -- definition of "partida tributable"
+    (taxable item) under the Codigo de Rentas Internas; the
+    operative definition for what falls inside the IVU base
+  - **13 L.P.R.A. § 32020** -- general imposition of the IVU on
+    the retail sale of taxable items in PR
+  - **13 L.P.R.A. § 32021** -- 10.5% state portion of the
+    combined IVU rate (effective 2015-07-01 under Act No. 72 of
+    2015)
+  - **13 L.P.R.A. § 32022** -- separate **4% Special IVU on B2B
+    services and on certain designated services** (added by Act
+    No. 72 of 2015); SEPARATE FROM and PARALLEL TO the 11.5%
+    retail IVU; OUT OF SCOPE for v1 retail engine
+  - **13 L.P.R.A. § 32023** -- exemptions, including:
+    - "alimentos e ingredientes de alimentos" (unprepared food
+      and food ingredients) effective 2015-10-01 -- the grocery
+      exemption
+    - "medicamentos recetados" (prescription drugs) -- limited
+      to drugs dispensed under a prescription from an authorized
+      health professional; OTC medications are NOT covered
+  - **13 L.P.R.A. § 32024** -- 1.0% municipal portion of the
+    combined IVU rate; uniform across all 78 PR municipalities;
+    centrally collected by the Departamento de Hacienda
+- **Authorizing Acts (Spanish primary text):**
+  - **Act No. 117 of July 4, 2006** ("Ley de la Justicia
+    Contributiva de 2006") -- the original IVU enactment with
+    the 5.5% state + 1.5% municipal = 7.0% combined initial
+    structure
+  - **Act No. 72 of May 29, 2015** ("Ley para Enmendar el
+    Codigo de Rentas Internas de Puerto Rico") -- raised the
+    state portion to 10.5%, fixed the municipal portion at 1.0%
+    (combined 11.5%), added the 4% Special IVU on B2B services,
+    and established the grocery exemption (effective 2015-10-01).
+    This is the controlling Act for the current rate structure.
+- *Sources for rate/taxability:*
+  - **Departamento de Hacienda de Puerto Rico main site**
+    (https://hacienda.pr.gov/), retrieved 2026-05-03 (Spanish
+    default; English translations available for many published
+    pages) -- confirms 11.5% combined IVU rate (10.5% state +
+    1.0% municipal) and identifies Hacienda as the sole
+    administering authority
+  - **L.P.R.A. (Laws of Puerto Rico Annotated, LexisNexis
+    publication)** -- secondary English translation of the
+    Codigo de Rentas Internas; cited above by 13 L.P.R.A. §
+    citations. The Spanish text is authoritative; L.P.R.A.
+    English translations are reliable secondary references for
+    cross-checking but should not be cited as primary in the
+    event of any translation ambiguity.
+  - **Streamlined Sales Tax member roster**
+    (https://www.streamlinedsalestax.org), cross-checked
+    2026-05-03 -- confirms PR is NOT a member (SST membership
+    is restricted to US states; US territories are not eligible)
+  - **Sovos State-by-State Guide** (specs/research/
+    sovos-state-summary.md), cross-referenced 2026-05-03 -- PR
+    coverage in the Sovos summary is sparse; PR is treated as a
+    secondary reference at best, with primary verification done
+    against Hacienda directly
+- **Module file:** `src/opensalestax/states/puerto_rico.py`
+- **Last verified:** 2026-05-03 by per-state research agent
+  (feat/state-pr branch -- Phase 8 US-territory tier-0 -> tier-1
+  ratchet)
+- *Notes:*
+  - **PR is a US territory, not a US state.** This is the first
+    and most important fact about the module. Contributors who
+    treat PR as if it were a state (looking for SST data,
+    expecting a state DOR site, treating Spanish citations as
+    secondary) will produce incorrect work. The module's
+    docstring leads with the territorial-status framing and a
+    regression test
+    (``test_puerto_rico_module_docstring_documents_territorial_status``)
+    asserts that the docstring mentions both "US territory" and
+    "Departamento de Hacienda" so future contributors cannot
+    silently drop the framing during a refactor.
+  - **Combined-rate encoding decision is load-bearing.** The
+    module emits a SINGLE 11.5% combined RateRow rather than
+    splitting into 10.5% + 1.0% rows. The rationale (uniform
+    consumer-facing rate, centralized collection, no
+    transaction-relevant distinction, mirrors the no-local-tax
+    state pattern in IN/KY/MI/RI/ME) is documented in the module
+    docstring's "Encoding decision" section and locked in by a
+    regression test
+    (``test_puerto_rico_module_docstring_documents_combined_rate_rationale``)
+    that asserts both 10.5% and 1.0% appear in the docstring,
+    that "encoding decision" appears, and that both controlling
+    statute citations (§ 32021 and § 32024) appear. A future
+    maintainer who needs the legal split for compliance
+    reporting can revisit the encoding without losing the
+    rationale, and the legal components remain traceable from
+    the docstring even if the runtime rate row is collapsed.
+  - **Grocery exemption is narrow.** 13 L.P.R.A. § 32023 covers
+    "alimentos e ingredientes de alimentos" -- unprepared food
+    and food ingredients only -- but a casual reader could
+    assume "grocery exemption" means all food. The
+    ``groceries`` taxability rule's notes EXPLICITLY call out
+    that prepared food, restaurant meals, candy, soft drinks,
+    and dietary supplements remain TAXABLE at the full 11.5%
+    combined rate, and a regression test
+    (``test_puerto_rico_groceries_notes_cite_section_32023_and_call_out_prepared_food``)
+    locks in those exclusion call-outs.
+  - **Prescription drug exemption excludes OTC medications.**
+    13 L.P.R.A. § 32023's "medicamentos recetados" exemption is
+    limited to drugs dispensed pursuant to a prescription from
+    an authorized health professional. OTC medications (pain
+    relievers, vitamins, allergy medication, etc.) remain
+    TAXABLE at the full 11.5% combined rate. The
+    ``prescription_drugs`` rule's notes call this out
+    explicitly; an integrator handling OTC line items in PR
+    must categorize them under ``general`` rather than
+    ``prescription_drugs``.
+  - **4% Special IVU on B2B services is OUT OF SCOPE for v1.**
+    13 L.P.R.A. § 32022 imposes a SEPARATE 4% Special IVU on
+    business-to-business service transactions and on certain
+    designated services (added by Act No. 72 of 2015). This is
+    a parallel tax base, not a modifier on the 11.5% retail
+    rate; ``parse_rates`` does NOT emit a 4% rate, and an
+    integrator computing tax on B2B service transactions in PR
+    must apply that rate separately. The ``digital_goods``
+    rule's notes point integrators toward § 32022 for B2B
+    digital service transactions to prevent silent
+    miscategorization.
+  - **"Dias sin IVU" holiday is ad hoc, not statutory.** PR has
+    historically held an annual back-to-school sales-tax
+    holiday but it is enacted each year by the legislature via
+    separate legislation; it is NOT codified as a permanent
+    recurring exemption in the Codigo de Rentas Internas. As of
+    module ship date (2026-05-03), the Departamento de Hacienda
+    had NOT published an official Carta Circular announcing the
+    2026 dates or scope. ``holidays_for(year)`` returns empty
+    for every year until officially announced; a defensive
+    regression test
+    (``test_puerto_rico_holidays_for_all_years_returns_empty``)
+    pins this no-holiday-yet position across 2024-2030. When
+    Hacienda announces the 2026 (or 2027, etc.) dates, the
+    appropriate response is to add a HolidayWindow with the
+    announced dates, scope (uniforms + school supplies +/-
+    backpacks), and any per-item amount cap; cite the
+    controlling Carta Circular by reference number and date in
+    the rule's notes; and explicitly relax the regression test
+    for the affected year.
+  - **Spanish-language primary sources.** PR's primary statutes
+    are codified in Spanish; the L.P.R.A. English translations
+    are reliable secondary references but the Spanish text is
+    authoritative in the event of any translation ambiguity.
+    No translation-derived ambiguity was encountered during
+    this module's research -- the rate structure (10.5% +
+    1.0% = 11.5%), the grocery / prescription-drug exemptions,
+    and the 4% Special IVU on B2B services are unambiguous
+    across both languages and across the L.P.R.A. + Hacienda
+    publications consulted. If a future contributor encounters
+    an ambiguity (particularly around Hacienda Carta Circular
+    interpretations of edge cases), the appropriate response
+    is to flag the ambiguity in the relevant rule's notes and
+    to defer to the Spanish primary text.
+  - **No other US territories in the catalog.** PR is currently
+    the only US-territory entry. If/when USVI, Guam, American
+    Samoa, or the Northern Mariana Islands are added, the
+    catalog should be extended and a similar US-territory
+    framing applied to each. The PR module is the reference
+    template for that future work.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**
