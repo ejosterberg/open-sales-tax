@@ -525,12 +525,12 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # expect bare statewide 6.25%. Acts as a regression guard for the
     # verified-0% counties block in IL_COUNTY_RATE_PCT.
     ("IL", "Kankakee (verified 0% county)", "60901", "0001", "6.250", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Kankakee 0% verified) -- v0.30 long-tail fill"),
-    # PA: agent's original row claimed Gibsonia (15044) was an
-    # Allegheny suburb. It's actually in BUTLER County, which has 0%
-    # local PA sales tax. Engine correctly returns state-only 6%.
-    # For an actual Allegheny-county-suburb regression guard use
-    # Bethel Park 15102 or McKeesport 15131.
-    ("PA", "Gibsonia (Butler Co)", "15044", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Gibsonia is Butler County, NOT Allegheny)"),
+    # PA: ZIP 15044 (Gibsonia) physically straddles the Allegheny/Butler
+    # county line. Census ZCTA lists both. After v0.31's FIPS-sorted
+    # dedup, the lower-FIPS county wins (Allegheny 003 < Butler 019).
+    # Per USPS the 15044 post office is in Pine Township, Allegheny
+    # County, so this binding is correct on the address-centroid view.
+    ("PA", "Gibsonia (Allegheny portion)", "15044", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1%) -- ZIP straddles county line; 15044 PO is Pine Twp, Allegheny"),
     ("PA", "Bethel Park (Allegheny suburb)", "15102", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1%) -- post-v0.29 ZCTA confirms Allegheny-wide coverage"),
     # PA: Lancaster County edge ZIP (Manheim Township) -- Lancaster
     # County has 0% local so combined is 6.0% statewide flat.
