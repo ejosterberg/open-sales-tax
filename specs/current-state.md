@@ -1,20 +1,20 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-04
-**Status:** **v0.24.0 shipped.** SST loader + lookup engine now
+**Status:** **v0.25.0 shipped.** SST loader + lookup engine now
 matches every Tier-1 SST state's published DOR rate within 0.05%
-across **89 sampled city/ZIP+4 combos** (live regression test
-guards against drift on every deploy). Friendly authority names
-cover most major + secondary cities of every SST member state +
-Arizona TPT now exposes per-county + top-20-city rates (Phoenix
-9.10% combined). v0.24 ships three big things at once: (1) TN
-Brentwood/Franklin double-counting bug (was 14.75% / 17.5%, now
-9.75%) — root cause was the SST parser loading expired historical
-boundary records; fix is a date-active filter at parse time; (2)
-new `data restore` CLI + CI workflow that pre-builds a Postgres
-pg_dump on every release tag so new users go from `pip install`
-to working in <2 min instead of 50; (3) 30 new friendly authority
-names (NE x11, OH x3 transit, WA x6, OK x10). 1292 unit tests.
+across **153 sampled city/ZIP+4 combos** on the live engine.
+Coverage explosion this iter: 5 newly-seeded non-SST states
+(CT/MO/MS/SC/VA) move from state-only to per-county + per-city,
+Arizona widens 20→48 cities, GA gets district friendly names
+(Fulton TSPLOST, DeKalb MARTA), OK gets Newcastle, plus 14 DOR
+regression rows for cities that became correct after v0.24's
+expired-record filter (TN Brentwood/Franklin, GA Alpharetta,
+MN suburbs, AZ secondary cities). Pre-built data dumps now ship
+with every release via the CI workflow at
+`.github/workflows/build-data-dump.yml` — new users go from
+`pip install` to working in <2 min via `opensalestax data restore`.
+1317 unit tests, mypy clean, ruff clean.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
 the gating dependency for proper home-rule / parish / municipal
@@ -71,6 +71,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.22.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.22.0) | 2026-05-04 | OK Norman 12.625% double-counting fixed (loose-fallback picks closest +4); SST parser zero-pads +4 ranges; 8 new friendly names (KS Olathe, TN Clarksville/Murfreesboro, OK Moore/Lawton/Ardmore/Bethany/Broken Arrow/Ponca City, SD Aberdeen); DOR grid 41 → 49 ZIPs |
 | [v0.23.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.23.0) | 2026-05-04 | Arizona TPT loader: per-county + top-20-city seeded from AZ DOR May 2026 CSV. Phoenix 5.6% → 9.10% combined. Loader fix: `_maybe_load_boundaries` now invokes `parse_boundaries(None, ...)` for self_seeded states. DOR grid 49 → 60 ZIPs. |
 | [v0.24.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.24.0) | 2026-05-04 | TN Brentwood 14.75% → 9.75% (parser now filters expired boundary records via `_record_active_on`); backported to MN/WI/GA. New `opensalestax data restore` CLI + CI workflow that pre-builds a Postgres pg_dump per release tag — new-user install goes from 50 min to <2 min. 30 new friendly names (NE x11, OH x3 transit, WA x6, OK x10). 3 parallel sub-agents in worktrees shipped 1900+ lines. DOR grid 60 → 89 ZIPs. |
+| [v0.25.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.25.0) | 2026-05-04 | 5 newly-seeded non-SST states (CT/MO/MS/SC/VA) move from state-only to per-county + per-city. Arizona widens 20 → 48 cities (4 new counties online: Cochise/Santa Cruz/Gila/Navajo). GA district friendly names (Fulton TSPLOST, DeKalb MARTA, Fayette District). OK Newcastle (city 51150). 2 parallel sub-agents in worktrees shipped ~600 lines of state data. DOR grid 89 → 153 ZIPs. |
 
 ## Coverage (after v0.5)
 
