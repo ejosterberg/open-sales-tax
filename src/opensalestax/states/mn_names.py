@@ -131,76 +131,29 @@ MN_COUNTY_NAMES: dict[str, str] = {
 
 # ---------------------------------------------------------------------------
 # Cities (key = SST jurisdiction_code from rate-file col3 for type-01 rows)
-# Hand-curated from MN DOR Fact Sheet 164 + the 2026Q2 SST rate file.
-# Cities not listed fall back to "MN-city-<code>" via _authority_name.
+#
+# Hand-verified against the live engine + MN DOR sales-tax-rate calculator.
+# Pre-2026 versions of this module had ~60 entries derived from naming
+# patterns alone -- many were wrong (St. Paul code 58000 was mislabelled
+# "Sebeka" because the SST jurisdiction codes don't follow FIPS conventions).
+# This minimal set is the verified subset; cities not listed fall back to
+# the placeholder "MN-city-<code>" so a code surfaces visibly until a
+# maintainer cross-checks the friendly name and adds it.
+#
+# Verification protocol: pick a ZIP+4 that is unambiguously inside the
+# city per the city's own GIS, run our engine + the MN DOR calculator at
+# revenue.state.mn.us/sales-tax-rate-calculator for the same ZIP+4, and
+# confirm both calculators emit the same combined rate AND the city
+# component matches in name + percentage.
 # ---------------------------------------------------------------------------
 MN_CITY_NAMES: dict[str, str] = {
-    "05068": "Avon",
-    "06000": "Baxter",
-    "07642": "Bemidji",
-    "08182": "Blue Earth",
-    "12952": "Brainerd",
-    "13780": "Cambridge",
-    "14176": "Carlton",
-    "16292": "Cloquet",
-    "18260": "Crookston",
-    "19952": "Detroit Lakes",
-    "20762": "Duluth",
-    "23166": "Elk River",
-    "23930": "Excelsior",
-    "26108": "Fergus Falls",
-    "26954": "Floodwood",
-    "28565": "Garrison",
-    "29528": "Giants Ridge Recreation Area",
-    "29942": "Glenwood",
-    "30248": "Grand Marais",
-    "30482": "Grand Rapids",
-    "31886": "Hastings",
-    "32104": "Hermantown",
-    "32750": "Hibbing",
-    "32804": "Hill City",
-    "33344": "Hutchinson",
-    "34928": "International Falls",
-    "37070": "Kanabec",
-    "39878": "Mankato",
-    "41036": "Marshall",
-    "42344": "Medford",
+    "06616": "Bloomington",
+    "40166": "Maple Grove",
     "43000": "Minneapolis",
-    "43432": "Minnetonka",
-    "44260": "Moorhead",
-    "44380": "Moose Lake",
-    "44782": "Morris",
-    "45520": "Mountain Iron",
-    "46042": "New London",
-    "46888": "New Ulm",
-    "47026": "Nisswa",
-    "47272": "North Branch",
-    "47476": "Northfield",
-    "48688": "Olivia",
-    "49222": "Owatonna",
-    "50188": "Park Rapids",
-    "50722": "Pelican Rapids",
-    "51730": "Plainview",
-    "52270": "Proctor",
-    "52864": "Red Wing",
-    "53000": "Rochester",
-    "54304": "St. Cloud",
-    "54880": "St. Joseph",
-    "55168": "St. Paul",
-    "55510": "St. Peter",
-    "57220": "Sauk Centre",
-    "58000": "Sebeka",
-    "58504": "Shakopee",
-    "59668": "Stillwater",
-    "62020": "Two Harbors",
-    "63092": "Walker",
-    "63862": "Warren",
-    "63988": "Waseca",
-    "64294": "Watertown",
-    "64798": "West St. Paul",
-    "65602": "Willmar",
-    "66202": "Winona",
-    "66724": "Worthington",
+    "55852": "Roseville",
+    "58000": "St. Paul",
+    "69700": "West St. Paul",
+    "71428": "Woodbury",
 }
 
 # ---------------------------------------------------------------------------

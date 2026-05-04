@@ -146,18 +146,15 @@ class Minnesota:
         plus city and special-district (where the SST file
         records them). The MN DOR sales-tax-rate calculator at
         revenue.state.mn.us/sales-tax-rate-calculator stacks these
-        same authorities; without all four levels the engine
-        under-collects by the city + district portion (e.g. ZIP
-        55417-2130 owes 9.025% combined; missing Minneapolis 0.5%
-        + Hennepin County Transit 0.5% + Metro Area Transportation
-        0.75% + Metro Area Tax for Housing 0.25% drops it to
-        7.025%).
+        same authorities.
 
         Both record types contribute:
-        - ``z`` records cover the full ZIP5 (zip4 fields blank);
-          they bind state/county/city/district at the ZIP-level.
+        - ``z`` records cover ZIP5 RANGES (``zip5_low`` may differ
+          from ``zip5_high``; e.g. one Dakota County row covers
+          55120-55124 in a single record). The range is expanded
+          to one boundary per ZIP in [low, high] inclusive.
         - ``4`` records carry ZIP+4 ranges (zip4_low/high) for
-          address-precision matching.
+          address-precision matching at a single ZIP5.
 
         Per-ZIP de-duplication keeps the boundary table compact:
         the same (authority, zip5, zip4_low, zip4_high) tuple is
@@ -170,22 +167,22 @@ class Minnesota:
                 continue
             if not record.zip5_low:
                 continue
-            zip5 = record.zip5_low
             zip4_low = record.zip4_low if record.record_type == "4" else None
             zip4_high = record.zip4_high if record.record_type == "4" else None
 
-            for authority_type, authority_name in self._authority_bindings(record):
-                key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
-                if key in seen:
-                    continue
-                seen.add(key)
-                yield BoundaryRow(
-                    authority_name=authority_name,
-                    authority_type=authority_type,
-                    zip5=zip5,
-                    zip4_low=zip4_low,
-                    zip4_high=zip4_high,
-                )
+            for zip5 in _expand_zip5_range(record.zip5_low, record.zip5_high):
+                for authority_type, authority_name in self._authority_bindings(record):
+                    key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    yield BoundaryRow(
+                        authority_name=authority_name,
+                        authority_type=authority_type,
+                        zip5=zip5,
+                        zip4_low=zip4_low,
+                        zip4_high=zip4_high,
+                    )
 
     @staticmethod
     def _authority_bindings(record):
@@ -221,6 +218,24 @@ class Minnesota:
         """Minnesota has no annual sales-tax holidays."""
         del year
         return iter(())
+
+
+def _expand_zip5_range(low: str, high: str) -> Iterable[str]:
+    """Yield each ZIP5 in the inclusive [low, high] range.
+
+    SST z-records can collapse runs of contiguous ZIP5s into a
+    single row (e.g. 55120-55124). Expanding here keeps the
+    downstream emit-one-boundary-per-zip logic simple. Falls back
+    to a single-element iter when low == high or when the bounds
+    aren't both 5-digit numerics.
+    """
+    if not low.isdigit() or len(low) != 5:
+        return
+    if not high or not high.isdigit() or len(high) != 5 or high < low:
+        yield low
+        return
+    for n in range(int(low), int(high) + 1):
+        yield f"{n:05d}"
 
 
 def _authority_name(code: str, authority_type: str) -> str:
