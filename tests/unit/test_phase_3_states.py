@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Tests for the Phase 3 tier-1 states: TX, NY, FL.
+"""Tests for the Phase 3 tier-1 states: TX, FL.
+
+NY was originally part of Phase 3 but graduated to a dedicated
+test module (``test_state_new_york.py``) in v0.26 once the loader
+ratcheted from "statewide-only" to per-county + MCTD + per-city
+coverage; the parametrized assertions here (parse_rates yields one
+row, parse_boundaries returns empty) no longer hold for NY.
 
 Each module follows the California pattern (self_seeded, statewide
 rate, full taxability matrix). Tests verify metadata, registration,
@@ -16,14 +22,12 @@ import pytest
 
 from opensalestax.states import get_state_module
 from opensalestax.states.florida import FLORIDA, Florida
-from opensalestax.states.new_york import NEW_YORK, NewYork
 from opensalestax.states.protocol import StateModule
 from opensalestax.states.texas import TEXAS, Texas
 
 # (instance, abbrev, full name, expected statewide rate)
 PHASE_3_STATES = [
     (TEXAS, "TX", "Texas", Decimal("6.250"), Texas),
-    (NEW_YORK, "NY", "New York", Decimal("4.000"), NewYork),
     (FLORIDA, "FL", "Florida", Decimal("6.000"), Florida),
 ]
 
@@ -157,7 +161,12 @@ def test_taxability_clothing_is_taxable_in_all_three(instance, _abbrev, _name, _
 
 
 def test_phase_3_increases_tier_1_count_to_11() -> None:
-    """7 (Phase 1) + 1 (CA, Phase 2) + 3 (Phase 3) = 11 tier-1 states."""
+    """7 (Phase 1) + 1 (CA, Phase 2) + 3 (Phase 3) = 11 tier-1 states.
+
+    NY remains a tier-1 state; only its per-state assertions moved to
+    ``test_state_new_york.py``. The presence-in-tier-1 invariant still
+    belongs here so the Phase 3 graduation set is one place.
+    """
     from opensalestax.states import all_states
 
     tier_1 = [s for s in all_states() if s.tier == 1]

@@ -286,6 +286,26 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("FL", "Gainesville", "32601", "0001", "7.500", "0.05", "FL DOR DR-15DSS (state 6% + Alachua 1.5%)"),
     ("FL", "Lakeland", "33801", "0001", "7.000", "0.05", "FL DOR DR-15DSS (state 6% + Polk 1%)"),
     ("FL", "Cape Coral", "33904", "0001", "6.500", "0.05", "FL DOR DR-15DSS (state 6% + Lee 0.5% school)"),
+    # New York -- NY DTF Publication 718 (verified 2026-05-04;
+    # cross-checked NYC + Buffalo + Yonkers against Avalara per-city pages)
+    # Combined = state 4% + per-county + MCTD 0.375% (where applicable)
+    # + city (NYC 4.5%, Yonkers 1.5%, NR/Mt.V/WP 1%; 0% elsewhere).
+    # NYC's five boroughs all share 8.875% via the consolidated city
+    # entry "New York City"; Yonkers also lands at 8.875% with a
+    # different breakdown (state + Westchester + MCTD + Yonkers city).
+    ("NY", "New York City (Manhattan)", "10001", "0001", "8.875", "0.05", "NY DTF Pub 718 (state 4% + NYC 4.5% + MCTD 0.375%)"),
+    ("NY", "New York City (Bronx)", "10451", "0001", "8.875", "0.05", "NY DTF Pub 718 (Bronx County borough; same combined rate as Manhattan)"),
+    ("NY", "New York City (Brooklyn)", "11201", "0001", "8.875", "0.05", "NY DTF Pub 718 (Kings County borough)"),
+    ("NY", "New York City (Queens)", "11354", "0001", "8.875", "0.05", "NY DTF Pub 718 (Queens County borough)"),
+    ("NY", "New York City (Staten Island)", "10301", "0001", "8.875", "0.05", "NY DTF Pub 718 (Richmond County borough)"),
+    ("NY", "Buffalo", "14202", "0001", "8.750", "0.05", "NY DTF Pub 718 (state 4% + Erie 4.75%; no MCTD upstate)"),
+    ("NY", "Rochester", "14604", "0001", "8.000", "0.05", "NY DTF Pub 718 (state 4% + Monroe 4%; no MCTD)"),
+    ("NY", "Yonkers", "10701", "0001", "8.875", "0.05", "NY DTF Pub 718 (state 4% + Westchester 3% + MCTD 0.375% + Yonkers 1.5%)"),
+    ("NY", "Syracuse", "13202", "0001", "8.000", "0.05", "NY DTF Pub 718 (state 4% + Onondaga 4%; no MCTD)"),
+    ("NY", "Albany", "12207", "0001", "8.000", "0.05", "NY DTF Pub 718 (state 4% + Albany 4%; no MCTD)"),
+    ("NY", "White Plains", "10601", "0001", "8.375", "0.05", "NY DTF Pub 718 (state 4% + Westchester 3% + MCTD 0.375% + White Plains 1%)"),
+    ("NY", "Hempstead", "11550", "0001", "8.625", "0.05", "NY DTF Pub 718 (state 4% + Nassau 4.25% + MCTD 0.375%; no city tax)"),
+    ("NY", "Brentwood", "11717", "0001", "8.625", "0.05", "NY DTF Pub 718 (state 4% + Suffolk 4.25% + MCTD 0.375%; no city tax)"),
 ]
 
 
