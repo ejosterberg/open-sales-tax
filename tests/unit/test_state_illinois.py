@@ -67,8 +67,12 @@ def test_illinois_parse_rates_yields_state_county_district_city() -> None:
     brittle asserts when cities are added):
 
     - 1 state row at 6.25%
-    - one county row per distinct county touched by a covered city
-    - one district row per distinct RTA tier touched
+    - one county row per county in IL_COUNTY_RATE_PCT (all 102 IL
+      counties so the ZIP_COUNTY-driven boundary loader can resolve
+      every IL ZIP to its county authority -- v0.29)
+    - one district row per RTA tier in IL_RTA_DISTRICTS (both Cook
+      and Collar are emitted so the boundary loader can bind them
+      via the ZIP_COUNTY pass)
     - one city row per IL_CITIES entry
     """
     rows = list(ILLINOIS.parse_rates(None, "v0.x-top-20"))
@@ -82,13 +86,16 @@ def test_illinois_parse_rates_yields_state_county_district_city() -> None:
     assert state_rows[0].rate_pct == IL_STATE_RATE_PCT
     assert state_rows[0].parent_authority_name is None
 
-    expected_counties = {county for county, _, _, _ in IL_CITIES.values()}
-    assert {r.authority_name for r in county_rows} == expected_counties
+    # Every IL_COUNTY_RATE_PCT entry yields a county RateRow now.
+    from opensalestax.states.il_data import IL_COUNTY_RATE_PCT
+    assert {r.authority_name for r in county_rows} == set(IL_COUNTY_RATE_PCT)
+    # Original city-touched counties remain present (regression guard).
+    city_touched_counties = {county for county, _, _, _ in IL_CITIES.values()}
+    assert city_touched_counties.issubset({r.authority_name for r in county_rows})
 
-    expected_rtas = {
-        rta for _, rta, _, _ in IL_CITIES.values() if rta is not None
-    }
-    assert {r.authority_name for r in district_rows} == expected_rtas
+    # Both RTA districts emitted (Cook and Collar) so the boundary
+    # loader can bind them to ZIPs in their respective counties.
+    assert {r.authority_name for r in district_rows} == set(IL_RTA_DISTRICTS)
     for r in district_rows:
         assert r.parent_authority_name == "Illinois"
         assert r.rate_pct == IL_RTA_DISTRICTS[r.authority_name]

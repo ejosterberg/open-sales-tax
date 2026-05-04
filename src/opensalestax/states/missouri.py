@@ -25,16 +25,29 @@ the Branson Lakes Area Convention and Visitors Bureau district).
 The v0.25 ratchet seeds the **top 15 cities by population** with
 state + per-county + per-city rates from the MO DOR 2026 Sales/Use
 Tax Rate Tables, cross-checked against Avalara per-city pages.
-Cities seeded: Kansas City, St. Louis (city), Springfield,
+Cities seeded: Kansas City, St. Louis city, Springfield,
 Independence, Columbia, Lee's Summit, O'Fallon, St. Joseph,
 St. Charles, St. Peters, Joplin, Florissant, Chesterfield,
-Jefferson City, Cape Girardeau. Special districts (CIDs, TDDs,
-zoological districts) overlay the city/county rates and are NOT
-modeled here -- a covered ZIP's combined rate is state + county +
-city only, with the actual rate at any specific +4 potentially
-higher due to special-district overlays. See
-:mod:`opensalestax.states.mo_data` for the per-city rates and ZIP
-coverage.
+Jefferson City, Cape Girardeau.
+
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28). All 115 MO counties + St. Louis
+city are seeded in :data:`MO_COUNTY_RATE_PCT` and
+:meth:`Missouri.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` to bind every MO
+ZIP to its county. The 105 counties added beyond the original
+top-15 city seed sit at a 0.000% PLACEHOLDER rate (Taney County
+1.875% is the one verified non-zero); a future maintainer should
+parse the MO DOR jan2026 PDF (each county's base rate appears on
+the row with code suffix `-000`) and bump non-zero counties out
+of the 0% block.
+
+Special districts (CIDs, TDDs, zoological districts) overlay the
+city/county rates and are NOT modeled here -- a covered ZIP's
+combined rate is state + county + city only, with the actual rate
+at any specific +4 potentially higher due to special-district
+overlays. See :mod:`opensalestax.states.mo_data` for the per-city
+rates and ZIP coverage.
 
 Taxability matrix (per Mo. Rev. Stat. Title X, Chapter 144 --
 sales/use tax):
@@ -127,6 +140,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.mo_data import (
     MO_CITIES,
     MO_COUNTY_RATE_PCT,
@@ -270,11 +285,16 @@ class Missouri:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield MO's state + per-county + per-city rates.
 
-        Counties yielded: only those touched by an MO_CITIES entry.
-        Cities yielded: every MO_CITIES entry. ``source_file`` is
-        intentionally ignored -- MO is non-SST and has no upstream
-        file. Special-district overlays (CIDs, TDDs, zoological
-        districts) are NOT yielded; see the module docstring.
+        Counties yielded: every county in :data:`MO_COUNTY_RATE_PCT`
+        (all 115 MO counties + St. Louis city). The ZIP_COUNTY-driven
+        boundary loader binds every MO ZIP to its county, so every
+        county must have a queryable rate (the long tail of 105
+        beyond the original seed sit at 0% pending maintainer audit
+        of MO DOR rate tables). Cities yielded: every MO_CITIES
+        entry. ``source_file`` is intentionally ignored -- MO is
+        non-SST and has no upstream file. Special-district overlays
+        (CIDs, TDDs, zoological districts) are NOT yielded; see the
+        module docstring.
         """
         del source_file, version_label
         yield RateRow(
@@ -285,54 +305,114 @@ class Missouri:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_counties = {county for county, _, _ in MO_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a county RateRow for every MO county.
+        for mo_county_name in sorted(MO_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=mo_county_name,
                 authority_type="county",
-                rate_pct=MO_COUNTY_RATE_PCT[county_name],
+                rate_pct=MO_COUNTY_RATE_PCT[mo_county_name],
                 effective_from=MO_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Missouri",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(MO_CITIES.items()):
+        for city_name, (city_county, city_rate, _zips) in sorted(MO_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=MO_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every MO ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every MO ZIP. This method ADDS county + city bindings for the
-        15 covered cities. ZIPs in covered counties but outside the
-        city list keep the Census state-only binding (correct: 4.225%
-        statewide); a future ratchet should extend coverage.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           MO county. This covers the entire state -- not just the
+           ZIPs in the top-15 city seed -- so a ZIP outside any
+           covered city now resolves to state + county (combined
+           4.225% + per-county portion) instead of state-only.
+
+        2. Fall back to :data:`MO_CITIES` for any city ZIP missed by
+           the Census pass and emit the city BoundaryRow on top of
+           the state + county stack.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`MO_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties and could
+        double-count any county tax.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in MO_CITIES.items():
+        # Build city-anchor county map for cross-county-line ZIPs.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _r, czs) in MO_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every MO ZIP per Census ZCTA.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "MO":
+                    continue
+                mo_county_name = county_name("MO", county_fips)
+                if mo_county_name is None or mo_county_name not in MO_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if mo_county_name == preferred_county:
+                        chosen_county = mo_county_name
+                        break
+                    continue
+                chosen_county = mo_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Missouri",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+
+        # Pass 2: city BoundaryRows for MO_CITIES.
+        for city_name, (city_county, _city_rate, zips) in MO_CITIES.items():
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="Missouri",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="Missouri",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

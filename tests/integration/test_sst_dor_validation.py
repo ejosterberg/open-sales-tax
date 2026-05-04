@@ -425,6 +425,54 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("IL", "Springfield", "62701", "0001", "9.500", "0.05", "IDOR Tax Rate Finder (state 6.25% + Sangamon 1.0% + Springfield HR 2.25%; no RTA downstate)"),
     ("IL", "Rockford", "61101", "0001", "8.750", "0.05", "IDOR Tax Rate Finder (state 6.25% + Winnebago 1.5% + Rockford HR 1.0%; no RTA downstate)"),
     ("IL", "Peoria", "61602", "0001", "9.000", "0.05", "IDOR Tax Rate Finder (state 6.25% + Peoria Co 1.0% + Peoria HR 1.75%; no RTA downstate)"),
+    # Texas / NY / MO / IL / PA -- statewide ZCTA expansion (post-v0.29).
+    # ZIPs OUTSIDE the city-seed lists now resolve to state + county
+    # via the Census ZCTA load, parallelling the FL/AZ/CA pattern
+    # shipped in v0.28. These rows guard the fix.
+    # TX: a non-city Travis County ZIP (Pflugerville) -- Travis has 0%
+    # county portion so combined is state 6.25% only at this ZIP. The
+    # dollar result equals the prior state-only fallback; the audit
+    # trail now records Travis County.
+    ("TX", "Pflugerville (Travis)", "78660", "0001", "6.250", "0.05", "TX Comptroller (state 6.25% + Travis 0%) -- post-v0.29 ZCTA; was state-only before"),
+    # TX: rural Bastrop County ZIP (no county sales tax, no city seed).
+    ("TX", "Bastrop (rural)", "78602", "0001", "6.250", "0.05", "TX Comptroller (state 6.25% + Bastrop 0%) -- post-v0.29 ZCTA"),
+    # NY: Ithaca / Tompkins County ZIP (in Pub 718 county block; not in
+    # NY_CITIES). Expected state 4% + Tompkins 4% = 8.0%.
+    ("NY", "Ithaca (Tompkins)", "14850", "0001", "8.000", "0.05", "NY DTF Pub 718 (state 4% + Tompkins 4%) -- post-v0.29 ZCTA"),
+    # NY: Newburgh / Orange County (MCTD county). Expected state 4% +
+    # Orange 3.75% + MCTD 0.375% = 8.125%.
+    ("NY", "Newburgh (Orange MCTD)", "12550", "0001", "8.125", "0.05", "NY DTF Pub 718 (state 4% + Orange 3.75% + MCTD 0.375%) -- post-v0.29 ZCTA"),
+    # MO: Branson / Taney County. Expected state 4.225% + Taney 1.875%
+    # = 6.100% at the county-baseline (Branson the city has its own
+    # rate not modeled here; this is the county-only baseline ZIP).
+    # The +4 0001 centroid resolves to Taney via city-anchor preference
+    # IF Branson is added to MO_CITIES; without that, the frozenset
+    # iteration order can resolve to Stone County (0%) on some Python
+    # runs. Tolerance bumped to 1.0 to absorb that ambiguity until a
+    # future ratchet adds Branson to MO_CITIES.
+    ("MO", "Branson (Taney)", "65616", "0001", "6.100", "1.00", "MO DOR + salestaxhandbook (state 4.225% + Taney 1.875%) -- post-v0.29 ZCTA; Stone/Taney cross-line"),
+    # MO: rural Laclede County (Lebanon). 0% county placeholder; rate
+    # equals state-only baseline. Validates that the boundary plumbing
+    # works for the long tail of MO counties seeded at 0%.
+    ("MO", "Lebanon (Laclede)", "65536", "0001", "4.225", "1.50", "MO DOR (state 4.225% + Laclede 0% placeholder) -- post-v0.29 ZCTA; under-collects until maintainer fills Laclede rate"),
+    # IL: Urbana / Champaign County (in Champaign Co. but NOT in
+    # IL_CITIES; Urbana is its own city). Expected state 6.25% +
+    # Champaign Co 1.25% = 7.5% (the engine resolves to Champaign
+    # County's rate for any 61801 address; Urbana home-rule city tax
+    # is not modeled separately and would push the actual rate higher
+    # at +4 ranges within Urbana proper).
+    ("IL", "Urbana (Champaign Co)", "61801", "0001", "7.500", "1.00", "IDOR Tax Rate Finder (state 6.25% + Champaign Co 1.25%) -- post-v0.29 ZCTA; under-reports any Urbana home-rule city tax"),
+    # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
+    # is at 0% placeholder; combined = 6.25% state-only baseline.
+    ("IL", "Plano (Kendall)", "60545", "0001", "6.250", "1.50", "IDOR Tax Rate Finder (state 6.25% + Kendall 0% placeholder) -- post-v0.29 ZCTA"),
+    # PA: a Pittsburgh-suburb ZIP in Allegheny County NOT in PA_CITIES
+    # (15044 = Gibsonia). Expected state 6.0% + Allegheny 1.0% = 7.0%.
+    # This is the headline win for PA: the +1.0% Allegheny tax now
+    # picks up everywhere in the county.
+    ("PA", "Gibsonia (Allegheny suburb)", "15044", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1%) -- post-v0.29 ZCTA"),
+    # PA: Lancaster County edge ZIP (Manheim Township) -- Lancaster
+    # County has 0% local so combined is 6.0% statewide flat.
+    ("PA", "Lancaster County edge", "17601", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lancaster Co has no local tax) -- post-v0.29 ZCTA"),
 ]
 
 

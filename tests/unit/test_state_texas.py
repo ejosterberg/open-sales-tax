@@ -93,7 +93,9 @@ def test_texas_parse_rates_yields_state_county_district_city() -> None:
     asserts when cities are added):
 
     - 1 state row at 6.25%
-    - one county row per distinct county touched by a covered city
+    - one county row per county in TX_COUNTY_RATE_PCT (all 254 TX
+      counties so the ZIP_COUNTY-driven boundary loader can resolve
+      every TX ZIP to its county authority -- v0.29)
     - one district row per distinct transit district touched
     - one city row per TX_CITIES entry
     """
@@ -108,8 +110,15 @@ def test_texas_parse_rates_yields_state_county_district_city() -> None:
     assert state_rows[0].rate_pct == TX_STATE_RATE_PCT
     assert state_rows[0].parent_authority_name is None
 
-    expected_counties = {county for county, _, _, _ in TX_CITIES.values()}
-    assert {r.authority_name for r in county_rows} == expected_counties
+    # Every TX_COUNTY_RATE_PCT entry yields a county RateRow now
+    # (previously only counties touched by a covered city).
+    from opensalestax.states.tx_data import TX_COUNTY_RATE_PCT
+    assert {r.authority_name for r in county_rows} == set(TX_COUNTY_RATE_PCT)
+    # Every county touched by a covered city must still be present
+    # (regression guard: a future maintainer pruning the dict can't
+    # accidentally drop the original seed counties).
+    city_touched_counties = {county for county, _, _, _ in TX_CITIES.values()}
+    assert city_touched_counties.issubset({r.authority_name for r in county_rows})
 
     expected_transits = {
         transit for _, transit, _, _ in TX_CITIES.values() if transit is not None

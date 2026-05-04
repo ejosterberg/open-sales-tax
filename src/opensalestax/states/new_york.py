@@ -12,17 +12,19 @@ Suffolk, Westchester, Rockland, Dutchess, Orange, Putnam --
 from 7% (a couple of upstate counties) to 8.875% (NYC and
 Yonkers).
 
-**v0.26 ships state + per-county + MCTD-as-district +
-top-30-city coverage** seeded from NY DTF Publication 718
-(retrieved 2026-05-04). New York City is shipped as ONE city
-entry "New York City" with parent county "New York County"
-(Manhattan); the ZIP list covers all five boroughs (Manhattan,
-Bronx, Brooklyn, Queens, Staten Island), all of which share
-the 8.875% combined rate. ZIPs not in the city list fall back
-to state-only at 4.0% via the Census ZCTA load -- a future
-ratchet should iterate Census ZCTA->county data for all 62 NY
-counties to pick up the correct county portion (and MCTD
-surcharge in the 12 MCTD counties) statewide. See
+**Statewide coverage shipped.** All 62 NY counties seeded with
+their per-county portion from NY DTF Publication 718 (retrieved
+2026-05-04), and the boundary loader iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` to bind every NY
+ZIP to its county (and the MCTD 0.375% district surcharge in the
+12 MCTD counties), parallelling the FL/AZ/CA pattern shipped in
+v0.28. Effect: any upstate NY ZIP outside the top-30 city seed
+now resolves to state + county (+ MCTD where applicable) instead
+of falling back to state-only at 4.0%. New York City is shipped
+as ONE city entry "New York City" with parent county "New York
+County" (Manhattan); the ZIP list covers all five boroughs
+(Manhattan, Bronx, Brooklyn, Queens, Staten Island), all of which
+share the 8.875% combined rate. See
 :mod:`opensalestax.states.ny_data` for the per-city rates and
 ZIP coverage.
 
@@ -58,6 +60,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.ny_data import (
     NY_CITIES,
     NY_COUNTY_RATE_PCT,
@@ -140,11 +144,13 @@ class NewYork:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield NY's state + per-county + MCTD + per-city rates.
 
-        Counties yielded: only those touched by an NY_CITIES entry.
-        Cities yielded: every NY_CITIES entry. The MCTD surcharge is
-        emitted once as a single ``district`` authority that sits
-        under the state; per-county MCTD applicability is encoded via
-        the boundary table.
+        Counties yielded: every county in :data:`NY_COUNTY_RATE_PCT`
+        (all 62 NY counties). The ZIP_COUNTY-driven boundary loader
+        binds every NY ZIP to its county, so every county must have a
+        queryable rate. Cities yielded: every NY_CITIES entry. The
+        MCTD surcharge is emitted once as a single ``district``
+        authority that sits under the state; per-county MCTD
+        applicability is encoded via the boundary table.
 
         ``source_file`` is intentionally ignored -- NY is non-SST and
         has no machine-readable upstream rate file in v0.26.
@@ -159,25 +165,25 @@ class NewYork:
             effective_to=None,
             parent_authority_name=None,
         )
-        # MCTD row -- 0.375% district surcharge. Emitted once if any
-        # covered city sits in an MCTD county; the boundary table binds
-        # the district to specific ZIPs.
-        used_counties = {county for county, _, _ in NY_CITIES.values()}
-        if used_counties & NY_MCTD_COUNTIES:
+        # MCTD row -- 0.375% district surcharge. Always emitted now
+        # that the boundary loader binds the MCTD district to every
+        # ZIP in an MCTD county (not just the cities in NY_CITIES).
+        yield RateRow(
+            authority_name=NY_MCTD_DISTRICT_NAME,
+            authority_type="district",
+            rate_pct=NY_MCTD_RATE,
+            effective_from=NY_STATE_EFFECTIVE_FROM,
+            effective_to=None,
+            parent_authority_name="New York",
+        )
+        # Per-county rows -- every NY county. The ZIP_COUNTY-driven
+        # boundary loader binds every NY ZIP to its county, so every
+        # county must have a queryable rate (even the 0% NYC ones).
+        for ny_county_name in sorted(NY_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=NY_MCTD_DISTRICT_NAME,
-                authority_type="district",
-                rate_pct=NY_MCTD_RATE,
-                effective_from=NY_STATE_EFFECTIVE_FROM,
-                effective_to=None,
-                parent_authority_name="New York",
-            )
-        # Per-county rows -- only counties touched by a covered city.
-        for county_name in sorted(used_counties):
-            yield RateRow(
-                authority_name=county_name,
+                authority_name=ny_county_name,
                 authority_type="county",
-                rate_pct=NY_COUNTY_RATE_PCT[county_name],
+                rate_pct=NY_COUNTY_RATE_PCT[ny_county_name],
                 effective_from=NY_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="New York",
@@ -185,55 +191,129 @@ class NewYork:
         # Per-city rows. Most cities have a 0% city rate; only NYC
         # (4.5%), Yonkers (1.5%), New Rochelle / Mount Vernon /
         # White Plains (1.0% each) impose their own city sales tax.
-        for city_name, (county_name, city_rate, _zips) in sorted(NY_CITIES.items()):
+        for city_name, (city_county, city_rate, _zips) in sorted(NY_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=NY_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, MCTD?, city) boundary rows for each covered ZIP.
+        """Yield (state, county, MCTD?, city) boundary rows for every NY ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every NY ZIP; this method ADDS county + city bindings (and the
-        MCTD district binding when the county is one of the 12 MCTD
-        counties) for the 30 covered cities. ZIPs in covered counties
-        but outside the city list keep the Census state-only binding;
-        a future ratchet should extend coverage to all 62 NY counties
-        and all MCTD ZIPs.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county + (optional) MCTD bindings for every
+           ZIP intersecting an NY county. This covers the entire state
+           -- not just the ZIPs in the top-30 city seed -- so any
+           upstate ZIP outside the city list now resolves to its
+           county portion (and MCTD surcharge in the 12 MCTD counties)
+           instead of falling back to state-only at 4.0%.
+
+        2. Fall back to :data:`NY_CITIES` for any city ZIP missed by
+           the Census pass and emit the city BoundaryRow on top of
+           the stack so the city's tax (NYC 4.5%, Yonkers 1.5%, etc.)
+           is layered correctly.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`NY_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties and double-count
+        the local tax.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in NY_CITIES.items():
-            mctd_applies = county_name in NY_MCTD_COUNTIES
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in NY_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _rate, czs) in NY_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county (+ MCTD) for every NY ZIP per Census ZCTA.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "NY":
+                    continue
+                ny_county_name = county_name("NY", county_fips)
+                if ny_county_name is None or ny_county_name not in NY_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if ny_county_name == preferred_county:
+                        chosen_county = ny_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor -- take the first NY county.
+                chosen_county = ny_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="New York",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            if chosen_county in NY_MCTD_COUNTIES:
+                yield BoundaryRow(
+                    authority_name=NY_MCTD_DISTRICT_NAME,
+                    authority_type="district",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+            emitted_zips.add(zip5)
+
+        # Pass 2: city BoundaryRows for NY_CITIES. Also emit state +
+        # county (+ MCTD) for any city ZIP missed by the Census pass
+        # (USPS-only / PO-box-only ZIPs not in ZCTA) so we never
+        # regress city coverage.
+        for city_name, (city_county, _city_rate, zips) in NY_CITIES.items():
+            mctd_applies = city_county in NY_MCTD_COUNTIES
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="New York",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                if mctd_applies:
+                if zip5 not in emitted_zips:
                     yield BoundaryRow(
-                        authority_name=NY_MCTD_DISTRICT_NAME,
-                        authority_type="district",
+                        authority_name="New York",
+                        authority_type="state",
                         zip5=zip5,
                         zip4_low=None,
                         zip4_high=None,
                     )
+                    yield BoundaryRow(
+                        authority_name=city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    if mctd_applies:
+                        yield BoundaryRow(
+                            authority_name=NY_MCTD_DISTRICT_NAME,
+                            authority_type="district",
+                            zip5=zip5,
+                            zip4_low=None,
+                            zip4_high=None,
+                        )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

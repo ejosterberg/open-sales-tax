@@ -67,8 +67,9 @@ MO_STATE_EFFECTIVE_FROM = dt.date(1984, 1, 1)
 # MO DOR 2026 Sales/Use Tax Rate Tables + Avalara per-county pages.
 # Counties listed are only those touched by a covered city.
 MO_COUNTY_RATE_PCT: dict[str, Decimal] = {
+    # ---- Counties touched by a covered MO_CITIES entry (existing seed) ----
     "Jackson County": Decimal("1.375"),
-    "St. Louis (city)": Decimal("5.454"),  # Independent city; entire local goes here
+    "St. Louis city": Decimal("5.454"),  # Independent city; entire local goes here
     "Greene County": Decimal("1.750"),
     "Boone County": Decimal("1.750"),
     "St. Charles County": Decimal("1.725"),
@@ -77,6 +78,128 @@ MO_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "St. Louis County": Decimal("2.263"),
     "Cole County": Decimal("1.375"),
     "Cape Girardeau County": Decimal("1.500"),
+    # ---- Counties with a verified non-zero rate from salestaxhandbook
+    # (cross-check against MO DOR jan2026 rate tables on next maintainer
+    # pass; rate posted here verified 2026-05-04). ----
+    "Taney County": Decimal("1.875"),  # Branson area; salestaxhandbook 2026
+    # ---- Remaining 104 MO counties (0% baseline placeholder) ----
+    # Source: MO DOR 2026 Sales/Use Tax Rate Tables, retrieved
+    # 2026-05-04 (https://dor.mo.gov/business/sales/rates/2026/).
+    # The 0% baseline below is a CONSERVATIVE PLACEHOLDER -- per the
+    # MO DOR jan2026 PDF many MO counties impose a county sales tax
+    # (typically 1.0%-2.0%) plus ambulance / fire / TDD overlays. A
+    # future maintainer should parse the MO DOR jan2026 PDF (each
+    # county's base rate appears on the row with code suffix `-000`)
+    # and bump non-zero counties out of this 0% block. The boundary
+    # loader binds every MO ZIP to its county here so the plumbing
+    # is in place; until rates are filled in, these counties under-
+    # collect by their county-level addition (combined state 4.225%
+    # + 0% county for non-city ZIPs) -- a strict improvement over
+    # the prior state-only fallback, which lost the audit trail.
+    "Adair County": Decimal("0.000"),
+    "Andrew County": Decimal("0.000"),
+    "Atchison County": Decimal("0.000"),
+    "Audrain County": Decimal("0.000"),
+    "Barry County": Decimal("0.000"),
+    "Barton County": Decimal("0.000"),
+    "Bates County": Decimal("0.000"),
+    "Benton County": Decimal("0.000"),
+    "Bollinger County": Decimal("0.000"),
+    "Butler County": Decimal("0.000"),
+    "Caldwell County": Decimal("0.000"),
+    "Callaway County": Decimal("0.000"),
+    "Camden County": Decimal("0.000"),
+    "Carroll County": Decimal("0.000"),
+    "Carter County": Decimal("0.000"),
+    "Cass County": Decimal("0.000"),
+    "Cedar County": Decimal("0.000"),
+    "Chariton County": Decimal("0.000"),
+    "Christian County": Decimal("0.000"),
+    "Clark County": Decimal("0.000"),
+    "Clay County": Decimal("0.000"),
+    "Clinton County": Decimal("0.000"),
+    "Cooper County": Decimal("0.000"),
+    "Crawford County": Decimal("0.000"),
+    "Dade County": Decimal("0.000"),
+    "Dallas County": Decimal("0.000"),
+    "Daviess County": Decimal("0.000"),
+    "DeKalb County": Decimal("0.000"),
+    "Dent County": Decimal("0.000"),
+    "Douglas County": Decimal("0.000"),
+    "Dunklin County": Decimal("0.000"),
+    "Franklin County": Decimal("0.000"),
+    "Gasconade County": Decimal("0.000"),
+    "Gentry County": Decimal("0.000"),
+    "Grundy County": Decimal("0.000"),
+    "Harrison County": Decimal("0.000"),
+    "Henry County": Decimal("0.000"),
+    "Hickory County": Decimal("0.000"),
+    "Holt County": Decimal("0.000"),
+    "Howard County": Decimal("0.000"),
+    "Howell County": Decimal("0.000"),
+    "Iron County": Decimal("0.000"),
+    "Jefferson County": Decimal("0.000"),
+    "Johnson County": Decimal("0.000"),
+    "Knox County": Decimal("0.000"),
+    "Laclede County": Decimal("0.000"),
+    "Lafayette County": Decimal("0.000"),
+    "Lawrence County": Decimal("0.000"),
+    "Lewis County": Decimal("0.000"),
+    "Lincoln County": Decimal("0.000"),
+    "Linn County": Decimal("0.000"),
+    "Livingston County": Decimal("0.000"),
+    "Macon County": Decimal("0.000"),
+    "Madison County": Decimal("0.000"),
+    "Maries County": Decimal("0.000"),
+    "Marion County": Decimal("0.000"),
+    "McDonald County": Decimal("0.000"),
+    "Mercer County": Decimal("0.000"),
+    "Miller County": Decimal("0.000"),
+    "Mississippi County": Decimal("0.000"),
+    "Moniteau County": Decimal("0.000"),
+    "Monroe County": Decimal("0.000"),
+    "Montgomery County": Decimal("0.000"),
+    "Morgan County": Decimal("0.000"),
+    "New Madrid County": Decimal("0.000"),
+    "Newton County": Decimal("0.000"),
+    "Nodaway County": Decimal("0.000"),
+    "Oregon County": Decimal("0.000"),
+    "Osage County": Decimal("0.000"),
+    "Ozark County": Decimal("0.000"),
+    "Pemiscot County": Decimal("0.000"),
+    "Perry County": Decimal("0.000"),
+    "Pettis County": Decimal("0.000"),
+    "Phelps County": Decimal("0.000"),
+    "Pike County": Decimal("0.000"),
+    "Platte County": Decimal("0.000"),
+    "Polk County": Decimal("0.000"),
+    "Pulaski County": Decimal("0.000"),
+    "Putnam County": Decimal("0.000"),
+    "Ralls County": Decimal("0.000"),
+    "Randolph County": Decimal("0.000"),
+    "Ray County": Decimal("0.000"),
+    "Reynolds County": Decimal("0.000"),
+    "Ripley County": Decimal("0.000"),
+    "Saline County": Decimal("0.000"),
+    "Schuyler County": Decimal("0.000"),
+    "Scotland County": Decimal("0.000"),
+    "Scott County": Decimal("0.000"),
+    "Shannon County": Decimal("0.000"),
+    "Shelby County": Decimal("0.000"),
+    "St. Clair County": Decimal("0.000"),
+    "St. Francois County": Decimal("0.000"),
+    "Ste. Genevieve County": Decimal("0.000"),
+    "Stoddard County": Decimal("0.000"),
+    "Stone County": Decimal("0.000"),
+    "Sullivan County": Decimal("0.000"),
+    "Texas County": Decimal("0.000"),
+    "Vernon County": Decimal("0.000"),
+    "Warren County": Decimal("0.000"),
+    "Washington County": Decimal("0.000"),
+    "Wayne County": Decimal("0.000"),
+    "Webster County": Decimal("0.000"),
+    "Worth County": Decimal("0.000"),
+    "Wright County": Decimal("0.000"),
 }
 
 # Per-city general-retail city portion (NOT including state or county).
@@ -103,7 +226,7 @@ MO_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ),
     ),
     "St. Louis": (
-        "St. Louis (city)",
+        "St. Louis city",
         Decimal("0.000"),  # City rate folded into the independent-city county row
         # St. Louis city limits (independent city; not part of St. Louis County).
         (

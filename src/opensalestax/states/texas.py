@@ -24,12 +24,19 @@ rate pages on 2026-05-04. The module emits four authority types:
 - **city** (combined municipal portion: city tax + EDC 4A/4B +
   crime control + street maintenance + MDD, etc.)
 
-ZIPs not in :data:`tx_data.TX_CITIES` fall back to state-only at
-6.25% via the Census ZCTA load. This is a significant under-
-collection for suburban / unincorporated Texas; a future ratchet
-should add per-county boundary seeds for non-zero counties (today
-only El Paso County) and per-county fallback bindings for the
-~250 Texas counties with no county sales tax.
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28). All 254 TX counties are seeded in
+:data:`TX_COUNTY_RATE_PCT` and :meth:`Texas.parse_boundaries`
+iterates :data:`opensalestax.data.zip_county.ZIP_COUNTY` to bind
+every TX ZIP to its county. The vast majority of TX counties sit
+at 0% county sales tax (TX is a city-tax state under Tex. Tax
+Code Chapter 321), so a non-city TX ZIP resolves to state 6.25%
++ county 0% = 6.25% combined -- the same dollar result as the
+prior state-only fallback, but with the audit trail recording
+which county the ZIP physically sits in. The single non-zero
+county today is El Paso (0.5%); a future maintainer should audit
+the Texas Comptroller's quarterly tables and bump any other
+non-zero counties.
 
 **Sourcing model -- IMPORTANT:** Texas uses **origin-based
 sourcing** for in-state sellers (Tex. Tax Code section 321.203).
@@ -73,6 +80,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -145,10 +154,15 @@ class Texas:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield TX's state + per-county + per-transit + per-city rates.
 
-        Counties yielded: only those touched by a covered city.
-        Transit districts yielded: only those touched by a covered city.
-        Cities yielded: every TX_CITIES entry. ``source_file`` is
-        intentionally ignored -- TX is non-SST and has no upstream file.
+        Counties yielded: every county in :data:`TX_COUNTY_RATE_PCT`
+        (all 254 TX counties). The ZIP_COUNTY-driven boundary loader
+        binds every TX ZIP to its county, so every county must have
+        a queryable rate (almost all are 0% since TX is a city-tax
+        state, but the 0% rows preserve the audit trail).
+        Transit districts yielded: only those touched by a covered
+        city. Cities yielded: every TX_CITIES entry. ``source_file``
+        is intentionally ignored -- TX is non-SST and has no upstream
+        file.
         """
         del source_file, version_label
         yield RateRow(
@@ -159,12 +173,14 @@ class Texas:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_counties = {county for county, _, _, _ in TX_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a RateRow for every TX county. The ZIP_COUNTY-driven
+        # boundary loader binds every TX ZIP to its county, so every
+        # county must have a queryable rate (even 0% ones).
+        for tx_county_name in sorted(TX_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=tx_county_name,
                 authority_type="county",
-                rate_pct=TX_COUNTY_RATE_PCT[county_name],
+                rate_pct=TX_COUNTY_RATE_PCT[tx_county_name],
                 effective_from=TX_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Texas",
@@ -181,45 +197,111 @@ class Texas:
                 effective_to=None,
                 parent_authority_name="Texas",
             )
-        for city_name, (county_name, _transit, city_rate, _zips) in sorted(TX_CITIES.items()):
+        for city_name, (city_county, _transit, city_rate, _zips) in sorted(TX_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=TX_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, transit?, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, transit, city]) boundary rows for every TX ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every TX ZIP. This method ADDS county + (optional) transit +
-        city bindings for the 49 covered cities. ZIPs in covered
-        counties but outside the city list keep the Census state-only
-        binding (under-collects local tax for any address in an
-        incorporated city not on the seed list).
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting a
+           TX county. This covers the entire state -- not just the
+           ZIPs in the top-49 city seed list -- so a ZIP outside any
+           covered city still resolves to state + county (combined
+           6.25% almost everywhere since most TX counties have no
+           county sales tax) instead of falling back to state-only.
+
+        2. Fall back to :data:`TX_CITIES` for any city ZIP missed by
+           the Census pass and emit transit + city BoundaryRows on
+           top of the state + county stack so the city's portion (and
+           transit district where applicable) is layered correctly.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`TX_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties and could
+        double-count any county tax.
         """
         del source_file, version_label
-        for city_name, (county_name, transit_name, _city_rate, zips) in TX_CITIES.items():
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in TX_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _t, _r, czs) in TX_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every TX ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed TX county.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            chosen_county: str | None = None
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "TX":
+                    continue
+                tx_county_name = county_name("TX", county_fips)
+                if tx_county_name is None or tx_county_name not in TX_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if tx_county_name == preferred_county:
+                        chosen_county = tx_county_name
+                        break
+                    continue
+                chosen_county = tx_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Texas",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+
+        # Pass 2: transit + city BoundaryRows for TX_CITIES. Also
+        # emit state + county for any city ZIP missed by the Census
+        # pass (USPS-only / PO-box-only ZIPs not in ZCTA).
+        for city_name, (city_county, transit_name, _city_rate, zips) in TX_CITIES.items():
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="Texas",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="Texas",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
                 if transit_name is not None:
                     yield BoundaryRow(
                         authority_name=transit_name,
