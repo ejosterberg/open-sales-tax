@@ -34,7 +34,7 @@ asyncpg = "^0.30"
 asyncmy = "^0.2.10"
 pydantic = "^2.9"
 pydantic-settings = "^2.6"
-typer = "^0.13"
+typer = "^0.15"
 slowapi = "^0.1.9"
 httpx = "^0.27"
 
