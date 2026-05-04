@@ -21,15 +21,20 @@ enhancement districts (TCEDs) may each levy their own sales tax
 under various enabling acts. Combined statewide-plus-local rates
 range from **4.225% to over 11.0%** in some areas (e.g., Branson,
 the Branson Lakes Area Convention and Visitors Bureau district).
-**Per-jurisdiction local rates are NOT modeled in v0.7** -- there
-is no SST file (MO is not an SST member) and no public per-ZIP
-machine-readable feed comparable to the Texas Comptroller's. MO
-DOR does publish a Sales/Use Tax Rate Tables PDF and an Excel
-download, but ingesting and normalizing that data is deferred to a
-future state-data-loader phase. The module ships the 4.225%
-statewide rate only, mirroring how CA defers its CDTFA districts,
-SC defers its county/municipal rates, and VA defers its regional
-add-ons.
+
+The v0.25 ratchet seeds the **top 15 cities by population** with
+state + per-county + per-city rates from the MO DOR 2026 Sales/Use
+Tax Rate Tables, cross-checked against Avalara per-city pages.
+Cities seeded: Kansas City, St. Louis (city), Springfield,
+Independence, Columbia, Lee's Summit, O'Fallon, St. Joseph,
+St. Charles, St. Peters, Joplin, Florissant, Chesterfield,
+Jefferson City, Cape Girardeau. Special districts (CIDs, TDDs,
+zoological districts) overlay the city/county rates and are NOT
+modeled here -- a covered ZIP's combined rate is state + county +
+city only, with the actual rate at any specific +4 potentially
+higher due to special-district overlays. See
+:mod:`opensalestax.states.mo_data` for the per-city rates and ZIP
+coverage.
 
 Taxability matrix (per Mo. Rev. Stat. Title X, Chapter 144 --
 sales/use tax):
@@ -122,6 +127,12 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.states.mo_data import (
+    MO_CITIES,
+    MO_COUNTY_RATE_PCT,
+    MO_STATE_EFFECTIVE_FROM,
+    MO_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -257,31 +268,78 @@ class Missouri:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Missouri's statewide 4.225% rate.
+        """Yield MO's state + per-county + per-city rates.
 
-        ``source_file`` is intentionally ignored -- MO is non-SST and
-        has no upstream file. Pass ``None`` from the loader.
+        Counties yielded: only those touched by an MO_CITIES entry.
+        Cities yielded: every MO_CITIES entry. ``source_file`` is
+        intentionally ignored -- MO is non-SST and has no upstream
+        file. Special-district overlays (CIDs, TDDs, zoological
+        districts) are NOT yielded; see the module docstring.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="Missouri",
             authority_type="state",
-            rate_pct=Decimal("4.225"),
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=MO_STATE_RATE_PCT,
+            effective_from=MO_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        used_counties = {county for county, _, _ in MO_CITIES.values()}
+        for county_name in sorted(used_counties):
+            yield RateRow(
+                authority_name=county_name,
+                authority_type="county",
+                rate_pct=MO_COUNTY_RATE_PCT[county_name],
+                effective_from=MO_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Missouri",
+            )
+        for city_name, (county_name, city_rate, _zips) in sorted(MO_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=MO_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=county_name,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v0.7.
+        """Yield (state, county, city) boundary rows for each covered ZIP.
 
-        Missouri's per-county/per-city local rates require a custom
-        MO DOR loader (no SST file path); deferred to a future phase.
+        The Census ZCTA load already provides state-level binding for
+        every MO ZIP. This method ADDS county + city bindings for the
+        15 covered cities. ZIPs in covered counties but outside the
+        city list keep the Census state-only binding (correct: 4.225%
+        statewide); a future ratchet should extend coverage.
         """
         del source_file, version_label
-        return iter(())
+        for city_name, (county_name, _city_rate, zips) in MO_CITIES.items():
+            for zip5 in zips:
+                yield BoundaryRow(
+                    authority_name="Missouri",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=county_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return MO's taxability rule for ``item_category``."""

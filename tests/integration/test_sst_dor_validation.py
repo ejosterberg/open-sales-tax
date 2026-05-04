@@ -215,6 +215,23 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("VA", "Richmond", "23219", "0001", "6.000", "0.05", "VA Tax (state 4.3% + local 1% + Central VA 0.7%)"),
     ("VA", "Roanoke", "24011", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
     ("VA", "Lynchburg", "24501", "0001", "5.300", "0.05", "VA Tax (state 4.3% + local 1%; no regional add-on)"),
+    # Missouri -- MO DOR 2026 Sales/Use Tax Rate Tables (verified 2026-05-04)
+    # Combined = state 4.225% + county + city (no special-district overlay).
+    # Tolerance 0.10 because some +4 ranges within MO cities have CID/TDD
+    # overlays that bump the actual rate above the city baseline; the
+    # bare combined math yields the engine answer at the city centroid.
+    ("MO", "Kansas City", "64108", "0001", "8.850", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + KC 3.25%)"),
+    ("MO", "St. Louis", "63103", "0001", "9.679", "0.10", "MO DOR (state 4.225% + St. Louis city 5.454%)"),
+    ("MO", "Springfield", "65806", "0001", "8.100", "0.10", "MO DOR (state 4.225% + Greene 1.75% + Springfield 2.125%)"),
+    ("MO", "Independence", "64055", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + Independence 2.875%)"),
+    ("MO", "Columbia", "65201", "0001", "7.975", "0.10", "MO DOR (state 4.225% + Boone 1.75% + Columbia 2.0%)"),
+    ("MO", "Lee's Summit", "64063", "0001", "8.350", "0.10", "MO DOR (state 4.225% + Jackson 1.375% + Lee's Summit 2.75%)"),
+    ("MO", "O'Fallon", "63366", "0001", "7.950", "0.10", "MO DOR (state 4.225% + St. Charles 1.725% + O'Fallon 2.0%)"),
+    ("MO", "St. Joseph", "64501", "0001", "9.700", "0.10", "MO DOR (state 4.225% + Buchanan 1.6% + St. Joseph 3.875%)"),
+    ("MO", "St. Charles", "63301", "0001", "7.950", "0.10", "MO DOR (state 4.225% + St. Charles 1.725% + St. Charles city 2.0%)"),
+    ("MO", "Joplin", "64801", "0001", "8.725", "0.10", "MO DOR (state 4.225% + Jasper 1.375% + Joplin 3.125%)"),
+    ("MO", "Jefferson City", "65101", "0001", "7.850", "0.10", "MO DOR (state 4.225% + Cole 1.375% + Jefferson City 2.25%)"),
+    ("MO", "Cape Girardeau", "63701", "0001", "8.475", "0.10", "MO DOR (state 4.225% + Cape Girardeau 1.5% + Cape Girardeau city 2.75%)"),
 ]
 
 
