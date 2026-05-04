@@ -15,6 +15,7 @@ For tests and embedded use cases, call :func:`create_app` directly.
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -61,6 +62,24 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+
+    # Permit cross-origin browser callers (the opensalestax.org
+    # calculator demo, third-party SPA integrations, etc.). The
+    # default '*' is appropriate for the public demo engine; private
+    # deployments should narrow ``OPENSALESTAX_CORS_ALLOWED_ORIGINS``.
+    origins_raw = settings.cors_allowed_origins.strip()
+    if origins_raw == "*":
+        allow_origins: list[str] = ["*"]
+    else:
+        allow_origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allow_origins,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "X-API-Key"],
+        max_age=600,
+    )
+
     app.include_router(v1_router)
 
     @app.get("/", include_in_schema=False)

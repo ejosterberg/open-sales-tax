@@ -67,6 +67,18 @@ class Settings(BaseSettings):
         description="Per-IP (or per-API-key) requests per minute.",
     )
 
+    # ----- CORS ---------------------------------------------------------
+    cors_allowed_origins: str = Field(
+        default="*",
+        description=(
+            "Comma-separated list of allowed CORS origins for browser "
+            "callers. Default '*' permits any origin -- appropriate for "
+            "the demo / public engine instances. Tighten to e.g. "
+            "'https://opensalestax.org,https://app.example.com' on "
+            "private deployments."
+        ),
+    )
+
     # ----- Logging / ops -----------------------------------------------
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         default="INFO",
