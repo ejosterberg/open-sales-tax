@@ -27,6 +27,7 @@ requires a named maintainer.
 
 | State | Abbrev | Maintainer | Since |
 |---|---|---|---|
+| Alabama | AL | _vacant — see issue tracker_ | _v0.13 (Phase 6 Batch C tier-0 -> tier-1; non-SST; 4.0% per Ala. Code § 40-23-2(1); **state portion only** -- ~700+ self-administering home-rule cities under § 11-51-200 et seq. and 67 counties deferred to the SubJurisdiction Protocol abstraction (see [`specs/decisions/04-colorado-home-rule.md`](specs/decisions/04-colorado-home-rule.md) and [`specs/decisions/05-louisiana-parishes.md`](specs/decisions/05-louisiana-parishes.md)); reduced 2.0% state grocery rate via rate_modifier per HB 386 of 2024 (phase-down history: 4.0% -> 3.0% on 2023-09-01 per HB 479 of 2023 -> 2.0% on 2025-09-01); two annual STATE holidays (Severe Weather Preparedness Feb 27 - Mar 1, 2026 under § 40-23-210 et seq.; Back-to-School July 17-19, 2026 under § 40-23-211) with local-opt-in caveat documented in every HolidayWindow notes; alongside CO and LA, one of the three canonical priority candidates for the v1.0+ SubJurisdiction Protocol work)_ |
 | Arkansas | AR | _vacant — see issue tracker_ | _v0.8 (SST tier-2 → tier-1 promotion)_ |
 | Colorado | CO | _vacant — see issue tracker_ | _v0.7 (state portion only; home-rule cities deferred — see [`specs/decisions/04-colorado-home-rule.md`](specs/decisions/04-colorado-home-rule.md))_ |
 | Connecticut | CT | _vacant — see issue tracker_ | _v0.6_ |

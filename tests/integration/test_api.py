@@ -160,25 +160,64 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
     """States without a loaded module show tier 0.
 
     CA was promoted in v0.2; TX/NY/FL in v0.3; PA/IL/MD/MA/AZ in v0.4;
-    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7. AL, NM, HI, etc.
-    remain tier 0 until their state modules ship. (NM uses the
-    Gross Receipts Tax model and waits on a separate non-sales-tax
-    abstraction.)
+    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7; AL in v0.13.
+    NM, HI, PR remain tier 0 until their state modules ship. (NM
+    uses the Gross Receipts Tax model and waits on a separate
+    non-sales-tax abstraction; HI uses the General Excise Tax
+    model.)
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AL", "HI", "NM"):
+    for abbrev in ("HI", "NM"):
         assert states_by_abbrev[abbrev]["tier"] == 0
+
+
+@pytest.mark.asyncio
+async def test_alabama_is_tier_1_non_sst(client: AsyncClient) -> None:
+    """AL was promoted from tier 0 to tier 1 in v0.13 (Phase 6 Batch C).
+
+    Alabama is a non-SST state with the most fragmented local
+    sales-tax landscape in the country (~700+ self-administering
+    home-rule cities). v1 ships the state-portion-only 4.0% rate
+    per Ala. Code section 40-23-2(1) plus the two annual sales-tax
+    holidays; county and municipal rates are deferred to the
+    SubJurisdiction Protocol abstraction. See
+    ``specs/decisions/04-colorado-home-rule.md`` and
+    ``specs/decisions/05-louisiana-parishes.md`` for the deferral
+    rationale.
+    """
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["AL"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is False
 
 
 @pytest.mark.asyncio
 async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
     """CA (v0.2), TX/NY/FL (v0.3), CT/DC/SC (v0.6), CO/ID/LA/MO/MS (v0.7),
-    ME (Phase 8, non-SST, no local tax): all tier 1 non-SST.
+    ME (Phase 8, non-SST, no local tax), AL (v0.13, non-SST,
+    home-rule-deferred): all tier 1 non-SST.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("CA", "TX", "NY", "FL", "CT", "DC", "SC", "CO", "ID", "LA", "ME", "MO", "MS"):
+    for abbrev in (
+        "AL",
+        "CA",
+        "TX",
+        "NY",
+        "FL",
+        "CT",
+        "DC",
+        "SC",
+        "CO",
+        "ID",
+        "LA",
+        "ME",
+        "MO",
+        "MS",
+    ):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
