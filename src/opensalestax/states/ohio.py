@@ -359,6 +359,20 @@ class Ohio(SstStateModule):
     # grocery-only matrix.
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Override district names to use the curated OH transit names.
+
+        Codes that don't match the verified ``oh_names`` table fall
+        back to the SST base implementation (placeholder).
+        """
+        from opensalestax.states.oh_names import district_name as _oh_district
+
+        if authority_type == "district":
+            friendly = _oh_district(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Ohio's annual sales-tax holiday under Ohio Rev. Code section 5739.02(B)(55).
 

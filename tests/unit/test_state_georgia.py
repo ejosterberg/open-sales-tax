@@ -171,7 +171,10 @@ def test_parse_rates_classifies_counties() -> None:
     assert county_rows  # GA has many county rows -- 432 in the 2026Q2 file
     sample = county_rows[0]
     assert sample.parent_authority_name == "Georgia"
-    assert sample.authority_name.startswith("GA-county-")
+    # Authority names are friendly (Census ZCTA county lookup) when
+    # the FIPS code is recognized; fall back to "GA-county-<fips>"
+    # otherwise. Either is valid; GA's locals just need to bind.
+    assert sample.authority_name.endswith("County") or sample.authority_name.startswith("GA-county-")
     # Most GA county additions are 1-4% (LOST + SPLOST + ELOST stack).
     assert sample.rate_pct >= Decimal("0")
 

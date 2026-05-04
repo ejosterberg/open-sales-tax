@@ -442,6 +442,32 @@ class Tennessee(SstStateModule):
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Return the friendly TN authority name for an SST code.
+
+        Defers to the SST base for state + county (which uses the
+        Census county lookup) and falls back to the placeholder for
+        cities / districts not yet in the verified ``tn_names``
+        table -- so codes that need verification surface visibly
+        rather than silently misnamed.
+        """
+        from opensalestax.states.tn_names import (
+            city_name as _tn_city_name,
+        )
+        from opensalestax.states.tn_names import (
+            district_name as _tn_district_name,
+        )
+
+        if authority_type == "city":
+            friendly = _tn_city_name(code)
+            if friendly is not None:
+                return friendly
+        elif authority_type == "district":
+            friendly = _tn_district_name(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Tennessee's annual Sales Tax Holiday under Tenn. Code Ann. 67-6-393.
 

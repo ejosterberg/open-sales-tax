@@ -329,6 +329,16 @@ class Nebraska(SstStateModule):
     # empirical validation against an actual NER<...>.csv file).
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated NE city-name table; fall back to placeholder."""
+        from opensalestax.states.ne_names import city_name as _ne_city
+
+        if authority_type == "city":
+            friendly = _ne_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
 
 # Compile-time Protocol satisfaction check + module-import-time
 # registration. Importing ``opensalestax.states.nebraska`` registers

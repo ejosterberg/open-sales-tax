@@ -373,15 +373,28 @@ class Georgia:
 
 
 def _authority_name(code: str, authority_type: str) -> str:
-    """Build a deterministic authority name from a SST jurisdiction code.
+    """Build a friendly authority name for a Georgia SST code.
 
-    Phase 1 doesn't have a code -> human-name lookup table (that's
-    Phase 5 work). Names follow ``GA-<TYPE>-<CODE>`` so the engine
-    can group authorities consistently and integrators can join
-    against external code lists when needed.
+    - state    -> "Georgia"
+    - county   -> Census ZCTA county lookup ("Fulton County" etc.)
+    - city     -> ``ga_names`` curated table (Atlanta etc.)
+    - other    -> ``GA-<type>-<code>`` placeholder so unmapped codes
+                  surface visibly without misnaming
     """
     if authority_type == "state":
         return "Georgia"
+    if authority_type == "county":
+        from opensalestax.data.county_names import county_name as _county_name
+
+        friendly = _county_name("GA", code)
+        if friendly is not None:
+            return friendly
+    elif authority_type == "city":
+        from opensalestax.states.ga_names import city_name as _ga_city
+
+        friendly = _ga_city(code)
+        if friendly is not None:
+            return friendly
     return f"GA-{authority_type}-{code}"
 
 
