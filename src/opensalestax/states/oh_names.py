@@ -4,7 +4,7 @@
 
 OH has no city sales tax; the local layer is county + transit
 authority. This module provides receipt-grade names for the
-four major regional transit-authority sales taxes that the
+seven major regional transit-authority sales taxes that the
 OH DOR's "Sales and Use Tax Rate Schedule" publishes.
 
 Sources: OH DOR rate publication (2026-Q1) + each transit
@@ -19,6 +19,9 @@ OH_DISTRICT_NAMES: dict[str, str] = {
     "25000": "Central Ohio Transit Authority (COTA)",
     "31000": "Southwest Ohio Regional Transit Authority (SORTA)",
     "48000": "Toledo Area Regional Transit Authority (TARTA)",
+    "50000": "Western Reserve Transit Authority (WRTA)",
+    "57000": "Greater Dayton Regional Transit Authority (GDRTA)",
+    "77000": "METRO Regional Transit Authority (Akron)",
 }
 
 

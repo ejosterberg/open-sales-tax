@@ -116,6 +116,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("WV", "Huntington", "25701", "2401", "7.000", "0.05", "WV DOR (state 6% + Huntington 1%)"),
     # OH Cleveland -- different transit district
     ("OH", "Cleveland", "44113", "1417", "8.000", "0.05", "OH DOR (state 5.75% + Cuyahoga 1.25% + RTA 1%)"),
+    # OH additional cities (county + transit-authority stack; OH has no city sales tax)
+    ("OH", "Cincinnati", "45202", "1234", "7.800", "0.05", "OH DOR (state 5.75% + Hamilton 1.25% + SORTA 0.8%)"),
+    ("OH", "Columbus", "43215", "1234", "8.000", "0.05", "OH DOR (state 5.75% + Franklin 1.25% + COTA 1.0%)"),
+    ("OH", "Dayton", "45402", "1234", "7.500", "0.05", "OH DOR (state 5.75% + Montgomery 1.25% + GDRTA 0.5%)"),
+    ("OH", "Toledo", "43604", "1234", "7.750", "0.05", "OH DOR (state 5.75% + Lucas 1.5% + TARTA 0.5%)"),
+    ("OH", "Akron", "44308", "1234", "6.750", "0.05", "OH DOR (state 5.75% + Summit 0.5% + METRO 0.5%)"),
+    ("OH", "Youngstown", "44503", "1234", "7.500", "0.05", "OH DOR (state 5.75% + Mahoning 1.5% + WRTA 0.25%)"),
     # WA additional
     ("WA", "Tacoma", "98402", "3502", "10.400", "0.10", "WA DOR (state 6.5% + Tacoma combined ~3.9%)"),
     # OK secondary cities (post-loose-fallback fix; was 12.625% / 13.25% pre-fix)
