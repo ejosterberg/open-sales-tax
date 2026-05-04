@@ -25,6 +25,7 @@ from opensalestax.states import (
     district_of_columbia,  # noqa: F401
     florida,  # noqa: F401
     georgia,  # noqa: F401
+    hawaii,  # noqa: F401
     idaho,  # noqa: F401
     illinois,  # noqa: F401
     indiana,  # noqa: F401
