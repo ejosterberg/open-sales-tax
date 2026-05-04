@@ -613,11 +613,14 @@ async def _get_or_create_state(session: AsyncSession, state_module: StateModule)
 async def _drop_existing_data_version(
     session: AsyncSession, state_id: int, full_label: str
 ) -> None:
-    """Drop a prior DataVersion + the rates it brought in (idempotency support).
+    """Drop a prior DataVersion + dependent rates and boundaries.
 
-    Boundaries cascade automatically; rates have ondelete=SET NULL
-    so we delete them explicitly here -- same reasoning as in
-    :func:`purge_data_version`.
+    The DB-level FK on ``boundaries.data_version_id`` is
+    ``ondelete=CASCADE``, but SQLAlchemy's session-level dependency
+    flushing tries to NULL the FK first before the cascade runs --
+    which violates the NOT NULL constraint. Explicitly deleting
+    boundaries (and rates, whose FK is ``ondelete=SET NULL``)
+    before the DataVersion sidesteps both issues.
     """
     existing = (
         await session.execute(
@@ -629,6 +632,16 @@ async def _drop_existing_data_version(
     ).scalar_one_or_none()
     if existing is None:
         return
+
+    boundaries_to_drop = list(
+        (await session.execute(select(Boundary).where(Boundary.data_version_id == existing.id)))
+        .scalars()
+        .all()
+    )
+    for boundary in boundaries_to_drop:
+        await session.delete(boundary)
+    if boundaries_to_drop:
+        await session.flush()
 
     rates_to_drop = list(
         (await session.execute(select(Rate).where(Rate.data_version_id == existing.id)))
