@@ -185,6 +185,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MS", "Hattiesburg", "39401", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Hattiesburg's Tourism Tax applies to hotels+restaurants only, not general retail)"),
     ("MS", "Gulfport", "39501", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
     ("MS", "Biloxi", "39530", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
+    # South Carolina -- SC DOR Form ST-500 effective May 1, 2026
+    # All 10 covered cities; combined rates are state 6% + per-county
+    # local portion (no city-level rate; Myrtle Beach is the only SC
+    # city with its own tax and isn't in this set).
+    ("SC", "Columbia", "29201", "0001", "8.000", "0.05", "SC DOR ST-500 2026-05-01 (state 6% + Richland LO 1% + Richland TT 1%)"),
+    ("SC", "Charleston", "29401", "0001", "9.000", "0.05", "SC DOR ST-500 2026-05-01 (state 6% + Charleston LO 1% + TT 1% + ECI 1%)"),
+    ("SC", "Mount Pleasant", "29464", "0001", "9.000", "0.05", "SC DOR ST-500 (Charleston County 3% local)"),
+    ("SC", "North Charleston", "29406", "0001", "9.000", "0.05", "SC DOR ST-500 (Charleston County 3% local)"),
+    ("SC", "Rock Hill", "29730", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + York CP 1%)"),
+    ("SC", "Greenville", "29601", "0001", "6.000", "0.05", "SC DOR ST-500 (Greenville County has no local sales tax)"),
+    ("SC", "Summerville", "29483", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Dorchester TT 1%)"),
+    ("SC", "Spartanburg", "29301", "0001", "7.000", "0.05", "SC DOR ST-500 (state 6% + Spartanburg CP 1%)"),
+    ("SC", "Sumter", "29150", "0001", "8.000", "0.05", "SC DOR ST-500 (state 6% + Sumter LO 1% + CP 1%)"),
+    ("SC", "Goose Creek", "29445", "0001", "9.000", "0.05", "SC DOR ST-500 (state 6% + Berkeley LO 1% + TT 1% + ECI 1%)"),
 ]
 
 
