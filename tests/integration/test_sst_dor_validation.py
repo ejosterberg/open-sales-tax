@@ -75,6 +75,35 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("WV", "Charleston", "25301", "1108", "7.000", "0.05", "WV DOR (state 6% + Charleston 1%)"),
     # Wyoming -- WY DOR sales tax rates 2026-Q2
     ("WY", "Cheyenne", "82001", "3504", "5.000", "0.05", "WY DOR (state 4% + Laramie 1%)"),
+    ("WY", "Casper", "82601", "2401", "5.000", "0.05", "WY DOR (state 4% + Natrona 1%)"),
+    # Arkansas -- AR DFA Sales and Use Tax Rates 2026-Q2
+    ("AR", "Fort Smith", "72901", "2402", "9.500", "0.05", "AR DFA (state 6.5% + Sebastian 1% + Fort Smith 2%)"),
+    ("AR", "Fayetteville", "72701", "5501", "9.750", "0.05", "AR DFA (state 6.5% + Washington 1.25% + Fayetteville 2%)"),
+    # Iowa -- IA DOR Local Option Sales Tax 2026-Q1
+    ("IA", "Des Moines", "50309", "2306", "7.000", "0.05", "IA DOR (state 6% + Polk LOST 1%)"),
+    ("IA", "Cedar Rapids", "52401", "2802", "7.000", "0.05", "IA DOR (state 6% + Linn LOST 1%)"),
+    # Indiana -- flat 7%, no locals
+    ("IN", "Indianapolis", "46202", "2802", "7.000", "0.01", "IN flat 7% statewide"),
+    # Kentucky -- flat 6%
+    ("KY", "Louisville", "40202", "2404", "6.000", "0.01", "KY flat 6% statewide"),
+    # Michigan -- flat 6%
+    ("MI", "Detroit", "48226", "3614", "6.000", "0.01", "MI flat 6% statewide"),
+    # New Jersey -- flat 6.625%
+    ("NJ", "Newark", "07102", "3505", "6.625", "0.01", "NJ flat 6.625% statewide"),
+    # Rhode Island -- flat 7%
+    ("RI", "Providence", "02903", "2511", "7.000", "0.01", "RI flat 7% statewide"),
+    # ND additional -- ND DOR Local Sales Tax Rates 2026-Q1
+    ("ND", "Fargo", "58102", "3703", "7.750", "0.05", "ND DOR (state 5% + Cass 0.5% + Fargo 2.25%)"),
+    # SD additional
+    ("SD", "Rapid City", "57701", "1701", "6.200", "0.05", "SD DOR (state 4.2% + Rapid City 2%)"),
+    # WI additional
+    ("WI", "Green Bay", "54301", "3502", "5.500", "0.05", "WI DOR (state 5% + Brown 0.5%)"),
+    # WV additional
+    ("WV", "Huntington", "25701", "2401", "7.000", "0.05", "WV DOR (state 6% + Huntington 1%)"),
+    # OH Cleveland -- different transit district
+    ("OH", "Cleveland", "44113", "1417", "8.000", "0.05", "OH DOR (state 5.75% + Cuyahoga 1.25% + RTA 1%)"),
+    # WA additional
+    ("WA", "Tacoma", "98402", "3502", "10.400", "0.10", "WA DOR (state 6.5% + Tacoma combined ~3.9%)"),
 ]
 
 

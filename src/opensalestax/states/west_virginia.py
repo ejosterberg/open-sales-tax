@@ -308,6 +308,16 @@ class WestVirginia(SstStateModule):
     # tier-2 grocery-only matrix.
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated WV city-name table; fall back to placeholder."""
+        from opensalestax.states.wv_names import city_name as _wv_city
+
+        if authority_type == "city":
+            friendly = _wv_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """West Virginia's annual sales-tax holiday under section 11-15-9o.
 

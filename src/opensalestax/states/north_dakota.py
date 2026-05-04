@@ -270,6 +270,16 @@ class NorthDakota(SstStateModule):
 
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated ND city-name table; fall back to placeholder."""
+        from opensalestax.states.nd_names import city_name as _nd_city
+
+        if authority_type == "city":
+            friendly = _nd_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
 
 # Compile-time Protocol satisfaction check + module-import-time
 # registration. Importing ``opensalestax.states.north_dakota``

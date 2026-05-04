@@ -468,6 +468,16 @@ class Utah(SstStateModule):
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated UT city-name table; fall back to placeholder."""
+        from opensalestax.states.ut_names import city_name as _ut_city
+
+        if authority_type == "city":
+            friendly = _ut_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Utah has NO state sales-tax holiday in any year.
 
