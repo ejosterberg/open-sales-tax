@@ -376,7 +376,7 @@ class Nevada(SstStateModule):
     # County 8.375%) calculate correctly; without it the loader
     # silently dropped every county row and the engine returned
     # 0% for every NV ZIP.
-    jurisdiction_types: dict[str, str] = {
+    jurisdiction_types: dict[str, str] = {  # noqa: RUF012 - mirrors base class signature
         "45": "state",
         "0": "county",
         "63": "district",

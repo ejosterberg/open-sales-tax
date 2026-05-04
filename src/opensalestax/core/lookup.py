@@ -16,7 +16,7 @@ business logic) is satisfied.
 
 from __future__ import annotations
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -30,17 +30,19 @@ async def lookup_jurisdictions_by_zip(
 ) -> list[TaxAuthority]:
     """Return the tax authorities that apply to ``zip5`` (+ optional ``zip4``).
 
-    A boundary matches when:
+    Precedence:
 
-    1. ``zip5`` matches exactly, AND
-    2. Either the boundary specifies no ZIP+4 range (applies to the whole ZIP5),
-       OR the supplied ``zip4`` falls within ``[zip4_low, zip4_high]``.
-
-    If no ``zip4`` is supplied, only boundaries with no ZIP+4 range
-    are returned -- a deliberately conservative default. Callers
-    that want a "best-effort" match for a ZIP5 alone (returning
-    every authority touching the ZIP5 regardless of +4) can call
-    :func:`lookup_jurisdictions_by_zip5_loose`.
+    1. **State authorities are always included.** They're the most-
+       general binding and don't conflict with city/county/district.
+    2. **If ``zip4`` is supplied AND any boundary records explicitly
+       cover that +4 range (zip4_low/high not NULL), use those
+       records' bindings exclusively** (excluding state). The SST
+       file uses type-4 records to encode per-+4 precision; for
+       states like TN that mark "this +4 is in city X" via type-4
+       and "this +4 is in unincorporated county Y" via type-z, we
+       must NOT mix the two -- doing so double-counts (city +
+       county both summed).
+    3. **Otherwise fall back to the type-z (NULL ZIP+4) bindings.**
 
     Returns deduplicated authorities, ordered by a stable priority
     (state -> county -> city -> district) so callers get a
@@ -52,32 +54,67 @@ async def lookup_jurisdictions_by_zip(
     if not zip5.isdigit() or len(zip5) != 5:
         raise ValueError(f"zip5 must be 5 digits, got {zip5!r}")
 
-    no_range_match = Boundary.zip4_low.is_(None)
-    in_range_match = (
-        (Boundary.zip4_low.isnot(None))
-        & (Boundary.zip4_high.isnot(None))
-        & (Boundary.zip4_low <= zip4)
-        & (zip4 <= Boundary.zip4_high)
-        if zip4 is not None
-        else None
-    )
+    options = (selectinload(TaxAuthority.state),)
 
-    if in_range_match is not None:
-        boundary_filter = or_(no_range_match, in_range_match)
-    else:
-        boundary_filter = no_range_match
-
-    stmt = (
+    # State authorities always apply -- pull them via the type-z
+    # (NULL +4) bindings since states are emitted at that level.
+    state_stmt = (
         select(TaxAuthority)
         .join(Boundary, Boundary.authority_id == TaxAuthority.id)
-        .where(Boundary.zip5 == zip5, boundary_filter)
-        .options(selectinload(TaxAuthority.state))
+        .where(
+            Boundary.zip5 == zip5,
+            Boundary.zip4_low.is_(None),
+            TaxAuthority.authority_type == "state",
+        )
+        .options(*options)
         .distinct()
     )
+    state_authorities = list((await session.execute(state_stmt)).scalars().all())
 
-    result = await session.execute(stmt)
-    authorities = list(result.scalars().all())
-    return _stable_sort(authorities)
+    local_authorities: list[TaxAuthority] = []
+    if zip4 is not None:
+        # Try the precise type-4 lookup first; if it returns
+        # anything, use it exclusively for the local layer.
+        precise_stmt = (
+            select(TaxAuthority)
+            .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+            .where(
+                Boundary.zip5 == zip5,
+                Boundary.zip4_low.isnot(None),
+                Boundary.zip4_high.isnot(None),
+                Boundary.zip4_low <= zip4,
+                zip4 <= Boundary.zip4_high,
+                TaxAuthority.authority_type != "state",
+            )
+            .options(*options)
+            .distinct()
+        )
+        local_authorities = list((await session.execute(precise_stmt)).scalars().all())
+
+    if not local_authorities:
+        # Fall back to type-z (no +4) local bindings.
+        fallback_stmt = (
+            select(TaxAuthority)
+            .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+            .where(
+                Boundary.zip5 == zip5,
+                Boundary.zip4_low.is_(None),
+                TaxAuthority.authority_type != "state",
+            )
+            .options(*options)
+            .distinct()
+        )
+        local_authorities = list((await session.execute(fallback_stmt)).scalars().all())
+
+    # De-dup across the two queries (state could be in both, paranoia).
+    seen_ids: set[int] = set()
+    merged: list[TaxAuthority] = []
+    for auth in [*state_authorities, *local_authorities]:
+        if auth.id in seen_ids:
+            continue
+        seen_ids.add(auth.id)
+        merged.append(auth)
+    return _stable_sort(merged)
 
 
 async def lookup_jurisdictions_by_zip5_loose(
