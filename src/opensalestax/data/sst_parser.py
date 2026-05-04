@@ -28,6 +28,7 @@ import logging
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -195,28 +196,60 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             zip5_high = cols[19] or zip5_low
             zip4_low_raw = cols[18] or ""
             zip4_high_raw = cols[20] or zip4_low_raw
-            yield SstBoundaryRecord(
-                record_type=record_type,
-                effective_from=_parse_date(cols[1]),
-                effective_to=_parse_end_date(cols[2]),
-                zip5_low=zip5_low,
-                zip5_high=zip5_high,
+            common: dict[str, Any] = {
+                "record_type": record_type,
+                "effective_from": _parse_date(cols[1]),
+                "effective_to": _parse_end_date(cols[2]),
+                "zip5_low": zip5_low,
+                "zip5_high": zip5_high,
                 # SST publishes ZIP+4 fields only on type-4 rows;
                 # type-z rows leave them blank (treated as None so
                 # the engine's "no +4 range" branch matches).
-                zip4_low=(zip4_low_raw or None) if record_type == "4" else None,
-                zip4_high=(zip4_high_raw or None) if record_type == "4" else None,
-                state_fips=cols[22],
-                county_fips=cols[24] or None,
-                city_code=cols[25] or None,
-                intra_state_class=cols[29] or None,
-                district_code=cols[30] or None,
-                district_type=cols[31] or None,
-                raw_columns=tuple(cols),
-            )
+                "zip4_low": (zip4_low_raw or None) if record_type == "4" else None,
+                "zip4_high": (zip4_high_raw or None) if record_type == "4" else None,
+                "state_fips": cols[22],
+                "county_fips": cols[24] or None,
+                "city_code": cols[25] or None,
+                "raw_columns": tuple(cols),
+            }
         except ValueError as exc:
             logger.warning("boundary row %d failed to parse: %s; skipping", line_num, exc)
             continue
+
+        # Each boundary row can bind the ZIP to MULTIPLE special
+        # districts in repeating triplets starting at col30
+        # (intra_state_class, jurisdiction_code, jurisdiction_type).
+        # MN ZIP 55417, e.g., is bound to Hennepin County Transit
+        # (80004) at col30-32, Metro Area Transportation (80008) at
+        # col36-38, and Metro Area Tax for Housing (80009) at
+        # col39-41. We yield one SstBoundaryRecord per non-blank
+        # triplet so each district produces its own boundary; if
+        # the row has no district triplets we still yield a single
+        # record so state/county/city bindings are emitted.
+        triplets: list[tuple[str | None, str | None, str | None]] = []
+        for start in range(29, len(cols) - 2, 3):
+            cls = cols[start] or None
+            code = cols[start + 1] or None
+            type_ = cols[start + 2] or None
+            if cls or code or type_:
+                triplets.append((cls, code, type_))
+
+        if not triplets:
+            yield SstBoundaryRecord(
+                **common,
+                intra_state_class=None,
+                district_code=None,
+                district_type=None,
+            )
+            continue
+
+        for cls, code, type_ in triplets:
+            yield SstBoundaryRecord(
+                **common,
+                intra_state_class=cls,
+                district_code=code,
+                district_type=type_,
+            )
 
 
 def active_only(
