@@ -465,11 +465,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
     # is at 0% placeholder; combined = 6.25% state-only baseline.
     ("IL", "Plano (Kendall)", "60545", "0001", "6.250", "1.50", "IDOR Tax Rate Finder (state 6.25% + Kendall 0% placeholder) -- post-v0.29 ZCTA"),
-    # PA: a Pittsburgh-suburb ZIP in Allegheny County NOT in PA_CITIES
-    # (15044 = Gibsonia). Expected state 6.0% + Allegheny 1.0% = 7.0%.
-    # This is the headline win for PA: the +1.0% Allegheny tax now
-    # picks up everywhere in the county.
-    ("PA", "Gibsonia (Allegheny suburb)", "15044", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1%) -- post-v0.29 ZCTA"),
+    # PA: agent's original row claimed Gibsonia (15044) was an
+    # Allegheny suburb. It's actually in BUTLER County, which has 0%
+    # local PA sales tax. Engine correctly returns state-only 6%.
+    # For an actual Allegheny-county-suburb regression guard use
+    # Bethel Park 15102 or McKeesport 15131.
+    ("PA", "Gibsonia (Butler Co)", "15044", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Gibsonia is Butler County, NOT Allegheny)"),
+    ("PA", "Bethel Park (Allegheny suburb)", "15102", "0001", "7.000", "0.05", "PA DOR (state 6% + Allegheny 1%) -- post-v0.29 ZCTA confirms Allegheny-wide coverage"),
     # PA: Lancaster County edge ZIP (Manheim Township) -- Lancaster
     # County has 0% local so combined is 6.0% statewide flat.
     ("PA", "Lancaster County edge", "17601", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lancaster Co has no local tax) -- post-v0.29 ZCTA"),
