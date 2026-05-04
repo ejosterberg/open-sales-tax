@@ -121,33 +121,60 @@ def download_sst_file(
     If the file already exists in the cache and its SHA-256 matches
     ``expected_sha256`` (when provided), the download is skipped.
 
-    Raises :class:`httpx.HTTPError` on transport failures and
-    :class:`ValueError` on a hash mismatch.
+    SST publishes some states' files as ``.csv`` and others as
+    ``.zip`` (and individual states migrate between formats over
+    time). When the requested extension returns 404, retry with
+    the alternate extension and -- if that succeeds -- cache the
+    downloaded file under whichever extension actually exists
+    upstream.
+
+    Raises :class:`httpx.HTTPError` on non-recoverable transport
+    failures and :class:`ValueError` on a hash mismatch.
     """
-    SstFilename.parse(filename)  # validates the filename
+    parsed = SstFilename.parse(filename)
     target_dir = dest_dir or default_data_dir()
     target_dir.mkdir(parents=True, exist_ok=True)
-    target_path = target_dir / filename
 
-    if target_path.exists() and (
-        expected_sha256 is None or _sha256(target_path) == expected_sha256.lower()
-    ):
-        return target_path
+    candidate_filenames: list[str] = [filename]
+    alt_ext = "zip" if parsed.ext == "csv" else "csv"
+    alt_filename = filename[: -len(parsed.ext)] + alt_ext
+    candidate_filenames.append(alt_filename)
 
-    url = file_url(filename)
+    # Cache hit short-circuit -- check both extensions for an
+    # existing successful download.
+    for candidate in candidate_filenames:
+        cached = target_dir / candidate
+        if cached.exists() and (
+            expected_sha256 is None or _sha256(cached) == expected_sha256.lower()
+        ):
+            return cached
+
+    last_error: httpx.HTTPStatusError | None = None
     with httpx.Client(timeout=timeout, follow_redirects=True) as client:
-        response = client.get(url)
-        response.raise_for_status()
-        target_path.write_bytes(response.content)
+        for candidate in candidate_filenames:
+            url = file_url(candidate)
+            response = client.get(url)
+            if response.status_code == 404:
+                last_error = httpx.HTTPStatusError(
+                    f"404 for {url}", request=response.request, response=response
+                )
+                continue
+            response.raise_for_status()
+            target_path = target_dir / candidate
+            target_path.write_bytes(response.content)
+            if expected_sha256 is not None:
+                actual = _sha256(target_path)
+                if actual != expected_sha256.lower():
+                    target_path.unlink(missing_ok=True)
+                    msg = (
+                        f"SHA-256 mismatch for {candidate}: "
+                        f"expected {expected_sha256}, got {actual}"
+                    )
+                    raise ValueError(msg)
+            return target_path
 
-    if expected_sha256 is not None:
-        actual = _sha256(target_path)
-        if actual != expected_sha256.lower():
-            target_path.unlink(missing_ok=True)
-            msg = f"SHA-256 mismatch for {filename}: expected {expected_sha256}, got {actual}"
-            raise ValueError(msg)
-
-    return target_path
+    assert last_error is not None
+    raise last_error
 
 
 def open_sst_csv(path: Path) -> Iterator[str]:

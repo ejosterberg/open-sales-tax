@@ -106,6 +106,33 @@ def test_parse_boundary_record_types() -> None:
     assert "z" in types
 
 
+def test_parse_boundary_normalizes_record_type_case(tmp_path) -> None:
+    """SST publishes record-type codes inconsistently ('z' / 'Z' / '4').
+
+    The parser normalizes the case so downstream consumers can
+    compare against a single lowercase code. RI / KY / MI / WV
+    publish uppercase Z records that earlier silently dropped.
+    """
+    from opensalestax.data.sst_parser import BOUNDARY_COLUMNS
+
+    csv = tmp_path / "ZZB2025Q1JAN1.csv"
+    # One '4' (FIPS+ZIP9) record + one 'Z' (uppercase) ZIP-range record.
+    # Format mirrors the real SST file shape (89 columns).
+    base_cols = [""] * BOUNDARY_COLUMNS
+    base_cols[1] = "20070101"
+    base_cols[2] = "29991231"
+    base_cols[17] = "02801"
+    base_cols[19] = "02940"
+    base_cols[22] = "44"
+    record_4 = ",".join(["4", *base_cols[1:]])
+    record_z = ",".join(["Z", *base_cols[1:]])
+    csv.write_text(record_4 + "\n" + record_z + "\n")
+
+    records = list(parse_boundary_csv(open_sst_csv(csv)))
+    types = sorted(r.record_type for r in records)
+    assert types == ["4", "z"], f"expected normalized ['4', 'z']; got {types}"
+
+
 # ---------------------------------------------------------------------------
 # active_only filter
 # ---------------------------------------------------------------------------

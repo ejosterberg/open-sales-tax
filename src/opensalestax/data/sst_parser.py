@@ -141,12 +141,15 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             )
             continue
 
-        record_type = cols[0]
+        # SST publishes record-type codes in either case ("z" / "Z",
+        # "4"). Normalize to lowercase so downstream consumers can
+        # compare without worrying about file-by-file casing.
+        record_type = cols[0].lower()
         if record_type not in {"z", "4"}:
             logger.warning(
                 "boundary row %d has unknown record type %r; skipping",
                 line_num,
-                record_type,
+                cols[0],
             )
             continue
 
