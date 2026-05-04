@@ -174,11 +174,27 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
 @pytest.mark.asyncio
 async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
     """CA (v0.2), TX/NY/FL (v0.3), CT/DC/SC (v0.6), CO/ID/LA/MO/MS (v0.7),
-    ME (Phase 8, non-SST, no local tax): all tier 1 non-SST.
+    ME (Phase 8, non-SST, no local tax), PR (Phase 8, US territory, IVU
+    11.5% combined): all tier 1 non-SST.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("CA", "TX", "NY", "FL", "CT", "DC", "SC", "CO", "ID", "LA", "ME", "MO", "MS"):
+    for abbrev in (
+        "CA",
+        "TX",
+        "NY",
+        "FL",
+        "CT",
+        "DC",
+        "SC",
+        "CO",
+        "ID",
+        "LA",
+        "ME",
+        "MO",
+        "MS",
+        "PR",
+    ):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
@@ -237,6 +253,27 @@ async def test_states_includes_dc_and_pr(client: AsyncClient) -> None:
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
     assert "DC" in states_by_abbrev
     assert "PR" in states_by_abbrev
+
+
+@pytest.mark.asyncio
+async def test_puerto_rico_is_tier_1_us_territory(client: AsyncClient) -> None:
+    """PR was promoted from tier 0 to tier 1 in Phase 8.
+
+    Puerto Rico is a US TERRITORY (commonwealth), not a US state. Its
+    IVU (Impuesto sobre Ventas y Uso) is administered by the
+    Departamento de Hacienda de Puerto Rico under the Codigo de
+    Rentas Internas (13 L.P.R.A. sections 32001 et seq.). The
+    combined IVU rate is 11.5% (10.5% state per 13 L.P.R.A. section
+    32021 + 1.0% municipal per 13 L.P.R.A. section 32024) and is
+    uniform across all 78 PR municipalities. PR is NOT an SST member
+    (SST membership is limited to US states).
+    """
+    response = await client.get("/v1/states")
+    states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
+    s = states_by_abbrev["PR"]
+    assert s["tier"] == 1
+    assert s["has_sales_tax"] is True
+    assert s["sst_member"] is False
 
 
 # ---------------------------------------------------------------------------
