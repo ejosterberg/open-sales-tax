@@ -14,7 +14,56 @@ jurisdictions, every state with its own quirks).
 ⚠️ **Calculation only. Not legal or tax advice.** Verify against
 your state Department of Revenue before remitting.
 
-## Quickstart (5 minutes)
+## Quickstart (recommended): under two minutes
+
+Pre-loaded PostgreSQL database dumps ship with every release tag,
+so a fresh install can be live without spending ~50 minutes
+fetching SST data and loading every state by hand.
+
+```bash
+pip install opensalestax
+
+# 1. Point at any empty PostgreSQL database
+export OPENSALESTAX_DATABASE_URL="postgresql+asyncpg://USER:PASSWORD@HOST:5432/opensalestax"
+
+# 2. Apply the schema
+alembic -c $(python -c "import opensalestax, pathlib, os; print(os.path.join(pathlib.Path(opensalestax.__file__).parent.parent.parent, 'alembic.ini'))") upgrade head
+
+# 3. Restore the latest pre-built dump (all 24 SST states + AZ)
+opensalestax data restore
+
+# 4. Serve the API
+opensalestax serve --port 8080
+```
+
+That's it. ``opensalestax data restore`` downloads
+``opensalestax-dump-<latest-tag>-postgres.sql.gz`` from the GitHub
+release, validates that the dump's schema matches the migration head
+you just applied, then pipes it through ``psql``. A new install is
+ready to answer real US sales-tax queries in well under two minutes.
+
+Pin a specific version:
+
+```bash
+opensalestax data restore --release v0.23.0
+```
+
+Restore from a local file (useful for air-gapped installs):
+
+```bash
+opensalestax data restore --file ./opensalestax-dump-v0.23.0-postgres.sql.gz
+```
+
+The dump is regenerated on every release tag by the
+[``Build data dump`` workflow](.github/workflows/build-data-dump.yml).
+It is data-only (no schema, no API keys); the consumer's own
+``alembic upgrade head`` is the source of truth for the schema.
+
+**MariaDB users:** the bundled dump is PostgreSQL COPY format;
+fall back to the manual ``data fetch`` + ``data load`` workflow
+described under "Refresh from source" below.
+
+### Quickstart with Docker (no Python install)
 
 You need [Docker](https://docs.docker.com/get-docker/) +
 [Docker Compose](https://docs.docker.com/compose/install/).
@@ -26,8 +75,9 @@ cd open-sales-tax
 # Bring up API + PostgreSQL (or use --profile mariadb for MariaDB)
 docker compose --profile postgres up -d
 
-# Apply migrations
+# Apply migrations + restore the latest published dump
 docker compose run --rm api alembic upgrade head
+docker compose run --rm api opensalestax data restore
 
 # Hit the API
 curl http://localhost:8080/v1/health
@@ -53,8 +103,13 @@ Swagger UI.
 | **Tier 2** -- rate-only via SST data, default taxability | 22 | AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY |
 | **Unsupported** (Phase 2+) | 23 | CA, TX, NY, FL, IL, PA, AL, AZ, CO, CT, DC, HI, ID, LA, MD, MA, MS, MO, NM, PA, PR, SC, VA |
 
-To **load real rate data** for an SST state into your local
-database (new in v0.2):
+## Refresh from source (current DOR data)
+
+The pre-built dump is rebuilt on every release tag and pinned to
+the SST quarterly file current at release time. If you need data
+fresher than the latest tag -- typically because a state DOR has
+published mid-quarter rate changes -- bypass the bundled dump and
+load directly from the upstream sources:
 
 ```bash
 docker compose run --rm api opensalestax data fetch \
@@ -67,6 +122,9 @@ The API now returns Minnesota's actual SST rates (state base
 6.875% plus any local additions) for any covered ZIP. See
 [docs/data-refresh.md](docs/data-refresh.md) for the full
 fetch / load / status / purge workflow.
+
+This is the only path supported on **MariaDB** -- the bundled
+release dump is PostgreSQL COPY format.
 
 ## API reference
 

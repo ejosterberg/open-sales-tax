@@ -1,0 +1,298 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+
+# ----------------------------------------------------------------------------
+# Build a pre-loaded PostgreSQL data dump on every release tag.
+#
+# A new user can `pip install opensalestax && opensalestax data restore` and
+# be live in under two minutes -- the alternative is the ~50-minute manual
+# `data fetch` + `data load` loop across all 24 SST states + AZ. This
+# workflow runs on the GitHub Actions runner instead, dumps the loaded
+# database, and uploads the gzipped SQL as a release asset.
+#
+# The dump is data-only (schema is rebuilt from `alembic upgrade head` on
+# the consumer side) and excludes user-specific (`api_keys`) and
+# easily-recreated (`holiday_periods`) tables. The `alembic_version` table
+# schema ships in the dump but its data is excluded so consumers can't
+# accidentally pin themselves to an older head.
+# ----------------------------------------------------------------------------
+
+name: Build data dump
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  # Allow Eric to rebuild the dump for an existing tag without re-tagging.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to attach the dump to (e.g. v0.23.0)."
+        required: true
+        type: string
+      sst_version:
+        description: "SST quarterly version label (e.g. 2026Q2FEB18)."
+        required: false
+        default: "2026Q2FEB18"
+        type: string
+
+env:
+  POETRY_VERSION: "1.8.4"
+  PYTHON_VERSION: "3.11"
+  # Pin the SST quarterly file every state should use. Bumping this value
+  # is the only thing required to refresh the bundled dump to a newer
+  # quarter (assuming SST has published it for every member state).
+  SST_VERSION: "2026Q2FEB18"
+  # AZ ships its own dataset versioned alongside the package itself; bumped
+  # whenever the AZ DOR TPT Rate Table CSV is refreshed in src/.../states/az_data.py.
+  AZ_VERSION: "v0.23-tpt"
+  # Used by both the loader and the API runtime; matches the service container.
+  OPENSALESTAX_DATABASE_URL: "postgresql+asyncpg://opensalestax:opensalestax@localhost:5432/opensalestax"
+  PGPASSWORD: "opensalestax"
+
+jobs:
+  build:
+    name: Build and upload pre-loaded PostgreSQL dump
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for softprops/action-gh-release to attach assets.
+      contents: write
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: opensalestax
+          POSTGRES_PASSWORD: opensalestax
+          POSTGRES_DB: opensalestax
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U opensalestax"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve target tag
+        id: tag
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.tag }}" ]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "::error::Resolved tag '$tag' does not look like vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Building data dump for tag: $tag"
+
+      - name: Resolve SST version
+        id: sst
+        run: |
+          set -euo pipefail
+          sst="${{ inputs.sst_version }}"
+          if [ -z "$sst" ]; then
+            sst="${SST_VERSION}"
+          fi
+          echo "version=$sst" >> "$GITHUB_OUTPUT"
+          echo "Loading every SST state at version: $sst"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        run: pipx install poetry==${{ env.POETRY_VERSION }}
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Install project (with runtime deps)
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Install postgres client (psql + pg_dump)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client gzip
+
+      - name: Wait for PostgreSQL service container
+        run: |
+          set -euo pipefail
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U opensalestax; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::postgres never came up"
+          exit 1
+
+      - name: Apply Alembic migrations (alembic upgrade head)
+        run: poetry run alembic upgrade head
+
+      - name: Cache SST quarterly downloads
+        # SST files are quarterly + immutable per filename; cache them so
+        # dump rebuilds for the same SST_VERSION skip the upstream fetch.
+        uses: actions/cache@v4
+        with:
+          path: ~/.opensalestax/data
+          key: sst-${{ steps.sst.outputs.version }}-v3
+          restore-keys: |
+            sst-${{ steps.sst.outputs.version }}-
+
+      - name: Load Census ZCTA -> state boundaries
+        # Required first so self-seeded states (CA, TX, NY, AZ, ...) can
+        # answer real US ZIPs the moment they're loaded.
+        run: poetry run python -m opensalestax data load-zcta
+
+      - name: Fetch + load all 24 SST states
+        # SST_STATES is the canonical USPS list from
+        # src/opensalestax/states/catalog.py (sst_member=True). Keep
+        # this list in sync if/when SST membership changes.
+        env:
+          SST_STATES: "AR GA IA IN KS KY MI MN NE NC ND NJ NV OH OK RI SD TN UT VT WA WV WI WY"
+        run: |
+          set -euo pipefail
+          version="${{ steps.sst.outputs.version }}"
+          for state in $SST_STATES; do
+            echo "::group::Loading $state @ $version"
+            # Fetch both rates (R) and boundary (B) files. SST sometimes
+            # publishes only one extension (.csv vs .zip) per state per
+            # quarter; the fetcher transparently retries the alternate
+            # extension and caches whichever exists upstream.
+            poetry run python -m opensalestax data fetch \
+              --state "$state" --version "$version" --kind R
+            poetry run python -m opensalestax data fetch \
+              --state "$state" --version "$version" --kind B || \
+              echo "::warning::No boundary file for $state @ $version (state may have boundary skip)"
+            poetry run python -m opensalestax data load \
+              --state "$state" --version "$version"
+            echo "::endgroup::"
+          done
+
+      - name: Load Arizona TPT (self-seeded; no SST file)
+        run: |
+          set -euo pipefail
+          poetry run python -m opensalestax data load \
+            --state AZ --version "${AZ_VERSION}"
+
+      - name: Verify load (data status)
+        run: |
+          set -euo pipefail
+          poetry run python -m opensalestax data status
+          # Sanity check: each loaded state should have at least one rate.
+          rates=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM rates;")
+          authorities=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM tax_authorities;")
+          boundaries=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM boundaries;")
+          echo "rates=$rates authorities=$authorities boundaries=$boundaries"
+          if [ "$rates" -lt 1000 ]; then
+            echo "::error::Suspiciously low rate count ($rates); aborting before publishing dump"
+            exit 1
+          fi
+
+      - name: Build pg_dump asset
+        id: dump
+        run: |
+          set -euo pipefail
+          tag="${{ steps.tag.outputs.tag }}"
+          dump="opensalestax-dump-${tag}-postgres.sql.gz"
+          # Data-only dump:
+          # --no-owner / --no-acl   keep the dump portable across deployments
+          # --exclude-table=...     api_keys is per-deployment; never bundle
+          # --exclude-table=...     holiday_periods is small + recreated by `data load`
+          # --exclude-table-data=alembic_version
+          #                          ship the row pinned by the consumer's own
+          #                          `alembic upgrade head` rather than
+          #                          forcing the dump's head onto the consumer
+          #
+          # Optimization knobs are minimal here: pg_dump's COPY format is
+          # already compact and gzip -9 squeezes the rest. Empirically a
+          # ~50 MB raw dump compresses to ~10 MB. If a future bundle
+          # exceeds the 500 MB target, the next lever is splitting per
+          # state (one asset per state) rather than tweaking pg_dump flags.
+          pg_dump \
+            -h localhost -U opensalestax -d opensalestax \
+            --data-only \
+            --no-owner \
+            --no-acl \
+            --exclude-table=api_keys \
+            --exclude-table=holiday_periods \
+            --exclude-table-data=alembic_version \
+            | gzip -9 > "$dump"
+          size_bytes=$(stat -c%s "$dump")
+          size_mb=$(( (size_bytes + 1048575) / 1048576 ))
+          echo "Built $dump (${size_mb} MiB / ${size_bytes} bytes)"
+          echo "filename=$dump" >> "$GITHUB_OUTPUT"
+          echo "size_mb=$size_mb" >> "$GITHUB_OUTPUT"
+          echo "size_bytes=$size_bytes" >> "$GITHUB_OUTPUT"
+          if [ "$size_bytes" -gt $((500 * 1024 * 1024)) ]; then
+            echo "::warning::Dump exceeds 500 MiB target ($size_mb MiB). Consider per-state split."
+          fi
+
+      - name: Compute dump SHA-256
+        id: sha
+        run: |
+          set -euo pipefail
+          sha=$(sha256sum "${{ steps.dump.outputs.filename }}" | awk '{print $1}')
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "$sha  ${{ steps.dump.outputs.filename }}" > "${{ steps.dump.outputs.filename }}.sha256"
+
+      - name: Summarize dump in workflow output
+        run: |
+          set -euo pipefail
+          {
+            echo "## Pre-loaded data dump"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Tag | \`${{ steps.tag.outputs.tag }}\` |"
+            echo "| SST version | \`${{ steps.sst.outputs.version }}\` |"
+            echo "| AZ version | \`${AZ_VERSION}\` |"
+            echo "| File | \`${{ steps.dump.outputs.filename }}\` |"
+            echo "| Size | ${{ steps.dump.outputs.size_mb }} MiB (${{ steps.dump.outputs.size_bytes }} bytes) |"
+            echo "| SHA-256 | \`${{ steps.sha.outputs.sha256 }}\` |"
+            echo ""
+            echo "Restore with:"
+            echo ""
+            echo '```bash'
+            echo "opensalestax data restore --release ${{ steps.tag.outputs.tag }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload dump as workflow artifact
+        # Belt-and-suspenders: even on the workflow_dispatch path with a
+        # missing release, we still keep the dump retrievable for 14 days.
+        uses: actions/upload-artifact@v4
+        with:
+          name: opensalestax-dump-${{ steps.tag.outputs.tag }}
+          path: |
+            ${{ steps.dump.outputs.filename }}
+            ${{ steps.dump.outputs.filename }}.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Attach dump to GitHub release
+        # Only fires for tag pushes (not workflow_dispatch on a tag that
+        # has no release yet); the action no-ops cleanly if the release
+        # doesn't exist and `fail_on_unmatched_files` will catch upload
+        # errors loudly.
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: |
+            ${{ steps.dump.outputs.filename }}
+            ${{ steps.dump.outputs.filename }}.sha256
+          fail_on_unmatched_files: true

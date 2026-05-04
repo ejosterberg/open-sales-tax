@@ -8,6 +8,9 @@ Subcommands:
 - ``opensalestax serve``   -- run the API server (uvicorn).
 - ``opensalestax data fetch``  -- download an SST file (by filename or --state/--version).
 - ``opensalestax data load``   -- load a cached SST file into the database.
+- ``opensalestax data restore``-- fast install: pull a pre-loaded dump from
+  the latest GitHub release and restore it into the local DB. Two-minute
+  alternative to the ~50-minute manual fetch+load loop.
 - ``opensalestax data status`` -- show what's loaded per state.
 - ``opensalestax data purge``  -- delete a specific data version.
 - ``opensalestax data list-versions`` -- list cached SST files (not yet loaded).
@@ -33,6 +36,18 @@ from opensalestax.data.loader import (
     load_zcta_state_boundaries,
     purge_data_version,
     resolve_filename,
+)
+from opensalestax.data.restore import (
+    RestoreError,
+    RestoreSummary,
+    download_dump,
+    get_current_alembic_revision,
+    is_postgres_dsn,
+    read_dump_sample,
+    resolve_source,
+    sniff_alembic_version,
+    stream_dump_to_psql,
+    validate_schema_compatibility,
 )
 from opensalestax.data.sst import (
     SstFilename,
@@ -290,6 +305,155 @@ def data_status() -> None:
     typer.echo(f"{'state':6s} {'version':40s} fetched_at")
     for state_abbrev, label, fetched_at in rows:
         typer.echo(f"{state_abbrev:6s} {label:40s} {fetched_at.isoformat()}")
+
+
+@data_app.command("restore")
+def data_restore(
+    release: str | None = typer.Option(
+        None,
+        "--release",
+        help=(
+            "Release tag to pull the dump from (e.g. v0.23.0). "
+            "Default: latest release. Mutually exclusive with --file."
+        ),
+    ),
+    file: Path | None = typer.Option(
+        None,
+        "--file",
+        exists=False,  # we surface a friendlier error than typer's
+        help="Local path to a .sql.gz dump. Mutually exclusive with --release.",
+    ),
+    cache_dir: Path | None = typer.Option(
+        None,
+        "--cache-dir",
+        help="Where to cache downloaded dumps (default: ~/.opensalestax/data).",
+    ),
+    skip_schema_check: bool = typer.Option(
+        False,
+        "--skip-schema-check",
+        help=(
+            "Bypass the alembic-revision compatibility check. Use with care; "
+            "the consumer database must be at a compatible head."
+        ),
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Resolve the source and validate the dump's schema, but do not apply it.",
+    ),
+) -> None:
+    """Restore a pre-loaded data dump (the recommended fast install path).
+
+    By default this fetches the latest published GitHub release dump,
+    validates that its schema head matches the consumer database, then
+    pipes the gzipped SQL through ``psql``. Net effect: a fresh local
+    install is fully populated with all 24 SST states + AZ in under
+    two minutes, instead of the ~50-minute manual fetch+load loop.
+
+    PostgreSQL only -- the dump uses pg_dump's COPY format. MariaDB
+    deployments must use ``opensalestax data load`` per state.
+    """
+    # Engine guard first; everything else is wasted effort on MariaDB.
+    from opensalestax.settings import get_settings
+
+    settings = get_settings()
+    if not is_postgres_dsn(settings.database_dsn):
+        typer.secho(
+            "Restore from PostgreSQL dump only; for MariaDB, use the manual data load path:",
+            fg=typer.colors.YELLOW,
+            err=True,
+        )
+        typer.echo(
+            "    opensalestax data fetch --state <ST> --version <VER>\n"
+            "    opensalestax data load  --state <ST> --version <VER>",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
+    try:
+        source = resolve_source(release=release, file=file)
+    except RestoreError as exc:
+        typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"source: {source.display}")
+
+    # Materialize the dump locally if we resolved to a URL.
+    if source.is_local:
+        dump_path = source.local_path
+        assert dump_path is not None
+    else:
+        target_dir = cache_dir or default_data_dir()
+        target_dir.mkdir(parents=True, exist_ok=True)
+        dump_path = target_dir / Path(source.url or "").name
+        typer.echo(f"downloading -> {dump_path}")
+        try:
+            download_dump(source.url or "", dump_path)
+        except RestoreError as exc:
+            typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1) from exc
+
+    # Schema-version check: refuse to apply a dump that pins a head
+    # different from the one Alembic just produced. A workflow-built
+    # dump excludes alembic_version data and so this is a no-op there.
+    if not skip_schema_check:
+        try:
+            sample = read_dump_sample(dump_path)
+            dump_rev = sniff_alembic_version(sample)
+            current_rev = get_current_alembic_revision()
+            validate_schema_compatibility(dump_rev, current_rev)
+        except RestoreError as exc:
+            typer.secho(f"schema check failed: {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1) from exc
+
+    if dry_run:
+        typer.secho("dry-run: skipping psql apply", fg=typer.colors.YELLOW)
+        raise typer.Exit(code=0)
+
+    typer.echo("applying dump (piping through psql)...")
+    try:
+        stream_dump_to_psql(dump_path, settings.database_dsn)
+    except RestoreError as exc:
+        typer.secho(f"restore failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+
+    summary = asyncio.run(_restore_summary_async(source.display))
+    typer.secho(
+        f"Restored {summary.states} states, {summary.rates} rates, "
+        f"{summary.boundaries} boundaries from {summary.source}",
+        fg=typer.colors.GREEN,
+    )
+
+
+async def _restore_summary_async(source: str) -> RestoreSummary:
+    """Query post-restore counts so the CLI can echo a one-line summary."""
+    from sqlalchemy import func, select
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from opensalestax.db.models import Boundary, Rate, State, TaxAuthority
+    from opensalestax.db.session import get_engine, reset_engine
+
+    engine = get_engine()
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with sessionmaker() as session:
+            states = (await session.execute(select(func.count()).select_from(State))).scalar_one()
+            rates = (await session.execute(select(func.count()).select_from(Rate))).scalar_one()
+            bounds = (
+                await session.execute(select(func.count()).select_from(Boundary))
+            ).scalar_one()
+            auths = (
+                await session.execute(select(func.count()).select_from(TaxAuthority))
+            ).scalar_one()
+            return RestoreSummary(
+                states=int(states),
+                rates=int(rates),
+                boundaries=int(bounds),
+                authorities=int(auths),
+                source=source,
+            )
+    finally:
+        await reset_engine()
 
 
 @data_app.command("purge")
