@@ -288,14 +288,17 @@ class SouthCarolina:
 
         # Pass 1: state + county for every SC ZIP per Census ZCTA.
         # Emit at most one county per ZIP: prefer the city-anchor
-        # county if known, else the first Census-listed SC county.
+        # county if known, else the first Census-listed SC county
+        # in deterministic FIPS-sorted order.
+        #
+        # ZIP_COUNTY values are frozensets, so iteration order is
+        # non-deterministic; we sort by FIPS for stable test results.
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
+            sorted_sc_pairs = sorted(cf for sa, cf in pairs if sa == "SC")
             chosen_county: str | None = None
-            for state_abbrev, county_fips in pairs:
-                if state_abbrev != "SC":
-                    continue
+            for county_fips in sorted_sc_pairs:
                 sc_county_name = county_name("SC", county_fips)
                 if sc_county_name is None or sc_county_name not in SC_COUNTY_RATE_PCT:
                     continue

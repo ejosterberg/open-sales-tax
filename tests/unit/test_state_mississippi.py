@@ -262,3 +262,81 @@ def test_mississippi_holidays_unknown_year_returns_empty() -> None:
     assert list(MISSISSIPPI.holidays_for(2025)) == []
     assert list(MISSISSIPPI.holidays_for(2027)) == []
     assert list(MISSISSIPPI.holidays_for(2099)) == []
+
+
+# ---------------------------------------------------------------------------
+# Statewide ZIP coverage tests (v0.31 ratchet, parallels TX/NY/MO/IL/PA)
+# ---------------------------------------------------------------------------
+def test_mississippi_parse_rates_emits_all_82_counties() -> None:
+    """All 82 MS counties must be emitted as RateRows so the
+    ZIP_COUNTY-driven boundary loader can resolve every MS ZIP to a
+    queryable county authority. Per Miss. Code Ann. section 27-65-241,
+    no MS county imposes a general-retail county sales tax, so every
+    county is at 0% verified.
+    """
+    rows = list(MISSISSIPPI.parse_rates(None, "v0.31-statewide"))
+    counties = [r for r in rows if r.authority_type == "county"]
+    assert len(counties) == 82
+    for r in counties:
+        assert r.rate_pct == Decimal("0.000"), (
+            f"{r.authority_name} should be verified 0% per Miss. Code "
+            f"Ann. section 27-65-241 (no general-retail county tax in MS)"
+        )
+    # Spot-check a non-Jackson/Tupelo county.
+    by_name = {r.authority_name: r for r in counties}
+    assert "Forrest County" in by_name  # Hattiesburg's county
+    assert "Harrison County" in by_name  # Gulfport / Biloxi county
+    assert "DeSoto County" in by_name
+
+
+def test_mississippi_parse_boundaries_covers_non_city_zip() -> None:
+    """A ZIP outside MS_CITIES must still bind to state + county
+    after the v0.31 statewide ratchet. Hattiesburg 39406 (in
+    Forrest County only per Census ZCTA) is NOT in MS_CITIES (the
+    Hattiesburg Tourism Tax is hotel/restaurant-only, not modeled).
+    Pre-v0.31 it would have only the Census state binding; post-
+    v0.31 it must bind to "Mississippi" AND "Forrest County".
+    """
+    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.31-statewide"))
+    htsb_rows = [b for b in rows if b.zip5 == "39406"]
+    names = sorted(b.authority_name for b in htsb_rows)
+    assert names == ["Forrest County", "Mississippi"]
+
+
+def test_mississippi_parse_boundaries_dedupes_county_per_zip() -> None:
+    """A ZIP must bind to AT MOST ONE county to avoid future
+    double-binding when per-county levies are added (Hattiesburg
+    restaurant tax, etc.).
+    """
+    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.31-statewide"))
+    by_zip: dict[str, list[str]] = {}
+    for b in rows:
+        if b.authority_type == "county":
+            by_zip.setdefault(b.zip5, []).append(b.authority_name)
+    multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
+    assert multi == {}, (
+        f"Found ZIPs bound to multiple MS counties: {multi}"
+    )
+
+
+def test_mississippi_parse_boundaries_jackson_city_still_bound() -> None:
+    """Jackson ZIP 39201 must still pick up its city authority
+    after the v0.31 ratchet (the Pass 2 fallback).
+    """
+    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.31-statewide"))
+    jackson_rows = [b for b in rows if b.zip5 == "39201"]
+    names = sorted(b.authority_name for b in jackson_rows)
+    assert names == ["Hinds County", "Jackson", "Mississippi"]
+
+
+def test_mississippi_parse_boundaries_emits_many_zips() -> None:
+    """Sanity: post-v0.31 MS must emit boundary rows for many
+    hundreds of ZIPs (the Census ZCTA file lists ~360 MS ZCTAs),
+    not just the ~16 ZIPs in MS_CITIES.
+    """
+    rows = list(MISSISSIPPI.parse_boundaries(None, "v0.31-statewide"))
+    state_zips = {b.zip5 for b in rows if b.authority_type == "state"}
+    assert len(state_zips) > 250, (
+        f"Expected statewide ZCTA coverage (~360 MS ZIPs); got only "
+        f"{len(state_zips)} -- ratchet may not be wired correctly"
+    )

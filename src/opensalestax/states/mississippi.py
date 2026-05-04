@@ -12,6 +12,14 @@ Local-jurisdiction model:
 
 - Mississippi has very few local sales taxes. The state-imposed 7%
   rate is the bulk of what is collected statewide.
+- **No Mississippi county imposes a general-retail county sales
+  tax.** Miss. Code Ann. section 27-65-241 authorizes
+  general-retail surcharges only for specific municipalities by
+  local-and-private act; no analogous authorization exists for
+  counties. The 82 MS counties are therefore all listed at 0%
+  verified in :data:`MS_COUNTY_RATE_PCT` -- the county layer
+  exists ONLY to give every MS ZIP a county-level authority for
+  binding via the ZIP_COUNTY-driven loader.
 - A small handful of municipalities have local "infrastructure"
   taxes on **general retail** (Jackson 1% Special Sales Tax,
   Tupelo 0.25% Water Procurement Facility Tax). These are seeded
@@ -22,10 +30,19 @@ Local-jurisdiction model:
   retail (Hattiesburg, Gulfport, Biloxi, Tunica County). These
   are NOT modeled because the engine does not yet support
   per-category local taxability overrides; their general-retail
-  rate is correctly 7% via the Census ZCTA state-only fallback.
-- ZIPs not in a covered city's tuple receive the 7% statewide
-  rate, which is the correct answer everywhere outside Jackson
-  and Tupelo.
+  rate is correctly 7% via the state authority.
+
+**Statewide ZIP coverage via Census ZCTA**
+(parallels FL/AZ/CA in v0.28 and TX/NY/MO/IL/PA in v0.29).
+:meth:`Mississippi.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits state +
+county bindings for every MS ZIP. Because every MS county is at
+0% (verified per Miss. Code Ann. section 27-65-241), the dollar
+result is unchanged from the prior state-only fallback (7%
+statewide flat) -- but the audit trail now records WHICH county
+each MS ZIP physically sits in, enabling future per-county
+analytics and giving us infrastructure for future per-category
+local taxability overrides (Hattiesburg restaurant tax, etc.).
 
 Taxability matrix (per Miss. Code Ann. Title 27, Chapter 65):
 
@@ -127,6 +144,8 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.ms_data import (
     MS_CITIES,
     MS_COUNTY_RATE_PCT,
@@ -247,9 +266,13 @@ class Mississippi:
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
         """Yield MS's state + per-county + per-city general-retail rates.
 
-        Counties yielded: only those touched by an MS_CITIES entry.
-        Cities yielded: every MS_CITIES entry. ``source_file`` is
-        intentionally ignored -- MS has no SST upstream file.
+        Counties yielded: every county in :data:`MS_COUNTY_RATE_PCT`
+        (all 82 MS counties at 0% verified per Miss. Code Ann.
+        section 27-65-241). The ZIP_COUNTY-driven boundary loader
+        binds every MS ZIP to its county, so every county must have
+        a queryable rate. Cities yielded: every MS_CITIES entry.
+        ``source_file`` is intentionally ignored -- MS has no SST
+        upstream file.
         """
         del source_file, version_label
         yield RateRow(
@@ -260,54 +283,126 @@ class Mississippi:
             effective_to=None,
             parent_authority_name=None,
         )
-        used_counties = {county for county, _, _ in MS_CITIES.values()}
-        for county_name in sorted(used_counties):
+        # Emit a RateRow for every MS county (all 82 at 0% verified).
+        # The ZIP_COUNTY-driven boundary loader binds every MS ZIP to
+        # its county, so every county must have a queryable rate.
+        for ms_county_name in sorted(MS_COUNTY_RATE_PCT):
             yield RateRow(
-                authority_name=county_name,
+                authority_name=ms_county_name,
                 authority_type="county",
-                rate_pct=MS_COUNTY_RATE_PCT[county_name],
+                rate_pct=MS_COUNTY_RATE_PCT[ms_county_name],
                 effective_from=MS_STATE_EFFECTIVE_FROM,
                 effective_to=None,
                 parent_authority_name="Mississippi",
             )
-        for city_name, (county_name, city_rate, _zips) in sorted(MS_CITIES.items()):
+        for city_name, (ms_city_county, city_rate, _zips) in sorted(MS_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
                 authority_type="city",
                 rate_pct=city_rate,
                 effective_from=MS_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name=county_name,
+                parent_authority_name=ms_city_county,
             )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, county, city) boundary rows for each covered ZIP.
+        """Yield (state, county[, city]) boundary rows for every MS ZIP.
 
-        The Census ZCTA load already provides state-level binding for
-        every MS ZIP; this method ADDS county + city bindings for
-        Jackson and Tupelo (the only MS cities with general-retail
-        local rates). ZIPs outside the covered cities keep the
-        Census state-only binding (correct: flat 7%).
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           MS county. Because every MS county is at 0% (no
+           general-retail county tax in Mississippi per Miss. Code
+           Ann. section 27-65-241), the dollar result is unchanged
+           from the prior state-only fallback (7% statewide flat) --
+           but the audit trail now records WHICH county the ZIP
+           physically sits in.
+
+        2. Fall back to :data:`MS_CITIES` for any city ZIP missed by
+           the Census ZCTA pass (USPS-only / PO-box-only ZIPs that
+           aren't published as Census ZCTAs), then emit the city
+           BoundaryRow on top of the state + county stack so Jackson
+           and Tupelo continue to pick up their city surcharges.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`MS_CITIES`. Without this, ZIPs that physically span
+        county lines would get bound to BOTH counties.
         """
         del source_file, version_label
-        for city_name, (county_name, _city_rate, zips) in MS_CITIES.items():
+        # Build city-anchor county map for cross-county-line ZIPs.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _rate, czs) in MS_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every MS ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed MS county
+        # in deterministic FIPS-sorted order.
+        #
+        # ZIP_COUNTY values are frozensets, so iteration order is
+        # non-deterministic; we sort by FIPS for stable test results.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            sorted_ms_pairs = sorted(cf for sa, cf in pairs if sa == "MS")
+            chosen_county: str | None = None
+            for county_fips in sorted_ms_pairs:
+                ms_county_name = county_name("MS", county_fips)
+                if ms_county_name is None or ms_county_name not in MS_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if ms_county_name == preferred_county:
+                        chosen_county = ms_county_name
+                        break
+                    continue
+                chosen_county = ms_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Mississippi",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+
+        # Pass 2: city BoundaryRows for MS_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (USPS-only
+        # codes not in ZCTA) so we never regress city coverage.
+        for city_name, (ms_city_county, _city_rate, zips) in MS_CITIES.items():
             for zip5 in zips:
-                yield BoundaryRow(
-                    authority_name="Mississippi",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
-                yield BoundaryRow(
-                    authority_name=county_name,
-                    authority_type="county",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="Mississippi",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=ms_city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name=city_name,
                     authority_type="city",

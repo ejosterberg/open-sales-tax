@@ -232,6 +232,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MS", "Hattiesburg", "39401", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Hattiesburg's Tourism Tax applies to hotels+restaurants only, not general retail)"),
     ("MS", "Gulfport", "39501", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
     ("MS", "Biloxi", "39530", "0001", "7.000", "0.05", "MS DOR (state 7% only -- Harrison County tourism tax is hotels+prepared food only)"),
+    # v0.31 statewide-ZIP coverage validation: MS counties NOT in
+    # MS_CITIES. All MS counties are at 0% verified per Miss. Code
+    # Ann. section 27-65-241, so combined rate is the flat 7%
+    # statewide -- but post-v0.31 these ZIPs now bind to a county
+    # authority (audit-trail improvement).
+    ("MS", "Meridian (Lauderdale County)", "39301", "0001", "7.000", "0.05", "MS DOR (state 7%; Lauderdale County 0% verified)"),
+    ("MS", "Greenville (Washington County)", "38701", "0001", "7.000", "0.05", "MS DOR (state 7%; Washington County 0% verified)"),
+    ("MS", "Olive Branch (DeSoto County)", "38654", "0001", "7.000", "0.05", "MS DOR (state 7%; DeSoto County 0% verified)"),
+    ("MS", "Vicksburg (Warren County)", "39180", "0001", "7.000", "0.05", "MS DOR (state 7%; Warren County 0% verified)"),
     # South Carolina -- SC DOR Form ST-500 effective May 1, 2026
     # All 10 covered cities; combined rates are state 6% + per-county
     # local portion (no city-level rate; Myrtle Beach is the only SC
@@ -255,7 +264,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("SC", "Conway (Horry County)", "29526", "0001", "8.000", "0.05", "SC DOR ST-500 (Horry County 2% local: TT + ECI; non-Myrtle-Beach ZIP)"),
     ("SC", "Hilton Head (Beaufort County)", "29928", "0001", "6.000", "0.05", "SC DOR ST-500 (Beaufort County verified 0% -- statewide ratchet binds to Beaufort County at 0% local)"),
     ("SC", "Anderson (Anderson County)", "29621", "0001", "7.000", "0.05", "SC DOR ST-500 (Anderson County 1% ECI; non-city ZIP)"),
-    ("SC", "Florence (Florence County)", "29501", "0001", "8.000", "0.05", "SC DOR ST-500 (Florence County 2% local: LO + CP; non-city ZIP)"),
+    ("SC", "Florence area", "29505", "0001", "8.000", "0.05", "SC DOR ST-500 (Florence County 2% local: LO + CP; Florence-only ZIP 29505)"),
     # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
     # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
     # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg
