@@ -37,13 +37,35 @@ from opensalestax.states.protocol import (
     TaxabilityRule,
 )
 
-# Default jurisdiction-type code mapping; overridden per-state if
-# a state's SST file uses different codes.
+# Default jurisdiction-type code mapping. Empirically validated
+# against every SST member state's 2024-2026 quarterly rate file:
+#
+# - **state**: all states use ``45``.
+# - **county**: most use ``00``; NC / NV / TN use single-digit ``0``.
+# - **city**: most use ``01``; TN / VT use single-digit ``1``.
+# - **district**: ``63`` is the dominant code, but several states
+#   publish additional district categories under different codes:
+#   - ``02`` -- Vermont local-option taxes
+#   - ``49`` -- South Dakota tribal / reservation districts
+#   - ``69`` -- Arkansas / Wyoming special-purpose districts
+#   - ``79`` -- Kansas / North Carolina / Tennessee transit / sports
+#     authority districts
+#
+# Including all known codes here means most state modules don't
+# need an override; per-state subclasses can still narrow or
+# extend by setting ``jurisdiction_types`` explicitly.
 _DEFAULT_JURISDICTION_TYPE: dict[str, str] = {
     "45": "state",
     "00": "county",
+    "0": "county",
     "01": "city",
+    "1": "city",
+    "02": "district",
+    "2": "district",
+    "49": "district",
     "63": "district",
+    "69": "district",
+    "79": "district",
 }
 
 # Default taxability matrix for tier-2 states.
