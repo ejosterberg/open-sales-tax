@@ -133,6 +133,34 @@ def test_parse_boundary_normalizes_record_type_case(tmp_path) -> None:
     assert types == ["4", "z"], f"expected normalized ['4', 'z']; got {types}"
 
 
+def test_parse_boundary_zero_pads_zip4_ranges(tmp_path) -> None:
+    """Type-4 records with un-padded +4 ranges (e.g. "1" instead of "0001")
+    must be zero-padded so downstream string comparison behaves numerically.
+
+    Without padding, OK 73072-1015 was matched against ranges low="1"
+    high="7" (lex: "1"<="1015"<="7"), spuriously binding the ZIP to
+    Norman + Newcastle + Cleveland + McClain and tripling the city tax.
+    """
+    from opensalestax.data.sst_parser import BOUNDARY_COLUMNS
+
+    csv = tmp_path / "OKB2026Q2APR01.csv"
+    base_cols = [""] * BOUNDARY_COLUMNS
+    base_cols[1] = "20070101"
+    base_cols[2] = "29991231"
+    base_cols[17] = "73072"
+    base_cols[18] = "1"  # +4 low — un-padded
+    base_cols[19] = "73072"
+    base_cols[20] = "7"  # +4 high — un-padded
+    base_cols[22] = "40"
+    record_4 = ",".join(["4", *base_cols[1:]])
+    csv.write_text(record_4 + "\n")
+
+    records = list(parse_boundary_csv(open_sst_csv(csv)))
+    assert len(records) == 1
+    assert records[0].zip4_low == "0001"
+    assert records[0].zip4_high == "0007"
+
+
 # ---------------------------------------------------------------------------
 # active_only filter
 # ---------------------------------------------------------------------------

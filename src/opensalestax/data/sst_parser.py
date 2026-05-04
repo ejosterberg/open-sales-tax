@@ -196,6 +196,20 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             zip5_high = cols[19] or zip5_low
             zip4_low_raw = cols[18] or ""
             zip4_high_raw = cols[20] or zip4_low_raw
+            # Zero-pad +4 ranges to 4 chars so downstream string
+            # comparison ("0001" <= "1015" <= "0007") behaves
+            # numerically. The SST file publishes "1" instead of
+            # "0001" when the leading digits are zero; without
+            # padding, "1015" lexicographically falls between "1"
+            # and "7", spuriously matching every range that starts
+            # at "1" (e.g. OK 73072-1015 was matched against Norman
+            # ranges 1..7, 1..9 and McClain ranges 1..11).
+            zip4_low_padded = (
+                zip4_low_raw.zfill(4) if record_type == "4" and zip4_low_raw else zip4_low_raw
+            )
+            zip4_high_padded = (
+                zip4_high_raw.zfill(4) if record_type == "4" and zip4_high_raw else zip4_high_raw
+            )
             common: dict[str, Any] = {
                 "record_type": record_type,
                 "effective_from": _parse_date(cols[1]),
@@ -205,8 +219,8 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
                 # SST publishes ZIP+4 fields only on type-4 rows;
                 # type-z rows leave them blank (treated as None so
                 # the engine's "no +4 range" branch matches).
-                "zip4_low": (zip4_low_raw or None) if record_type == "4" else None,
-                "zip4_high": (zip4_high_raw or None) if record_type == "4" else None,
+                "zip4_low": (zip4_low_padded or None) if record_type == "4" else None,
+                "zip4_high": (zip4_high_padded or None) if record_type == "4" else None,
                 "state_fips": cols[22],
                 "county_fips": cols[24] or None,
                 "city_code": cols[25] or None,
