@@ -4928,6 +4928,192 @@ default taxability (everything taxable except groceries). To
     the regression test in ``test_state_maine.py`` should be
     relaxed for the affected years.
 
+### AL -- Alabama
+
+- **Statewide rate:** **4.000% effective 1969-12-08** (raised from
+  3.0% to 4.0% by Act 1969-833 effective 1969-12-08; has been
+  stable at 4.0% in the general-tangible-personal-property tier
+  since)
+- **Tax model:** sales tax (NOT SST -- verified 2026-05-03 against
+  the SST membership roster on streamlinedsalestax.org; Alabama is
+  not on the SST member-state list and runs its own audit /
+  compliance program through the Alabama Department of Revenue
+  (ALDOR))
+- **Local jurisdictions:** **MOST FRAGMENTED IN THE NATION.**
+  - **67 counties**, most of which levy their own county sales tax
+    (typically 1.0-3.0%); a subset are state-administered (ALDOR
+    collects on the county's behalf), the rest are county- or
+    third-party-administered (RDS, Avenu, Berman).
+  - **~700+ municipalities** (cities and towns), MANY of which
+    **self-administer** their own sales tax under Ala. Code
+    section 11-51-200 et seq. with their own rates, exemptions,
+    and definitions of taxable items. Combined municipal rates of
+    4.0-5.5% are common; combined state+county+city rates commonly
+    fall in 9-12% and reach 13.5% in some cities (Arab in
+    Marshall/Cullman counties has historically been among the
+    highest combined rates).
+  - **NOT MODELED in v1.** Encoding ~700+ self-administering
+    municipalities and 67 counties requires the SubJurisdiction
+    Protocol abstraction deferred to v1.0+. Alabama is one of the
+    three canonical priority candidates (with CO and LA) for that
+    abstraction. The deferral rationale is documented in
+    ``specs/decisions/04-colorado-home-rule.md`` (the Colorado
+    home-rule precedent for the same self-administering-cities
+    pattern) and ``specs/decisions/05-louisiana-parishes.md`` (the
+    Louisiana parish precedent for a state with comparable local
+    fragmentation).
+- **Grocery rate phase-down (state-portion only):**
+  - Pre-2023-09-01: 4.0% (full general state rate)
+  - 2023-09-01 to 2025-08-31: **3.0%** per HB 479 of 2023 (Act
+    2023-554); originally with a conditional further reduction to
+    2.0% if Education Trust Fund growth conditions were met
+  - **2025-09-01 onward: 2.0%** per HB 386 of 2024 (Act 2024-437)
+    which removed the ETF-growth precondition
+  - Codified at Ala. Code section 40-23-2(5) (post-2024
+    renumbering)
+  - Encoded in this module via ``rate_modifier=Decimal("2.000")``
+    on the groceries TaxabilityRule (mirrors the AR/KS/OK/NC/MS/MO
+    reduced-grocery-rate pattern). The engine has applied
+    ``rate_modifier`` since v0.11.1, so the reduced 2.0% state
+    rate is correctly applied.
+  - **Local sales taxes (county and municipal) still apply at
+    FULL local rate** to groceries -- the state phase-down does
+    not reduce the local-portion grocery tax. Combined effective
+    grocery rates inside Alabama cities therefore commonly remain
+    in the 7-9% range despite the reduced state rate.
+- **Specific lower state rates (NOT modeled in v1; documented for
+  future category-aware-rate engine work):**
+  - **Automotive 2.0%** -- Ala. Code section 40-23-2(4)
+  - **Manufacturing machinery 1.5%** -- Ala. Code section
+    40-23-2(3)
+  - **Farm machinery 1.5%** -- Ala. Code section 40-23-37
+- **Sales-tax holidays:** **2 annual STATE holidays** (counties /
+  cities must opt in by ordinance to extend the exemption to
+  their local portion):
+  1. **Severe Weather Preparedness Sales Tax Holiday** -- Ala.
+     Code section 40-23-210 et seq. Three-day weekend covering
+     the **last full weekend of February**. **2026: Friday Feb
+     27 - Sunday Mar 1** (Feb 28 is a Saturday; Friday is Feb 27;
+     Sunday is March 1). Two scopes:
+     - generators with sales price $1,000 or less per item
+     - severe-weather-preparedness items with sales price $60 or
+       less per item (batteries, flashlights, weather-band radios,
+       tarps, plywood, ground anchor systems, gas/diesel fuel
+       containers, ice packs, fire extinguishers, smoke / CO
+       detectors, first-aid kits, etc.)
+  2. **Back-to-School Sales Tax Holiday** -- Ala. Code section
+     40-23-211. Three-day weekend covering the **third full
+     weekend of July**. **2026: Friday July 17 - Sunday July 19**
+     (Fridays in July 2026: 3, 10, 17, 24, 31; third is the
+     17th). Four scopes:
+     - clothing -- $100 or less per article
+     - computers / computer equipment / software -- $750 or less
+       per single-purchase transaction
+     - school supplies -- $50 or less per item
+     - books -- $30 or less per item (noncommercial)
+- **Threshold rules:** none beyond the per-item caps in the two
+  holidays above.
+- **DOR URL:** **https://revenue.alabama.gov/sales-use/**
+  *(retrieved 2026-05-03)*
+- **Statutes consulted (Ala. Code Title 40, Chapter 23 unless
+  noted):**
+  - § 40-23-1 -- definitions (including treatment of digital
+    products as TPP via ALDOR Administrative Rule 810-6-1-.37)
+  - § 40-23-2(1) -- general 4.0% state sales tax rate
+  - § 40-23-2(3) -- 1.5% manufacturing machinery rate (not
+    modeled)
+  - § 40-23-2(4) -- 2.0% automotive rate (not modeled)
+  - § 40-23-2(5) -- reduced state-portion grocery rate (post-2024
+    renumbering)
+  - § 40-23-4(a)(20) -- prescription drug exemption
+  - § 40-23-37 -- 1.5% farm machinery rate (not modeled)
+  - § 40-23-210 et seq. -- Severe Weather Preparedness Sales Tax
+    Holiday (last full February weekend; $1,000 generator cap and
+    $60 supplies cap)
+  - § 40-23-211 -- Back-to-School Sales Tax Holiday (third full
+    July weekend; $100 clothing / $750 computers / $50 supplies /
+    $30 books per-item caps)
+  - § 11-51-200 et seq. -- municipal sales/use tax authority
+    (the home-rule statute under which ~700+ AL cities
+    self-administer their local sales tax)
+  - HB 479 of 2023 (Act 2023-554) -- reduced state-portion
+    grocery rate from 4.0% to 3.0% effective 2023-09-01
+  - HB 386 of 2024 (Act 2024-437) -- removed ETF-growth
+    precondition; reduced state-portion grocery rate from 3.0% to
+    2.0% effective 2025-09-01
+  - ALDOR Administrative Rule 810-6-1-.37 -- treatment of
+    specified digital products as tangible personal property
+- *Sources for rate/taxability:*
+  - ALDOR Sales Tax FAQ
+    (https://revenue.alabama.gov/sales-use/faq/) retrieved
+    2026-05-03 -- primary source for the current 4.0% general
+    state rate, the 2.0% reduced grocery rate, and the
+    prescription-drug exemption
+  - ALDOR Sales Tax Holiday landing page
+    (https://revenue.alabama.gov/sales-use/sales-tax-holidays/)
+    retrieved 2026-05-03 -- primary source for the SWP and BTS
+    holiday dates, scopes, per-item caps, and the local-opt-in
+    annual participating-locality list
+  - Alabama Legislature statute repository -- primary source for
+    Ala. Code Title 40, Chapter 23 sections cited above
+  - Streamlined Sales Tax Project member roster
+    (https://www.streamlinedsalestax.org) retrieved 2026-05-03 --
+    confirmed Alabama is NOT a member state
+  - Sales Tax Institute "Alabama Cuts Grocery Tax to 2%" coverage
+    (cross-reference; HB 386 of 2024 statutory primary source)
+- **Module file:** `src/opensalestax/states/alabama.py`
+- **Last verified:** 2026-05-03 by per-state agent (Phase 6 Batch
+  C tier-0 -> tier-1 ratchet; AL state-portion only; ~700+
+  self-administering home-rule cities and 67 counties deferred
+  to SubJurisdiction Protocol abstraction per
+  ``specs/decisions/04-colorado-home-rule.md`` and
+  ``specs/decisions/05-louisiana-parishes.md``)
+- *Notes:*
+  - Alabama has the most fragmented local sales-tax landscape in
+    the United States. The 4.0% state rate is one of the lowest
+    state-level general sales tax rates in the nation (Colorado is
+    lower at 2.9%; everyone else with a general sales tax is
+    higher) -- a deliberate design choice that pushes the bulk of
+    sales-tax revenue down to the county and municipal layers.
+    Combined rates inside Alabama localities reach 13.5% in some
+    cities, so a v1 caller using the engine for a populated AL
+    address will UNDER-COLLECT by 5-9 percentage points. The
+    module's general-rule notes and module docstring both call
+    this out explicitly; regression tests assert the warning is
+    present in both places.
+  - The grocery phase-down is one of the more significant recent
+    changes in US state sales tax policy: Alabama was historically
+    one of only a handful of states still taxing food at the full
+    general state rate, and the 2023-09-01 -> 2025-09-01 reduction
+    from 4.0% -> 3.0% -> 2.0% halved the state-portion grocery
+    burden in two years. The local portions remain at full rate,
+    so the household impact is meaningful but not as dramatic as
+    the headline state-rate change suggests.
+  - Both AL holidays are state-side holidays where counties and
+    cities MUST OPT IN by ordinance to extend the exemption to
+    their local portion. ALDOR publishes an annual
+    participating-locality list each year; this module encodes
+    only the state-side scope and documents the local-opt-in
+    caveat in every HolidayWindow's notes (verified by a
+    regression test that asserts "opt in" appears in every
+    notes field for every holiday).
+  - Digital goods treatment in Alabama is a moving target across
+    multiple legislative sessions and pending ALDOR guidance
+    iterations. The module encodes the conservative position
+    (taxable at the 4.0% general rate per ALDOR Rule 810-6-1-.37
+    and section 40-23-1) and explicitly notes that streaming
+    services / SaaS specifically should be re-verified against
+    current ALDOR guidance before relying on the digital_goods
+    rule for those subscription transactions.
+  - When the SubJurisdiction Protocol abstraction lands, AL will
+    be a major test case alongside CO and LA. Modelling the
+    ALDOR-administered locals (state-collected counties and
+    municipalities) is straightforward once the abstraction
+    exists; modelling the self-administered home-rule
+    municipalities will require per-city data ingestion since
+    most home-rule cities publish their rate ordinances directly
+    rather than via a centralized feed.
+
 ## §4. Per-state references — TEMPLATE for new entries
 
 Copy this when adding a new state's section. **Mandatory fields**

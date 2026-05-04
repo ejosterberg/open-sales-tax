@@ -17,6 +17,7 @@ Add a new state by:
 # Each import below is for its register() side-effect at package load.
 from opensalestax.states import (
     _tier2,  # noqa: F401
+    alabama,  # noqa: F401
     arizona,  # noqa: F401
     arkansas,  # noqa: F401
     california,  # noqa: F401
