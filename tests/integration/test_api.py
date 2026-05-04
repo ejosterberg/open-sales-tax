@@ -160,25 +160,41 @@ async def test_states_marks_unsupported_states_tier_0(client: AsyncClient) -> No
     """States without a loaded module show tier 0.
 
     CA was promoted in v0.2; TX/NY/FL in v0.3; PA/IL/MD/MA/AZ in v0.4;
-    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7. AL, NM, HI, etc.
-    remain tier 0 until their state modules ship. (NM uses the
-    Gross Receipts Tax model and waits on a separate non-sales-tax
-    abstraction.)
+    CT/DC/SC/VA in v0.6; CO/ID/LA/MO/MS in v0.7; ME promoted in v0.12;
+    NM promoted post-v0.12 (Gross Receipts Tax modeled as sales tax
+    for API-shape compatibility, mirroring the HI/GET approach).
+    AL and HI remain tier 0 until their state modules ship.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("AL", "HI", "NM"):
+    for abbrev in ("AL", "HI"):
         assert states_by_abbrev[abbrev]["tier"] == 0
 
 
 @pytest.mark.asyncio
 async def test_phase_3_non_sst_states_are_tier_1(client: AsyncClient) -> None:
     """CA (v0.2), TX/NY/FL (v0.3), CT/DC/SC (v0.6), CO/ID/LA/MO/MS (v0.7),
-    ME (Phase 8, non-SST, no local tax): all tier 1 non-SST.
+    ME (v0.12, non-SST, no local tax), NM (post-v0.12, Gross Receipts
+    Tax modeled as sales tax): all tier 1 non-SST.
     """
     response = await client.get("/v1/states")
     states_by_abbrev = {s["abbrev"]: s for s in response.json()["states"]}
-    for abbrev in ("CA", "TX", "NY", "FL", "CT", "DC", "SC", "CO", "ID", "LA", "ME", "MO", "MS"):
+    for abbrev in (
+        "CA",
+        "TX",
+        "NY",
+        "FL",
+        "CT",
+        "DC",
+        "SC",
+        "CO",
+        "ID",
+        "LA",
+        "ME",
+        "MO",
+        "MS",
+        "NM",
+    ):
         s = states_by_abbrev[abbrev]
         assert s["tier"] == 1
         assert s["has_sales_tax"] is True
