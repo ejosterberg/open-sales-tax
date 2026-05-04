@@ -131,17 +131,22 @@ async def lookup_jurisdictions_by_zip(
     # the type-z fallback found any city/county binding for this
     # ZIP+4 (e.g. OKC 73102-6107 isn't in any +4 range and the
     # only type-z record was a filtered composite code), fall
-    # back to the loose union of any type-4 county/city for the
-    # ZIP. Most ZIPs are uniform within the city, so this gives
-    # the best-effort right answer instead of silently returning
-    # state-only when ZIP+4 is supplied but unrecognized.
+    # back to the closest type-4 city/county for the ZIP. Picking
+    # the city whose nearest +4 range is closest to the requested
+    # +4 avoids OK-style double-counting when a ZIP straddles two
+    # cities (e.g. 73069 has Norman ranges starting at +4 1000 and
+    # Moore ranges starting at +4 8061; for +4 6107 Norman wins).
     if zip4 is not None and not precise_county_city_ids:
         local_in_z = any(
             a.authority_type in ("county", "city") for a in z_authorities
         )
         if not local_in_z:
             loose_stmt = (
-                select(TaxAuthority)
+                select(
+                    TaxAuthority,
+                    Boundary.zip4_low,
+                    Boundary.zip4_high,
+                )
                 .join(Boundary, Boundary.authority_id == TaxAuthority.id)
                 .where(
                     *base_filter(),
@@ -149,12 +154,9 @@ async def lookup_jurisdictions_by_zip(
                     TaxAuthority.authority_type.in_(("county", "city")),
                 )
                 .options(*options)
-                .distinct()
             )
-            loose_authorities = list(
-                (await session.execute(loose_stmt)).scalars().all()
-            )
-            precise_authorities = loose_authorities
+            loose_rows = list((await session.execute(loose_stmt)).all())
+            precise_authorities = _pick_closest_per_type(loose_rows, zip4)
 
     # Merge: state always; districts always; county/city prefer
     # type-4 over type-z when both exist for the SAME ZIP+4.
@@ -208,3 +210,33 @@ def _stable_sort(authorities: list[TaxAuthority]) -> list[TaxAuthority]:
         authorities,
         key=lambda a: (_TYPE_ORDER.get(a.authority_type, 99), a.name),
     )
+
+
+def _pick_closest_per_type(rows, zip4: str) -> list[TaxAuthority]:
+    """For each authority_type, pick the single authority whose +4 range is closest.
+
+    The loose fallback can return multiple cities (or counties) when
+    a ZIP straddles two municipalities. Picking ALL of them would
+    double-count the local rate. Instead, we pick the one authority
+    per type whose nearest +4 range is closest in numeric distance
+    to the requested +4. Adjacent +4s usually belong to the same
+    municipality, so distance is a strong signal.
+    """
+    requested = int(zip4)
+    best: dict[str, tuple[int, TaxAuthority]] = {}
+    for auth, low, high in rows:
+        if low is None or high is None:
+            continue
+        try:
+            low_i = int(low)
+            high_i = int(high)
+        except (TypeError, ValueError):
+            continue
+        if low_i <= requested <= high_i:
+            distance = 0
+        else:
+            distance = min(abs(requested - low_i), abs(requested - high_i))
+        prior = best.get(auth.authority_type)
+        if prior is None or distance < prior[0]:
+            best[auth.authority_type] = (distance, auth)
+    return [auth for _, auth in best.values()]

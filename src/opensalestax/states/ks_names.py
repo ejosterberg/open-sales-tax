@@ -10,6 +10,7 @@ from __future__ import annotations
 
 KS_CITY_NAMES: dict[str, str] = {
     "36000": "Kansas City",
+    "52575": "Olathe",
     "53775": "Overland Park",
     "71000": "Topeka",
     "79000": "Wichita",

@@ -9,8 +9,14 @@ Verified by ZIP probe + rate cross-check against OK DOR's
 from __future__ import annotations
 
 OK_CITY_NAMES: dict[str, str] = {
+    "02600": "Ardmore",
+    "05700": "Bethany",
+    "09050": "Broken Arrow",
+    "41850": "Lawton",
+    "49200": "Moore",
     "52500": "Norman",
     "55000": "Oklahoma City",
+    "59850": "Ponca City",
     "75000": "Tulsa",
 }
 

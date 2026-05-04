@@ -20,7 +20,10 @@ from opensalestax.core.calculate import (
     LineItem,
     _apply_threshold,
 )
-from opensalestax.core.lookup import lookup_jurisdictions_by_zip
+from opensalestax.core.lookup import (
+    _pick_closest_per_type,
+    lookup_jurisdictions_by_zip,
+)
 
 
 def test_line_item_rejects_negative_amount() -> None:
@@ -193,3 +196,60 @@ def test_apply_threshold_unknown_semantic_falls_back_to_full_basis() -> None:
     assert outcome.zero_line is False
     assert outcome.taxable_basis == Decimal("500.00")
     assert outcome.note is None
+
+
+# ---------------------------------------------------------------------------
+# _pick_closest_per_type — loose-fallback disambiguation
+# ---------------------------------------------------------------------------
+def _stub_authority(id_: int, name: str, authority_type: str):
+    return SimpleNamespace(id=id_, name=name, authority_type=authority_type)
+
+
+class TestPickClosestPerType:
+    """Loose fallback should pick ONE city per type when a ZIP straddles cities.
+
+    Before the fix, OK 73069-6107 returned BOTH Norman (city 52500) and
+    Moore (city 49200), summing two city tax rates and yielding 12.625%
+    instead of the correct 8.5%. The fallback now picks the city whose
+    nearest +4 range is closest to the requested +4.
+    """
+
+    def test_returns_closest_city_when_two_overlap(self) -> None:
+        norman = _stub_authority(1, "Norman", "city")
+        moore = _stub_authority(2, "Moore", "city")
+        rows = [
+            (norman, "1000", "1018"),
+            (norman, "6000", "6099"),
+            (moore, "8061", "8062"),
+        ]
+        picked = _pick_closest_per_type(rows, "6107")
+        assert [a.name for a in picked] == ["Norman"]
+
+    def test_picks_each_type_independently(self) -> None:
+        city = _stub_authority(1, "Norman", "city")
+        county = _stub_authority(2, "Cleveland County", "county")
+        rows = [
+            (city, "6000", "6099"),
+            (county, "0", "9999"),
+        ]
+        picked = _pick_closest_per_type(rows, "6107")
+        types = sorted(a.authority_type for a in picked)
+        assert types == ["city", "county"]
+
+    def test_zero_distance_when_inside_range(self) -> None:
+        a = _stub_authority(1, "A", "city")
+        b = _stub_authority(2, "B", "city")
+        rows = [
+            (a, "6000", "6200"),
+            (b, "5500", "5999"),
+        ]
+        picked = _pick_closest_per_type(rows, "6107")
+        assert [x.name for x in picked] == ["A"]
+
+    def test_skips_rows_with_null_bounds(self) -> None:
+        a = _stub_authority(1, "A", "city")
+        rows = [
+            (a, None, None),
+        ]
+        picked = _pick_closest_per_type(rows, "6107")
+        assert picked == []

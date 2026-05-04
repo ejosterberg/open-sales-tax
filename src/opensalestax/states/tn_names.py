@@ -27,8 +27,10 @@ from __future__ import annotations
 # ---------------------------------------------------------------------------
 TN_CITY_NAMES: dict[str, str] = {
     "14000": "Chattanooga",
+    "15160": "Clarksville",
     "40000": "Knoxville",
     "48000": "Memphis",
+    "51560": "Murfreesboro",
     "52006": "Nashville (Metro)",
 }
 

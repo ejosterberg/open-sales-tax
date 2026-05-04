@@ -9,6 +9,7 @@ Verified by ZIP probe + rate cross-check against SD DOR's
 from __future__ import annotations
 
 SD_CITY_NAMES: dict[str, str] = {
+    "00100": "Aberdeen",
     "52980": "Rapid City",
     "59020": "Sioux Falls",
 }
