@@ -462,13 +462,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # is not modeled separately and would push the actual rate higher
     # at +4 ranges within Urbana proper).
     ("IL", "Urbana (Champaign Co)", "61801", "0001", "7.500", "1.00", "IDOR Tax Rate Finder (state 6.25% + Champaign Co 1.25%) -- post-v0.29 ZCTA; under-reports any Urbana home-rule city tax"),
-    # ----- v0.30 long-tail county fills: MO --------------------------
+    # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
+    # now seeded at 1.000% from IDOR ordmache (was 0% placeholder pre-v0.30).
+    # Combined = state 6.25 + Kendall 1.0 = 7.25%. Kendall is OUTSIDE the
+    # six-county RTA service area (Cook + DuPage + Kane + Lake + McHenry +
+    # Will), so no RTA portion applies despite the geographic adjacency.
+    ("IL", "Plano (Kendall)", "60545", "0001", "7.250", "1.50", "IDOR ordmache 2026-01-01 (state 6.25% + Kendall 1.0%; no RTA outside 6-county area) -- v0.30 long-tail fill"),
+    # ----- v0.30 long-tail county fills: MO + IL --------------------------
     # MO DOR jan2026 PDF (https://dor.mo.gov/pdf/rates/2026/jan2026.pdf)
-    # Extraction reproducible via scripts/extract_mo_county_rates.py.
-    # Each row picks a ZIP that is in the county but NOT in any
-    # MO_CITIES seed, so the test asserts the bare state + county
-    # combined rate (no city overlay). ZIPs filtered to single-county
-    # membership in zip_county.py to keep the 0.10% tolerance tight.
+    # plus IDOR machine-readable ordmache file (effective 2026-01-01).
+    # Both extractions are reproducible via scripts/extract_mo_county_rates.py
+    # and scripts/extract_il_county_rates.py. Each row picks a ZIP that is
+    # in the county but NOT in any IL_CITIES / MO_CITIES seed, so the test
+    # asserts the bare state + county combined rate (no city overlay).
+    # ZIPs were filtered to single-county membership in zip_county.py to
+    # keep tolerances tight; the few multi-county ZIPs use 1.0% tolerance
+    # to absorb engine resolution ambiguity.
     #
     # MO -- 5 new rows at varying county portions (1.375% to 2.750%):
     ("MO", "Kirksville (Adair)", "63501", "0001", "5.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Adair 1.750%) -- v0.30 long-tail fill"),
@@ -476,9 +485,17 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MO", "Troy (Lincoln)", "63379", "0001", "6.725", "0.10", "MO DOR jan2026 PDF (state 4.225% + Lincoln 2.500%) -- v0.30 long-tail fill"),
     ("MO", "Hillsboro (Jefferson)", "63050", "0001", "6.350", "0.10", "MO DOR jan2026 PDF (state 4.225% + Jefferson 2.125%) -- v0.30 long-tail fill"),
     ("MO", "Cuba (Crawford)", "65535", "0001", "6.975", "0.10", "MO DOR jan2026 PDF (state 4.225% + Crawford 2.750%) -- v0.30 long-tail fill"),
-        # IL: Joliet-area ZIP in Kendall County (not in IL_CITIES). Kendall
-    # is at 0% placeholder; combined = 6.25% state-only baseline.
-    ("IL", "Plano (Kendall)", "60545", "0001", "6.250", "1.50", "IDOR Tax Rate Finder (state 6.25% + Kendall 0% placeholder) -- post-v0.29 ZCTA"),
+    #
+    # IL -- 5 new rows at varying county portions (0% verified to 1.0%):
+    ("IL", "Quincy (Adams)", "62301", "0001", "6.500", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Adams 0.250%) -- v0.30 long-tail fill"),
+    ("IL", "Pekin (Tazewell)", "61554", "0001", "6.750", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Tazewell 0.500%) -- v0.30 long-tail fill"),
+    ("IL", "Edwardsville (Madison)", "62025", "0001", "6.850", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Madison 0.600%) -- v0.30 long-tail fill"),
+    ("IL", "Rock Island", "61201", "0001", "7.250", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Rock Island 1.000%) -- v0.30 long-tail fill"),
+    # Kankakee: verified 0% county rate per IDOR ordmache (NOT a placeholder).
+    # 60901 is in Kankakee Co. only and outside the IL_CITIES seed, so we
+    # expect bare statewide 6.25%. Acts as a regression guard for the
+    # verified-0% counties block in IL_COUNTY_RATE_PCT.
+    ("IL", "Kankakee (verified 0% county)", "60901", "0001", "6.250", "0.10", "IDOR ordmache 2026-01-01 (state 6.25% + Kankakee 0% verified) -- v0.30 long-tail fill"),
     # PA: agent's original row claimed Gibsonia (15044) was an
     # Allegheny suburb. It's actually in BUTLER County, which has 0%
     # local PA sales tax. Engine correctly returns state-only 6%.

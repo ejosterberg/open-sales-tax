@@ -15,14 +15,12 @@ to four modeled layers:
 1. **State portion: 6.25%** (35 ILCS 120/2-10) -- the ``Illinois``
    state authority.
 2. **County portion** (35 ILCS 200/, county school facility taxes,
-   county public safety taxes, etc.) -- many IL counties impose 0%
-   for general merchandise; the ones that do (e.g. Cook 1.75%,
-   Sangamon 1.0%, Winnebago 1.5%, Champaign 1.25%, Macon 1.5%,
-   Peoria 1.0%) are seeded individually. Counties listed in
-   :data:`IL_COUNTY_RATE_PCT` are only those touched by a covered
-   city; counties with 0% rate ARE included for parallelism with
-   the AZ / MO / SC / TX / VA pattern (the engine sums 0%
-   authorities to no effect but keeps the audit trail).
+   county public safety taxes, etc.) -- ALL 102 IL counties are now
+   seeded from the IDOR machine-readable rate file (extraction
+   script: :file:`scripts/extract_il_county_rates.py`). About 75
+   counties carry a real county-level tax (typically 0.25%-2.0%);
+   the rest are verified-0% and tagged as such inline. The IDOR
+   ordmache file ships every Jan 1 / Jul 1 when rates change.
 3. **Regional Transportation Authority (RTA) district** (70 ILCS
    3615/4.03) -- a single district authority with a per-county
    rate that varies by county within its six-county service area:
@@ -127,120 +125,125 @@ IL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # --- Cook (the heavyweight) ---
     "Cook County": Decimal("1.750"),  # Cook County imposes a 1.75% home-rule sales tax
     # --- Collar counties (RTA at 0.75%; most have no county sales tax) ---
-    "DuPage County": Decimal("0.000"),
-    "Kane County": Decimal("0.000"),
-    "Lake County": Decimal("0.000"),
-    "McHenry County": Decimal("0.000"),
-    "Will County": Decimal("0.000"),
+    "DuPage County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Kane County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Lake County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "McHenry County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Will County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
     # --- Downstate counties touched by covered cities ---
     "Winnebago County": Decimal("1.500"),  # School Facility 1% + Public Safety 0.5%
     "Sangamon County": Decimal("1.000"),  # Sangamon County School Facility / Public Safety
     "Peoria County": Decimal("1.000"),    # Peoria County School Facility 1%
     "Champaign County": Decimal("1.250"), # Champaign County 1.25% (county school + public safety)
-    "McLean County": Decimal("0.000"),    # No county-level general-merchandise tax
+    "McLean County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Macon County": Decimal("1.500"),     # Macon County School Facility + public safety
-    # --- Remaining 90 IL counties (0% baseline placeholder) ---
-    # Source: IDOR Tax Rate Database, retrieved 2026-05-04. The 0%
-    # baseline below is a CONSERVATIVE PLACEHOLDER -- many IL counties
-    # impose a county school facility sales tax, county public safety
-    # tax, or county supplementary tax (typically 0.25%-1.0%) that the
-    # IDOR Tax Rate Finder reflects per ZIP. A future maintainer
-    # should audit these 90 entries against the IDOR per-county rate
-    # tables and bump non-zero counties out of the 0% block. The
-    # boundary loader binds every IL ZIP to its county here so the
-    # plumbing is in place; until rates are filled in, these counties
-    # under-collect by their county-level addition (combined remains
-    # state 6.25% + 0% = 6.25% for non-city ZIPs).
-    "Adams County": Decimal("0.000"),
-    "Alexander County": Decimal("0.000"),
-    "Bond County": Decimal("0.000"),
-    "Boone County": Decimal("0.000"),
-    "Brown County": Decimal("0.000"),
-    "Bureau County": Decimal("0.000"),
-    "Calhoun County": Decimal("0.000"),
-    "Carroll County": Decimal("0.000"),
-    "Cass County": Decimal("0.000"),
-    "Christian County": Decimal("0.000"),
-    "Clark County": Decimal("0.000"),
-    "Clay County": Decimal("0.000"),
-    "Clinton County": Decimal("0.000"),
-    "Coles County": Decimal("0.000"),
-    "Crawford County": Decimal("0.000"),
-    "Cumberland County": Decimal("0.000"),
-    "De Witt County": Decimal("0.000"),
-    "DeKalb County": Decimal("0.000"),
-    "Douglas County": Decimal("0.000"),
-    "Edgar County": Decimal("0.000"),
-    "Edwards County": Decimal("0.000"),
-    "Effingham County": Decimal("0.000"),
-    "Fayette County": Decimal("0.000"),
-    "Ford County": Decimal("0.000"),
-    "Franklin County": Decimal("0.000"),
-    "Fulton County": Decimal("0.000"),
-    "Gallatin County": Decimal("0.000"),
-    "Greene County": Decimal("0.000"),
-    "Grundy County": Decimal("0.000"),
-    "Hamilton County": Decimal("0.000"),
-    "Hancock County": Decimal("0.000"),
-    "Hardin County": Decimal("0.000"),
-    "Henderson County": Decimal("0.000"),
-    "Henry County": Decimal("0.000"),
-    "Iroquois County": Decimal("0.000"),
-    "Jackson County": Decimal("0.000"),
-    "Jasper County": Decimal("0.000"),
-    "Jefferson County": Decimal("0.000"),
-    "Jersey County": Decimal("0.000"),
-    "Jo Daviess County": Decimal("0.000"),
-    "Johnson County": Decimal("0.000"),
-    "Kankakee County": Decimal("0.000"),
-    "Kendall County": Decimal("0.000"),
-    "Knox County": Decimal("0.000"),
-    "LaSalle County": Decimal("0.000"),
-    "Lawrence County": Decimal("0.000"),
-    "Lee County": Decimal("0.000"),
-    "Livingston County": Decimal("0.000"),
-    "Logan County": Decimal("0.000"),
-    "Macoupin County": Decimal("0.000"),
-    "Madison County": Decimal("0.000"),
-    "Marion County": Decimal("0.000"),
-    "Marshall County": Decimal("0.000"),
-    "Mason County": Decimal("0.000"),
-    "Massac County": Decimal("0.000"),
-    "McDonough County": Decimal("0.000"),
-    "Menard County": Decimal("0.000"),
-    "Mercer County": Decimal("0.000"),
-    "Monroe County": Decimal("0.000"),
-    "Montgomery County": Decimal("0.000"),
-    "Morgan County": Decimal("0.000"),
-    "Moultrie County": Decimal("0.000"),
-    "Ogle County": Decimal("0.000"),
-    "Perry County": Decimal("0.000"),
-    "Piatt County": Decimal("0.000"),
-    "Pike County": Decimal("0.000"),
-    "Pope County": Decimal("0.000"),
-    "Pulaski County": Decimal("0.000"),
-    "Putnam County": Decimal("0.000"),
-    "Randolph County": Decimal("0.000"),
-    "Richland County": Decimal("0.000"),
-    "Rock Island County": Decimal("0.000"),
-    "Saline County": Decimal("0.000"),
-    "Schuyler County": Decimal("0.000"),
-    "Scott County": Decimal("0.000"),
-    "Shelby County": Decimal("0.000"),
-    "St. Clair County": Decimal("0.000"),
-    "Stark County": Decimal("0.000"),
-    "Stephenson County": Decimal("0.000"),
-    "Tazewell County": Decimal("0.000"),
-    "Union County": Decimal("0.000"),
-    "Vermilion County": Decimal("0.000"),
-    "Wabash County": Decimal("0.000"),
-    "Warren County": Decimal("0.000"),
-    "Washington County": Decimal("0.000"),
-    "Wayne County": Decimal("0.000"),
-    "White County": Decimal("0.000"),
-    "Whiteside County": Decimal("0.000"),
-    "Williamson County": Decimal("0.000"),
-    "Woodford County": Decimal("0.000"),
+    # --- Remaining 90 IL counties: filled from IDOR machine-readable file ---
+    # Source: Illinois Department of Revenue "Sales Tax Rates Machine
+    # Readable File" (ordmache-current.txt), effective 2026-01-01,
+    # retrieved 2026-05-04 from
+    # https://tax.illinois.gov/content/dam/soi/en/web/tax/research/taxrates/documents/salestaxrates/ordmache-current.txt
+    # Extraction script: scripts/extract_il_county_rates.py (re-run on
+    # next IDOR publication, typically Jan 1 / Jul 1 of each year). The
+    # IDOR file's combined county-base rate INCLUDES the RTA district
+    # for Cook (1.00%) and the collar counties DuPage / Kane / Lake /
+    # McHenry / Will (0.75%); the script subtracts state 6.25% AND the
+    # RTA portion to recover the bare county-portion this dict holds.
+    #
+    # Counties marked "verified 0% (no county tax)" actually impose no
+    # county-level general-merchandise sales tax per IDOR (the combined
+    # rate equals state 6.25% plus the RTA portion if any). Counties
+    # without that comment carry a real county school-facility / public-
+    # safety / supplementary tax authorized under 35 ILCS 200 et al.
+    "Adams County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Alexander County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Bond County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Boone County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Brown County": Decimal("1.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Bureau County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Calhoun County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Carroll County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Cass County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Christian County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Clark County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Clay County": Decimal("0.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Clinton County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Coles County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Crawford County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Cumberland County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "De Witt County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "DeKalb County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Douglas County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Edgar County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Edwards County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Effingham County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Fayette County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Ford County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Franklin County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Fulton County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Gallatin County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Greene County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Grundy County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Hamilton County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Hancock County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Hardin County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Henderson County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Henry County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Iroquois County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Jackson County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Jasper County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Jefferson County": Decimal("0.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Jersey County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Jo Daviess County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Johnson County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Kankakee County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Kendall County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Knox County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "LaSalle County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Lawrence County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Lee County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Livingston County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Logan County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Macoupin County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Madison County": Decimal("0.600"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Marion County": Decimal("1.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Marshall County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Mason County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Massac County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "McDonough County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Menard County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Mercer County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Monroe County": Decimal("1.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Montgomery County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Morgan County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Moultrie County": Decimal("0.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Ogle County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Perry County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Piatt County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Pike County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Pope County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Pulaski County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Putnam County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Randolph County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Richland County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Rock Island County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Saline County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Schuyler County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Scott County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Shelby County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "St. Clair County": Decimal("1.100"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Stark County": Decimal("1.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Stephenson County": Decimal("0.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Tazewell County": Decimal("0.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Union County": Decimal("2.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Vermilion County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Wabash County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Warren County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Washington County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Wayne County": Decimal("0.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "White County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Whiteside County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Williamson County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Woodford County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
 }
 
 # RTA district authorities (70 ILCS 3615/4.03). Modeled as TWO
@@ -450,8 +453,13 @@ IL_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         ("61820", "61821", "61822"),
     ),
     "Bloomington": (
-        # Bloomington is in McLean County. Combined: state 6.25 +
-        # McLean 0 + Bloomington HR 2.50 = 8.75%.
+        # Bloomington is in McLean County. Combined per IDOR ordmache
+        # 2026-01-01: state 6.25 + McLean 1.00 + Bloomington HR 2.50
+        # = 9.75%. (Was 8.75% prior to McLean County's 1% county tax
+        # authorization; the IDOR-published combined rate jumped to
+        # 9.750% effective 2025-07-01 per the same machine-readable
+        # publication. McLean County rate filled from IDOR ordmache;
+        # see comment block above IL_COUNTY_RATE_PCT.)
         "McLean County",
         None,
         Decimal("2.500"),

@@ -189,7 +189,7 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
         ("Springfield", Decimal("9.500")),         # state + Sangamon 1.0 + HR 2.25
         ("Peoria", Decimal("9.000")),              # state + Peoria Co 1.0 + HR 1.75
         ("Champaign", Decimal("9.000")),           # state + Champaign Co 1.25 + HR 1.50
-        ("Bloomington", Decimal("8.750")),         # state + McLean 0 + HR 2.50
+        ("Bloomington", Decimal("9.750")),         # state + McLean 1.0 + HR 2.50 (IDOR ordmache 2026-01-01; McLean Co. 1% effective 2025-07-01)
         ("Decatur", Decimal("9.250")),             # state + Macon 1.5 + HR 1.50
     ],
 )
@@ -240,17 +240,21 @@ def test_illinois_cook_county_rate_is_1_75_pct() -> None:
 
 
 def test_illinois_collar_counties_have_zero_county_rate() -> None:
-    """The five RTA collar counties impose 0% county-level general-merchandise tax."""
+    """The RTA collar counties (other than McHenry) impose 0% county-level
+    general-merchandise tax. McHenry imposes 0.25% (IDOR ordmache 2026-01-01).
+    """
     for county in (
         "DuPage County",
         "Kane County",
         "Lake County",
-        "McHenry County",
         "Will County",
     ):
         assert IL_COUNTY_RATE_PCT[county] == Decimal("0.000"), (
             f"{county} should be 0% for general merchandise"
         )
+    assert IL_COUNTY_RATE_PCT["McHenry County"] == Decimal("0.250"), (
+        "McHenry imposes 0.25% county tax per IDOR ordmache effective 2026-01-01"
+    )
 
 
 def test_illinois_chicago_zips_bind_to_cook_rta() -> None:
