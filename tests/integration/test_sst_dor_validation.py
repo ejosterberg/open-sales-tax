@@ -332,6 +332,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("TX", "Wichita Falls", "76301", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Wichita Falls 2.0%; no transit district)"),
     ("TX", "Tyler", "75701", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + Tyler 2.0%; no transit district)"),
     ("TX", "College Station", "77840", "0001", "8.250", "0.05", "TX Comptroller (state 6.25% + College Station 2.0%; no transit district)"),
+    # Illinois -- IDOR Tax Rate Database / Tax Rate Finder (verified 2026-05-04).
+    # Combined = state 6.25% + per-county + RTA (Cook 1.0% / Collar 0.75% / 0
+    # downstate) + city home-rule. Tolerance 0.05% to absorb ZIP+4 micro-
+    # variation for SSAs / business-improvement districts not modeled here.
+    ("IL", "Chicago", "60601", "0001", "10.250", "0.05", "IDOR Tax Rate Finder (state 6.25% + Cook 1.75% + Chicago HR 1.25% + RTA Cook 1.00%)"),
+    ("IL", "Cicero", "60804", "0001", "10.750", "0.05", "IDOR Tax Rate Finder (state 6.25% + Cook 1.75% + Cicero HR 1.75% + RTA Cook 1.00%)"),
+    ("IL", "Evanston", "60201", "0001", "10.250", "0.05", "IDOR Tax Rate Finder (state 6.25% + Cook 1.75% + Evanston HR 1.25% + RTA Cook 1.00%)"),
+    ("IL", "Aurora", "60505", "0001", "8.250", "0.05", "IDOR Tax Rate Finder (state 6.25% + Kane 0% + Aurora HR 1.25% + RTA Collar 0.75%)"),
+    ("IL", "Naperville", "60540", "0001", "7.750", "0.05", "IDOR Tax Rate Finder (state 6.25% + DuPage 0% + Naperville HR 0.75% + RTA Collar 0.75%)"),
+    ("IL", "Springfield", "62701", "0001", "9.500", "0.05", "IDOR Tax Rate Finder (state 6.25% + Sangamon 1.0% + Springfield HR 2.25%; no RTA downstate)"),
+    ("IL", "Rockford", "61101", "0001", "8.750", "0.05", "IDOR Tax Rate Finder (state 6.25% + Winnebago 1.5% + Rockford HR 1.0%; no RTA downstate)"),
+    ("IL", "Peoria", "61602", "0001", "9.000", "0.05", "IDOR Tax Rate Finder (state 6.25% + Peoria Co 1.0% + Peoria HR 1.75%; no RTA downstate)"),
 ]
 
 
