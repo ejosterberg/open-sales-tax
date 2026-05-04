@@ -360,6 +360,16 @@ class Oklahoma(SstStateModule):
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated OK city-name table; fall back to placeholder."""
+        from opensalestax.states.ok_names import city_name as _ok_city
+
+        if authority_type == "city":
+            friendly = _ok_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
     def _authority_bindings(self, record):
         """OK skips the 98XXX district codes (composite remote-seller rates).
 

@@ -175,9 +175,26 @@ class Wisconsin:
 
 
 def _authority_name(code: str, authority_type: str) -> str:
-    """Build a deterministic authority name from a SST jurisdiction code."""
+    """Return the friendly WI authority name for an SST code.
+
+    WI's local sales tax is overwhelmingly county-administered
+    (counties levy the 0.5% county-option tax under Wis. Stat.
+    77.70); Milwaukee County's 0.9% (county + Premier Resort)
+    is the highest. Cities don't generally levy sales tax in WI
+    so the city codes in the rate file mostly carry 0% rates.
+
+    County names come from the generic Census ZCTA county lookup
+    (Wis. counties keep "County" in their formal name; "Milwaukee
+    County" / "Dane County" / "Brown County").
+    """
     if authority_type == "state":
         return "Wisconsin"
+    if authority_type == "county":
+        from opensalestax.data.county_names import county_name as _county_name
+
+        friendly = _county_name("WI", code)
+        if friendly is not None:
+            return friendly
     return f"WI-{authority_type}-{code}"
 
 

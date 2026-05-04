@@ -381,6 +381,16 @@ class NorthCarolina(SstStateModule):
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated NC district-name table; fall back to placeholder."""
+        from opensalestax.states.nc_names import district_name as _nc_district
+
+        if authority_type == "district":
+            friendly = _nc_district(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
 
 # Compile-time Protocol satisfaction check + module-import-time
 # registration. Importing ``opensalestax.states.north_carolina``

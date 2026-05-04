@@ -94,6 +94,7 @@ markers = [
     "postgres_only: test only meaningful on PostgreSQL (use sparingly)",
     "mariadb_only: test only meaningful on MariaDB (use sparingly)",
     "integration: integration tests (slower; hit real DB)",
+    "liveapi: hits the live opensalestax.org engine (skipped unless explicitly invoked)",
 ]
 
 [tool.coverage.run]
