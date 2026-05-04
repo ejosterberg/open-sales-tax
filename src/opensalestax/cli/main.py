@@ -27,8 +27,10 @@ from opensalestax import __version__
 from opensalestax.data.loader import (
     LoaderError,
     LoadSummary,
+    ZctaLoadSummary,
     list_loaded_versions,
     load_state_data,
+    load_zcta_state_boundaries,
     purge_data_version,
     resolve_filename,
 )
@@ -36,6 +38,10 @@ from opensalestax.data.sst import (
     SstFilename,
     default_data_dir,
     download_sst_file,
+)
+from opensalestax.data.zcta_loader import (
+    ZCTA_COUNTY_FILENAME,
+    download_zcta_county_file,
 )
 
 app = typer.Typer(
@@ -227,6 +233,53 @@ def data_load(
     )
 
 
+@data_app.command("load-zcta")
+def data_load_zcta(
+    cache_dir: Path | None = typer.Option(
+        None, help="Override default cache directory (~/.opensalestax/data)."
+    ),
+    only: str | None = typer.Option(
+        None,
+        "--only",
+        help=(
+            "Comma-separated list of state abbrevs to seed (e.g. "
+            "'CA,TX,NY'). Default: every state in the catalog."
+        ),
+    ),
+    skip: str | None = typer.Option(
+        None,
+        "--skip",
+        help=(
+            "Comma-separated list of state abbrevs to exclude (e.g. "
+            "the SST states whose own boundary file is already loaded)."
+        ),
+    ),
+) -> None:
+    """Seed ZIP -> state boundaries from the Census ZCTA -> County file.
+
+    Downloads the ~3 MB national ZCTA-to-county relationship file
+    once (cached in the data dir) and inserts a ZIP -> state
+    boundary row for every US ZIP that maps to a state with a
+    registered module. Idempotent: re-running drops any prior
+    ``zcta-census-2020`` DataVersion per state.
+
+    The state-level binding is what unblocks the engine for the 23
+    self-seeded modules (CA, TX, NY, FL, ...) that ship rates but
+    no SST boundary file. Per-county/sub-state boundaries for those
+    states wait on the SubJurisdiction Protocol work.
+    """
+    only_tuple = tuple(s.strip().upper() for s in only.split(",") if s.strip()) if only else None
+    skip_tuple = tuple(s.strip().upper() for s in skip.split(",") if s.strip()) if skip else ()
+    summary = asyncio.run(_load_zcta_async(cache_dir=cache_dir, only=only_tuple, skip=skip_tuple))
+    typer.echo(
+        f"ZCTA boundaries seeded:\n"
+        f"  states_seeded:    {summary.states_seeded}\n"
+        f"  boundaries_added: {summary.boundaries_loaded}"
+    )
+    if summary.skipped_states:
+        typer.echo(f"  skipped (no module): {', '.join(summary.skipped_states)}")
+
+
 @data_app.command("status")
 def data_status() -> None:
     """List every (state, version) pair currently loaded into the database."""
@@ -287,6 +340,36 @@ async def _load_async(
             except LoaderError as exc:
                 typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
                 raise typer.Exit(code=1) from exc
+    finally:
+        await reset_engine()
+
+
+async def _load_zcta_async(
+    cache_dir: Path | None,
+    only: tuple[str, ...] | None,
+    skip: tuple[str, ...],
+) -> ZctaLoadSummary:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from opensalestax.db.session import get_engine, reset_engine
+
+    target_dir = cache_dir or default_data_dir()
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path = target_dir / ZCTA_COUNTY_FILENAME
+    if not target_path.exists():
+        typer.echo(f"downloading ZCTA file -> {target_path}...")
+        download_zcta_county_file(dest_dir=target_dir)
+
+    engine = get_engine()
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with sessionmaker() as session:
+            return await load_zcta_state_boundaries(
+                session,
+                source_file=target_path,
+                only_states=only,
+                skip_states=skip,
+            )
     finally:
         await reset_engine()
 

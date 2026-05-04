@@ -451,6 +451,111 @@ async def purge_data_version(
     return True
 
 
+@dataclass(frozen=True, slots=True)
+class ZctaLoadSummary:
+    """Result of a successful ZCTA boundary load."""
+
+    states_seeded: int
+    boundaries_loaded: int
+    skipped_states: tuple[str, ...] = ()
+
+
+async def load_zcta_state_boundaries(
+    session: AsyncSession,
+    source_file: Path,
+    *,
+    only_states: tuple[str, ...] | None = None,
+    skip_states: tuple[str, ...] = (),
+) -> ZctaLoadSummary:
+    """Seed ZIP -> state boundaries from the Census ZCTA->county file.
+
+    Idempotent at the (state, source) level: any prior DataVersion
+    row for the same state with ``source='zcta-census-2020'`` is
+    dropped before re-seeding. Existing SST-source DataVersions
+    are untouched -- the engine de-dupes authorities via the
+    ``DISTINCT`` clause in
+    :func:`opensalestax.core.lookup.lookup_jurisdictions_by_zip`,
+    so layering ZCTA on top of SST data is safe.
+
+    ``only_states`` lets a caller restrict the load (e.g. just the
+    23 self-seeded modules); when None every state in the catalog
+    that has a registered module is seeded.
+
+    ``skip_states`` excludes specific abbrevs (e.g. SST member
+    states whose own quarterly boundary file is already loaded).
+    """
+    from opensalestax.data.zcta_loader import parse_zcta_state_rows
+
+    only_set = {s.upper() for s in only_states} if only_states else None
+    skip_set = {s.upper() for s in skip_states}
+
+    # Group ZCTA rows by state so we can attribute boundaries to a
+    # per-state DataVersion (keeps the data lineage clean).
+    zips_by_state: dict[str, list[str]] = {}
+    for row in parse_zcta_state_rows(source_file):
+        if only_set is not None and row.state_abbrev not in only_set:
+            continue
+        if row.state_abbrev in skip_set:
+            continue
+        zips_by_state.setdefault(row.state_abbrev, []).append(row.zip5)
+
+    states_seeded = 0
+    boundaries_loaded = 0
+    skipped: list[str] = []
+
+    for abbrev in sorted(zips_by_state.keys()):
+        state_module = get_state_module(abbrev)
+        if state_module is None:
+            skipped.append(abbrev)
+            continue
+
+        state_row = await _get_or_create_state(session, state_module)
+        full_label = _zcta_label(abbrev)
+        await _drop_existing_data_version(session, state_row.id, full_label)
+        # Use a non-SST source string so this DataVersion lives
+        # alongside any SST DataVersion for the same state.
+        data_version = DataVersion(
+            state_id=state_row.id,
+            source="zcta-census-2020",
+            version_label=full_label,
+            notes="Census 2020 ZCTA->county relationship file (state-level binding only).",
+        )
+        session.add(data_version)
+        await session.flush()
+
+        # Find or create the state-level TaxAuthority once per state.
+        state_auth = await _get_or_create_authority(
+            session,
+            cache={},
+            state_id=state_row.id,
+            name=state_module.state_name,
+            authority_type="state",
+        )
+
+        for zip5 in zips_by_state[abbrev]:
+            session.add(
+                Boundary(
+                    authority_id=state_auth.id,
+                    zip5=zip5,
+                    data_version_id=data_version.id,
+                )
+            )
+            boundaries_loaded += 1
+        states_seeded += 1
+
+    await session.commit()
+    return ZctaLoadSummary(
+        states_seeded=states_seeded,
+        boundaries_loaded=boundaries_loaded,
+        skipped_states=tuple(skipped),
+    )
+
+
+def _zcta_label(state_abbrev: str) -> str:
+    """Canonical DataVersion label for a ZCTA-sourced load."""
+    return f"{state_abbrev.upper()}-ZCTA-2020"
+
+
 async def list_loaded_versions(
     session: AsyncSession,
 ) -> list[tuple[str, str, dt.datetime]]:
