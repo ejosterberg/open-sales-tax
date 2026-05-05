@@ -154,6 +154,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | 07 | WY multi-row county taxes need empirical SST jurisdiction-code capture | ✅ Resolved (iter 43) -- rates verified correct against SalesTaxHandbook |
 | 08 | VT 'A' (address-level) boundary record support | ✅ Resolved (v0.40) |
 | 09 | Strict-lookup type-z fallback dedup | ✅ Resolved (v0.45) |
+| 10 | Wide-range type-4 records suppress city authority on synthetic +4 | ⏭️ Open (real +4s + loose lookup unaffected) |
 | -- | Patent posture: acknowledged in constitution §2 | ✅ |
 | -- | Branding: `opensalestax.org` + `.com` registered; repo `open-sales-tax` | ✅ |
 | -- | Phase 1 coverage tiers: tier 1/2/0 | ✅ |
