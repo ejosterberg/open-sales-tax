@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-05-05
 **Status:** **v0.50.0 shipped.** SST loader + lookup engine now
-matches every published DOR rate within 0.05% across **319 sampled
+matches every published DOR rate within 0.05% across **322 sampled
 city/ZIP+4 combos** on the live engine. The dedup logic stabilized
 across six consecutive refinements (v0.43-v0.48): TN code-63
 county-equivalent skip, cross-county IMPROVE Act dedup, strict-
@@ -151,7 +151,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | 04 | Colorado home-rule cities deferred to SubJurisdiction Protocol | ⏭️ Open |
 | 05 | Louisiana parishes deferred to SubJurisdiction Protocol | ⏭️ Open |
 | 06 | Additional tax types (admissions/lodging/etc.) deferred to v0.30+ roadmap | ⏭️ Open |
-| 07 | WY multi-row county taxes need empirical SST jurisdiction-code capture | ⏭️ Open |
+| 07 | WY multi-row county taxes need empirical SST jurisdiction-code capture | ✅ Resolved (iter 43) -- rates verified correct against SalesTaxHandbook |
 | 08 | VT 'A' (address-level) boundary record support | ✅ Resolved (v0.40) |
 | 09 | Strict-lookup type-z fallback dedup | ✅ Resolved (v0.45) |
 | -- | Patent posture: acknowledged in constitution §2 | ✅ |

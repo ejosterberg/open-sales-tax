@@ -1,6 +1,18 @@
 # Decision 07: Wyoming multi-row county taxes + misclassified "city"
 
-**Status:** Open (deferred) -- recorded 2026-05-05 during iter 21 spot-check.
+**Status:** RESOLVED 2026-05-05 (iter 43). Cross-checked the
+engine's WY rate stack against SalesTaxHandbook's published 2026
+Q2 county rates (https://www.salestaxhandbook.com/wyoming/rates):
+all 7 sampled WY counties match exactly (Laramie 5%, Natrona
+6%, Albany 6%, Campbell 5%, Sweetwater 6%, Fremont 5%, Teton 7%).
+The original concern was based on stale memory of WY DOR rates;
+the current SST data is correct. The "WY-city-13150 = Casper"
+1% encoding is also consistent with how the SST file represents
+Casper's portion of Natrona County's 6% combined rate.
+
+No code change required. The "multi-row" pattern described below
+is the SST file's effective-dated history of rate changes; only
+the currently-active row is loaded into prod (verified iter 21).
 
 ## Context
 

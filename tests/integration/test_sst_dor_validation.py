@@ -2800,6 +2800,35 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "ARSSTC (Kenai Peninsula Borough, general retail) -- v0.52 borough fallback",
     ),
+    # WY counties (decision 07 resolved iter-43): rates verified
+    # against SalesTaxHandbook 2026 Q2 publication.
+    (
+        "WY",
+        "Cheyenne",
+        "82001",
+        "0001",
+        "5.000",
+        "0.05",
+        "WY DOR / SalesTaxHandbook (state 4% + Laramie County 1%)",
+    ),
+    (
+        "WY",
+        "Casper",
+        "82601",
+        "0001",
+        "6.000",
+        "0.05",
+        "WY DOR / SalesTaxHandbook (state 4% + Natrona County 1% + Casper city 1%)",
+    ),
+    (
+        "WY",
+        "Jackson",
+        "83001",
+        "0001",
+        "7.000",
+        "0.05",
+        "WY DOR / SalesTaxHandbook (state 4% + Teton County 3% -- highest WY combined rate)",
+    ),
     # NE Papillion -- v0.46 most-rows tiebreaker verification.
     # All 3 cities binding 68046 (La Vista, Papillion, Omaha)
     # impose 2.0% city tax; the v0.46 reorder picks Papillion
