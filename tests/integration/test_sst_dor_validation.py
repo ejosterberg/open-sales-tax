@@ -2731,6 +2731,45 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "GA DOR (state 4% + Gwinnett 2%; Fulton TSPLOST stray binding filtered) -- post-v0.48",
     ),
+    # AK -- v0.49 promotion from NoTaxState to a real state module
+    # via the Alaska Remote Seller Sales Tax Commission (ARSSTC) data.
+    # All four cover ZIPs whose rate was 0% pre-v0.49.
+    (
+        "AK",
+        "Juneau",
+        "99801",
+        "0001",
+        "5.000",
+        "0.05",
+        "ARSSTC (City and Borough of Juneau, general retail) -- v0.49 AK promotion",
+    ),
+    (
+        "AK",
+        "Sitka",
+        "99835",
+        "0001",
+        "6.000",
+        "0.05",
+        "ARSSTC (City and Borough of Sitka, general retail; peak rate) -- v0.49 AK promotion",
+    ),
+    (
+        "AK",
+        "Wasilla",
+        "99654",
+        "0001",
+        "2.500",
+        "0.05",
+        "ARSSTC (City of Wasilla, general retail) -- v0.49 AK promotion",
+    ),
+    (
+        "AK",
+        "Kodiak",
+        "99615",
+        "0001",
+        "7.000",
+        "0.05",
+        "ARSSTC (City of Kodiak, general retail) -- v0.49 AK promotion",
+    ),
     # NE Papillion -- v0.46 most-rows tiebreaker verification.
     # All 3 cities binding 68046 (La Vista, Papillion, Omaha)
     # impose 2.0% city tax; the v0.46 reorder picks Papillion
