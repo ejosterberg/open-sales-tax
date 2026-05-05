@@ -265,6 +265,26 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("SC", "Hilton Head (Beaufort County)", "29928", "0001", "6.000", "0.05", "SC DOR ST-500 (Beaufort County verified 0% -- statewide ratchet binds to Beaufort County at 0% local)"),
     ("SC", "Anderson (Anderson County)", "29621", "0001", "7.000", "0.05", "SC DOR ST-500 (Anderson County 1% ECI; non-city ZIP)"),
     ("SC", "Florence area", "29505", "0001", "8.000", "0.05", "SC DOR ST-500 (Florence County 2% local: LO + CP; Florence-only ZIP 29505)"),
+    # Alabama -- ALDOR + per-city Avalara breakdowns (verified 2026-05-04).
+    # Combined = state 4% + per-county + per-city. Tolerance 0.10 because
+    # some AL ZIPs sit inside special districts (Birmingham BSD 1%, Madison
+    # Co Sp 1%) that this loader does NOT model -- the engine answer at
+    # the city centroid will be the bare state+county+city math, while
+    # ALDOR may publish a higher rate at specific ZIPs that fall in a
+    # special-district overlay. The 0.10 tolerance absorbs this
+    # documented under-collection at the centroid.
+    ("AL", "Birmingham", "35203", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Jefferson 2% + Birmingham 4%); Birmingham School District +1% NOT modeled"),
+    ("AL", "Montgomery", "36104", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Montgomery County 2.5% + Montgomery 3.5%)"),
+    ("AL", "Mobile", "36602", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Mobile County 1% + Mobile 5%)"),
+    ("AL", "Huntsville", "35801", "0001", "9.000", "0.10", "ALDOR + Avalara (state 4% + Madison County 0.5% + Huntsville 4.5%)"),
+    ("AL", "Tuscaloosa", "35401", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Tuscaloosa County 3% + Tuscaloosa 3%)"),
+    ("AL", "Hoover", "35226", "0001", "9.500", "0.10", "ALDOR + Avalara (state 4% + Jefferson 2% + Hoover 3.5%)"),
+    ("AL", "Decatur", "35601", "0001", "9.000", "0.10", "ALDOR + Avalara (state 4% + Morgan 1% + Decatur 4%)"),
+    ("AL", "Auburn", "36830", "0001", "9.000", "0.10", "ALDOR + Avalara (state 4% + Lee 1% + Auburn 4%)"),
+    ("AL", "Dothan", "36303", "0001", "9.000", "0.10", "ALDOR + Avalara (state 4% + Houston 1% + Dothan 4%); ZIP 36303 straddles Dale/Henry/Houston, city-anchor binds to Houston"),
+    ("AL", "Florence", "35630", "0001", "9.500", "0.10", "ALDOR + Avalara (state 4% + Lauderdale 1% + Florence 4.5%)"),
+    ("AL", "Gadsden", "35901", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Etowah 1% + Gadsden 5%)"),
+    ("AL", "Selma", "36701", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Dallas 1.5% + Selma 4.5%)"),
     # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
     # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
     # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg

@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
-"""Alabama state module (tier 1, non-SST) -- STATE-PORTION ONLY.
+"""Alabama state module (tier 1, non-SST) -- top-30-city coverage.
 
-WARNING -- INDEPENDENT-LOCALS / HOME-RULE LIMITATION
-----------------------------------------------------
+WARNING -- INDEPENDENT-LOCALS / HOME-RULE LIMITATION (PARTIAL)
+--------------------------------------------------------------
 Alabama has the most fragmented local sales-tax landscape in the
 United States. The state has:
 
@@ -25,23 +25,37 @@ tax rates in the nation per Ala. Code section 40-23-2(1) -- a deliberate
 design choice that pushes the bulk of sales-tax revenue down to the
 county and municipal layers.
 
-**This module ships ONLY the state-level 4.0% rate and state taxability
-matrix.** It does NOT model Alabama's ~700+ self-administering
-home-rule municipalities or the 67 county sales taxes. API consumers
-calling ``/v1/calculate`` for an address inside any populated Alabama
-locality will receive a substantial **under-collection** of tax --
-typically 5-9 percentage points below the actual combined rate.
+**This module ships the state 4.0% rate plus a top-30-city seed**
+covering Birmingham, Huntsville, Mobile, Montgomery, Tuscaloosa,
+Hoover, Auburn, Dothan, Decatur, Madison, Florence, Vestavia Hills,
+Phenix City, Prattville, Gadsden, Alabaster, Opelika, Northport,
+Enterprise, Daphne, Homewood, Bessemer, Athens, Pelham, Anniston,
+Mountain Brook, Trussville, Helena, Foley, and Selma. All 67
+counties are emitted (counties NOT touched by a covered city sit at
+a 0.000% PLACEHOLDER pending future maintainer audit, mirroring the
+MO long-tail pattern). See :mod:`opensalestax.states.al_data` for
+per-county rates and per-city ZIP coverage.
 
-The full architectural rationale for the deferral lives in
+The remaining ~670 self-administering home-rule municipalities are
+**still NOT modelled** -- API consumers calling ``/v1/calculate``
+for an address inside an unseeded Alabama locality (or a
+PLACEHOLDER-county ZIP) will continue to receive a partial
+**under-collection** of tax (the unseeded city's portion plus, where
+applicable, an unseeded county's portion).
+
+The full architectural rationale for the home-rule deferral
+(applied here only to the long tail of ~670 unseeded cities; the
+top 30 are covered by this ratchet) lives in
 ``specs/decisions/04-colorado-home-rule.md`` (the Colorado precedent
 with the same self-administering-cities pattern) and
 ``specs/decisions/05-louisiana-parishes.md`` (the Louisiana parish
-precedent for a state with comparable local fragmentation). Properly
-modelling Alabama's local tax landscape requires the
+precedent for a state with comparable local fragmentation). Full
+coverage of the entire ~700-city landscape requires the
 **SubJurisdiction Protocol** extension that those decision documents
 identify as future work; that schema change is intentionally
-deferred to v1.0+ when Colorado, Louisiana, and Alabama can all be
-the canonical first consumers of the new abstraction at once.
+deferred to v1.0+ when Colorado, Louisiana, and the rest of the
+Alabama long tail can all be the canonical first consumers of the
+new abstraction at once.
 
 State-level model summary
 -------------------------
@@ -56,13 +70,17 @@ Three concurrent regimes operate in Alabama:
 2. **County** (67 counties) -- additional county sales taxes,
    typically 1.0-3.0%. Some county taxes are state-administered
    (ALDOR collects); others are administered by the county itself
-   or a third-party administrator. **Not modeled in v1.**
+   or a third-party administrator. **All 67 are emitted as
+   authorities** by this module so the boundary loader can resolve
+   every AL ZIP to a county, but counties NOT touched by a covered
+   city sit at a 0.000% PLACEHOLDER pending future maintainer audit.
 3. **Municipal** (~700+ cities/towns) -- additional municipal
    sales taxes that vary widely; many are **self-administered**
    under Ala. Code section 11-51-200 et seq. (the municipal
    sales/use tax statute) which permits home-rule administration.
-   Combined municipal rates of 4.0-5.5% are common. **Not modeled
-   in v1.**
+   Combined municipal rates of 4.0-5.5% are common. **Top 30 by
+   population are seeded; the remaining ~670 are deferred** to a
+   future SubJurisdiction Protocol ratchet.
 
 GROCERY PHASE-DOWN -- HISTORICAL AND CURRENT RATE
 -------------------------------------------------
@@ -204,6 +222,14 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
+from opensalestax.states.al_data import (
+    AL_CITIES,
+    AL_COUNTY_RATE_PCT,
+    AL_STATE_EFFECTIVE_FROM,
+    AL_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -353,26 +379,30 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # Statewide 4.0% general rate has been in effect since 1969 per Ala.
 # Code section 40-23-2(1) (the rate was raised from 3.0% to 4.0% by
 # Act 1969-833 effective 1969-12-08, and has been stable at 4.0% in
-# the general-tangible-personal-property tier ever since). The module
-# pins effective_from to 1969-12-08; older transactions are out of
-# scope.
-_RATE_EFFECTIVE_FROM = dt.date(1969, 12, 8)
+# the general-tangible-personal-property tier ever since). Both the
+# rate value (4.000) and the effective_from date (1969-12-08) are
+# imported from :mod:`opensalestax.states.al_data` -- the constants
+# below are aliases kept for ergonomic in-module reading.
+_RATE_EFFECTIVE_FROM = AL_STATE_EFFECTIVE_FROM
 
 # Statewide rate per ALDOR Sales Tax FAQ "What is the state sales
 # tax rate?" (https://revenue.alabama.gov/sales-use/faq/), retrieved
 # 2026-05-03; cross-checked against Ala. Code section 40-23-2(1).
-_RATE_PCT = Decimal("4.000")
+_RATE_PCT = AL_STATE_RATE_PCT
 
 
 class Alabama:
-    """Alabama state module (tier 1; STATE PORTION ONLY in v1).
+    """Alabama state module (tier 1; top-30-city seed + state 4.0%).
 
-    County and municipal sales taxes are NOT modeled. See the module
-    docstring's "INDEPENDENT-LOCALS / HOME-RULE LIMITATION" section
-    and ``specs/decisions/04-colorado-home-rule.md`` for the full
-    architectural deferral rationale. Alabama is one of the three
-    canonical priority candidates (with CO and LA) for the v1.0+
-    SubJurisdiction Protocol abstraction.
+    The top 30 AL cities by population are seeded via
+    :mod:`opensalestax.states.al_data`. The remaining ~670
+    self-administering home-rule municipalities are NOT modeled and
+    will under-collect by the unseeded city's portion. See the module
+    docstring's "INDEPENDENT-LOCALS / HOME-RULE LIMITATION (PARTIAL)"
+    section and ``specs/decisions/04-colorado-home-rule.md`` for the
+    full architectural deferral rationale for the long tail. Alabama
+    is one of the three canonical priority candidates (with CO and
+    LA) for the v1.0+ SubJurisdiction Protocol abstraction.
     """
 
     state_abbrev: str = "AL"
@@ -387,16 +417,16 @@ class Alabama:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Alabama's statewide 4.0% general rate.
+        """Yield AL's state + per-county + per-city rates.
 
-        ``source_file`` is intentionally ignored -- AL is non-SST
-        and has no upstream file. Pass ``None`` from the loader.
-
-        County and municipal rates are NOT yielded here -- modelling
-        Alabama's ~700+ self-administering municipalities and 67
-        counties requires the SubJurisdiction Protocol abstraction
-        deferred to v1.0+ (see module docstring and
-        ``specs/decisions/04-colorado-home-rule.md``).
+        Counties yielded: every county in :data:`AL_COUNTY_RATE_PCT`
+        (all 67 AL counties). The ZIP_COUNTY-driven boundary loader
+        binds every AL ZIP to its county, so every county must have a
+        queryable rate (counties not touched by a covered city sit at
+        a 0.000% PLACEHOLDER, mirroring the MO long-tail pattern).
+        Cities yielded: every :data:`AL_CITIES` entry (top 30 by
+        population). ``source_file`` is intentionally ignored -- AL
+        is non-SST and has no SST upstream file.
         """
         del source_file, version_label
         yield RateRow(
@@ -407,21 +437,140 @@ class Alabama:
             effective_to=None,
             parent_authority_name=None,
         )
+        # Emit a RateRow for every AL county. The ZIP_COUNTY-driven
+        # boundary loader binds every AL ZIP to its county, so every
+        # county must have a queryable rate (even the PLACEHOLDER 0%
+        # ones).
+        for al_county_name in sorted(AL_COUNTY_RATE_PCT):
+            yield RateRow(
+                authority_name=al_county_name,
+                authority_type="county",
+                rate_pct=AL_COUNTY_RATE_PCT[al_county_name],
+                effective_from=_RATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Alabama",
+            )
+        for city_name, (al_city_county, city_rate, _zips) in sorted(AL_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=city_rate,
+                effective_from=_RATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=al_city_county,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v1.
+        """Yield (state, county[, city]) boundary rows for every AL ZIP.
 
-        Per-county and per-municipal rates require either an ALDOR
-        rate-database loader (for state-administered locals) or
-        per-municipality data ingestion (for self-administered
-        home-rule locals). Both are deferred until the
-        SubJurisdiction Protocol abstraction lands; see the module
-        docstring and ``specs/decisions/04-colorado-home-rule.md``.
+        Two passes:
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           AL county. This covers the entire state -- not just the
+           ZIPs in the top-30 city seed -- so an AL ZIP outside any
+           covered city resolves to state + county (combined 4% +
+           per-county portion) instead of state-only at 4%.
+
+        2. Fall back to :data:`AL_CITIES` for any city ZIP missed by
+           the Census ZCTA pass (USPS-only / PO-box-only ZIPs that
+           aren't published as Census ZCTAs), then emit the city
+           BoundaryRow on top of the state + county stack.
+
+        Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per
+        Census ZCTA, preferring the city-anchor county if the ZIP is
+        in :data:`AL_CITIES`. Without this, ZIPs that physically span
+        county lines (e.g., 35173 Trussville: Jefferson + St. Clair;
+        35080 Helena: Jefferson + Shelby; 36066 Prattville: Autauga +
+        Elmore) would get bound to BOTH counties and double-count
+        the local tax.
         """
         del source_file, version_label
-        return iter(())
+        # Build city-anchor county map for cross-county-line ZIPs.
+        # When a ZIP is in AL_CITIES, the city's declared county wins.
+        city_county_for_zip: dict[str, str] = {}
+        for _cn, (cc, _rate, czs) in AL_CITIES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every AL ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: prefer the city-anchor
+        # county if known, else the first Census-listed AL county
+        # in deterministic FIPS-sorted order.
+        #
+        # ZIP_COUNTY values are frozensets, so iteration order is
+        # non-deterministic; we sort by FIPS for stable test results.
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            sorted_al_pairs = sorted(cf for sa, cf in pairs if sa == "AL")
+            chosen_county: str | None = None
+            for county_fips in sorted_al_pairs:
+                al_county_name = county_name("AL", county_fips)
+                if al_county_name is None or al_county_name not in AL_COUNTY_RATE_PCT:
+                    continue
+                if preferred_county is not None:
+                    if al_county_name == preferred_county:
+                        chosen_county = al_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor for this ZIP -- take the first AL county.
+                chosen_county = al_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                # ZIP is in a city but Census doesn't list the city's
+                # county at all (USPS-only / boundary-mismatch). Trust
+                # the city's declared county.
+                chosen_county = preferred_county
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Alabama",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+
+        # Pass 2: city BoundaryRows for AL_CITIES. Also emit state +
+        # county for any city ZIP missed by the Census pass (USPS-only
+        # codes not in ZCTA) so we never regress city coverage.
+        for city_name, (al_city_county, _city_rate, zips) in AL_CITIES.items():
+            for zip5 in zips:
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="Alabama",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=al_city_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return AL's state-portion taxability rule for ``item_category``.

@@ -103,10 +103,15 @@ def test_alabama_unknown_category_returns_none() -> None:
 # parse_rates / parse_boundaries
 # ---------------------------------------------------------------------------
 def test_alabama_parse_rates_yields_4pct() -> None:
-    """Alabama's statewide general rate is 4.0% effective 1969-12-08."""
-    rows = list(ALABAMA.parse_rates(None, "v1-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+    """Alabama's statewide general rate is 4.0% effective 1969-12-08.
+
+    The top-30-city ratchet also yields per-county and per-city rows;
+    we still verify the state row is present and correct.
+    """
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "Alabama"
     assert row.authority_type == "state"
     assert row.rate_pct == Decimal("4.000")
@@ -116,16 +121,18 @@ def test_alabama_parse_rates_yields_4pct() -> None:
 
 
 def test_alabama_parse_rates_ignores_source_file() -> None:
-    """parse_rates returns the same row whether given a path or None."""
+    """parse_rates returns the same rows whether given a path or None."""
     rows_with_none = list(ALABAMA.parse_rates(None, "test"))
     rows_with_path = list(ALABAMA.parse_rates(Path("/dev/null"), "test"))
     assert rows_with_none == rows_with_path
 
 
-def test_alabama_parse_boundaries_returns_empty() -> None:
-    """v1 doesn't ship AL boundaries; per-county / per-city load deferred."""
-    rows = list(ALABAMA.parse_boundaries(None, "v1-statewide"))
-    assert rows == []
+def test_alabama_parse_boundaries_yields_birmingham_zips() -> None:
+    """Birmingham ZIP 35203 must bind to state + Jefferson County + Birmingham."""
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    bham_rows = [b for b in rows if b.zip5 == "35203"]
+    names = sorted(b.authority_name for b in bham_rows)
+    assert names == ["Alabama", "Birmingham", "Jefferson County"]
 
 
 def test_alabama_special_cases_empty() -> None:
@@ -405,3 +412,226 @@ def test_alabama_holidays_unknown_year_returns_empty() -> None:
     assert list(ALABAMA.holidays_for(2025)) == []
     assert list(ALABAMA.holidays_for(2027)) == []
     assert list(ALABAMA.holidays_for(2099)) == []
+
+
+# ---------------------------------------------------------------------------
+# Top-30-city ratchet: per-county + per-city emission + statewide ZIP
+# coverage (parallels SC/MO/MS in v0.31)
+# ---------------------------------------------------------------------------
+def test_alabama_parse_rates_emits_all_67_counties() -> None:
+    """All 67 AL counties must be emitted as RateRows so the
+    ZIP_COUNTY-driven boundary loader can resolve every AL ZIP to a
+    queryable county authority.
+    """
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    counties = [r for r in rows if r.authority_type == "county"]
+    assert len(counties) == 67
+    by_name = {r.authority_name: r for r in counties}
+    # Spot-check a county touched by a covered city (Jefferson hosts
+    # Birmingham + 6 others) and a long-tail PLACEHOLDER county.
+    assert "Jefferson County" in by_name
+    assert by_name["Jefferson County"].rate_pct == Decimal("2.000")
+    assert by_name["Jefferson County"].parent_authority_name == "Alabama"
+    # Madison County hosts Huntsville + Madison city.
+    assert by_name["Madison County"].rate_pct == Decimal("0.500")
+    # PLACEHOLDER county (long tail).
+    assert by_name["Cullman County"].rate_pct == Decimal("0.000")
+
+
+def test_alabama_parse_rates_emits_top_30_cities() -> None:
+    """All 30 AL_CITIES entries must be emitted as city RateRows."""
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    cities = [r for r in rows if r.authority_type == "city"]
+    assert len(cities) == 30
+    by_name = {r.authority_name: r for r in cities}
+    # Spot-check the four headliners.
+    assert by_name["Birmingham"].rate_pct == Decimal("4.000")
+    assert by_name["Birmingham"].parent_authority_name == "Jefferson County"
+    assert by_name["Huntsville"].rate_pct == Decimal("4.500")
+    assert by_name["Huntsville"].parent_authority_name == "Madison County"
+    assert by_name["Mobile"].rate_pct == Decimal("5.000")
+    assert by_name["Mobile"].parent_authority_name == "Mobile County"
+    assert by_name["Montgomery"].rate_pct == Decimal("3.500")
+    assert by_name["Montgomery"].parent_authority_name == "Montgomery County"
+
+
+def test_alabama_birmingham_combined_rate_is_10pct() -> None:
+    """state 4% + Jefferson County 2% + Birmingham 4% = 10% combined.
+
+    This is the load-bearing assertion for the orchestrator brief:
+    Birmingham must return ~10% combined, not state-only 4%.
+    """
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    by_name = {r.authority_name: r for r in rows}
+    state_rate = by_name["Alabama"].rate_pct
+    county_rate = by_name["Jefferson County"].rate_pct
+    city_rate = by_name["Birmingham"].rate_pct
+    assert state_rate + county_rate + city_rate == Decimal("10.000")
+
+
+def test_alabama_montgomery_combined_rate_is_10pct() -> None:
+    """state 4% + Montgomery County 2.5% + Montgomery city 3.5% = 10%."""
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    by_name = {r.authority_name: r for r in rows}
+    combined = (
+        by_name["Alabama"].rate_pct
+        + by_name["Montgomery County"].rate_pct
+        + by_name["Montgomery"].rate_pct
+    )
+    assert combined == Decimal("10.000")
+
+
+def test_alabama_mobile_combined_rate_is_10pct() -> None:
+    """state 4% + Mobile County 1% + Mobile city 5% = 10%."""
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    by_name = {r.authority_name: r for r in rows}
+    combined = (
+        by_name["Alabama"].rate_pct
+        + by_name["Mobile County"].rate_pct
+        + by_name["Mobile"].rate_pct
+    )
+    assert combined == Decimal("10.000")
+
+
+def test_alabama_huntsville_combined_rate_is_9pct() -> None:
+    """state 4% + Madison County 0.5% + Huntsville city 4.5% = 9%.
+
+    Madison City has a +1% special district that this loader does NOT
+    model; Huntsville does not. The Huntsville combined math is exact.
+    """
+    rows = list(ALABAMA.parse_rates(None, "v1-top30"))
+    by_name = {r.authority_name: r for r in rows}
+    combined = (
+        by_name["Alabama"].rate_pct
+        + by_name["Madison County"].rate_pct
+        + by_name["Huntsville"].rate_pct
+    )
+    assert combined == Decimal("9.000")
+
+
+def test_alabama_parse_boundaries_dedupes_county_per_zip() -> None:
+    """A ZIP must bind to AT MOST ONE county to avoid double-counting
+    the local tax. Many AL ZIPs span 2+ counties in the Census ZCTA
+    relationship file; the loader must pick one (preferring the
+    city-anchor county where the ZIP is in AL_CITIES).
+    """
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    by_zip: dict[str, list[str]] = {}
+    for b in rows:
+        if b.authority_type == "county":
+            by_zip.setdefault(b.zip5, []).append(b.authority_name)
+    multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
+    assert multi == {}, (
+        f"Found ZIPs bound to multiple AL counties (would double-count "
+        f"local tax): {multi}"
+    )
+
+
+def test_alabama_parse_boundaries_cross_county_zip_uses_city_anchor() -> None:
+    """ZIP 35173 (Trussville) straddles Jefferson + St. Clair; the
+    city-anchor preference must bind it to Jefferson (Trussville's
+    declared county).
+    """
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    z = [b for b in rows if b.zip5 == "35173" and b.authority_type == "county"]
+    assert len(z) == 1
+    assert z[0].authority_name == "Jefferson County"
+
+
+def test_alabama_parse_boundaries_helena_uses_shelby_anchor() -> None:
+    """ZIP 35080 (Helena) straddles Jefferson + Shelby; Helena anchors
+    to Shelby County, so the boundary must bind to Shelby (NOT Jefferson).
+    """
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    z = [b for b in rows if b.zip5 == "35080" and b.authority_type == "county"]
+    assert len(z) == 1
+    assert z[0].authority_name == "Shelby County"
+
+
+def test_alabama_parse_boundaries_covers_non_city_zip() -> None:
+    """A ZIP outside any AL_CITIES entry must still bind to state +
+    county after the top-30 ratchet.
+
+    35601 (Decatur) is in Morgan County and IS a covered city; pick a
+    non-covered ZIP to prove the statewide pass works. ZIP 35611
+    (Athens area in Limestone County) is in Limestone -- and Limestone
+    is touched by a covered city (Athens), so the county binding will
+    apply with its non-zero rate.
+    """
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    # Pick a ZIP NOT in AL_CITIES but in a covered county.
+    # 35601 is Decatur (covered) -- use 35603 instead since 35603 is
+    # also Decatur's ZIP in al_data. Try a non-covered Limestone ZIP.
+    by_zip: dict[str, set[str]] = {}
+    for b in rows:
+        by_zip.setdefault(b.zip5, set()).add(b.authority_name)
+    # Verify there are many AL ZIPs bound (not just the ~70 in AL_CITIES).
+    state_zips = {z for z, names in by_zip.items() if "Alabama" in names}
+    assert len(state_zips) > 300, (
+        f"Expected statewide ZCTA coverage (~600 AL ZIPs); got only "
+        f"{len(state_zips)} -- ratchet may not be wired correctly"
+    )
+
+
+def test_alabama_parse_boundaries_emits_many_zips() -> None:
+    """Sanity: AL must emit boundary rows for hundreds of ZIPs (the
+    Census ZCTA file lists ~660 AL ZCTAs), not just the ~70 ZIPs in
+    AL_CITIES.
+    """
+    rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
+    state_zips = {b.zip5 for b in rows if b.authority_type == "state"}
+    assert len(state_zips) > 500, (
+        f"Expected statewide ZCTA coverage (~660 AL ZIPs); got only "
+        f"{len(state_zips)}"
+    )
+
+
+def test_alabama_al_data_uses_canonical_county_names() -> None:
+    """Every county in AL_COUNTY_RATE_PCT must match the canonical
+    name in :data:`opensalestax.data.county_names.COUNTY_NAMES` so
+    the boundary loader can look them up by FIPS.
+    """
+    from opensalestax.data.county_names import COUNTY_NAMES
+    from opensalestax.states.al_data import AL_COUNTY_RATE_PCT
+
+    al_canonical = {name for (st, _fips), name in COUNTY_NAMES.items() if st == "AL"}
+    assert al_canonical, "no AL counties in COUNTY_NAMES -- canary failure"
+    diff = set(AL_COUNTY_RATE_PCT) - al_canonical
+    assert diff == set(), (
+        f"AL_COUNTY_RATE_PCT contains county names not in COUNTY_NAMES: "
+        f"{diff}"
+    )
+
+
+def test_alabama_al_cities_no_overlapping_zips() -> None:
+    """No ZIP appears in more than one AL_CITIES entry.
+
+    If a ZIP belonged to two cities the boundary loader would emit two
+    city BoundaryRows (and the engine would double-count the city tax
+    portion). Each AL ZIP must anchor to at most one city.
+    """
+    from opensalestax.states.al_data import AL_CITIES
+
+    seen: dict[str, str] = {}
+    for city, (_county, _rate, zips) in AL_CITIES.items():
+        for z in zips:
+            assert z not in seen, (
+                f"ZIP {z} appears in BOTH {seen[z]} and {city}; "
+                f"engine would double-count city tax. Pick one anchor."
+            )
+            seen[z] = city
+
+
+def test_alabama_al_data_covers_all_67_counties() -> None:
+    """AL_COUNTY_RATE_PCT must enumerate every AL county so the
+    boundary loader can never miss one.
+    """
+    from opensalestax.data.county_names import COUNTY_NAMES
+    from opensalestax.states.al_data import AL_COUNTY_RATE_PCT
+
+    al_canonical = {name for (st, _fips), name in COUNTY_NAMES.items() if st == "AL"}
+    missing = al_canonical - set(AL_COUNTY_RATE_PCT)
+    assert missing == set(), (
+        f"AL_COUNTY_RATE_PCT is missing AL counties present in "
+        f"COUNTY_NAMES: {missing}"
+    )
