@@ -31,9 +31,21 @@ from __future__ import annotations
 # mappings fall through to the ``VT-city-<code>`` placeholder so
 # we never display a misattributed name.
 VT_CITY_NAMES: dict[str, str] = {
-    "10675": "Burlington",  # ZIP 05401, 05403 -> 10675 (verified)
-    "14875": "Colchester",  # ZIP 05446 -> 14875 (verified)
-    "17875": "Dover",  # ZIP 05356 -> 17875 (verified)
+    # Single-ZIP codes -- attribution unambiguous.
+    "41275": "Ludlow",  # ZIPs: {05149}
+    "85150": "Winooski",  # ZIPs: {05404}
+    # Multi-ZIP codes where every covered ZIP unambiguously
+    # belongs to the same Vermont town per USPS attribution.
+    "07900": "Brattleboro",  # ZIPs: {05301, 05302}
+    "10675": "Burlington",  # ZIPs: {05401, 05402, 05403, 05405, 05406, 05408}
+    "14875": "Colchester",  # ZIPs: {05446}
+    "17875": "Dover",  # ZIP 05356 (verified by probe)
+    "24400": "Essex Junction",  # ZIPs: {05452, 05453}
+    "42850": "Manchester",  # ZIPs: {05250, 05254, 05255} (Manchester Center/Village)
+    "46000": "Montpelier",  # ZIPs: {05601-05671 cluster, state capital}
+    "61225": "Rutland City",  # ZIPs: {05701, 05702}
+    "70525": "Stowe",  # ZIPs: {05662, 05672}
+    "85975": "Woodstock",  # ZIPs: {05071, 05073, 05091}
 }
 
 
