@@ -40,7 +40,7 @@ deferred to v1.0+ when HI, NM, and any future GRT-style jurisdictions
 need the same primitive and the abstraction can be designed once.
 
 ============================================================================
-LOCAL GRT IS **NOT MODELED** in this v1 module
+LOCAL GRT MODELING -- top-30 location coverage via published combined rates
 ============================================================================
 
 Each of New Mexico's **33 counties** and many of its **~106
@@ -54,23 +54,46 @@ of special-district codes can push the combined rate above 9.5%.
 The New Mexico Taxation and Revenue Department (TRD) publishes a
 quarterly **Gross Receipts Tax Rate Schedule** (the "FYI-200
 companion" CSV / PDF) that maps every NM "location code" to its
-combined rate. **v1 ships the state 4.875% portion only** -- a
-caller computing tax for any populated NM address will under-collect
-by the local-option layer (typically 1-4 percentage points).
+combined rate.
 
-This deferral mirrors the precedent set by:
+**This module ships the top-30 NM locations by population** with
+combined rates seeded from the TRD GRT Rate Schedule effective
+2026-01-01 (see :mod:`opensalestax.states.nm_data` for the source
+URL, retrieval date, and the per-location rate table). Coverage:
 
-- Colorado (state-only; ~70 home-rule cities deferred -- see
-  ``specs/decisions/04-colorado-home-rule.md``)
-- Louisiana (state-only; 64 parishes deferred -- see
-  ``specs/decisions/05-louisiana-parishes.md``)
-- South Carolina, Mississippi, Missouri, Nevada (statewide rate
-  only; per-county add-ons deferred to per-county data ingestion)
+- Albuquerque, Santa Fe, Las Cruces, Rio Rancho, Roswell,
+  Farmington, Hobbs, Carlsbad, Clovis, Alamogordo, Gallup,
+  Los Lunas, Sunland Park, Las Vegas (NM), Deming, Lovington,
+  Artesia, Portales, Silver City, Espanola, Grants, Anthony,
+  Bernalillo (town), Aztec, Bloomfield, Truth or Consequences,
+  Belen, Taos, Ruidoso (29 distinct location codes; together
+  ~70%+ of NM population).
 
-A future per-NM-county loader -- analogous to a planned CO DR 1002
-loader and a future LA-parish loader -- is the natural follow-on
-contribution; the TRD location-code CSV is publicly downloadable
-under no license restrictions and is the canonical primary source.
+**Published-combined-rate model:** TRD publishes ONE combined rate
+per location code rather than the state/county/city breakdown.
+This module mirrors that source-of-truth shape -- the per-location
+combined-local rate (combined - 4.875%) is encoded as a single
+"city" authority and the county authority sits at 0.000%. A
+downstream caller asking about Albuquerque sees state 4.875% +
+county 0.000% + city 3.000% = 7.875% combined, exactly reproducing
+the published TRD value. See :mod:`opensalestax.states.nm_data`
+docstring for the published-source rationale and the Connecticut-
+pattern precedent.
+
+**Deferred coverage** (long-tail): NM ZIPs entirely outside the
+30 covered locations resolve to (state 4.875% + county 0.000%) =
+4.875%, which under-counts the actual unincorporated-county GRT by
+the county portion. The remaining unincorporated-county GRT is
+NOT modeled in this ratchet -- a future per-county loader against
+the TRD location-code CSV would close this remaining gap; the TRD
+CSV is publicly downloadable under no license restrictions.
+
+This phased deferral mirrors the precedent set by Colorado
+(top home-rule cities first, long-tail home-rules deferred --
+see ``specs/decisions/04-colorado-home-rule.md``), Louisiana
+(state-only with 64 parishes deferred), Missouri (top-15 cities
++ statewide ZIP coverage with 0% long-tail counties in v0.30),
+and South Carolina (per-county with city anchors).
 
 ============================================================================
 STATEWIDE RATE: 4.875% effective 2023-07-01
@@ -214,33 +237,37 @@ again.
 LOADING AND MAINTAINER NOTES
 ============================================================================
 
-The v0.2 loader treats ``NewMexico.parse_rates`` as "self-seeded"
--- it returns the single statewide row and ignores the source-file
-argument. Use ``opensalestax data load --state NM
---version v1-statewide`` to insert it.
+The loader treats ``NewMexico.parse_rates`` as "self-seeded"
+-- it returns the embedded state + per-county + per-location rows
+and ignores the source-file argument. Use ``opensalestax data load
+--state NM --version v1-state-county-city`` to insert them.
 
 State maintainer: vacant -- see MAINTAINERS.md. The natural
 next-contribution work for a NM maintainer:
 
-1. A per-county / per-municipality loader against the TRD
+1. A full per-county / per-municipality loader against the TRD
    quarterly Gross Receipts Tax Rate Schedule CSV (publicly
-   available; no license fee). This would close the
-   under-collection gap that exists today for every NM address.
-2. Tracking the contingent-trigger 4.500% rate-cut path in
+   available; no license fee). This would close the remaining
+   under-collection gap on unincorporated-county ZIPs outside
+   the top-30 covered locations.
+2. Refresh ``NM_LOCATION_RATES`` and ``NM_LOCATION_EFFECTIVE_FROM``
+   each January 1 and July 1 when TRD publishes a new schedule
+   (rates may change at either revision date per NMSA 7-1-7).
+3. Tracking the contingent-trigger 4.500% rate-cut path in
    HB 163 of 2022 -- if the revenue triggers ever fire, the
-   ``parse_rates`` row needs an ``effective_to`` and a successor
-   row.
-3. Annual update to the back-to-school holiday once the NM
+   ``parse_rates`` state row needs an ``effective_to`` and a
+   successor row.
+4. Annual update to the back-to-school holiday once the NM
    Legislature publishes the next year's date confirmation.
 
 DISCLAIMER: This module is calculation infrastructure, not tax
 advice. Maintainers and users are responsible for verifying
 current TRD guidance and statutory text before relying on these
-rules in production. Local GRT is NOT modeled in v1 and a v1
-caller will under-collect on every populated NM address by the
-local-option layer (typically 1-4 percentage points). Sellers
-remain legally responsible for GRT under NMSA 7-9-4 regardless of
-what their billing software computes.
+rules in production. Long-tail unincorporated-county GRT is not
+yet fully modeled and ZIPs outside the top-30 covered locations
+will under-collect by the county-portion. Sellers remain legally
+responsible for GRT under NMSA 7-9-4 regardless of what their
+billing software computes.
 """
 
 from __future__ import annotations
@@ -250,6 +277,14 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
+from opensalestax.states.nm_data import (
+    NM_LOCATION_EFFECTIVE_FROM,
+    NM_LOCATION_RATES,
+    NM_STATE_EFFECTIVE_FROM,
+    NM_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -367,36 +402,44 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "math as if it were a sales tax (sellers pass GRT through "
             "to customers as a market practice). LOCAL GRT (county + "
             "municipal local-option increments, typically 1-4 "
-            "percentage points) is NOT modeled in v1 -- combined rates "
-            "actually range about 5.5% to 9.5% across NM addresses. "
-            "See module docstring for the deferred-locals rationale "
-            "(mirrors CO/LA precedent). Calculation only -- not tax "
-            "advice."
+            "percentage points) is encoded for the top-30 NM locations "
+            "by population via the published-combined-rate model in "
+            "``nm_data`` (single 'city' authority per location, county "
+            "at 0%); ZIPs outside the top 30 locations are NOT modeled "
+            "yet for local GRT and resolve to 4.875% only -- combined "
+            "rates actually range about 5.5% to 9.5% across all NM "
+            "addresses. See module docstring for the deferred long-tail "
+            "rationale (mirrors CO/LA precedent). Calculation only -- "
+            "not tax advice."
         ),
     ),
 }
 
-# Statewide-rate effective date: July 1, 2023. The 4.875% state-portion
-# rate took effect under HB 163 of the 2022 Regular Session (signed
-# 2022-03-08), which amended NMSA 7-9-4. A further contingent reduction
-# to 4.500% remains on the books but has not been triggered as of 2026.
-_RATE_EFFECTIVE_FROM = dt.date(2023, 7, 1)
-_RATE_PCT = Decimal("4.875")
+# Statewide-rate constants live in :mod:`opensalestax.states.nm_data`
+# (NM_STATE_RATE_PCT = 4.875%, NM_STATE_EFFECTIVE_FROM = 2023-07-01)
+# along with the per-location combined-local rates seeded in
+# NM_LOCATION_RATES. See that module's docstring for the published-
+# combined-rate model and the published-source citation (TRD GRT
+# Rate Schedule effective Jan 1, 2026).
 
 
 class NewMexico:
-    """New Mexico state module (tier 1; STATE PORTION ONLY in v1).
+    """New Mexico state module (tier 1; top-30 location coverage).
 
     NM imposes a GROSS RECEIPTS TAX (NOT a sales tax) -- see the
     module docstring for the GRT-vs-sales-tax legal distinction and
     the rationale for encoding the consumer-facing math as if it
     were sales tax for OpenSalesTax v1 compatibility.
 
-    Local-option GRT (county + municipal increments) is NOT modeled
-    in v1; combined rates at any populated NM address are
-    under-collected by 1-4 percentage points until a per-county
-    loader against the TRD location-code CSV lands. See the module
-    docstring for the deferred-locals rationale.
+    Local-option GRT (county + municipal increments) is now modeled
+    for the top 30 NM locations by population using the
+    published-combined-rate model -- the per-location combined-local
+    rate is encoded as a single "city" authority and the county
+    sits at 0.000%. See ``nm_data`` for the seeded locations and the
+    NM TRD GRT Rate Schedule citation. NM ZIPs outside the top 30
+    locations resolve to state 4.875% only (the remaining
+    unincorporated-county GRT is NOT modeled in this ratchet,
+    pending a future per-county loader).
     """
 
     state_abbrev: str = "NM"
@@ -411,42 +454,185 @@ class NewMexico:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield New Mexico's statewide 4.875% GRT rate.
+        """Yield NM's state + per-county + per-location (city) rates.
 
         ``source_file`` is intentionally ignored -- NM is non-SST and
-        has no upstream file. Pass ``None`` from the loader.
+        has no upstream SST file. The combined-local rates are
+        embedded in :mod:`opensalestax.states.nm_data` against the
+        NM TRD GRT Rate Schedule effective 2026-01-01.
 
-        The 4.875% rate took effect 2023-07-01 under HB 163 of the
-        2022 Regular Session amending NMSA 7-9-4. ``effective_to`` is
-        ``None`` because the further-reduction triggers in HB 163
-        have not fired and there is no scheduled sunset; if/when the
-        4.500% trigger fires this method must be updated to emit a
-        successor row with the appropriate effective dates.
+        Yields:
+
+        - ONE state row at 4.875% (NMSA 7-9-4, effective 2023-07-01
+          under HB 163 of 2022).
+        - ONE county row per NM county at 0.000% (the county portion
+          is folded into the per-location combined-local rate; see
+          ``nm_data`` docstring for the published-source model). The
+          county row exists so the engine can resolve every NM ZIP
+          to a (state, county) authority stack via the boundary
+          loader's ZIP_COUNTY pass.
+        - ONE city row per :data:`NM_LOCATION_RATES` entry whose
+          ``rate_pct`` is the combined-local (county + city +
+          districts) layered on top of the 4.875% state portion.
+          A consumer asking about Albuquerque sees state 4.875% +
+          county 0.000% + city 3.000% = 7.875% combined, exactly
+          reproducing the published TRD rate.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="New Mexico",
             authority_type="state",
-            rate_pct=_RATE_PCT,
-            effective_from=_RATE_EFFECTIVE_FROM,
+            rate_pct=NM_STATE_RATE_PCT,
+            effective_from=NM_STATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        # Emit ONE county RateRow per NM county that appears in the
+        # location table at 0.000%. This lets the engine answer
+        # "what county is ZIP X in" while keeping the entire local
+        # GRT inside the city authority (matching how NM TRD
+        # publishes rates). Sorted for deterministic output.
+        nm_counties = sorted({county for (county, _r, _z) in NM_LOCATION_RATES.values()})
+        for nm_county_name in nm_counties:
+            yield RateRow(
+                authority_name=nm_county_name,
+                authority_type="county",
+                rate_pct=Decimal("0.000"),
+                effective_from=NM_STATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="New Mexico",
+            )
+        # Emit ONE city RateRow per covered location. The "city"
+        # authority carries the combined-local (county + city +
+        # special-district) rate -- see nm_data docstring.
+        for location_name, (loc_county, loc_rate, _zips) in sorted(NM_LOCATION_RATES.items()):
+            yield RateRow(
+                authority_name=location_name,
+                authority_type="city",
+                rate_pct=loc_rate,
+                effective_from=NM_LOCATION_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name=loc_county,
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundaries shipped in v1.
+        """Yield (state, county[, city]) boundary rows for NM ZIPs.
 
-        NM has 33 counties + ~106 municipalities each with their own
-        local-option GRT increment. A per-county loader against the
-        TRD quarterly Gross Receipts Tax Rate Schedule CSV is the
-        natural next contribution; until then no sub-state authorities
-        are emitted. See the module docstring for the deferred-locals
-        rationale (mirrors CO/LA/SC/MS/MO/NV precedent).
+        Two passes (parallel to the SC/MO statewide-coverage pattern
+        introduced in v0.31):
+
+        1. Iterate :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+           emit state + county bindings for every ZIP intersecting an
+           NM county represented in :data:`NM_LOCATION_RATES`. ZIPs
+           that span multiple NM counties prefer the city-anchor
+           county when the ZIP is in :data:`NM_LOCATION_RATES`.
+
+        2. Emit city BoundaryRows for every :data:`NM_LOCATION_RATES`
+           ZIP. Also emit state + county fallbacks for any city ZIP
+           missed by the Census ZCTA pass (USPS-only ZIPs not in the
+           Census ZCTA file).
+
+        Per the FL/AZ/CA/SC/MO pattern, emit AT MOST ONE county per
+        ZIP per Census ZCTA so cross-county-line ZIPs don't get bound
+        to multiple counties (which would let the engine apply two
+        different city rates to the same ZIP).
+
+        Coverage caveat: an NM ZIP entirely outside any covered
+        location resolves to (state 4.875% + county 0.000%) = 4.875%,
+        which under-counts the actual unincorporated-county GRT by
+        the county-portion. The 30 covered locations cover ~70%+ of
+        NM population; the long-tail unincorporated under-collection
+        is the deferred per-county loader work documented in the
+        module docstring.
         """
         del source_file, version_label
-        return iter(())
+        nm_counties_with_rates = {county for (county, _r, _z) in NM_LOCATION_RATES.values()}
+        # Build city-anchor county map for cross-county-line ZIPs.
+        city_county_for_zip: dict[str, str] = {}
+        for _ln, (cc, _r, czs) in NM_LOCATION_RATES.items():
+            for cz in czs:
+                city_county_for_zip[cz] = cc
+
+        # Pass 1: state + county for every NM ZIP per Census ZCTA.
+        # Emit at most one county per ZIP. Prefer the city-anchor
+        # county if known; else the first NM county in deterministic
+        # FIPS-sorted order (ZIP_COUNTY values are frozensets so we
+        # must sort for stable output across test runs).
+        emitted_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            preferred_county = city_county_for_zip.get(zip5)
+            sorted_nm_pairs = sorted(cf for sa, cf in pairs if sa == "NM")
+            chosen_county: str | None = None
+            for county_fips in sorted_nm_pairs:
+                nm_county_name = county_name("NM", county_fips)
+                if nm_county_name is None or nm_county_name not in nm_counties_with_rates:
+                    continue
+                if preferred_county is not None:
+                    if nm_county_name == preferred_county:
+                        chosen_county = nm_county_name
+                        break
+                    # keep iterating in hopes of finding the city's county
+                    continue
+                # No city anchor -- take the first matching NM county.
+                chosen_county = nm_county_name
+                break
+            if chosen_county is None and preferred_county is not None:
+                # Census ZCTA didn't list the city's county at all
+                # (USPS-only / boundary-mismatch ZIP). Trust the
+                # city's declared county.
+                chosen_county = preferred_county
+            if chosen_county is None:
+                # ZIP is in NM but in a county we don't yet have a
+                # rate for (long-tail unincorporated counties). Skip
+                # without binding so the engine returns "no match"
+                # rather than a wrong county; future per-county
+                # loader closes this gap.
+                continue
+            yield BoundaryRow(
+                authority_name="New Mexico",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            emitted_zips.add(zip5)
+        # Pass 2: city BoundaryRows for NM_LOCATION_RATES. Emit state
+        # + county fallbacks for any city ZIP missed by Pass 1 so we
+        # never regress city coverage.
+        for location_name, (loc_county, _loc_rate, zips) in NM_LOCATION_RATES.items():
+            for zip5 in zips:
+                if zip5 not in emitted_zips:
+                    yield BoundaryRow(
+                        authority_name="New Mexico",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    yield BoundaryRow(
+                        authority_name=loc_county,
+                        authority_type="county",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name=location_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return NM's state-portion GRT taxability rule for ``item_category``.
