@@ -2770,6 +2770,63 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "ARSSTC (City of Kodiak, general retail) -- v0.49 AK promotion",
     ),
+    # Additional AK entries -- diverse boroughs + verification of
+    # the city-suppresses-borough rule (Kenai inside KPB at 3% city
+    # only, vs KPB unincorporated entries below also at 3%).
+    (
+        "AK",
+        "Bethel",
+        "99559",
+        "0001",
+        "6.000",
+        "0.05",
+        "ARSSTC (City of Bethel, Bethel Census Area) -- v0.49 AK promotion",
+    ),
+    (
+        "AK",
+        "Kenai (KPB-incorporated)",
+        "99611",
+        "0001",
+        "3.000",
+        "0.05",
+        "ARSSTC (City of Kenai 3.0% -- KPB borough rate suppressed inside city)",
+    ),
+    (
+        "AK",
+        "Petersburg",
+        "99833",
+        "0001",
+        "6.000",
+        "0.05",
+        "ARSSTC (Petersburg Borough -- consolidated city-borough)",
+    ),
+    (
+        "AK",
+        "Wrangell",
+        "99929",
+        "0001",
+        "7.000",
+        "0.05",
+        "ARSSTC (Wrangell City and Borough -- highest consolidated rate)",
+    ),
+    (
+        "AK",
+        "Nome",
+        "99762",
+        "0001",
+        "6.000",
+        "0.05",
+        "ARSSTC (City of Nome, Nome Census Area)",
+    ),
+    (
+        "AK",
+        "North Pole",
+        "99705",
+        "0001",
+        "5.500",
+        "0.05",
+        "ARSSTC (City of North Pole, FNSB has no borough sales tax)",
+    ),
     # AK borough rates (v0.52) -- KPB-unincorporated ZIPs that
     # were 0% pre-v0.52. Each tests the city-suppresses-borough
     # rule (city ZIPs are NOT in this section -- they live above).
