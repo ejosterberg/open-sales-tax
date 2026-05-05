@@ -62,8 +62,13 @@ async def test_load_california_without_a_file(async_session: AsyncSession) -> No
     expected_rates = 1 + len(expected_counties) + len(CA_CITIES)
     assert summary.rates_loaded == expected_rates
 
-    # Each city emits 3 boundary rows per ZIP (state + county + city).
-    expected_boundaries = sum(3 * len(zips) for _, _, zips in CA_CITIES.values())
+    # v0.28+ pattern: parse_boundaries iterates ZIP_COUNTY for every CA
+    # ZIP (state + county per ZIP) plus emits city BoundaryRows for the
+    # CA_CITIES set on top. Count is no longer just 3*N for cities;
+    # delegate to the module's actual output rather than hardcoding.
+    from opensalestax.states.california import California
+
+    expected_boundaries = sum(1 for _ in California().parse_boundaries(None, "v0.27-top-50"))
     assert summary.boundaries_loaded == expected_boundaries
 
     ca = (await async_session.execute(select(State).where(State.abbrev == "CA"))).scalar_one()
