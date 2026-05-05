@@ -169,7 +169,51 @@ async def lookup_jurisdictions_by_zip(
             continue
         seen_ids.add(auth.id)
         merged.append(auth)
+
+    # Type-z fallback dedup: when no precise type-4 match was found,
+    # the merged list contains every type-z authority claiming the
+    # ZIP. For multi-city/multi-county overlap (e.g. Johnson City
+    # 37601 binds to 2 cities + 2 counties via type-z) plus TN's
+    # cross-county IMPROVE Act stacking, this stacks 5+ authorities
+    # and over-collects. Apply the same loose-lookup dedup so
+    # synthetic and real +4 addresses without precise SST coverage
+    # behave the same as the zip5-only path.
+    #
+    # When precise_county_city_ids IS populated, the precise type-4
+    # match has already won for the city/county slot; skip the
+    # dedup so per-+4 precision is preserved.
+    if not precise_county_city_ids:
+        merged = await _dedup_typez_fallback(session, merged)
+
     return _stable_sort(merged)
+
+
+async def _dedup_typez_fallback(
+    session: AsyncSession, authorities: list[TaxAuthority]
+) -> list[TaxAuthority]:
+    """Dedup a strict-lookup type-z fallback list to the same shape as the loose lookup.
+
+    Treats every authority as type-z (zip4_low=None) since they
+    came from the type-z merge step. Looks up total ZIP counts
+    for the more-specific-wins tiebreaker, then delegates to
+    ``_pick_one_city_county_per_zip5`` so the strict and loose
+    lookups produce the same authority stack for a given ZIP
+    when no precise type-4 match exists.
+    """
+    if not authorities:
+        return authorities
+
+    rows: list[tuple[TaxAuthority, str | None]] = [(a, None) for a in authorities]
+    candidate_ids = {a.id for a in authorities}
+    coverage_stmt = (
+        select(Boundary.authority_id, func.count(Boundary.zip5.distinct()))
+        .where(Boundary.authority_id.in_(candidate_ids))
+        .group_by(Boundary.authority_id)
+    )
+    total_zip_counts: dict[int, int] = {}
+    for aid, zip_count in (await session.execute(coverage_stmt)).all():
+        total_zip_counts[aid] = zip_count
+    return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
 
 
 async def lookup_jurisdictions_by_zip5_loose(

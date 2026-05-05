@@ -8,7 +8,7 @@
 [![Latest release](https://img.shields.io/github/v/release/ejosterberg/open-sales-tax?label=release&color=blue)](https://github.com/ejosterberg/open-sales-tax/releases/latest)
 [![License](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![DOR-validated](https://img.shields.io/badge/DOR--validated-310%2F310_ZIPs-brightgreen)](tests/integration/test_sst_dor_validation.py)
+[![DOR-validated](https://img.shields.io/badge/DOR--validated-311%2F311_ZIPs-brightgreen)](tests/integration/test_sst_dor_validation.py)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![DCO](https://img.shields.io/badge/DCO-required-blue)](https://developercertificate.org/)
 
@@ -123,7 +123,7 @@ Per-locality coverage breakdown:
 | Tier-1 no-sales-tax | 5 | AK, DE, MT, NH, OR |
 | Pending SubJurisdiction Protocol architectural work | 2 | CO (home-rule cities), LA (parishes) |
 
-**310 ZIPs validated against published state DOR rates** on every
+**311 ZIPs validated against published state DOR rates** on every
 release ([the live regression test](tests/integration/test_sst_dor_validation.py)).
 The grid spans every state with locals; CI auto-rebuilds the
 [pre-loaded data dump](https://github.com/ejosterberg/open-sales-tax/releases/latest)
@@ -185,7 +185,7 @@ Or try these curl recipes:
 
 ```bash
 curl -s https://api.opensalestax.org/v1/health
-# {"status":"ok","version":"0.44.0","database_connected":true}
+# {"status":"ok","version":"0.45.0","database_connected":true}
 ```
 
 ### 2. List tier-1 states

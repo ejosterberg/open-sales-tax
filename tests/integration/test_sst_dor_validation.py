@@ -834,14 +834,19 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "TN DOR Q2 2025 (state 7% + Williamson 2.75% + IMPROVE Act 0.5%) -- post-v0.44",
     ),
-    # NOTE: Johnson City 37601 is a v0.43/v0.44 fix target for the loose
-    # (zip5-only) lookup path. The strict (zip+4) lookup path still
-    # over-collects when the supplied +4 doesn't match a real type-4 range
-    # (synthetic +4 values like "1234" fall back to type-z and currently
-    # stack every city/county/district that claims the ZIP zip-wide). See
-    # specs/decisions/09-strict-lookup-typez-dedup.md (TODO) for the
-    # follow-up; once that lands, add Johnson City 37601 with a real +4
-    # back to this grid.
+    # Johnson City -- v0.43 fix for SST code-63 county-equivalent overlay
+    # (was 12.0% before code-63 was mapped to None). v0.45 also fixed
+    # the strict-lookup type-z fallback dedup (decision 09) so synthetic
+    # +4 values like "1234" no longer stack every claiming authority.
+    (
+        "TN",
+        "Johnson City",
+        "37601",
+        "1234",
+        "9.750",
+        "0.05",
+        "TN DOR (state 7% + Johnson City 2.75%) -- v0.43 code-63 + v0.45 strict-lookup dedup",
+    ),
     # OK Newcastle (city 51150) -- the McClain-side suburb of Norman
     (
         "OK",

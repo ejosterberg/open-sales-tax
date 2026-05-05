@@ -1,6 +1,8 @@
 # Decision 09: Strict ZIP+4 lookup needs type-z dedup on fallback
 
-**Status:** Open (deferred) -- recorded 2026-05-05 during iter 27.
+**Status:** RESOLVED in v0.45.0 (2026-05-05). Decision recorded
+during iter 27, fix shipped same iter -- documented for future
+maintainers as the "why" behind the strict-lookup dedup logic.
 
 ## Context
 
