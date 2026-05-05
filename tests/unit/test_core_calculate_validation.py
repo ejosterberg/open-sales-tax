@@ -391,6 +391,35 @@ class TestPickOneCityCountyPerZip5:
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["TN-district-91950"]
 
+    def test_fewer_total_zips_wins_when_both_curated(self) -> None:
+        """Tie on every other signal -> the city covering fewer ZIPs wins.
+
+        Regression for Winooski 05404: the SST 'A'-record loader binds
+        ZIP 05404 to BOTH city 85150 ("Winooski", covers only 05404) and
+        city 14875 ("Colchester", covers a wider Chittenden County
+        cluster). Both are curated friendly names, both have row_count=1
+        for 05404, both are zip-wide ('A'-collapse). Without this
+        tiebreaker the lower-id authority (Colchester) wins arbitrarily;
+        the more-specific city (Winooski, 1 total ZIP) is the right
+        answer for a ZIP that physically lives in Winooski.
+        """
+        vt_state = SimpleNamespace(abbrev="VT")
+        # Lower id; covers many ZIPs.
+        colchester = _stub_authority(1, "Colchester", "city")
+        colchester.state = vt_state
+        # Higher id but covers ONLY 05404.
+        winooski = _stub_authority(2, "Winooski", "city")
+        winooski.state = vt_state
+        rows = [(colchester, None), (winooski, None)]
+        # Colchester covers 12 ZIPs total; Winooski covers 1.
+        total_zip_counts = {colchester.id: 12, winooski.id: 1}
+        picked = _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
+        names = [a.name for a in picked if a.authority_type == "city"]
+        assert names == ["Winooski"], (
+            f"expected ['Winooski']; got {names} (more-specific city should "
+            "have won the tiebreaker)"
+        )
+
     def test_curated_name_wins_over_placeholder(self) -> None:
         """When two cities tie on every other signal, prefer the vetted name.
 

@@ -16,7 +16,7 @@ business logic) is satisfied.
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -208,7 +208,26 @@ async def lookup_jurisdictions_by_zip5_loose(
         .options(selectinload(TaxAuthority.state))
     )
     rows = [(row[0], row[1]) for row in (await session.execute(stmt)).all()]
-    return _pick_one_city_county_per_zip5(rows)
+
+    # Total ZIP coverage per candidate authority -- used as a
+    # tiebreaker so the more-specific authority wins (e.g. Winooski
+    # 85150 covers ZIP 05404 only, while Colchester 14875 covers
+    # several northern Chittenden County ZIPs). Without this signal,
+    # both bind to ZIP 05404 with row count = 1 and the lower-id
+    # authority wins arbitrarily; the curated-name tiebreaker doesn't
+    # help when both are curated.
+    candidate_ids = {auth.id for auth, _ in rows}
+    total_zip_counts: dict[int, int] = {}
+    if candidate_ids:
+        coverage_stmt = (
+            select(Boundary.authority_id, func.count(Boundary.zip5.distinct()))
+            .where(Boundary.authority_id.in_(candidate_ids))
+            .group_by(Boundary.authority_id)
+        )
+        for aid, zip_count in (await session.execute(coverage_stmt)).all():
+            total_zip_counts[aid] = zip_count
+
+    return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
 
 
 def _is_placeholder_name(auth: TaxAuthority) -> bool:
@@ -232,6 +251,7 @@ def _is_placeholder_name(auth: TaxAuthority) -> bool:
 
 def _pick_one_city_county_per_zip5(
     rows: list[tuple[TaxAuthority, str | None]],
+    total_zip_counts: dict[int, int] | None = None,
 ) -> list[TaxAuthority]:
     """Collapse multi-city / multi-county ZIPs to one authority per type.
 
@@ -240,17 +260,31 @@ def _pick_one_city_county_per_zip5(
     using these tiebreakers in order:
 
     1. Has a type-z record (zip-wide claim wins over per-+4 only).
-    2. Highest boundary-row count (most precise/extensive coverage).
+    2. Highest boundary-row count for THIS ZIP (most precise/extensive
+       coverage).
     3. Has a curated friendly name (placeholder ``XX-city-NNNNN``
        loses to a vetted name). Catches VT 05401 where the SST
        address-level data binds the ZIP to both city ``10675``
        (= "Burlington", curated) and a regional code ``66175``
        (placeholder, covers 38 ZIPs). The vetted name corresponds
        to the dominant city; the placeholder is a broader overlay.
-    4. Lowest authority id (stable tiebreaker for testability).
+    4. Fewer total ZIPs claimed by the authority across the boundary
+       table -- the more-specific city wins. Catches Winooski 05404,
+       where Winooski (85150) covers ZIP 05404 only while Colchester
+       (14875) covers several Chittenden County ZIPs; both are
+       curated, both have row_count=1 for 05404, but Winooski is
+       clearly the right city for that ZIP.
+    5. Lowest authority id (stable tiebreaker for testability).
 
     State and district authorities pass through unchanged.
+
+    ``total_zip_counts`` is the ``{authority_id: distinct zip5 count}``
+    map from the boundary table; when not supplied (e.g. unit tests
+    that build rows from in-memory stubs), the fewer-ZIPs tiebreaker
+    is a no-op (everyone counts as 0).
     """
+    if total_zip_counts is None:
+        total_zip_counts = {}
     seen_authorities: dict[int, TaxAuthority] = {}
     has_typez: dict[int, bool] = {}
     counts: dict[int, int] = {}
@@ -270,15 +304,20 @@ def _pick_one_city_county_per_zip5(
     picked_county: TaxAuthority | None = None
     for auth_type, aids in by_type.items():
         if auth_type in ("city", "county"):
-            # Dominant authority wins. Sort key: type-z first
-            # (True > False), then most rows, then non-placeholder
-            # name (True > False -- vetted name wins), then lowest id.
+            # Dominant authority wins. Sort key chain:
+            #   1. type-z first (True > False)
+            #   2. most rows for THIS ZIP
+            #   3. non-placeholder name (True > False -- vetted name wins)
+            #   4. fewer total ZIPs (more-specific authority wins;
+            #      negate so max() picks the smallest)
+            #   5. lowest id (stable tiebreaker)
             best_id = max(
                 aids,
                 key=lambda aid: (
                     has_typez.get(aid, False),
                     counts.get(aid, 0),
                     not _is_placeholder_name(seen_authorities[aid]),
+                    -total_zip_counts.get(aid, 0),
                     -aid,
                 ),
             )
