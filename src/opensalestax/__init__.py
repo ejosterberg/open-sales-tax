@@ -2,4 +2,4 @@
 # Copyright 2026 Eric Osterberg and OpenSalesTax contributors
 """OpenSalesTax — open-source US sales tax calculation API."""
 
-__version__ = "0.38.0"
+__version__ = "0.39.0"
