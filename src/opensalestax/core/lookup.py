@@ -391,17 +391,30 @@ def _pick_one_city_county_per_zip5(
             # to every address in the ZIP -- include all (e.g. MN's 3
             # metro transit districts at Minneapolis 55401).
             #
-            # Districts with ONLY type-4 records are address-specific
-            # (Community Improvement Districts, STAR Bond, TIF, etc.):
-            # only one applies per address, but the SST file lists every
-            # CID overlapping the ZIP, so summing them all over-collects
-            # by 3-4% in KS, OK, TN. Without zip4, drop these entirely
-            # rather than pick an arbitrary one -- the rate would still
-            # be wrong for most addresses in the ZIP. Callers wanting
-            # CID precision should pass ZIP+4 to the strict lookup.
-            for aid in aids:
-                if has_typez.get(aid, False):
-                    out.append(seen_authorities[aid])
+            # Districts with ONLY type-4 records fall into two camps:
+            #
+            # 1. Multiple competing CIDs (Community Improvement
+            #    Districts, STAR Bond, TIF) on the same ZIP. The SST
+            #    file lists every CID overlapping the ZIP; summing
+            #    them over-collects by 3-4% in KS / OK / TN. Without
+            #    a ZIP+4 we can't pick a single correct one, so drop
+            #    them all.
+            #
+            # 2. A SINGLE county-wide district whose SST encoding uses
+            #    per-+4 records to cover every address (e.g. Fulton
+            #    County TSPLOST at GA Roswell 30075 has 107 type-4
+            #    records all pointing at the one TSPLOST authority).
+            #    Dropping it under-collects by the district rate.
+            #
+            # Heuristic: when there's exactly ONE type-4-only district
+            # candidate, treat it as a county-wide overlay and include
+            # it. When there are multiple, drop them all (CID camp).
+            typez_aids = [aid for aid in aids if has_typez.get(aid, False)]
+            type4_only_aids = [aid for aid in aids if not has_typez.get(aid, False)]
+            for aid in typez_aids:
+                out.append(seen_authorities[aid])
+            if len(type4_only_aids) == 1:
+                out.append(seen_authorities[type4_only_aids[0]])
         else:
             # state: pass through.
             out.extend(seen_authorities[aid] for aid in aids)

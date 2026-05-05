@@ -379,6 +379,32 @@ class TestPickOneCityCountyPerZip5:
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["Hennepin Transit", "Metro Housing", "Metro Transportation"]
 
+    def test_lone_type4_only_district_included(self) -> None:
+        """A single type-4-only district treated as county-wide; included.
+
+        Regression for GA Roswell 30075: Fulton County TSPLOST
+        (the only district binding to ZIP 30075) has 107 type-4
+        records and 0 type-z. Pre-v0.47 it was dropped because of
+        the "type-4-only districts are CIDs" heuristic, which made
+        the engine return 7.0% (state 4 + Fulton 3) instead of the
+        correct 7.75% (with TSPLOST 0.75% added).
+
+        The heuristic was too aggressive: CID stacking only applies
+        when MULTIPLE type-4-only districts compete for the same
+        ZIP. A single one is almost certainly a county-wide overlay
+        whose SST encoding happens to use per-+4 records.
+        """
+        state = _stub_authority(1, "Georgia", "state")
+        county = _stub_authority(2, "Fulton County", "county")
+        tsplost = _stub_authority(3, "Fulton County TSPLOST", "district")
+        rows: list[tuple[object, str | None]] = [(state, None), (county, None)]
+        # 107 type-4 records all pointing at the same TSPLOST authority.
+        for i in range(107):
+            rows.append((tsplost, str(i).zfill(4)))
+        picked = _pick_one_city_county_per_zip5(rows)
+        district_names = sorted(a.name for a in picked if a.authority_type == "district")
+        assert district_names == ["Fulton County TSPLOST"]
+
     def test_type4_only_districts_dropped(self) -> None:
         """KS Olathe: 4 CIDs with only type-4 records -- drop all of them.
 
