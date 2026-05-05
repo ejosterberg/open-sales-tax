@@ -22,6 +22,15 @@ from sqlalchemy.orm import selectinload
 
 from opensalestax.db.models import Boundary, TaxAuthority
 
+# Threshold for the v0.47 "lone type-4-only district" heuristic.
+# A solitary type-4-only district is included as a county-wide overlay
+# only when its per-ZIP boundary-row count meets this minimum;
+# otherwise it's treated as a stray binding (e.g. Fulton TSPLOST
+# claiming 7 +4 rows in a Gwinnett-County ZIP). Empirically 20 is
+# the right elbow: real GA TSPLOST coverage is ~100+ rows per ZIP;
+# stray bindings ship 1-10.
+_MIN_LONE_DISTRICT_ROWS = 20
+
 
 async def lookup_jurisdictions_by_zip(
     session: AsyncSession,
@@ -391,7 +400,7 @@ def _pick_one_city_county_per_zip5(
             # to every address in the ZIP -- include all (e.g. MN's 3
             # metro transit districts at Minneapolis 55401).
             #
-            # Districts with ONLY type-4 records fall into two camps:
+            # Districts with ONLY type-4 records fall into three camps:
             #
             # 1. Multiple competing CIDs (Community Improvement
             #    Districts, STAR Bond, TIF) on the same ZIP. The SST
@@ -406,14 +415,27 @@ def _pick_one_city_county_per_zip5(
             #    records all pointing at the one TSPLOST authority).
             #    Dropping it under-collects by the district rate.
             #
-            # Heuristic: when there's exactly ONE type-4-only district
-            # candidate, treat it as a county-wide overlay and include
-            # it. When there are multiple, drop them all (CID camp).
+            # 3. A SINGLE stray binding -- the SST file lists a
+            #    district claim on a ZIP that's actually outside the
+            #    district's geographic area, with only a handful of
+            #    type-4 records (e.g. Fulton TSPLOST at Suwanee 30024
+            #    in Gwinnett County has 7 stray type-4 rows). The
+            #    district doesn't actually apply.
+            #
+            # Heuristic: include a lone type-4-only district only if
+            # its per-ZIP row count is at least ``_MIN_LONE_DISTRICT_ROWS``
+            # (proxy for "covers most of the ZIP, not just a few stray
+            # +4 ranges"). 20 is empirically the right elbow: real GA
+            # county-wide TSPLOSTs ship ~100+ type-4 rows per covered
+            # ZIP; stray bindings ship 1-10.
             typez_aids = [aid for aid in aids if has_typez.get(aid, False)]
             type4_only_aids = [aid for aid in aids if not has_typez.get(aid, False)]
             for aid in typez_aids:
                 out.append(seen_authorities[aid])
-            if len(type4_only_aids) == 1:
+            if (
+                len(type4_only_aids) == 1
+                and counts.get(type4_only_aids[0], 0) >= _MIN_LONE_DISTRICT_ROWS
+            ):
                 out.append(seen_authorities[type4_only_aids[0]])
         else:
             # state: pass through.
