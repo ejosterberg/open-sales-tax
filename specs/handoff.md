@@ -2,12 +2,28 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.24.0 is the latest release.** Live at
+**v0.48.0 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
-and prod API at `http://10.32.161.126:8080` (also fronted by
-Cloudflare at `https://api.opensalestax.org`). All 52 jurisdictions
-are tier-1. SST loader/lookup engine matches every Tier-1 SST
-state's published DOR rate within 0.05% across 89 sampled ZIP+4s.
+and prod API at the Cloudflare-fronted public URL
+[api.opensalestax.org](https://api.opensalestax.org/v1/docs).
+All 52 jurisdictions tier-1. The SST loader/lookup engine matches
+every published DOR rate within 0.05% across **312 sampled
+ZIP+4s** on the live engine.
+
+**Dedup logic stabilized in v0.43-v0.48** after a deep TN bug
+hunt that found systemic issues:
+- v0.43: TN code-63 county-equivalent overlays skipped at parse
+- v0.44: Cross-county IMPROVE Act dedup (one district per ZIP)
+- v0.45: Strict-lookup type-z fallback now applies the loose dedup
+- v0.46: "Most rows for THIS ZIP" beats "has-typez" tiebreaker
+- v0.47: Lone type-4-only district included as county-wide overlay
+- v0.48: 20-row threshold filters stray district bindings
+
+**VT Local Option Sales Tax now collected** (v0.40) via three
+parser fixes: SST 'A' (address-level) record support, UTF-8 BOM
+stripping on .csv files, blank rate-column tolerance. Burlington
+05401 + 27 other VT LOST municipalities now correctly return 7%
+combined.
 
 **Pre-built data dumps now ship with every release** (CI workflow
 `.github/workflows/build-data-dump.yml`). New users install via
@@ -23,38 +39,48 @@ give each a self-contained brief stating what they CAN'T touch
 to avoid file conflicts, then merge their branches. Iter 8
 shipped 3 agents in parallel (~1900 lines, 1 hour wall-clock).
 
-**v0.22 deploy gotcha (learned the hard way 2026-05-04):** when the
-parser changes (e.g. v0.22's zero-pad of +4 ranges), every SST state
-must be RELOADED (`bash ~/sst-load.sh` on the prod VM, ~50 min) —
-just rebuilding the container isn't enough because the boundary rows
-are baked into the DB at load time. After ANY parser/loader/state-
-module change, plan for the full reload window before claiming the
-fix is live.
+**Deploy gotchas:**
+
+- **Parser changes** require a full SST reload (`docker compose
+  exec api python -m opensalestax.cli.main data load --state XX
+  --version YYYYQQqMMMDD`) — rebuilding the container isn't
+  enough because boundary rows are baked into the DB at load
+  time.
+- **TN data** ships rates and boundaries in different version
+  labels: `TNR2025Q1MAR07` for rates, `TNB2026Q2FEB23` for
+  boundaries. Use the `--boundary-version` CLI flag to load
+  both: `data load --state TN --version 2025Q1MAR07
+  --boundary-version 2026Q2FEB23`.
 
 ## Where the iter-loop is currently focused
 
-Two parallel tracks:
+Three parallel tracks:
 
-1. **Friendly authority names** — every batch of states whose
-   receipts still read `XX-city-NNNNN` instead of the city name.
-   Pattern: probe a known ZIP for that state, identify the missing
-   codes, look them up against the state's DOR (or Wikipedia/USPS
-   if DOR doesn't publish a code table), build
-   `src/opensalestax/states/<state>_names.py`, wire it into the
-   state class via `_authority_name`, add a probe unit test, drop
-   a row in the DOR-validation grid. Already done: TN, OH, GA, KS,
-   NE, WA, OK, NC, WI county, AR, IA (LOST districts), ND, SD,
-   UT, WV.
-2. **DOR-validation coverage** — keep adding ZIP+4 entries to
-   `tests/integration/test_sst_dor_validation.py`. 41 entries as
-   of v0.21.0. Each entry is one ZIP+4 + the published DOR rate
-   on a specific date.
+1. **Probe-and-fix** — pick a batch of cities across diverse
+   states, compare returned rates to published DOR rates, drill
+   into outliers. The TN bug hunt (v0.43-v0.44) and GA Roswell
+   discovery (v0.46-v0.48) were both born from probe sweeps.
+2. **DOR-validation grid expansion** — add ZIP+4 entries to
+   `tests/integration/test_sst_dor_validation.py` as fixes ship.
+   312 entries as of iter 31; targeting steady growth.
+3. **Friendly authority names** — for any state where the API
+   still returns `XX-city-NNNNN` placeholders, build
+   `src/opensalestax/states/<state>_names.py` with ZIP-probe-
+   verified mappings (FIPS Place codes are NOT 1:1 with SST
+   jurisdiction codes — empirical verification beats public
+   lookup). Already done: TN, OH, GA, KS, NE, WA, OK, NC, WI
+   county, AR, IA, ND, SD, UT, WV, VT (13 entries), WY (1).
 
-Remaining major-city friendly-name work (suggestion list, not
-exhaustive): UT districts (transit, county options); AR
-composite codes; KY non-flat (KY is flat 6%, no work); OH
-beyond Cleveland transit; specific NC transit districts; WA
-small cities outside Bellevue/Tacoma.
+Open follow-ups (decision docs):
+
+- **Decision 04 / 05** — CO home-rule cities + LA parishes need
+  `SubJurisdiction` Protocol abstraction. Big architectural work.
+- **Decision 07** — WY multi-row county taxes need empirical
+  jurisdiction-code capture and re-encoding.
+- AK boroughs missing entirely; would need a new data source.
+- NJ UEZ + Salem County reduced rates intentionally deferred (per
+  `new_jersey.py` docstring) until per-seller exemption modeling
+  lands.
 
 ## What to read first
 
@@ -93,24 +119,34 @@ in three companion files:
   consulted so far, organized by state. Per-state agents MUST
   append their sources here.
 
-## v0.6 candidate priorities (rough order)
+## v0.49+ candidate priorities (rough order)
 
-Per `specs/current-state.md` "Next-session priorities":
+The recent v0.43-v0.48 dedup-stabilization sprint closed all the
+known city/county/district lookup bugs. Diminishing returns on
+further probing without new data. Bigger-bite candidates:
 
-1. **Threshold rules** for NY's <$110 and MA's <$175 clothing
-   exemptions. Same shape as the holidays max-amount cap;
-   structurally similar to v0.5 work.
-2. **`rate_modifier` engine wiring** so IL's 1% reduced grocery
-   rate produces correct tax amounts (modifier is stored in v0.4
-   but ignored by the engine).
-3. **More tier-1 states**: CT, DC, MO, MS, SC, VA — mostly
-   mechanical following the CA pattern.
-4. **2027 holiday data** for TX, FL, MA, MD once 2027 dates are
+1. **`SubJurisdiction` Protocol abstraction** (decisions 04 + 05)
+   -- unblocks CO home-rule, LA parishes, AL ~700 home-rule cities,
+   HI per-county GET surcharges, NM per-county GRT add-ons, NJ
+   UEZ/Salem reduced rates. The single biggest architectural
+   commitment left in v1.
+2. **WY multi-row county tax encoding** (decision 07) -- audit
+   the WY SST jurisdiction-code semantics empirically and re-
+   encode so Cheyenne / Casper return the published WY DOR rates
+   instead of sometimes 1% off.
+3. **PostGIS address-level resolution** -- replaces the loose-
+   lookup dedup heuristics with actual point-in-polygon precision.
+4. **CDTFA loader** for California's ~1,700 district rates -- the
+   first significant non-SST data ingestion at scale (CA is
+   currently top-50-cities only via `ca_data.py`).
+5. **AK boroughs** -- new data source needed (SST doesn't cover
+   AK; AK DOR doesn't publish a single rates file). Currently
+   every AK ZIP returns 0%.
+6. **2027 holiday data** for TX, FL, MA, MD once 2027 dates are
    published.
-5. **CDTFA loader** for California's ~1,700 district rates --
-   first significant non-SST data ingestion.
-6. **PostGIS address-level resolution** -- v1.0 territory.
 7. **Client SDKs** (Python, JS/TS, PHP for SC Books integration).
+8. **More friendly placenames** for the ~6,000 remaining
+   `XX-city-NNNNN` placeholders. Pure cosmetic; rate is unaffected.
 
 ## Standing rules (mirror Eric's other projects)
 

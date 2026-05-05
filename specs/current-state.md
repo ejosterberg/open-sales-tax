@@ -1,42 +1,44 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-04
-**Status:** **v0.26.0 shipped.** SST loader + lookup engine now
-matches every published DOR rate within 0.05% across **201 sampled
-city/ZIP+4 combos** on the live engine. Big-three non-SST states
-(TX, NY, FL) finally have per-county + per-city coverage:
-- TX: 49 cities + 7 transit districts (Houston METRO, Dallas DART,
-  Austin Cap Metro, San Antonio VIA+ATD, Fort Worth Trinity, El Paso
-  Sun Metro, Corpus Christi RTA), all at 8.25% cap except Arlington
-  (8.0%, opted out of DART/FWTA)
-- NY: 30 cities including NYC (8.875% all 5 boroughs), MCTD encoded
-  as a separate district authority in 12 downstate counties
-- FL: all 67 counties + 30 cities (FL has no city sales tax; cities
-  are ZIP-binding anchors only)
-1460 unit tests pass, mypy clean, ruff clean.
+**Last updated:** 2026-05-05
+**Status:** **v0.48.0 shipped.** SST loader + lookup engine now
+matches every published DOR rate within 0.05% across **312 sampled
+city/ZIP+4 combos** on the live engine. The dedup logic stabilized
+across six consecutive refinements (v0.43-v0.48): TN code-63
+county-equivalent skip, cross-county IMPROVE Act dedup, strict-
+lookup type-z fallback dedup, "most rows beats has-typez"
+tiebreaker, lone-district county-overlay heuristic, and the 20-
+row threshold to filter stray district bindings.
+
+VT Local Option Sales Tax (Burlington + ~17 other LOST
+municipalities at 7%) now collected via SST 'A' (address-level)
+record support added in v0.40. 1497 unit tests pass, mypy clean,
+ruff clean, full live DOR grid green on every release.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
 the gating dependency for proper home-rule / parish / municipal
 modeling on AL (~700+ home-rule cities), CO, LA, plus per-county
-surcharges on HI/NM. Captured in
-`specs/decisions/04-colorado-home-rule.md` and
+surcharges on HI/NM, plus NJ UEZ / Salem County reduced rates.
+Captured in `specs/decisions/04-colorado-home-rule.md` and
 `specs/decisions/05-louisiana-parishes.md` for v1.0+ design.
 
-Live at [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax).
+Public live API: [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
+Source: [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax).
 
 ## Live deployment
 
 | Field | Value |
 |---|---|
 | **Hostname** | `opensalestax-01` (SSH alias on Eric's box) |
-| **IP** | `10.32.161.126` (DHCP from LAN) |
+| **IP** | `10.32.161.126` (DHCP from LAN; private) |
 | **Proxmox VMID** | 906 (on `pmvm1`) |
 | **Specs** | 4 vCPU / 8 GB RAM / 80 GB disk, Debian 13 |
 | **Provisioned** | 2026-05-03 |
 | **Stack** | Docker Compose (`postgres` profile) — API + PostgreSQL 15 |
-| **API base URL** | `http://10.32.161.126:8080` |
-| **Health check** | `curl http://10.32.161.126:8080/v1/health` |
-| **Loaded data** | 11 of 16 tier-1 states (9 self-seeded at v0.6 + MN/WI at SST 2026Q2FEB18); 5 no-tax states (AK/DE/MT/NH/OR) registered without DataVersion rows |
+| **Public API** | [api.opensalestax.org](https://api.opensalestax.org/v1/docs) (Cloudflare-fronted) |
+| **Demo site** | [demo.opensalestax.org](https://demo.opensalestax.org) |
+| **Health check** | `curl https://api.opensalestax.org/v1/health` |
+| **Loaded data** | All 52 jurisdictions; SST states refreshed periodically as new quarterly files become available |
 
 Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI find the `opensalestax` package without a wheel install. Use `python -m opensalestax ...` rather than the bare `opensalestax` script (entry-point not installed in the runtime image).
 
@@ -72,6 +74,28 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.24.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.24.0) | 2026-05-04 | TN Brentwood 14.75% → 9.75% (parser now filters expired boundary records via `_record_active_on`); backported to MN/WI/GA. New `opensalestax data restore` CLI + CI workflow that pre-builds a Postgres pg_dump per release tag — new-user install goes from 50 min to <2 min. 30 new friendly names (NE x11, OH x3 transit, WA x6, OK x10). 3 parallel sub-agents in worktrees shipped 1900+ lines. DOR grid 60 → 89 ZIPs. |
 | [v0.25.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.25.0) | 2026-05-04 | 5 newly-seeded non-SST states (CT/MO/MS/SC/VA) move from state-only to per-county + per-city. Arizona widens 20 → 48 cities (4 new counties online: Cochise/Santa Cruz/Gila/Navajo). GA district friendly names (Fulton TSPLOST, DeKalb MARTA, Fayette District). OK Newcastle (city 51150). 2 parallel sub-agents in worktrees shipped ~600 lines of state data. DOR grid 89 → 153 ZIPs. |
 | [v0.26.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.26.0) | 2026-05-04 | The big-three non-SST states (TX/NY/FL) shipped per-county + per-city coverage in one push via 3 parallel sub-agents. TX 49 cities + 7 transit districts. NY 30 cities including NYC consolidated (8.875%) + MCTD as separate authority. FL all 67 counties + 30 cities (FL has no city tax). DOR grid 153 → 201 ZIPs. |
+| [v0.27.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.27.0) | 2026-05-04 | CA / IL / PA self-seeded loaders shipped. Phase 6 / Batch D. |
+| [v0.28.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.28.0) | 2026-05-04 | Census ZCTA→county relationship file ingested as `zip_county.py` (33,791 ZIPs); CA loader emits per-ZIP+county boundaries via the new ZIP_COUNTY map. |
+| [v0.29.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.29.0) | 2026-05-04 | Loader auto-purges all prior DataVersions for the same (state, source) — fixes prod accumulating stacked versions and over-collecting after multiple loads. |
+| [v0.30.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.30.0) | 2026-05-04 | Decision 06: roadmap for additional tax types (admissions, entertainment, liquor, lodging, restaurant) deferred to post-v1. |
+| [v0.31.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.31.0) | 2026-05-04 | MO/MS/SC/VA per-county/per-city expansion (4 parallel agents). |
+| [v0.32.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.32.0) | 2026-05-04 | HI per-county GET surcharges (Honolulu / Hawaii / Kauai / Maui split). PR municipal SUT. |
+| [v0.33.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.33.0) | 2026-05-04 | AL + NM loaders shipped (303/303 DOR pass). |
+| [v0.34.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.34.0) | 2026-05-04 | NE Papillion 11% city-stacking bug fixed (`_pick_one_city_county_per_zip5` dedup picks one city/county per ZIP); AL long-tail counties filled (308/308). |
+| [v0.35.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.35.0) | 2026-05-04 | KS Olathe 13.475% bug fixed by dropping type-4-only districts (CIDs) from zip5-only queries. |
+| [v0.36.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.36.0) | 2026-05-04 | TN/WA city authorities already include county portion; drop county to avoid double-collection (Brentwood 12.5% → 10.25%). |
+| [v0.37.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.37.0) | 2026-05-05 | CI fix (style-vs-lint), README refresh, 8 confidence badges, demo-site verification. |
+| [v0.38.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.38.0) | 2026-05-05 | `/v1/rates` now uses loose lookup when no zip4 (matches `/v1/calculate`); CI no longer runs the live DOR grid (eliminates network-flakiness). Decision 07 documents WY multi-row county taxes. |
+| [v0.39.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.39.0) | 2026-05-05 | WY's lone type-1 SST jurisdiction (FIPS Place 13150) renders as "Casper" instead of placeholder; decision 08 documents the VT 'A' (address-level) boundary record gap. |
+| [v0.40.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.40.0) | 2026-05-05 | **VT Local Option Sales Tax now collected.** Burlington 05401 + ~17 other VT LOST municipalities go from state-only 6% to combined 7% via three SST parser fixes: 'A' record support, UTF-8 BOM stripping, blank-rate-column tolerance. |
+| [v0.41.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.41.0) | 2026-05-05 | Loose-lookup dedup prefers curated friendly names over `XX-city-NNNNN` placeholders (fixes Burlington 05401 displaying "VT-city-66175"). |
+| [v0.42.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.42.0) | 2026-05-05 | 10 new ZIP-probe-vetted Vermont placenames; fewer-total-ZIPs dedup tiebreaker fixes Winooski 05404 displaying "Colchester". 12/12 tested VT cities now display correct names. |
+| [v0.43.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.43.0) | 2026-05-05 | TN code-63 county-equivalent overlays now skipped (Johnson City 12.0% → 9.75%); ~30 type-63 rows in the TN SST file encoded levies that are already collapsed into the city's combined local rate. |
+| [v0.44.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.44.0) | 2026-05-05 | Cross-county IMPROVE Act dedup (Brentwood 11.75% → 10.25%) — TN ZIPs straddling counties no longer stack 4× IMPROVE Acts. |
+| [v0.45.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.45.0) | 2026-05-05 | Strict-lookup type-z fallback dedup (Johnson City 37601-1234: 17.75% → 9.75%) — synthetic and real +4 addresses without precise SST coverage now match the loose lookup. Decision 09 resolved within iter. |
+| [v0.46.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.46.0) | 2026-05-05 | "Most rows for THIS ZIP" beats "has-typez" tiebreaker (Roswell GA 30075: 6% → 7.0%); Papillion NE 68046 now displays "Papillion" instead of "La Vista". |
+| [v0.47.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.47.0) | 2026-05-05 | Lone type-4-only district treated as county-wide overlay (Roswell GA: 7.0% → 7.75% with Fulton TSPLOST). |
+| [v0.48.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.48.0) | 2026-05-05 | 20-row threshold filters stray district bindings (Suwanee GA 30024: 6.75% → 6.0%) — Fulton TSPLOST's 7 stray rows in this Gwinnett ZIP no longer apply. |
 
 ## Coverage (after v0.5)
 
@@ -116,6 +140,12 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | 01 | Language: Python 3.11+ + FastAPI | ✅ |
 | 02 | License: Apache 2.0 + DCO + SPDX (no CLA) | ✅ |
 | 03 | Database: dual MariaDB + PostgreSQL via SQLAlchemy 2.x | ✅ |
+| 04 | Colorado home-rule cities deferred to SubJurisdiction Protocol | ⏭️ Open |
+| 05 | Louisiana parishes deferred to SubJurisdiction Protocol | ⏭️ Open |
+| 06 | Additional tax types (admissions/lodging/etc.) deferred to v0.30+ roadmap | ⏭️ Open |
+| 07 | WY multi-row county taxes need empirical SST jurisdiction-code capture | ⏭️ Open |
+| 08 | VT 'A' (address-level) boundary record support | ✅ Resolved (v0.40) |
+| 09 | Strict-lookup type-z fallback dedup | ✅ Resolved (v0.45) |
 | -- | Patent posture: acknowledged in constitution §2 | ✅ |
 | -- | Branding: `opensalestax.org` + `.com` registered; repo `open-sales-tax` | ✅ |
 | -- | Phase 1 coverage tiers: tier 1/2/0 | ✅ |
