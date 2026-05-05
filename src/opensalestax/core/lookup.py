@@ -362,6 +362,31 @@ def _pick_one_city_county_per_zip5(
         and getattr(getattr(picked_city, "state", None), "abbrev", None) in {"TN", "WA"}
     ):
         out = [a for a in out if a is not picked_county]
+
+    # State-specific district dedup: in TN, the only district codes
+    # that load (code 79) are county-level IMPROVE Act / transit
+    # overlays. A ZIP that physically straddles multiple counties
+    # (e.g. Brentwood 37027 spanning Williamson + Davidson + bordering
+    # counties) collects type-z bindings to every county's IMPROVE Act,
+    # which would stack 4x at 0.5% each (= 2% extra) on top of the
+    # already-correct city local rate. Pick the dominant one (most
+    # rows for THIS ZIP, then most total ZIPs as a regional-fit signal).
+    state_abbrev = (
+        getattr(getattr(picked_city, "state", None), "abbrev", None) if picked_city else None
+    )
+    if state_abbrev == "TN":
+        district_authorities = [a for a in out if a.authority_type == "district"]
+        if len(district_authorities) > 1:
+            best = max(
+                district_authorities,
+                key=lambda a: (
+                    counts.get(a.id, 0),
+                    total_zip_counts.get(a.id, 0),
+                    -a.id,
+                ),
+            )
+            out = [a for a in out if a.authority_type != "district" or a is best]
+
     return _stable_sort(out)
 
 
