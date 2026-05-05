@@ -20,17 +20,20 @@ The SST file uses these codes verbatim in jurisdiction-type ``1``
 
 from __future__ import annotations
 
+# Only entries verified by direct ZIP probe (POST /v1/calculate
+# returning the expected city for a known-in-town ZIP) are listed
+# here. Earlier guesses sourced from public 2020 Census Place
+# lookups proved unreliable -- the SST file's "city code" column
+# does NOT always match the FIPS Place gazetteer code (e.g.
+# Brattleboro 05301 binds to SST code 84700, not the FIPS Place
+# code 07900). A future contributor with the SST jurisdiction
+# code list in hand can extend this table; until then, untrusted
+# mappings fall through to the ``VT-city-<code>`` placeholder so
+# we never display a misattributed name.
 VT_CITY_NAMES: dict[str, str] = {
-    "07900": "Brattleboro",
-    "10675": "Burlington",
-    "14875": "Colchester",
-    "17875": "Dover",
-    "41275": "Manchester",
-    "43375": "Middlebury",
-    "46000": "Montpelier",
-    "66175": "South Burlington",
-    "84475": "Wilmington",
-    "85075": "Williston",
+    "10675": "Burlington",  # ZIP 05401, 05403 -> 10675 (verified)
+    "14875": "Colchester",  # ZIP 05446 -> 14875 (verified)
+    "17875": "Dover",  # ZIP 05356 -> 17875 (verified)
 }
 
 
