@@ -391,3 +391,45 @@ class TestPickOneCityCountyPerZip5:
         picked = _pick_one_city_county_per_zip5(rows)
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["TN-district-91950"]
+
+
+    def test_tn_city_drops_county(self) -> None:
+        """TN's city codes already include the county rate; drop county."""
+        tn_state_attr = SimpleNamespace(abbrev="TN")
+        county = _stub_authority(1, "Williamson County", "county")
+        county.state = tn_state_attr
+        city = _stub_authority(2, "Brentwood", "city")
+        city.state = tn_state_attr
+        rows = [(county, "1234"), (city, "1234")]
+        picked = _pick_one_city_county_per_zip5(rows)
+        types = sorted(a.authority_type for a in picked)
+        assert types == ["city"]
+        assert picked[0].name == "Brentwood"
+
+    def test_wa_city_drops_county(self) -> None:
+        """WA's city codes are combined-local (include county+transit)."""
+        wa_state_attr = SimpleNamespace(abbrev="WA")
+        county = _stub_authority(1, "King County", "county")
+        county.state = wa_state_attr
+        city = _stub_authority(2, "Bellevue (combined local)", "city")
+        city.state = wa_state_attr
+        rows = [(county, "3504"), (city, "3504")]
+        picked = _pick_one_city_county_per_zip5(rows)
+        types = sorted(a.authority_type for a in picked)
+        assert types == ["city"]
+
+    def test_ok_city_keeps_county(self) -> None:
+        """OK genuinely separates city + county taxes -- both must apply.
+
+        Norman 73069: state 4.5 + Cleveland County 0.125 + Norman city
+        4.125 = 8.75%. Dropping the county would under-collect.
+        """
+        ok_state_attr = SimpleNamespace(abbrev="OK")
+        county = _stub_authority(1, "Cleveland County", "county")
+        county.state = ok_state_attr
+        city = _stub_authority(2, "Norman", "city")
+        city.state = ok_state_attr
+        rows = [(county, "6107"), (city, "6107")]
+        picked = _pick_one_city_county_per_zip5(rows)
+        types = sorted(a.authority_type for a in picked)
+        assert types == ["city", "county"]

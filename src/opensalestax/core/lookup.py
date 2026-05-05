@@ -247,6 +247,8 @@ def _pick_one_city_county_per_zip5(
         by_type.setdefault(auth.authority_type, []).append(aid)
 
     out: list[TaxAuthority] = []
+    picked_city: TaxAuthority | None = None
+    picked_county: TaxAuthority | None = None
     for auth_type, aids in by_type.items():
         if auth_type in ("city", "county"):
             # Dominant authority wins. Sort key: type-z first (True > False),
@@ -259,7 +261,12 @@ def _pick_one_city_county_per_zip5(
                     -aid,
                 ),
             )
-            out.append(seen_authorities[best_id])
+            chosen = seen_authorities[best_id]
+            if auth_type == "city":
+                picked_city = chosen
+            else:
+                picked_county = chosen
+            out.append(chosen)
         elif auth_type == "district":
             # Districts with a type-z (zip-wide) record genuinely apply
             # to every address in the ZIP -- include all (e.g. MN's 3
@@ -279,6 +286,22 @@ def _pick_one_city_county_per_zip5(
         else:
             # state: pass through.
             out.extend(seen_authorities[aid] for aid in aids)
+
+    # State-specific exclusivity: in TN and WA the SST 'city' code
+    # already includes the local county portion (TN: city = county
+    # rate uniformly; WA: city = combined city+county+transit). When
+    # both a city and a county come back for the same ZIP, dropping
+    # the county avoids double-collecting that local rate.
+    #
+    # OK / KS / etc. genuinely separate city + county (county 0.125-1%,
+    # city 1-4% on top), so we ONLY apply this filter for the few
+    # states with the city-includes-county pattern.
+    if (
+        picked_city is not None
+        and picked_county is not None
+        and getattr(getattr(picked_city, "state", None), "abbrev", None) in {"TN", "WA"}
+    ):
+        out = [a for a in out if a is not picked_county]
     return _stable_sort(out)
 
 
