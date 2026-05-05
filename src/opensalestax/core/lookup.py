@@ -313,9 +313,14 @@ def _pick_one_city_county_per_zip5(
     row_count). For city/county types, pick the dominant authority
     using these tiebreakers in order:
 
-    1. Has a type-z record (zip-wide claim wins over per-+4 only).
-    2. Highest boundary-row count for THIS ZIP (most precise/extensive
-       coverage).
+    1. Highest boundary-row count for THIS ZIP (most coverage wins).
+       Catches GA Roswell 30075 -- Cobb has 1 typez + 18 type4 (=19),
+       Fulton has 0 typez + 107 type4. Per USPS Roswell is in Fulton;
+       picking by row count gives the correct county (whereas the
+       previous "has-typez first" pick gave Cobb because of one stray
+       zip-wide binding).
+    2. Has a type-z record (zip-wide claim is a secondary signal).
+       Used as a tiebreaker when row counts are equal.
     3. Has a curated friendly name (placeholder ``XX-city-NNNNN``
        loses to a vetted name). Catches VT 05401 where the SST
        address-level data binds the ZIP to both city ``10675``
@@ -359,8 +364,8 @@ def _pick_one_city_county_per_zip5(
     for auth_type, aids in by_type.items():
         if auth_type in ("city", "county"):
             # Dominant authority wins. Sort key chain:
-            #   1. type-z first (True > False)
-            #   2. most rows for THIS ZIP
+            #   1. most rows for THIS ZIP (typez+type4 combined)
+            #   2. type-z first (True > False) -- secondary signal
             #   3. non-placeholder name (True > False -- vetted name wins)
             #   4. fewer total ZIPs (more-specific authority wins;
             #      negate so max() picks the smallest)
@@ -368,8 +373,8 @@ def _pick_one_city_county_per_zip5(
             best_id = max(
                 aids,
                 key=lambda aid: (
-                    has_typez.get(aid, False),
                     counts.get(aid, 0),
+                    has_typez.get(aid, False),
                     not _is_placeholder_name(seen_authorities[aid]),
                     -total_zip_counts.get(aid, 0),
                     -aid,

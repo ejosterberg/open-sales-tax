@@ -268,12 +268,27 @@ class TestPickOneCityCountyPerZip5:
     11.0% combined when the actual rate at any address is ~7.5%.
     """
 
-    def test_typez_record_wins_over_type4_only(self) -> None:
-        """Authority with a type-z (zip-wide) record beats one with only type-4."""
+    def test_most_rows_beats_typez_with_few_rows(self) -> None:
+        """Row count for THIS ZIP wins over a stray type-z claim with few rows.
+
+        Originally (v0.34) this test asserted that a type-z record won
+        over type-4-only. That semantic was wrong for the GA Roswell
+        30075 case: Cobb County had 1 typez + 18 type4 (= 19 rows),
+        Fulton County had 0 typez + 107 type4. ZIP 30075 is physically
+        in Fulton (per USPS); the Cobb typez was a stray binding. The
+        v0.46 reorder makes "most rows for this ZIP" the primary
+        tiebreaker, with typez as a secondary signal.
+
+        For the original NE Papillion 68046 case (the v0.34 motivation),
+        the rate is unaffected: La Vista, Papillion, and Omaha all
+        impose 2.0% city tax, so picking by row count gives the same
+        7.5% combined -- but Papillion (the dominant city) is now the
+        displayed name instead of La Vista.
+        """
         la_vista = _stub_authority(1, "La Vista", "city")
         papillion = _stub_authority(2, "Papillion", "city")
         rows = [
-            (la_vista, None),  # type-z
+            (la_vista, None),  # type-z (1 record)
             (la_vista, "4252"),
             (papillion, "0600"),
             (papillion, "0619"),
@@ -281,7 +296,31 @@ class TestPickOneCityCountyPerZip5:
         ]
         picked = _pick_one_city_county_per_zip5(rows)
         names = [a.name for a in picked if a.authority_type == "city"]
-        assert names == ["La Vista"]
+        # Papillion: 3 rows; La Vista: 2 rows. Most rows wins.
+        assert names == ["Papillion"]
+
+    def test_ga_roswell_county_tiebreaker(self) -> None:
+        """Regression for GA Roswell 30075: Fulton (107 rows) beats Cobb (19 rows).
+
+        Empirically observed during iter-28 spot-check. ZIP 30075 is
+        physically in Fulton County, GA (Roswell city limits) per USPS
+        attribution. The SST boundary file has:
+          - Cobb County:   1 typez + 18 type4 = 19 rows
+          - Fulton County: 0 typez + 107 type4 = 107 rows
+        Pre-v0.46 the typez-first tiebreaker picked Cobb (state 4 +
+        Cobb 2 = 6%) instead of Fulton (state 4 + Fulton 3.75 = 7.75%).
+        """
+        cobb = _stub_authority(1, "Cobb County", "county")
+        fulton = _stub_authority(2, "Fulton County", "county")
+        rows: list[tuple[object, str | None]] = []
+        rows.append((cobb, None))  # 1 typez
+        for i in range(18):
+            rows.append((cobb, str(i).zfill(4)))  # 18 type4
+        for i in range(107):
+            rows.append((fulton, str(1000 + i).zfill(4)))  # 107 type4, no typez
+        picked = _pick_one_city_county_per_zip5(rows)
+        names = [a.name for a in picked if a.authority_type == "county"]
+        assert names == ["Fulton County"]
 
     def test_most_rows_wins_when_no_typez(self) -> None:
         """Tie-break: city with most boundary rows wins."""
