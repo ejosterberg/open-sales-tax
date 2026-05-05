@@ -192,12 +192,24 @@ def test_tennessee_prepared_food_excluded_from_reduced_grocery_rate() -> None:
 # Jurisdiction-type code mapping
 # ---------------------------------------------------------------------------
 def test_tennessee_jurisdiction_type_mapping_matches_canonical_sst() -> None:
-    """TN uses the same SST type codes as MN and WI (assumption documented)."""
+    """TN uses the same SST type codes as MN and WI for state/county/city.
+
+    TN deliberately diverges on code 63: empirically every active
+    code-63 row in the TN SST rate file carries a rate at the
+    Tenn. Code Ann. section 67-6-702 local-tax cap (2.25%-2.75%),
+    indicating they encode county-equivalent overlays already
+    collapsed into the city's combined local rate. Loading them
+    would double-count and report combined rates above the legal
+    9.75% max (e.g. Johnson City 37601 -> 12.0% before this fix).
+    The mapping therefore deliberately drops code 63 to None.
+    Legitimate transit / IMPROVE Act overlays ship under code 79
+    and continue to load via the inherited default mapping.
+    """
     types = TENNESSEE.jurisdiction_types
     assert types["45"] == "state"
     assert types["00"] == "county"
     assert types["01"] == "city"
-    assert types["63"] == "district"
+    assert types["63"] is None  # see _JURISDICTION_TYPE comment in tennessee.py
 
 
 # ---------------------------------------------------------------------------

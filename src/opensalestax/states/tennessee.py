@@ -270,11 +270,28 @@ from opensalestax.states.registry import register
 # data formats across full and associate member states. A state
 # maintainer should validate against an actual TNR<...>.csv file
 # at next refresh.
-_JURISDICTION_TYPE: dict[str, str] = {
+_JURISDICTION_TYPE: dict[str, str | None] = {
     "45": "state",
     "00": "county",
     "01": "city",
-    "63": "district",
+    # Empirically every active TN code-63 row in the SST quarterly
+    # rate file (verified 2026-05-05 against TNR2025Q1MAR07) carries
+    # a rate of 2.25% - 2.75% -- i.e. at the ``Tenn. Code Ann.
+    # section 67-6-702`` local-tax cap. These are county-equivalent
+    # overlays whose levy is ALREADY collapsed into the city's
+    # ``code 01`` combined local rate (per TN's "single local tax"
+    # rule -- only the higher of city/county applies, never both).
+    # Loading code-63 rows alongside the city would stack a phantom
+    # 2.25-2.75% on top of the legal 2.75% cap and report combined
+    # rates above the legal max (e.g. Johnson City 37601: state 7 +
+    # city 2.75 + code-63 district 2.25 = 12.0% vs. the published
+    # TN DOR 9.5%).
+    #
+    # The legitimate TN transit / IMPROVE Act overlays (Davidson,
+    # Williamson, Hamilton, etc.) ship under code 79, which the
+    # default mapping correctly classifies as "district" and which
+    # DO legitimately stack on top of the local cap.
+    "63": None,
 }
 
 # Static taxability matrix per Tenn. Code Ann. Title 67, Chapter 6.
@@ -439,7 +456,7 @@ class Tennessee(SstStateModule):
     tier: StateTier = 1
 
     # Override the base-class defaults with TN-specific data.
-    jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
+    jurisdiction_types: dict[str, str | None] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
     def _authority_name(self, code: str, authority_type: str) -> str:

@@ -21,7 +21,7 @@ and (optionally) override ``taxability_for``.
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 from opensalestax.data.county_names import county_name as _county_name
@@ -109,7 +109,14 @@ class SstStateModule:
     state_fips: str = ""
 
     # State-specific overrides may extend or replace these.
-    jurisdiction_types: dict[str, str] = _DEFAULT_JURISDICTION_TYPE
+    # Per-state jurisdiction-type code -> engine authority-type mapping.
+    # A value of None signals "skip rate rows of this type entirely" --
+    # used by states (e.g. TN) where the SST file uses a code that
+    # encodes a county-equivalent overlay already collapsed into the
+    # city's combined local rate; loading them would double-count.
+    # ``Mapping`` (covariant) lets subclasses pass ``dict[str, str]``
+    # without mypy complaining about the optional value type.
+    jurisdiction_types: Mapping[str, str | None] = _DEFAULT_JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _DEFAULT_TAXABILITY
 
     # Effective-date cutoff for boundary-file filtering. Defaults to
