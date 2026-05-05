@@ -14,7 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from opensalestax.api.v1.schemas import JurisdictionRate, RatesResponse
 from opensalestax.auth import authenticate
 from opensalestax.core.disclaimer import disclaimer
-from opensalestax.core.lookup import lookup_jurisdictions_by_zip
+from opensalestax.core.lookup import (
+    lookup_jurisdictions_by_zip,
+    lookup_jurisdictions_by_zip5_loose,
+)
 from opensalestax.core.resolve import combined_rate_pct, resolve_rates_for_authorities
 from opensalestax.db.session import get_session
 
@@ -50,7 +53,16 @@ async def get_rates(
     loaded state module's data.
     """
     try:
-        authorities = await lookup_jurisdictions_by_zip(session, zip5, zip4)
+        # Mirror /v1/calculate's lookup precedence so /rates and /calculate
+        # never disagree about which authorities apply: strict ZIP+4 lookup
+        # when the caller supplies a +4, loose ZIP-5-only lookup otherwise.
+        # Without this, ZIPs whose city authority lives only in type-4
+        # records (e.g. SLC 84101 -> Salt Lake City) underreport on /rates
+        # while /calculate gets it right -- a confusing inconsistency.
+        if zip4 is not None:
+            authorities = await lookup_jurisdictions_by_zip(session, zip5, zip4)
+        else:
+            authorities = await lookup_jurisdictions_by_zip5_loose(session, zip5)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

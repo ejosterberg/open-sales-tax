@@ -340,6 +340,43 @@ async def test_rates_unknown_zip_returns_zero_combined(client: AsyncClient) -> N
     assert Decimal(body["combined_rate_pct"]) == Decimal("0")
 
 
+@pytest.mark.asyncio
+async def test_rates_zip5_only_finds_type4_only_city(
+    client: AsyncClient, db_engine: AsyncEngine
+) -> None:
+    """``/v1/rates`` (no zip4) must agree with ``/v1/calculate`` on city authorities.
+
+    Regression for the SLC 84101 inconsistency: a city authority bound
+    only via type-4 (per-+4) boundary records must surface in the
+    zip5-only ``/rates`` response, not just ``/calculate``. Otherwise the
+    two endpoints disagree on the combined rate, which is confusing.
+    """
+    sessionmaker = async_sessionmaker(db_engine, expire_on_commit=False)
+    async with sessionmaker() as session:
+        await _seed_state_with_type4_only_city(session)
+
+    rates_resp = await client.get("/v1/rates", params={"zip5": "84101"})
+    calc_resp = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "84101"},
+            "line_items": [{"amount": "100.00", "category": "general"}],
+        },
+    )
+    assert rates_resp.status_code == 200
+    assert calc_resp.status_code == 200
+
+    rates_combined = Decimal(rates_resp.json()["combined_rate_pct"])
+    calc_combined = Decimal(calc_resp.json()["lines"][0]["rate_pct"])
+    assert (
+        rates_combined == calc_combined
+    ), f"/rates ({rates_combined}) and /calculate ({calc_combined}) disagree"
+
+    # And the city itself must appear in /rates.
+    rates_names = {j["name"] for j in rates_resp.json()["jurisdictions"]}
+    assert "Test City" in rates_names
+
+
 # ---------------------------------------------------------------------------
 # POST /v1/calculate
 # ---------------------------------------------------------------------------
@@ -479,3 +516,63 @@ async def _seed_minnesota_minneapolis(session: AsyncSession) -> None:
     await session.commit()
     # Avoid lint about unused 'today' (kept for documentation)
     del today
+
+
+async def _seed_state_with_type4_only_city(session: AsyncSession) -> None:
+    """Seed a state where the city authority is bound only via type-4 records.
+
+    Mirrors the SLC 84101 shape: state and county have zip-wide (type-z)
+    boundaries; the city authority is reachable only when iterating
+    type-4 (per-+4) records. The strict ``lookup_jurisdictions_by_zip``
+    skips it without a +4; the loose lookup picks it up.
+    """
+    ut = State(abbrev="ZZ", name="Test-State", has_sales_tax=True, sst_member=False)
+    session.add(ut)
+    await session.flush()
+
+    version = DataVersion(state_id=ut.id, source="test", version_label="ZZ-type4-test")
+    session.add(version)
+    await session.flush()
+
+    state_auth = TaxAuthority(state_id=ut.id, name="Test-State", authority_type="state")
+    county_auth = TaxAuthority(state_id=ut.id, name="Test County", authority_type="county")
+    city_auth = TaxAuthority(state_id=ut.id, name="Test City", authority_type="city")
+    session.add_all([state_auth, county_auth, city_auth])
+    await session.flush()
+
+    session.add_all(
+        [
+            Rate(
+                authority_id=state_auth.id,
+                rate_pct=Decimal("4.850"),
+                effective_from=dt.date(2009, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=county_auth.id,
+                rate_pct=Decimal("2.600"),
+                effective_from=dt.date(2009, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=city_auth.id,
+                rate_pct=Decimal("1.000"),
+                effective_from=dt.date(2009, 1, 1),
+                data_version_id=version.id,
+            ),
+            # State + county have type-z (zip-wide) bindings.
+            Boundary(authority_id=state_auth.id, zip5="84101", data_version_id=version.id),
+            Boundary(authority_id=county_auth.id, zip5="84101", data_version_id=version.id),
+            # City has ONLY type-4 (per-+4) bindings -- no zip-wide row.
+            # The strict lookup misses this without a +4 query parameter;
+            # the loose lookup finds it.
+            Boundary(
+                authority_id=city_auth.id,
+                zip5="84101",
+                zip4_low="0000",
+                zip4_high="9999",
+                data_version_id=version.id,
+            ),
+        ]
+    )
+    await session.commit()
