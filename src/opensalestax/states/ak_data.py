@@ -87,6 +87,11 @@ AK_STATE_RATE_PCT: Decimal = Decimal("0.000")
 
 # (borough name, general retail rate, frozenset of ZIPs)
 AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
+    "Adak": (
+        "Aleutians West Census Area",
+        Decimal("4.000"),
+        frozenset({"99546"}),
+    ),
     "Bethel": (
         "Bethel Census Area",
         Decimal("6.000"),
@@ -96,6 +101,21 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Chugach Census Area",
         Decimal("7.000"),
         frozenset({"99574"}),
+    ),
+    "Craig": (
+        "Prince of Wales-Hyder Census Area",
+        Decimal("7.000"),  # ARSSTC peak; winter rate 6%
+        frozenset({"99921"}),
+    ),
+    "Dillingham": (
+        "Dillingham Census Area",
+        Decimal("6.000"),
+        frozenset({"99576"}),
+    ),
+    "Galena": (
+        "Yukon-Koyukuk Census Area",
+        Decimal("3.000"),
+        frozenset({"99741"}),
     ),
     "Haines": (
         "Haines Borough",
@@ -107,10 +127,20 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("4.850"),
         frozenset({"99603"}),
     ),
+    "Houston": (
+        "Matanuska-Susitna Borough",
+        Decimal("2.000"),
+        frozenset({"99694"}),
+    ),
     "Juneau": (
         "Juneau City and Borough",
         Decimal("5.000"),
         frozenset({"99801", "99802", "99803", "99811", "99812", "99821"}),
+    ),
+    "Kake": (
+        "Hoonah-Angoon Census Area",
+        Decimal("5.000"),
+        frozenset({"99830"}),
     ),
     "Kenai": (
         "Kenai Peninsula Borough",
@@ -132,6 +162,11 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("6.000"),
         frozenset({"99752"}),
     ),
+    "Nenana": (
+        "Yukon-Koyukuk Census Area",
+        Decimal("4.000"),
+        frozenset({"99760"}),
+    ),
     "Nome": (
         "Nome Census Area",
         Decimal("6.000"),
@@ -142,6 +177,16 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("5.500"),
         frozenset({"99705"}),
     ),
+    "Old Harbor": (
+        "Kodiak Island Borough",
+        Decimal("3.000"),
+        frozenset({"99643"}),
+    ),
+    "Ouzinkie": (
+        "Kodiak Island Borough",
+        Decimal("6.000"),
+        frozenset({"99644"}),
+    ),
     "Palmer": (
         "Matanuska-Susitna Borough",
         Decimal("3.000"),
@@ -151,6 +196,11 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Petersburg Borough",
         Decimal("6.000"),
         frozenset({"99833"}),
+    ),
+    "Saint Paul": (
+        "Aleutians East Borough",
+        Decimal("3.500"),
+        frozenset({"99660"}),
     ),
     "Seward": (
         "Kenai Peninsula Borough",
@@ -171,6 +221,16 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Kenai Peninsula Borough",
         Decimal("3.000"),
         frozenset({"99669"}),
+    ),
+    "Unalakleet": (
+        "Nome Census Area",
+        Decimal("5.000"),
+        frozenset({"99684"}),
+    ),
+    "Unalaska": (
+        "Aleutians West Census Area",
+        Decimal("3.000"),
+        frozenset({"99685"}),
     ),
     "Wasilla": (
         "Matanuska-Susitna Borough",
