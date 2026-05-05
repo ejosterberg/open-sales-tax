@@ -163,7 +163,11 @@ jobs:
           fi
 
       - name: Run tests
-        run: poetry run pytest -v --cov=opensalestax --cov-report=term-missing
+        # Exclude `liveapi` -- those tests hit the public api.opensalestax.org
+        # over the internet from a GitHub-hosted runner. Cloudflare cold starts
+        # and transient network jitter make them inherently flaky here. Run
+        # them locally or against the prod VM with `pytest -m liveapi`.
+        run: poetry run pytest -v -m "not liveapi" --cov=opensalestax --cov-report=term-missing
 
       - name: Upload coverage (PostgreSQL run only)
         if: matrix.db == 'postgres'

@@ -2710,14 +2710,25 @@ def test_combined_rate_matches_dor(
     Tolerance is 0.05% by default to absorb ZIP+4 micro-variation
     (e.g. some +4 ranges fall in additional special districts).
     """
-    response = httpx.post(
-        API,
-        json={
-            "address": {"zip5": zip5, "zip4": zip4},
-            "line_items": [{"amount": "100.00"}],
-        },
-        timeout=10.0,
-    )
+    # Retry once on transient network errors so an occasional Cloudflare cold
+    # start or DNS hiccup doesn't false-flag the whole grid.
+    last_exc: Exception | None = None
+    response = None
+    for _ in range(2):
+        try:
+            response = httpx.post(
+                API,
+                json={
+                    "address": {"zip5": zip5, "zip4": zip4},
+                    "line_items": [{"amount": "100.00"}],
+                },
+                timeout=15.0,
+            )
+            break
+        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as exc:
+            last_exc = exc
+    if response is None:
+        raise AssertionError(f"{state} {city} {zip5}-{zip4}: live engine unreachable: {last_exc}")
     assert response.status_code == 200, f"engine HTTP {response.status_code}: {response.text}"
     data = response.json()
     got = Decimal(str(data["lines"][0]["rate_pct"]))
