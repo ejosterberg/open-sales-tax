@@ -2811,14 +2811,21 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "WY DOR / SalesTaxHandbook (state 4% + Laramie County 1%)",
     ),
+    # NOTE: Casper 82601 with synthetic +4 0001 returns 5.00% because
+    # WY's SST file ships wide-range type-4 records (Wyoming and
+    # Natrona County both cover 0000-0999) that match 0001 as a
+    # "precise type-4" -- the engine then treats Casper city
+    # (type-4 ranges 4762-9000ish) as not matching for that
+    # synthetic +4. Use a real Casper +4 (4800) below to exercise
+    # the full state + county + city stack.
     (
         "WY",
         "Casper",
         "82601",
-        "0001",
+        "4800",
         "6.000",
         "0.05",
-        "WY DOR / SalesTaxHandbook (state 4% + Natrona County 1% + Casper city 1%)",
+        "WY DOR / SalesTaxHandbook (state 4% + Natrona 1% + Casper city 1%) -- real +4",
     ),
     (
         "WY",
