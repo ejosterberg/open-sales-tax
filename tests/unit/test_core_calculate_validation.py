@@ -22,6 +22,7 @@ from opensalestax.core.calculate import (
 )
 from opensalestax.core.lookup import (
     _pick_closest_per_type,
+    _pick_one_city_county_per_zip5,
     lookup_jurisdictions_by_zip,
 )
 
@@ -253,3 +254,72 @@ class TestPickClosestPerType:
         ]
         picked = _pick_closest_per_type(rows, "6107")
         assert picked == []
+
+
+# ---------------------------------------------------------------------------
+# _pick_one_city_county_per_zip5 — no-+4 dominance dedup
+# ---------------------------------------------------------------------------
+class TestPickOneCityCountyPerZip5:
+    """For zip5-only queries, dedup multi-city ZIPs to ONE city per type.
+
+    Real-world hit: NE 68046 had La Vista (type-z + 1 type-4) AND
+    Papillion (2013 type-4) AND Omaha (1 type-4) all bound to the same
+    ZIP. Returning all three stacked their city taxes and reported
+    11.0% combined when the actual rate at any address is ~7.5%.
+    """
+
+    def test_typez_record_wins_over_type4_only(self) -> None:
+        """Authority with a type-z (zip-wide) record beats one with only type-4."""
+        la_vista = _stub_authority(1, "La Vista", "city")
+        papillion = _stub_authority(2, "Papillion", "city")
+        rows = [
+            (la_vista, None),  # type-z
+            (la_vista, "4252"),
+            (papillion, "0600"),
+            (papillion, "0619"),
+            (papillion, "0709"),  # 3 type-4, no type-z
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        names = [a.name for a in picked if a.authority_type == "city"]
+        assert names == ["La Vista"]
+
+    def test_most_rows_wins_when_no_typez(self) -> None:
+        """Tie-break: city with most boundary rows wins."""
+        minneapolis = _stub_authority(1, "Minneapolis", "city")
+        st_louis_park = _stub_authority(2, "St. Louis Park", "city")
+        rows = [
+            (minneapolis, "1000"),
+            (minneapolis, "1001"),
+            (minneapolis, "1002"),
+            (st_louis_park, "9000"),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        names = [a.name for a in picked if a.authority_type == "city"]
+        assert names == ["Minneapolis"]
+
+    def test_single_city_no_typez_passes_through(self) -> None:
+        """Minneapolis 55417 case: city only in type-4 records, but the
+        only city -- should still be returned."""
+        minneapolis = _stub_authority(1, "Minneapolis", "city")
+        state = _stub_authority(2, "Minnesota", "state")
+        rows = [
+            (state, None),
+            (minneapolis, "1024"),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        types = sorted(a.authority_type for a in picked)
+        assert types == ["city", "state"]
+
+    def test_districts_pass_through(self) -> None:
+        """Districts (transit, etc.) always apply zip-wide -- include all."""
+        state = _stub_authority(1, "Minnesota", "state")
+        d1 = _stub_authority(2, "Hennepin Transit", "district")
+        d2 = _stub_authority(3, "Metro Transportation", "district")
+        rows = [
+            (state, None),
+            (d1, None),
+            (d2, None),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        district_names = sorted(a.name for a in picked if a.authority_type == "district")
+        assert district_names == ["Hennepin Transit", "Metro Transportation"]

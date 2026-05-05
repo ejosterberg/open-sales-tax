@@ -30,6 +30,8 @@ NE_CITY_NAMES: dict[str, str] = {
     "34615": "Norfolk",
     "35000": "North Platte",
     "37000": "Omaha",
+    "38295": "Papillion",
+    "40605": "Ralston",
 }
 
 
