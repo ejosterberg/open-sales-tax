@@ -386,6 +386,22 @@ class Wyoming(SstStateModule):
     # grocery-only matrix.
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Substitute the friendly placename for SST jurisdiction-01 rows.
+
+        The Wyoming SST file's only active type-01 row is FIPS Place
+        13150 (Casper). See :mod:`opensalestax.states.wy_names` for
+        the rationale on why this should be displayed even though
+        Wyo. Stat. 39-15-204 does not authorize city-level sales tax.
+        """
+        from opensalestax.states.wy_names import city_name as _wy_city
+
+        if authority_type == "city":
+            friendly = _wy_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
 
 # Compile-time Protocol satisfaction check + module-import-time
 # registration. Importing ``opensalestax.states.wyoming`` registers
