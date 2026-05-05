@@ -62,7 +62,7 @@ HI_STATE_EFFECTIVE_FROM = dt.date(1965, 1, 1)
 # (verified 2026-05-04). Combined county GET = 4.0% state +
 # this county portion.
 HI_COUNTY_RATE_PCT: dict[str, Decimal] = {
-    "Hawaii County": Decimal("0.500"),    # Big Island; effective 2020-01-01 -> 4.5%
+    "Hawaii County": Decimal("0.500"),  # Big Island; effective 2020-01-01 -> 4.5%
     "Honolulu County": Decimal("0.500"),  # Oahu; effective 2007-01-01 -> 4.5%
     # Kalawao County (FIPS 005) is the former Hansen's-disease
     # settlement on Molokai administered by the State Department of
@@ -70,12 +70,12 @@ HI_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # surcharge. Encoded at 0% so the ZCTA-driven boundary loader can
     # resolve its single ZIP (96742) to a queryable state-only rate.
     "Kalawao County": Decimal("0.000"),
-    "Kauai County": Decimal("0.500"),     # effective 2019-01-01 -> 4.5%
+    "Kauai County": Decimal("0.500"),  # effective 2019-01-01 -> 4.5%
     # Maui County: 0% as of 2025-01-01 per HI DOTAX Tax Facts 31-1.
     # Maui Bill No. 30 (2023) authorized but did not enact a 0.5%
     # surcharge. Promote to 0.500 + add the effective date here if
     # Maui later enacts the surcharge.
-    "Maui County": Decimal("0.000"),      # no county surcharge -> 4.0%
+    "Maui County": Decimal("0.000"),  # no county surcharge -> 4.0%
 }
 
 # Per-county surcharge effective dates (HRS section 46-16.8). The
@@ -84,11 +84,11 @@ HI_COUNTY_RATE_PCT: dict[str, Decimal] = {
 # not enacted a surcharge as of this module's ship date
 # (2026-05-04). Audit trail for the per-county history.
 HI_COUNTY_SURCHARGE_EFFECTIVE: dict[str, dt.date | None] = {
-    "Hawaii County": dt.date(2020, 1, 1),     # 0.5% -- 2020-01-01
-    "Honolulu County": dt.date(2007, 1, 1),   # 0.5% -- 2007-01-01 (longest-running)
-    "Kalawao County": None,                   # no county tax authority
-    "Kauai County": dt.date(2019, 1, 1),      # 0.5% -- 2019-01-01
-    "Maui County": None,                      # not yet enacted as of 2025-01-01
+    "Hawaii County": dt.date(2020, 1, 1),  # 0.5% -- 2020-01-01
+    "Honolulu County": dt.date(2007, 1, 1),  # 0.5% -- 2007-01-01 (longest-running)
+    "Kalawao County": None,  # no county tax authority
+    "Kauai County": dt.date(2019, 1, 1),  # 0.5% -- 2019-01-01
+    "Maui County": None,  # not yet enacted as of 2025-01-01
 }
 
 

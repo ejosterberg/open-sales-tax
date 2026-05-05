@@ -324,7 +324,6 @@ class TestPickOneCityCountyPerZip5:
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["Hennepin Transit", "Metro Transportation"]
 
-
     def test_typez_districts_all_apply(self) -> None:
         """MN-style metro transit: all districts with type-z records stack.
 
@@ -391,7 +390,6 @@ class TestPickOneCityCountyPerZip5:
         picked = _pick_one_city_county_per_zip5(rows)
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["TN-district-91950"]
-
 
     def test_tn_city_drops_county(self) -> None:
         """TN's city codes already include the county rate; drop county."""

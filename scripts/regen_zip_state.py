@@ -90,27 +90,29 @@ def main() -> None:
     for zip5 in sorted(by_zip):
         states = sorted(by_zip[zip5])
         out.append(f'    "{zip5}": frozenset({{{", ".join(repr(s) for s in states)}}}),')
-    out.extend([
-        "}",
-        "",
-        "",
-        "def zip_in_state(zip5: str, state_abbrev: str) -> bool | None:",
-        '    """Return True if ``zip5`` is physically in ``state_abbrev`` per Census,',
-        "    False if it isn't, or None if the ZIP isn't in the table.",
-        "",
-        "    A None return means the ZIP isn't a Census ZCTA (often a PO-box-",
-        "    only or business-only ZIP); callers should treat None as 'unknown",
-        "    -- don't filter'.",
-        '    """',
-        "    states = ZIP_STATES.get(zip5)",
-        "    if states is None:",
-        "        return None",
-        "    return state_abbrev.upper() in states",
-        "",
-        "",
-        '__all__ = ["ZIP_STATES", "zip_in_state"]',
-        "",
-    ])
+    out.extend(
+        [
+            "}",
+            "",
+            "",
+            "def zip_in_state(zip5: str, state_abbrev: str) -> bool | None:",
+            '    """Return True if ``zip5`` is physically in ``state_abbrev`` per Census,',
+            "    False if it isn't, or None if the ZIP isn't in the table.",
+            "",
+            "    A None return means the ZIP isn't a Census ZCTA (often a PO-box-",
+            "    only or business-only ZIP); callers should treat None as 'unknown",
+            "    -- don't filter'.",
+            '    """',
+            "    states = ZIP_STATES.get(zip5)",
+            "    if states is None:",
+            "        return None",
+            "    return state_abbrev.upper() in states",
+            "",
+            "",
+            '__all__ = ["ZIP_STATES", "zip_in_state"]',
+            "",
+        ]
+    )
 
     TARGET.write_text("\n".join(out), encoding="utf-8")
     print(f"wrote {len(by_zip)} ZIP entries to {TARGET}")

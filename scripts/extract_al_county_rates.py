@@ -187,8 +187,16 @@ def parse(file_path: Path) -> dict[str, Decimal]:
         next(reader)
         for row in reader:
             (
-                _code, name, _county_no, tax_type, rate_type,
-                _admin, _active, inactive, rate_str, *_rest,
+                _code,
+                name,
+                _county_no,
+                tax_type,
+                rate_type,
+                _admin,
+                _active,
+                inactive,
+                rate_str,
+                *_rest,
             ) = row
             if tax_type != "ST" or rate_type != "GENER":
                 continue

@@ -133,10 +133,10 @@ IL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # --- Downstate counties touched by covered cities ---
     "Winnebago County": Decimal("1.500"),  # School Facility 1% + Public Safety 0.5%
     "Sangamon County": Decimal("1.000"),  # Sangamon County School Facility / Public Safety
-    "Peoria County": Decimal("1.000"),    # Peoria County School Facility 1%
-    "Champaign County": Decimal("1.250"), # Champaign County 1.25% (county school + public safety)
+    "Peoria County": Decimal("1.000"),  # Peoria County School Facility 1%
+    "Champaign County": Decimal("1.250"),  # Champaign County 1.25% (county school + public safety)
     "McLean County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
-    "Macon County": Decimal("1.500"),     # Macon County School Facility + public safety
+    "Macon County": Decimal("1.500"),  # Macon County School Facility + public safety
     # --- Remaining 90 IL counties: filled from IDOR machine-readable file ---
     # Source: Illinois Department of Revenue "Sales Tax Rates Machine
     # Readable File" (ordmache-current.txt), effective 2026-01-01,
@@ -238,7 +238,9 @@ IL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Vermilion County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Wabash County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Warren County": Decimal("1.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
-    "Washington County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
+    "Washington County": Decimal(
+        "0.000"
+    ),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
     "Wayne County": Decimal("0.750"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "White County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Whiteside County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
@@ -288,14 +290,62 @@ IL_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         # ZIP5s; this seed covers the population centroids most
         # often queried.
         (
-            "60601", "60602", "60603", "60604", "60605", "60606", "60607",
-            "60608", "60609", "60610", "60611", "60612", "60613", "60614",
-            "60615", "60616", "60617", "60618", "60619", "60620", "60621",
-            "60622", "60623", "60624", "60625", "60626", "60628", "60629",
-            "60630", "60631", "60632", "60633", "60634", "60636", "60637",
-            "60638", "60639", "60640", "60641", "60642", "60643", "60644",
-            "60645", "60646", "60647", "60649", "60651", "60652", "60653",
-            "60654", "60655", "60656", "60657", "60659", "60660", "60661",
+            "60601",
+            "60602",
+            "60603",
+            "60604",
+            "60605",
+            "60606",
+            "60607",
+            "60608",
+            "60609",
+            "60610",
+            "60611",
+            "60612",
+            "60613",
+            "60614",
+            "60615",
+            "60616",
+            "60617",
+            "60618",
+            "60619",
+            "60620",
+            "60621",
+            "60622",
+            "60623",
+            "60624",
+            "60625",
+            "60626",
+            "60628",
+            "60629",
+            "60630",
+            "60631",
+            "60632",
+            "60633",
+            "60634",
+            "60636",
+            "60637",
+            "60638",
+            "60639",
+            "60640",
+            "60641",
+            "60642",
+            "60643",
+            "60644",
+            "60645",
+            "60646",
+            "60647",
+            "60649",
+            "60651",
+            "60652",
+            "60653",
+            "60654",
+            "60655",
+            "60656",
+            "60657",
+            "60659",
+            "60660",
+            "60661",
         ),
     ),
     "Cicero": (

@@ -75,88 +75,98 @@ MS_STATE_EFFECTIVE_FROM = dt.date(1992, 7, 1)
 # 2026-05-04. Every county is listed so the ZIP_COUNTY-driven
 # boundary loader can resolve every MS ZIP to a queryable county.
 MS_COUNTY_RATE_PCT: dict[str, Decimal] = {
-    "Adams County": Decimal("0.000"),       # verified 0% (no county tax) per Miss. Code Ann. 27-65-241
-    "Alcorn County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Amite County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Attala County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Benton County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Bolivar County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Calhoun County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Carroll County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Chickasaw County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Choctaw County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Claiborne County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Clarke County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Clay County": Decimal("0.000"),        # verified 0% (no county tax)
-    "Coahoma County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Copiah County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Covington County": Decimal("0.000"),   # verified 0% (no county tax)
-    "DeSoto County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Forrest County": Decimal("0.000"),     # verified 0% (no general-retail county tax; Hattiesburg Tourism Tax is hotel/restaurant only)
-    "Franklin County": Decimal("0.000"),    # verified 0% (no county tax)
-    "George County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Greene County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Grenada County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Hancock County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Harrison County": Decimal("0.000"),    # verified 0% (no general-retail county tax; Harrison County Tourism Tax is hotel/prepared-food only)
-    "Hinds County": Decimal("0.000"),       # verified 0% (no county tax; Jackson 1% is a city-level surcharge)
-    "Holmes County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Humphreys County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Issaquena County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Itawamba County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Jackson County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Jasper County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Jefferson County": Decimal("0.000"),   # verified 0% (no county tax)
+    "Adams County": Decimal("0.000"),  # verified 0% (no county tax) per Miss. Code Ann. 27-65-241
+    "Alcorn County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Amite County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Attala County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Benton County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Bolivar County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Calhoun County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Carroll County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Chickasaw County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Choctaw County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Claiborne County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Clarke County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Clay County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Coahoma County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Copiah County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Covington County": Decimal("0.000"),  # verified 0% (no county tax)
+    "DeSoto County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Forrest County": Decimal(
+        "0.000"
+    ),  # verified 0% (no general-retail county tax; Hattiesburg Tourism Tax is hotel/restaurant only)
+    "Franklin County": Decimal("0.000"),  # verified 0% (no county tax)
+    "George County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Greene County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Grenada County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Hancock County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Harrison County": Decimal(
+        "0.000"
+    ),  # verified 0% (no general-retail county tax; Harrison County Tourism Tax is hotel/prepared-food only)
+    "Hinds County": Decimal(
+        "0.000"
+    ),  # verified 0% (no county tax; Jackson 1% is a city-level surcharge)
+    "Holmes County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Humphreys County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Issaquena County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Itawamba County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Jackson County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Jasper County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Jefferson County": Decimal("0.000"),  # verified 0% (no county tax)
     "Jefferson Davis County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Jones County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Kemper County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Lafayette County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Lamar County": Decimal("0.000"),       # verified 0% (no county tax)
+    "Jones County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Kemper County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Lafayette County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Lamar County": Decimal("0.000"),  # verified 0% (no county tax)
     "Lauderdale County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Lawrence County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Leake County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Lee County": Decimal("0.000"),         # verified 0% (no county tax; Tupelo 0.25% is a city-level surcharge)
-    "Leflore County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Lincoln County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Lowndes County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Madison County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Marion County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Marshall County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Monroe County": Decimal("0.000"),      # verified 0% (no county tax)
+    "Lawrence County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Leake County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Lee County": Decimal(
+        "0.000"
+    ),  # verified 0% (no county tax; Tupelo 0.25% is a city-level surcharge)
+    "Leflore County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Lincoln County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Lowndes County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Madison County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Marion County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Marshall County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Monroe County": Decimal("0.000"),  # verified 0% (no county tax)
     "Montgomery County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Neshoba County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Newton County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Noxubee County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Oktibbeha County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Panola County": Decimal("0.000"),      # verified 0% (no county tax)
+    "Neshoba County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Newton County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Noxubee County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Oktibbeha County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Panola County": Decimal("0.000"),  # verified 0% (no county tax)
     "Pearl River County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Perry County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Pike County": Decimal("0.000"),        # verified 0% (no county tax)
-    "Pontotoc County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Prentiss County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Quitman County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Rankin County": Decimal("0.000"),      # verified 0% (no county tax)
-    "Scott County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Sharkey County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Simpson County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Smith County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Stone County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Sunflower County": Decimal("0.000"),   # verified 0% (no county tax)
+    "Perry County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Pike County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Pontotoc County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Prentiss County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Quitman County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Rankin County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Scott County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Sharkey County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Simpson County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Smith County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Stone County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Sunflower County": Decimal("0.000"),  # verified 0% (no county tax)
     "Tallahatchie County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Tate County": Decimal("0.000"),        # verified 0% (no county tax)
-    "Tippah County": Decimal("0.000"),      # verified 0% (no county tax)
+    "Tate County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Tippah County": Decimal("0.000"),  # verified 0% (no county tax)
     "Tishomingo County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Tunica County": Decimal("0.000"),      # verified 0% (no general-retail county tax; Tunica County tourism levy is hotel/restaurant only)
-    "Union County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Walthall County": Decimal("0.000"),    # verified 0% (no county tax)
-    "Warren County": Decimal("0.000"),      # verified 0% (no county tax)
+    "Tunica County": Decimal(
+        "0.000"
+    ),  # verified 0% (no general-retail county tax; Tunica County tourism levy is hotel/restaurant only)
+    "Union County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Walthall County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Warren County": Decimal("0.000"),  # verified 0% (no county tax)
     "Washington County": Decimal("0.000"),  # verified 0% (no county tax)
-    "Wayne County": Decimal("0.000"),       # verified 0% (no county tax)
-    "Webster County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Wilkinson County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Winston County": Decimal("0.000"),     # verified 0% (no county tax)
-    "Yalobusha County": Decimal("0.000"),   # verified 0% (no county tax)
-    "Yazoo County": Decimal("0.000"),       # verified 0% (no county tax)
+    "Wayne County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Webster County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Wilkinson County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Winston County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Yalobusha County": Decimal("0.000"),  # verified 0% (no county tax)
+    "Yazoo County": Decimal("0.000"),  # verified 0% (no county tax)
 }
 
 # Per-city general-retail local rate. Source dates in module docstring.
@@ -169,8 +179,18 @@ MS_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),
         (
             # Jackson proper -- city-limit ZIPs in Hinds County.
-            "39201", "39202", "39203", "39204", "39206", "39209",
-            "39211", "39212", "39213", "39216", "39217", "39269",
+            "39201",
+            "39202",
+            "39203",
+            "39204",
+            "39206",
+            "39209",
+            "39211",
+            "39212",
+            "39213",
+            "39216",
+            "39217",
+            "39269",
             "39272",
         ),
     ),

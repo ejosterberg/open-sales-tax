@@ -88,6 +88,7 @@ def test_illinois_parse_rates_yields_state_county_district_city() -> None:
 
     # Every IL_COUNTY_RATE_PCT entry yields a county RateRow now.
     from opensalestax.states.il_data import IL_COUNTY_RATE_PCT
+
     assert {r.authority_name for r in county_rows} == set(IL_COUNTY_RATE_PCT)
     # Original city-touched counties remain present (regression guard).
     city_touched_counties = {county for county, _, _, _ in IL_CITIES.values()}
@@ -169,28 +170,31 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
     ("city_name", "expected_combined"),
     [
         # Cook County (county 1.75 + RTA Cook 1.00) cities
-        ("Chicago", Decimal("10.250")),            # +Chicago HR 1.25
-        ("Cicero", Decimal("10.750")),             # +Cicero HR 1.75 (highest in IL major cities)
-        ("Evanston", Decimal("10.250")),           # +Evanston HR 1.25
-        ("Skokie", Decimal("10.250")),             # +Skokie HR 1.25
-        ("Schaumburg", Decimal("10.000")),         # +Schaumburg HR 1.00
+        ("Chicago", Decimal("10.250")),  # +Chicago HR 1.25
+        ("Cicero", Decimal("10.750")),  # +Cicero HR 1.75 (highest in IL major cities)
+        ("Evanston", Decimal("10.250")),  # +Evanston HR 1.25
+        ("Skokie", Decimal("10.250")),  # +Skokie HR 1.25
+        ("Schaumburg", Decimal("10.000")),  # +Schaumburg HR 1.00
         ("Arlington Heights", Decimal("10.000")),  # +HR 1.00
-        ("Palatine", Decimal("10.000")),           # +HR 1.00
-        ("Des Plaines", Decimal("10.000")),        # +HR 1.00
+        ("Palatine", Decimal("10.000")),  # +HR 1.00
+        ("Des Plaines", Decimal("10.000")),  # +HR 1.00
         # Collar counties (county 0 + RTA Collar 0.75)
-        ("Aurora", Decimal("8.250")),              # state 6.25 + Kane 0 + Aurora HR 1.25 + RTA 0.75
-        ("Elgin", Decimal("8.500")),               # state + Kane + HR 1.50 + RTA 0.75
-        ("Naperville", Decimal("7.750")),          # state + DuPage 0 + HR 0.75 + RTA 0.75
-        ("Joliet", Decimal("8.750")),              # state + Will 0 + HR 1.75 + RTA 0.75
-        ("Bolingbrook", Decimal("8.500")),         # state + Will + HR 1.50 + RTA 0.75
-        ("Waukegan", Decimal("8.500")),            # state + Lake + HR 1.50 + RTA 0.75
+        ("Aurora", Decimal("8.250")),  # state 6.25 + Kane 0 + Aurora HR 1.25 + RTA 0.75
+        ("Elgin", Decimal("8.500")),  # state + Kane + HR 1.50 + RTA 0.75
+        ("Naperville", Decimal("7.750")),  # state + DuPage 0 + HR 0.75 + RTA 0.75
+        ("Joliet", Decimal("8.750")),  # state + Will 0 + HR 1.75 + RTA 0.75
+        ("Bolingbrook", Decimal("8.500")),  # state + Will + HR 1.50 + RTA 0.75
+        ("Waukegan", Decimal("8.500")),  # state + Lake + HR 1.50 + RTA 0.75
         # Downstate (no RTA)
-        ("Rockford", Decimal("8.750")),            # state + Winnebago 1.5 + HR 1.0
-        ("Springfield", Decimal("9.500")),         # state + Sangamon 1.0 + HR 2.25
-        ("Peoria", Decimal("9.000")),              # state + Peoria Co 1.0 + HR 1.75
-        ("Champaign", Decimal("9.000")),           # state + Champaign Co 1.25 + HR 1.50
-        ("Bloomington", Decimal("9.750")),         # state + McLean 1.0 + HR 2.50 (IDOR ordmache 2026-01-01; McLean Co. 1% effective 2025-07-01)
-        ("Decatur", Decimal("9.250")),             # state + Macon 1.5 + HR 1.50
+        ("Rockford", Decimal("8.750")),  # state + Winnebago 1.5 + HR 1.0
+        ("Springfield", Decimal("9.500")),  # state + Sangamon 1.0 + HR 2.25
+        ("Peoria", Decimal("9.000")),  # state + Peoria Co 1.0 + HR 1.75
+        ("Champaign", Decimal("9.000")),  # state + Champaign Co 1.25 + HR 1.50
+        (
+            "Bloomington",
+            Decimal("9.750"),
+        ),  # state + McLean 1.0 + HR 2.50 (IDOR ordmache 2026-01-01; McLean Co. 1% effective 2025-07-01)
+        ("Decatur", Decimal("9.250")),  # state + Macon 1.5 + HR 1.50
     ],
 )
 def test_illinois_combined_rate_matches_published(
@@ -198,9 +202,9 @@ def test_illinois_combined_rate_matches_published(
 ) -> None:
     """Each covered city's combined rate equals the IDOR-published rate."""
     rows = list(ILLINOIS.parse_rates(None, "v0.x-top-20"))
-    assert _combined_for(city_name, rows) == expected_combined, (
-        f"{city_name} combined rate did not match expected {expected_combined}%"
-    )
+    assert (
+        _combined_for(city_name, rows) == expected_combined
+    ), f"{city_name} combined rate did not match expected {expected_combined}%"
 
 
 def test_illinois_chicago_is_10_25_pct() -> None:
@@ -221,9 +225,7 @@ def test_illinois_every_referenced_county_is_in_county_dict() -> None:
 
 def test_illinois_every_referenced_rta_is_in_rta_dict() -> None:
     """Every rta_name in IL_CITIES must have an IL_RTA_DISTRICTS entry."""
-    referenced = {
-        rta for _, rta, _, _ in IL_CITIES.values() if rta is not None
-    }
+    referenced = {rta for _, rta, _, _ in IL_CITIES.values() if rta is not None}
     missing = referenced - IL_RTA_DISTRICTS.keys()
     assert not missing, f"RTA tiers referenced but not in IL_RTA_DISTRICTS: {missing}"
 
@@ -249,19 +251,18 @@ def test_illinois_collar_counties_have_zero_county_rate() -> None:
         "Lake County",
         "Will County",
     ):
-        assert IL_COUNTY_RATE_PCT[county] == Decimal("0.000"), (
-            f"{county} should be 0% for general merchandise"
-        )
-    assert IL_COUNTY_RATE_PCT["McHenry County"] == Decimal("0.250"), (
-        "McHenry imposes 0.25% county tax per IDOR ordmache effective 2026-01-01"
-    )
+        assert IL_COUNTY_RATE_PCT[county] == Decimal(
+            "0.000"
+        ), f"{county} should be 0% for general merchandise"
+    assert IL_COUNTY_RATE_PCT["McHenry County"] == Decimal(
+        "0.250"
+    ), "McHenry imposes 0.25% county tax per IDOR ordmache effective 2026-01-01"
 
 
 def test_illinois_chicago_zips_bind_to_cook_rta() -> None:
     """All Chicago seeded ZIPs must bind to RTA (Cook County) -- not Collar."""
     cook_rta_cities = {
-        name for name, (_, rta, _, _) in IL_CITIES.items()
-        if rta == "RTA (Cook County)"
+        name for name, (_, rta, _, _) in IL_CITIES.items() if rta == "RTA (Cook County)"
     }
     assert "Chicago" in cook_rta_cities
     assert "Cicero" in cook_rta_cities

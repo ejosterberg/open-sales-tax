@@ -206,9 +206,7 @@ def parse_zcta_county_rows(
             if key in seen:
                 continue
             seen.add(key)
-            yield ZctaCountyRow(
-                zip5=zip5, state_abbrev=abbrev, county_fips=county_fips
-            )
+            yield ZctaCountyRow(zip5=zip5, state_abbrev=abbrev, county_fips=county_fips)
 
 
 def default_zcta_dir() -> Path:

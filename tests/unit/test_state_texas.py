@@ -113,6 +113,7 @@ def test_texas_parse_rates_yields_state_county_district_city() -> None:
     # Every TX_COUNTY_RATE_PCT entry yields a county RateRow now
     # (previously only counties touched by a covered city).
     from opensalestax.states.tx_data import TX_COUNTY_RATE_PCT
+
     assert {r.authority_name for r in county_rows} == set(TX_COUNTY_RATE_PCT)
     # Every county touched by a covered city must still be present
     # (regression guard: a future maintainer pruning the dict can't
@@ -120,9 +121,7 @@ def test_texas_parse_rates_yields_state_county_district_city() -> None:
     city_touched_counties = {county for county, _, _, _ in TX_CITIES.values()}
     assert city_touched_counties.issubset({r.authority_name for r in county_rows})
 
-    expected_transits = {
-        transit for _, transit, _, _ in TX_CITIES.values() if transit is not None
-    }
+    expected_transits = {transit for _, transit, _, _ in TX_CITIES.values() if transit is not None}
     assert {r.authority_name for r in district_rows} == expected_transits
     for r in district_rows:
         assert r.parent_authority_name == "Texas"
@@ -187,29 +186,29 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
     "city_name",
     [
         # All major TX cities cap at 8.25% via different stack shapes
-        "Houston",          # state 6.25 + Harris 0 + METRO 1.0 + city 1.0
-        "Dallas",           # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
-        "Austin",           # state 6.25 + Travis 0 + Cap Metro 1.0 + city 1.0
-        "San Antonio",      # state 6.25 + Bexar 0 + VIA+ATD 0.625 + city 1.375
-        "Fort Worth",       # state 6.25 + Tarrant 0 + Trinity Metro 0.5 + city 1.5
-        "El Paso",          # state 6.25 + El Paso Co 0.5 + Sun Metro 0.5 + city 1.0
-        "Corpus Christi",   # state 6.25 + Nueces 0 + RTA 0.5 + city 1.5
-        "Plano",            # state 6.25 + Collin 0 + DART 1.0 + city 1.0
-        "Garland",          # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
-        "Irving",           # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
-        "Frisco",           # no transit -- state 6.25 + Collin 0 + city 2.0
-        "Lubbock",          # no transit -- state 6.25 + Lubbock 0 + city 2.0
-        "Amarillo",         # no transit -- state 6.25 + Potter 0 + city 2.0
-        "Mesquite",         # no transit -- state 6.25 + Dallas 0 + city 2.0
-        "Round Rock",       # no transit -- state 6.25 + Williamson 0 + city 2.0
+        "Houston",  # state 6.25 + Harris 0 + METRO 1.0 + city 1.0
+        "Dallas",  # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
+        "Austin",  # state 6.25 + Travis 0 + Cap Metro 1.0 + city 1.0
+        "San Antonio",  # state 6.25 + Bexar 0 + VIA+ATD 0.625 + city 1.375
+        "Fort Worth",  # state 6.25 + Tarrant 0 + Trinity Metro 0.5 + city 1.5
+        "El Paso",  # state 6.25 + El Paso Co 0.5 + Sun Metro 0.5 + city 1.0
+        "Corpus Christi",  # state 6.25 + Nueces 0 + RTA 0.5 + city 1.5
+        "Plano",  # state 6.25 + Collin 0 + DART 1.0 + city 1.0
+        "Garland",  # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
+        "Irving",  # state 6.25 + Dallas 0 + DART 1.0 + city 1.0
+        "Frisco",  # no transit -- state 6.25 + Collin 0 + city 2.0
+        "Lubbock",  # no transit -- state 6.25 + Lubbock 0 + city 2.0
+        "Amarillo",  # no transit -- state 6.25 + Potter 0 + city 2.0
+        "Mesquite",  # no transit -- state 6.25 + Dallas 0 + city 2.0
+        "Round Rock",  # no transit -- state 6.25 + Williamson 0 + city 2.0
     ],
 )
 def test_texas_combined_rate_caps_at_8_25(city_name: str) -> None:
     """Every major TX city in this list lands at the 8.25% local cap."""
     rows = list(TEXAS.parse_rates(None, "v0.26-top-50"))
-    assert _combined_for(city_name, rows) == Decimal("8.250"), (
-        f"{city_name} combined rate did not equal 8.250%"
-    )
+    assert _combined_for(city_name, rows) == Decimal(
+        "8.250"
+    ), f"{city_name} combined rate did not equal 8.250%"
 
 
 def test_texas_arlington_combined_is_8_00_not_8_25() -> None:
@@ -232,9 +231,7 @@ def test_texas_no_combined_rate_exceeds_8_25_cap() -> None:
     cap = Decimal("8.250")
     for city_name in TX_CITIES:
         combined = _combined_for(city_name, rows)
-        assert combined <= cap, (
-            f"{city_name} combined rate {combined}% exceeds the 8.25% cap"
-        )
+        assert combined <= cap, f"{city_name} combined rate {combined}% exceeds the 8.25% cap"
 
 
 # ---------------------------------------------------------------------------
@@ -249,9 +246,7 @@ def test_texas_every_referenced_county_is_in_county_dict() -> None:
 
 def test_texas_every_referenced_transit_is_in_transit_dict() -> None:
     """Every transit_name in TX_CITIES must have a TX_TRANSIT_DISTRICTS entry."""
-    referenced = {
-        transit for _, transit, _, _ in TX_CITIES.values() if transit is not None
-    }
+    referenced = {transit for _, transit, _, _ in TX_CITIES.values() if transit is not None}
     missing = referenced - TX_TRANSIT_DISTRICTS.keys()
     assert not missing, f"transit districts referenced but not in TX_TRANSIT_DISTRICTS: {missing}"
 
@@ -264,17 +259,14 @@ def test_texas_el_paso_is_only_non_zero_county_in_seed() -> None:
     taxes, this test will fail and force them to also update the rate
     seed plus the combined-rate test list.
     """
-    nonzero = {
-        name: rate for name, rate in TX_COUNTY_RATE_PCT.items() if rate > Decimal("0.000")
-    }
+    nonzero = {name: rate for name, rate in TX_COUNTY_RATE_PCT.items() if rate > Decimal("0.000")}
     assert nonzero == {"El Paso County": Decimal("0.500")}
 
 
 def test_texas_houston_metro_zips_bind_to_metro() -> None:
     """Houston + Pasadena both sit in METRO; Baytown does NOT."""
     metro_cities = {
-        name for name, (_, transit, _, _) in TX_CITIES.items()
-        if transit == "Houston MTA (METRO)"
+        name for name, (_, transit, _, _) in TX_CITIES.items() if transit == "Houston MTA (METRO)"
     }
     assert "Houston" in metro_cities
     assert "Pasadena" in metro_cities

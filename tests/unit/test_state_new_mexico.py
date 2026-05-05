@@ -507,8 +507,14 @@ def test_new_mexico_top_30_brief_cities_present() -> None:
     future ratchets without failing this regression test.
     """
     required_cities = {
-        "Albuquerque", "Santa Fe", "Las Cruces", "Rio Rancho",
-        "Roswell", "Farmington", "Hobbs", "Carlsbad",
+        "Albuquerque",
+        "Santa Fe",
+        "Las Cruces",
+        "Rio Rancho",
+        "Roswell",
+        "Farmington",
+        "Hobbs",
+        "Carlsbad",
     }
     assert required_cities.issubset(set(NM_LOCATION_RATES))
 
@@ -562,8 +568,7 @@ def test_new_mexico_parse_boundaries_dedupes_county_per_zip() -> None:
             by_zip.setdefault(b.zip5, []).append(b.authority_name)
     multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
     assert multi == {}, (
-        f"Found ZIPs bound to multiple NM counties (would double-count "
-        f"local layers): {multi}"
+        f"Found ZIPs bound to multiple NM counties (would double-count " f"local layers): {multi}"
     )
 
 
@@ -582,8 +587,7 @@ def test_new_mexico_parse_boundaries_dedupes_city_per_zip() -> None:
             by_zip.setdefault(b.zip5, []).append(b.authority_name)
     multi = {z: cities for z, cities in by_zip.items() if len(cities) > 1}
     assert multi == {}, (
-        f"Found ZIPs bound to multiple NM locations (would double-count "
-        f"the local GRT): {multi}"
+        f"Found ZIPs bound to multiple NM locations (would double-count " f"the local GRT): {multi}"
     )
 
 

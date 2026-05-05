@@ -331,9 +331,7 @@ def test_virginia_parse_boundaries_williamsburg_stacks_historic_triangle() -> No
     """
     rows = list(VIRGINIA.parse_boundaries(None, "v0.31-statewide"))
     wms_rows = [b for b in rows if b.zip5 == "23185"]
-    district_names = sorted(
-        b.authority_name for b in wms_rows if b.authority_type == "district"
-    )
+    district_names = sorted(b.authority_name for b in wms_rows if b.authority_type == "district")
     assert "Hampton Roads Region" in district_names
     assert "Historic Triangle Region" in district_names
 
@@ -349,8 +347,7 @@ def test_virginia_parse_boundaries_dedupes_county_per_zip() -> None:
             by_zip.setdefault(b.zip5, []).append(b.authority_name)
     multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
     assert multi == {}, (
-        f"Found ZIPs bound to multiple VA jurisdictions (would double-count "
-        f"district): {multi}"
+        f"Found ZIPs bound to multiple VA jurisdictions (would double-count " f"district): {multi}"
     )
 
 

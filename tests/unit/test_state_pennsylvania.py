@@ -212,9 +212,19 @@ def test_pennsylvania_combined_rate_pittsburgh_is_7_pct() -> None:
 @pytest.mark.parametrize(
     "city_name",
     [
-        "Allentown", "Erie", "Reading", "Scranton", "Bethlehem",
-        "Lancaster", "Harrisburg", "York", "Altoona", "State College",
-        "Wilkes-Barre", "Chester", "Norristown",
+        "Allentown",
+        "Erie",
+        "Reading",
+        "Scranton",
+        "Bethlehem",
+        "Lancaster",
+        "Harrisburg",
+        "York",
+        "Altoona",
+        "State College",
+        "Wilkes-Barre",
+        "Chester",
+        "Norristown",
     ],
 )
 def test_pennsylvania_other_cities_combined_rate_is_6_pct(city_name: str) -> None:
@@ -224,17 +234,28 @@ def test_pennsylvania_other_cities_combined_rate_is_6_pct(city_name: str) -> Non
     city = by_name[city_name]
     state = by_name["Pennsylvania"].rate_pct
     county = by_name[city.parent_authority_name or ""].rate_pct
-    assert state + county + city.rate_pct == Decimal("6.000"), (
-        f"{city_name} should be at the 6% statewide flat (no local tax)"
-    )
+    assert state + county + city.rate_pct == Decimal(
+        "6.000"
+    ), f"{city_name} should be at the 6% statewide flat (no local tax)"
 
 
 def test_pennsylvania_top_15_cities_seeded() -> None:
     """Verify the top-15 city seed is exactly the 15 cities in the brief."""
     expected_cities = {
-        "Philadelphia", "Pittsburgh", "Allentown", "Erie", "Reading",
-        "Scranton", "Bethlehem", "Lancaster", "Harrisburg", "York",
-        "Altoona", "State College", "Wilkes-Barre", "Chester",
+        "Philadelphia",
+        "Pittsburgh",
+        "Allentown",
+        "Erie",
+        "Reading",
+        "Scranton",
+        "Bethlehem",
+        "Lancaster",
+        "Harrisburg",
+        "York",
+        "Altoona",
+        "State College",
+        "Wilkes-Barre",
+        "Chester",
         "Norristown",
     }
     assert set(PA_CITIES.keys()) == expected_cities

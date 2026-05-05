@@ -80,9 +80,7 @@ async def lookup_jurisdictions_by_zip(
             .options(*options)
             .distinct()
         )
-        precise_authorities = list(
-            (await session.execute(precise_stmt)).scalars().all()
-        )
+        precise_authorities = list((await session.execute(precise_stmt)).scalars().all())
         precise_county_city_ids = {a.id for a in precise_authorities}
     else:
         precise_authorities = []
@@ -123,9 +121,7 @@ async def lookup_jurisdictions_by_zip(
             .options(*options)
             .distinct()
         )
-        district_authorities = list(
-            (await session.execute(district_stmt)).scalars().all()
-        )
+        district_authorities = list((await session.execute(district_stmt)).scalars().all())
 
     # Loose fallback: if neither the precise type-4 query NOR
     # the type-z fallback found any city/county binding for this
@@ -137,9 +133,7 @@ async def lookup_jurisdictions_by_zip(
     # cities (e.g. 73069 has Norman ranges starting at +4 1000 and
     # Moore ranges starting at +4 8061; for +4 6107 Norman wins).
     if zip4 is not None and not precise_county_city_ids:
-        local_in_z = any(
-            a.authority_type in ("county", "city") for a in z_authorities
-        )
+        local_in_z = any(a.authority_type in ("county", "city") for a in z_authorities)
         if not local_in_z:
             loose_stmt = (
                 select(

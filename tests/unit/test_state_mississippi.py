@@ -314,9 +314,7 @@ def test_mississippi_parse_boundaries_dedupes_county_per_zip() -> None:
         if b.authority_type == "county":
             by_zip.setdefault(b.zip5, []).append(b.authority_name)
     multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
-    assert multi == {}, (
-        f"Found ZIPs bound to multiple MS counties: {multi}"
-    )
+    assert multi == {}, f"Found ZIPs bound to multiple MS counties: {multi}"
 
 
 def test_mississippi_parse_boundaries_jackson_city_still_bound() -> None:

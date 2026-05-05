@@ -53,9 +53,9 @@ def test_florida_seeds_all_67_counties() -> None:
 def test_florida_county_surtax_rates_within_legal_range() -> None:
     """Discretionary surtax (Fla. Stat. 212.054) caps at 1.5% in 2026."""
     for county, rate in FL_COUNTY_SURTAX_PCT.items():
-        assert Decimal("0.000") <= rate <= Decimal("1.500"), (
-            f"{county} surtax {rate} out of legal 0.0%-1.5% range"
-        )
+        assert (
+            Decimal("0.000") <= rate <= Decimal("1.500")
+        ), f"{county} surtax {rate} out of legal 0.0%-1.5% range"
 
 
 @pytest.mark.parametrize(
@@ -86,9 +86,9 @@ def test_florida_county_names_match_census_keys() -> None:
         name for (state_abbrev, _fips), name in COUNTY_NAMES.items() if state_abbrev == "FL"
     }
     for county_name in FL_COUNTY_SURTAX_PCT:
-        assert county_name in fl_census_counties, (
-            f"FL county {county_name!r} not in Census county_names.py"
-        )
+        assert (
+            county_name in fl_census_counties
+        ), f"FL county {county_name!r} not in Census county_names.py"
 
 
 # ---------------------------------------------------------------------------
@@ -102,9 +102,9 @@ def test_florida_seeds_top_30_cities() -> None:
 def test_florida_every_city_county_is_known() -> None:
     """Every city's county must appear in FL_COUNTY_SURTAX_PCT."""
     for _city, (county_name, _zips) in FL_CITIES.items():
-        assert county_name in FL_COUNTY_SURTAX_PCT, (
-            f"City references unknown county {county_name!r}"
-        )
+        assert (
+            county_name in FL_COUNTY_SURTAX_PCT
+        ), f"City references unknown county {county_name!r}"
 
 
 def test_florida_every_city_has_at_least_one_zip() -> None:

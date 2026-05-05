@@ -490,9 +490,7 @@ def test_alabama_mobile_combined_rate_is_10pct() -> None:
     rows = list(ALABAMA.parse_rates(None, "v1-top30"))
     by_name = {r.authority_name: r for r in rows}
     combined = (
-        by_name["Alabama"].rate_pct
-        + by_name["Mobile County"].rate_pct
-        + by_name["Mobile"].rate_pct
+        by_name["Alabama"].rate_pct + by_name["Mobile County"].rate_pct + by_name["Mobile"].rate_pct
     )
     assert combined == Decimal("10.000")
 
@@ -526,8 +524,7 @@ def test_alabama_parse_boundaries_dedupes_county_per_zip() -> None:
             by_zip.setdefault(b.zip5, []).append(b.authority_name)
     multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
     assert multi == {}, (
-        f"Found ZIPs bound to multiple AL counties (would double-count "
-        f"local tax): {multi}"
+        f"Found ZIPs bound to multiple AL counties (would double-count " f"local tax): {multi}"
     )
 
 
@@ -585,8 +582,7 @@ def test_alabama_parse_boundaries_emits_many_zips() -> None:
     rows = list(ALABAMA.parse_boundaries(None, "v1-top30"))
     state_zips = {b.zip5 for b in rows if b.authority_type == "state"}
     assert len(state_zips) > 500, (
-        f"Expected statewide ZCTA coverage (~660 AL ZIPs); got only "
-        f"{len(state_zips)}"
+        f"Expected statewide ZCTA coverage (~660 AL ZIPs); got only " f"{len(state_zips)}"
     )
 
 
@@ -602,8 +598,7 @@ def test_alabama_al_data_uses_canonical_county_names() -> None:
     assert al_canonical, "no AL counties in COUNTY_NAMES -- canary failure"
     diff = set(AL_COUNTY_RATE_PCT) - al_canonical
     assert diff == set(), (
-        f"AL_COUNTY_RATE_PCT contains county names not in COUNTY_NAMES: "
-        f"{diff}"
+        f"AL_COUNTY_RATE_PCT contains county names not in COUNTY_NAMES: " f"{diff}"
     )
 
 
@@ -636,6 +631,5 @@ def test_alabama_al_data_covers_all_67_counties() -> None:
     al_canonical = {name for (st, _fips), name in COUNTY_NAMES.items() if st == "AL"}
     missing = al_canonical - set(AL_COUNTY_RATE_PCT)
     assert missing == set(), (
-        f"AL_COUNTY_RATE_PCT is missing AL counties present in "
-        f"COUNTY_NAMES: {missing}"
+        f"AL_COUNTY_RATE_PCT is missing AL counties present in " f"COUNTY_NAMES: {missing}"
     )

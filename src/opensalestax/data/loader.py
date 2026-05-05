@@ -651,19 +651,11 @@ async def _drop_existing_data_version(
     source = _infer_source_from_label(full_label)
 
     candidates = list(
-        (
-            await session.execute(
-                select(DataVersion).where(DataVersion.state_id == state_id)
-            )
-        )
+        (await session.execute(select(DataVersion).where(DataVersion.state_id == state_id)))
         .scalars()
         .all()
     )
-    same_source = [
-        dv
-        for dv in candidates
-        if _infer_source_from_label(dv.version_label) == source
-    ]
+    same_source = [dv for dv in candidates if _infer_source_from_label(dv.version_label) == source]
     if not same_source:
         return
 
@@ -684,11 +676,7 @@ async def _drop_existing_data_version(
         await session.flush()
 
     rates_to_drop = list(
-        (
-            await session.execute(
-                select(Rate).where(Rate.data_version_id.in_(same_source_ids))
-            )
-        )
+        (await session.execute(select(Rate).where(Rate.data_version_id.in_(same_source_ids))))
         .scalars()
         .all()
     )

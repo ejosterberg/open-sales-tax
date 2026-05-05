@@ -96,73 +96,77 @@ FL_STATE_EFFECTIVE_FROM = dt.date(1988, 2, 1)
 # County names match the Census `county_names.py` lookup exactly so
 # the engine can join through cleanly.
 FL_COUNTY_SURTAX_PCT: dict[str, Decimal] = {
-    "Alachua County": Decimal("1.500"),       # 0.5% Indigent Care + 0.5% CHHS + 0.5% School
-    "Baker County": Decimal("1.000"),         # Small County Surtax
-    "Bay County": Decimal("1.000"),           # 0.5% School + 0.5% Local Govt Infra
-    "Bradford County": Decimal("1.000"),      # Small County Surtax
-    "Brevard County": Decimal("1.000"),       # 0.5% School + 0.5% Children's Services
-    "Broward County": Decimal("1.000"),       # 0.5% Transportation + 0.5% Infrastructure
-    "Calhoun County": Decimal("1.500"),       # Small County Surtax + School
-    "Charlotte County": Decimal("1.000"),     # Local Govt Infrastructure
-    "Citrus County": Decimal("0.000"),        # No discretionary surtax in 2026
-    "Clay County": Decimal("1.500"),          # 1% Local Govt Infra + 0.5% School
-    "Collier County": Decimal("1.000"),       # School Capital Outlay
-    "Columbia County": Decimal("1.500"),      # 1% Small County + 0.5% School
-    "DeSoto County": Decimal("1.500"),        # 1% Small County + 0.5% School
-    "Dixie County": Decimal("1.000"),         # Small County Surtax
-    "Duval County": Decimal("1.500"),         # 0.5% School + 0.5% Local Govt + 0.5% Transit
-    "Escambia County": Decimal("1.500"),      # 1% Local Govt Infra + 0.5% School
-    "Flagler County": Decimal("1.000"),       # 0.5% Local Govt + 0.5% School
-    "Franklin County": Decimal("1.500"),      # Small County + School
-    "Gadsden County": Decimal("1.500"),       # Small County + School
-    "Gilchrist County": Decimal("1.000"),     # Small County Surtax
-    "Glades County": Decimal("1.000"),        # Small County Surtax
-    "Gulf County": Decimal("1.000"),          # Small County Surtax
-    "Hamilton County": Decimal("1.000"),      # Small County Surtax
-    "Hardee County": Decimal("1.000"),        # Small County Surtax
-    "Hendry County": Decimal("1.500"),        # Small County + School
-    "Hernando County": Decimal("0.500"),      # School Capital Outlay
-    "Highlands County": Decimal("1.500"),     # 1% Local Govt Infra + 0.5% School
-    "Hillsborough County": Decimal("1.500"),  # 0.5% Indigent Care + 1.0% Community Investment (1% transportation surtax struck down Mar 2021, removed from DR-15DSS 2022)
-    "Holmes County": Decimal("1.500"),        # Small County + School
+    "Alachua County": Decimal("1.500"),  # 0.5% Indigent Care + 0.5% CHHS + 0.5% School
+    "Baker County": Decimal("1.000"),  # Small County Surtax
+    "Bay County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt Infra
+    "Bradford County": Decimal("1.000"),  # Small County Surtax
+    "Brevard County": Decimal("1.000"),  # 0.5% School + 0.5% Children's Services
+    "Broward County": Decimal("1.000"),  # 0.5% Transportation + 0.5% Infrastructure
+    "Calhoun County": Decimal("1.500"),  # Small County Surtax + School
+    "Charlotte County": Decimal("1.000"),  # Local Govt Infrastructure
+    "Citrus County": Decimal("0.000"),  # No discretionary surtax in 2026
+    "Clay County": Decimal("1.500"),  # 1% Local Govt Infra + 0.5% School
+    "Collier County": Decimal("1.000"),  # School Capital Outlay
+    "Columbia County": Decimal("1.500"),  # 1% Small County + 0.5% School
+    "DeSoto County": Decimal("1.500"),  # 1% Small County + 0.5% School
+    "Dixie County": Decimal("1.000"),  # Small County Surtax
+    "Duval County": Decimal("1.500"),  # 0.5% School + 0.5% Local Govt + 0.5% Transit
+    "Escambia County": Decimal("1.500"),  # 1% Local Govt Infra + 0.5% School
+    "Flagler County": Decimal("1.000"),  # 0.5% Local Govt + 0.5% School
+    "Franklin County": Decimal("1.500"),  # Small County + School
+    "Gadsden County": Decimal("1.500"),  # Small County + School
+    "Gilchrist County": Decimal("1.000"),  # Small County Surtax
+    "Glades County": Decimal("1.000"),  # Small County Surtax
+    "Gulf County": Decimal("1.000"),  # Small County Surtax
+    "Hamilton County": Decimal("1.000"),  # Small County Surtax
+    "Hardee County": Decimal("1.000"),  # Small County Surtax
+    "Hendry County": Decimal("1.500"),  # Small County + School
+    "Hernando County": Decimal("0.500"),  # School Capital Outlay
+    "Highlands County": Decimal("1.500"),  # 1% Local Govt Infra + 0.5% School
+    "Hillsborough County": Decimal(
+        "1.500"
+    ),  # 0.5% Indigent Care + 1.0% Community Investment (1% transportation surtax struck down Mar 2021, removed from DR-15DSS 2022)
+    "Holmes County": Decimal("1.500"),  # Small County + School
     "Indian River County": Decimal("1.000"),  # Local Govt Infrastructure
-    "Jackson County": Decimal("1.500"),       # Small County + School
-    "Jefferson County": Decimal("1.000"),     # Small County Surtax
-    "Lafayette County": Decimal("1.000"),     # Small County Surtax
-    "Lake County": Decimal("1.000"),          # Local Govt Infrastructure
-    "Lee County": Decimal("0.500"),           # School Capital Outlay
-    "Leon County": Decimal("1.500"),          # 0.5% Blueprint + 1.0% Local Govt
-    "Levy County": Decimal("1.000"),          # Small County Surtax
-    "Liberty County": Decimal("1.500"),       # Small County + School
-    "Madison County": Decimal("1.500"),       # Small County + School
-    "Manatee County": Decimal("1.000"),       # 0.5% School + 0.5% Local Govt
-    "Marion County": Decimal("1.500"),        # 1% School + 0.5% Local Govt
-    "Martin County": Decimal("0.500"),        # School Capital Outlay
-    "Miami-Dade County": Decimal("1.000"),    # 0.5% Transit + 0.5% Charter County (cap on single items >$5000)
-    "Monroe County": Decimal("1.500"),        # 0.5% School + 1.0% Local Govt
-    "Nassau County": Decimal("1.000"),        # Local Govt Infrastructure
-    "Okaloosa County": Decimal("1.000"),      # 0.5% School + 0.5% Local Govt
-    "Okeechobee County": Decimal("1.000"),    # Small County Surtax
-    "Orange County": Decimal("0.500"),        # School Capital Outlay
-    "Osceola County": Decimal("1.500"),       # 1% Transportation + 0.5% School
-    "Palm Beach County": Decimal("1.000"),    # 1% Infrastructure (school surtax expired)
-    "Pasco County": Decimal("1.000"),         # 0.5% School + 0.5% Local Govt (Penny for Pasco)
-    "Pinellas County": Decimal("1.000"),      # Penny for Pinellas (Local Govt Infrastructure)
-    "Polk County": Decimal("1.000"),          # 0.5% Indigent Care + 0.5% School
-    "Putnam County": Decimal("1.000"),        # Small County Surtax
-    "St. Johns County": Decimal("0.500"),     # School Capital Outlay
-    "St. Lucie County": Decimal("1.000"),     # 0.5% School + 0.5% Local Govt
-    "Santa Rosa County": Decimal("1.000"),    # 0.5% School + 0.5% Local Govt
-    "Sarasota County": Decimal("1.000"),      # Local Govt Infrastructure
-    "Seminole County": Decimal("1.000"),      # School Capital Outlay
-    "Sumter County": Decimal("1.000"),        # 0.5% Small County + 0.5% School
-    "Suwannee County": Decimal("1.000"),      # Small County Surtax
-    "Taylor County": Decimal("1.000"),        # Small County Surtax
-    "Union County": Decimal("1.000"),         # Small County Surtax
-    "Volusia County": Decimal("0.500"),       # School Capital Outlay
-    "Wakulla County": Decimal("1.500"),       # Small County + School
-    "Walton County": Decimal("1.000"),        # 0.5% School + 0.5% Local Govt
-    "Washington County": Decimal("1.500"),    # Small County + School
+    "Jackson County": Decimal("1.500"),  # Small County + School
+    "Jefferson County": Decimal("1.000"),  # Small County Surtax
+    "Lafayette County": Decimal("1.000"),  # Small County Surtax
+    "Lake County": Decimal("1.000"),  # Local Govt Infrastructure
+    "Lee County": Decimal("0.500"),  # School Capital Outlay
+    "Leon County": Decimal("1.500"),  # 0.5% Blueprint + 1.0% Local Govt
+    "Levy County": Decimal("1.000"),  # Small County Surtax
+    "Liberty County": Decimal("1.500"),  # Small County + School
+    "Madison County": Decimal("1.500"),  # Small County + School
+    "Manatee County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
+    "Marion County": Decimal("1.500"),  # 1% School + 0.5% Local Govt
+    "Martin County": Decimal("0.500"),  # School Capital Outlay
+    "Miami-Dade County": Decimal(
+        "1.000"
+    ),  # 0.5% Transit + 0.5% Charter County (cap on single items >$5000)
+    "Monroe County": Decimal("1.500"),  # 0.5% School + 1.0% Local Govt
+    "Nassau County": Decimal("1.000"),  # Local Govt Infrastructure
+    "Okaloosa County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
+    "Okeechobee County": Decimal("1.000"),  # Small County Surtax
+    "Orange County": Decimal("0.500"),  # School Capital Outlay
+    "Osceola County": Decimal("1.500"),  # 1% Transportation + 0.5% School
+    "Palm Beach County": Decimal("1.000"),  # 1% Infrastructure (school surtax expired)
+    "Pasco County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt (Penny for Pasco)
+    "Pinellas County": Decimal("1.000"),  # Penny for Pinellas (Local Govt Infrastructure)
+    "Polk County": Decimal("1.000"),  # 0.5% Indigent Care + 0.5% School
+    "Putnam County": Decimal("1.000"),  # Small County Surtax
+    "St. Johns County": Decimal("0.500"),  # School Capital Outlay
+    "St. Lucie County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
+    "Santa Rosa County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
+    "Sarasota County": Decimal("1.000"),  # Local Govt Infrastructure
+    "Seminole County": Decimal("1.000"),  # School Capital Outlay
+    "Sumter County": Decimal("1.000"),  # 0.5% Small County + 0.5% School
+    "Suwannee County": Decimal("1.000"),  # Small County Surtax
+    "Taylor County": Decimal("1.000"),  # Small County Surtax
+    "Union County": Decimal("1.000"),  # Small County Surtax
+    "Volusia County": Decimal("0.500"),  # School Capital Outlay
+    "Wakulla County": Decimal("1.500"),  # Small County + School
+    "Walton County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
+    "Washington County": Decimal("1.500"),  # Small County + School
 }
 
 # Per-city ZIP coverage. FL has NO city-level general sales tax, so
@@ -177,43 +181,129 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "Jacksonville": (
         "Duval County",
         (
-            "32099", "32202", "32204", "32205", "32206", "32207",
-            "32208", "32209", "32210", "32211", "32216", "32217",
-            "32218", "32219", "32220", "32221", "32222", "32223",
-            "32224", "32225", "32226", "32227", "32233", "32234",
-            "32244", "32246", "32250", "32254", "32256", "32257",
-            "32258", "32266", "32277",
+            "32099",
+            "32202",
+            "32204",
+            "32205",
+            "32206",
+            "32207",
+            "32208",
+            "32209",
+            "32210",
+            "32211",
+            "32216",
+            "32217",
+            "32218",
+            "32219",
+            "32220",
+            "32221",
+            "32222",
+            "32223",
+            "32224",
+            "32225",
+            "32226",
+            "32227",
+            "32233",
+            "32234",
+            "32244",
+            "32246",
+            "32250",
+            "32254",
+            "32256",
+            "32257",
+            "32258",
+            "32266",
+            "32277",
         ),
     ),
     # 2. Miami (Miami-Dade County)
     "Miami": (
         "Miami-Dade County",
         (
-            "33125", "33126", "33127", "33128", "33129", "33130",
-            "33131", "33132", "33133", "33134", "33135", "33136",
-            "33137", "33138", "33142", "33143", "33144", "33145",
-            "33146", "33147", "33150", "33155",
+            "33125",
+            "33126",
+            "33127",
+            "33128",
+            "33129",
+            "33130",
+            "33131",
+            "33132",
+            "33133",
+            "33134",
+            "33135",
+            "33136",
+            "33137",
+            "33138",
+            "33142",
+            "33143",
+            "33144",
+            "33145",
+            "33146",
+            "33147",
+            "33150",
+            "33155",
         ),
     ),
     # 3. Tampa (Hillsborough County)
     "Tampa": (
         "Hillsborough County",
         (
-            "33602", "33603", "33604", "33605", "33606", "33607",
-            "33609", "33610", "33611", "33612", "33613", "33614",
-            "33615", "33616", "33617", "33618", "33619", "33620",
-            "33621", "33624", "33625", "33626", "33629", "33634",
-            "33635", "33647",
+            "33602",
+            "33603",
+            "33604",
+            "33605",
+            "33606",
+            "33607",
+            "33609",
+            "33610",
+            "33611",
+            "33612",
+            "33613",
+            "33614",
+            "33615",
+            "33616",
+            "33617",
+            "33618",
+            "33619",
+            "33620",
+            "33621",
+            "33624",
+            "33625",
+            "33626",
+            "33629",
+            "33634",
+            "33635",
+            "33647",
         ),
     ),
     # 4. Orlando (Orange County)
     "Orlando": (
         "Orange County",
         (
-            "32801", "32803", "32804", "32805", "32806", "32807",
-            "32808", "32809", "32810", "32811", "32812", "32814",
-            "32817", "32818", "32819", "32822", "32824", "32825",
-            "32827", "32829", "32832", "32833", "32835", "32836",
+            "32801",
+            "32803",
+            "32804",
+            "32805",
+            "32806",
+            "32807",
+            "32808",
+            "32809",
+            "32810",
+            "32811",
+            "32812",
+            "32814",
+            "32817",
+            "32818",
+            "32819",
+            "32822",
+            "32824",
+            "32825",
+            "32827",
+            "32829",
+            "32832",
+            "32833",
+            "32835",
+            "32836",
             "32839",
         ),
     ),
@@ -221,9 +311,22 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "St. Petersburg": (
         "Pinellas County",
         (
-            "33701", "33702", "33703", "33704", "33705", "33706",
-            "33707", "33708", "33709", "33710", "33711", "33712",
-            "33713", "33714", "33715", "33716",
+            "33701",
+            "33702",
+            "33703",
+            "33704",
+            "33705",
+            "33706",
+            "33707",
+            "33708",
+            "33709",
+            "33710",
+            "33711",
+            "33712",
+            "33713",
+            "33714",
+            "33715",
+            "33716",
         ),
     ),
     # 6. Hialeah (Miami-Dade County)
@@ -235,8 +338,16 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "Tallahassee": (
         "Leon County",
         (
-            "32301", "32303", "32304", "32305", "32308", "32309",
-            "32310", "32311", "32312", "32317",
+            "32301",
+            "32303",
+            "32304",
+            "32305",
+            "32308",
+            "32309",
+            "32310",
+            "32311",
+            "32312",
+            "32317",
         ),
     ),
     # 8. Port St. Lucie (St. Lucie County)
@@ -253,8 +364,16 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "Fort Lauderdale": (
         "Broward County",
         (
-            "33301", "33304", "33305", "33308", "33309", "33311",
-            "33312", "33315", "33316", "33334",
+            "33301",
+            "33304",
+            "33305",
+            "33308",
+            "33309",
+            "33311",
+            "33312",
+            "33315",
+            "33316",
+            "33334",
         ),
     ),
     # 11. Pembroke Pines (Broward County)
@@ -271,8 +390,15 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "Gainesville": (
         "Alachua County",
         (
-            "32601", "32603", "32605", "32606", "32607", "32608",
-            "32609", "32641", "32653",
+            "32601",
+            "32603",
+            "32605",
+            "32606",
+            "32607",
+            "32608",
+            "32609",
+            "32641",
+            "32653",
         ),
     ),
     # 14. Miramar (Broward County)
@@ -299,8 +425,16 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "West Palm Beach": (
         "Palm Beach County",
         (
-            "33401", "33403", "33404", "33405", "33406", "33407",
-            "33409", "33411", "33415", "33417",
+            "33401",
+            "33403",
+            "33404",
+            "33405",
+            "33406",
+            "33407",
+            "33409",
+            "33411",
+            "33415",
+            "33417",
         ),
     ),
     # 19. Clearwater (Pinellas County)

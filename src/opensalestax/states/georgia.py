@@ -313,15 +313,11 @@ class Georgia:
                     continue
                 bindings: list[tuple[str, str]] = [("state", "Georgia")]
                 if record.county_fips:
-                    bindings.append(
-                        ("county", _authority_name(record.county_fips, "county"))
-                    )
+                    bindings.append(("county", _authority_name(record.county_fips, "county")))
                 if record.city_code:
                     bindings.append(("city", _authority_name(record.city_code, "city")))
                 if record.district_code:
-                    bindings.append(
-                        ("district", _authority_name(record.district_code, "district"))
-                    )
+                    bindings.append(("district", _authority_name(record.district_code, "district")))
                 for authority_type, authority_name in bindings:
                     key = (authority_type, authority_name, zip5, zip4_low, zip4_high)
                     if key in seen:

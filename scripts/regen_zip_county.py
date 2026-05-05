@@ -107,29 +107,31 @@ def main() -> None:
         pairs = sorted(by_zip[zip5])
         rendered = ", ".join(f'("{s}", "{c}")' for s, c in pairs)
         out.append(f'    "{zip5}": frozenset({{{rendered}}}),')
-    out.extend([
-        "}",
-        "",
-        "",
-        "def counties_for_zip(zip5: str, state_abbrev: str) -> frozenset[str]:",
-        '    """Return the set of 3-digit county FIPS codes that ``zip5`` intersects',
-        "    within ``state_abbrev``, or an empty frozenset if the ZIP isn't in the",
-        "    table for that state.",
-        "",
-        "    A ZIP that crosses state lines may belong to multiple states; this",
-        "    helper filters to the requested state so a state module can iterate",
-        "    only the counties relevant to its own jurisdiction.",
-        '    """',
-        "    pairs = ZIP_COUNTY.get(zip5)",
-        "    if pairs is None:",
-        "        return frozenset()",
-        "    state = state_abbrev.upper()",
-        "    return frozenset(c for s, c in pairs if s == state)",
-        "",
-        "",
-        '__all__ = ["ZIP_COUNTY", "counties_for_zip"]',
-        "",
-    ])
+    out.extend(
+        [
+            "}",
+            "",
+            "",
+            "def counties_for_zip(zip5: str, state_abbrev: str) -> frozenset[str]:",
+            '    """Return the set of 3-digit county FIPS codes that ``zip5`` intersects',
+            "    within ``state_abbrev``, or an empty frozenset if the ZIP isn't in the",
+            "    table for that state.",
+            "",
+            "    A ZIP that crosses state lines may belong to multiple states; this",
+            "    helper filters to the requested state so a state module can iterate",
+            "    only the counties relevant to its own jurisdiction.",
+            '    """',
+            "    pairs = ZIP_COUNTY.get(zip5)",
+            "    if pairs is None:",
+            "        return frozenset()",
+            "    state = state_abbrev.upper()",
+            "    return frozenset(c for s, c in pairs if s == state)",
+            "",
+            "",
+            '__all__ = ["ZIP_COUNTY", "counties_for_zip"]',
+            "",
+        ]
+    )
 
     TARGET.write_text("\n".join(out), encoding="utf-8")
     print(f"wrote {len(by_zip)} ZIP entries to {TARGET}")

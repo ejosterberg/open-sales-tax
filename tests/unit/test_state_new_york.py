@@ -217,9 +217,7 @@ def test_new_york_parse_boundaries_yields_nyc_zips_with_mctd() -> None:
 def test_new_york_parse_boundaries_covers_all_5_boroughs() -> None:
     """Manhattan, Bronx, Brooklyn, Queens, and Staten Island ZIPs all bind to NYC."""
     rows = list(NEW_YORK.parse_boundaries(None, "v0.26-state-county-mctd-city"))
-    nyc_zips = {
-        b.zip5 for b in rows if b.authority_name == "New York City"
-    }
+    nyc_zips = {b.zip5 for b in rows if b.authority_name == "New York City"}
     # Spot-check one ZIP per borough.
     assert "10001" in nyc_zips  # Manhattan
     assert "10451" in nyc_zips  # Bronx
@@ -278,6 +276,6 @@ def test_new_york_every_city_has_at_least_one_zip() -> None:
     for city, (county, _city_rate, zips) in NY_CITIES.items():
         assert len(zips) >= 1, f"{city} has no ZIPs"
         # Every county referenced by a city must appear in NY_COUNTY_RATE_PCT.
-        assert county in NY_COUNTY_RATE_PCT, (
-            f"{city} references {county} which is missing from NY_COUNTY_RATE_PCT"
-        )
+        assert (
+            county in NY_COUNTY_RATE_PCT
+        ), f"{city} references {county} which is missing from NY_COUNTY_RATE_PCT"

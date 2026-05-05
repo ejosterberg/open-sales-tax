@@ -185,9 +185,7 @@ class Texas:
                 effective_to=None,
                 parent_authority_name="Texas",
             )
-        used_transits = {
-            transit for _, transit, _, _ in TX_CITIES.values() if transit is not None
-        }
+        used_transits = {transit for _, transit, _, _ in TX_CITIES.values() if transit is not None}
         for transit_name in sorted(used_transits):
             yield RateRow(
                 authority_name=transit_name,

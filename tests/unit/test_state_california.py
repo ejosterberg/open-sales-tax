@@ -185,9 +185,7 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
     by_name = {r.authority_name: r for r in rows}
     county_name, _city_rate, _zips = CA_CITIES[city_name]
     return (
-        by_name["California"].rate_pct
-        + by_name[county_name].rate_pct
-        + by_name[city_name].rate_pct
+        by_name["California"].rate_pct + by_name[county_name].rate_pct + by_name[city_name].rate_pct
     )
 
 
@@ -196,37 +194,35 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
     [
         # CDTFA-published combined rates (April 1, 2026 publication).
         # Cross-checked Avalara 2026-05-04.
-        ("Los Angeles", Decimal("9.500")),       # state 7.25 + LA Co 2.25 + city 0
-        ("San Diego", Decimal("7.750")),         # state 7.25 + SD Co 0.5 + city 0
-        ("San Jose", Decimal("9.375")),          # state 7.25 + SCl 1.875 + city 0.25
-        ("San Francisco", Decimal("8.625")),     # state 7.25 + SF 1.375 + city 0
-        ("Fresno", Decimal("8.350")),            # state 7.25 + Fresno 0.225 + city 0.875
-        ("Sacramento", Decimal("8.750")),        # state 7.25 + Sac 0.5 + city 1.0
-        ("Long Beach", Decimal("10.250")),       # state 7.25 + LA 2.25 + city 0.75
-        ("Oakland", Decimal("10.250")),          # state 7.25 + Alameda 2.0 + city 1.0
-        ("Bakersfield", Decimal("8.250")),       # state 7.25 + Kern 0 + city 1.0
-        ("Anaheim", Decimal("7.750")),           # state 7.25 + OC 0.5 + city 0
-        ("Santa Ana", Decimal("9.250")),         # state 7.25 + OC 0.5 + city 1.5
-        ("Hayward", Decimal("10.750")),          # state 7.25 + Alameda 2.0 + city 1.5
-        ("Oxnard", Decimal("9.250")),            # state 7.25 + Ventura 0 + city 2.0
-        ("Thousand Oaks", Decimal("7.250")),     # state 7.25 only -- the floor
-        ("Simi Valley", Decimal("7.250")),       # state 7.25 only
-        ("Vallejo", Decimal("9.250")),           # state 7.25 + Solano 0.125 + city 1.875
-        ("Modesto", Decimal("8.875")),           # state 7.25 + Stan 0.125 + city 1.5
-        ("Concord", Decimal("9.750")),           # state 7.25 + CC 1.5 + city 1.0
-        ("Stockton", Decimal("9.000")),          # state 7.25 + SJ 0.5 + city 1.25
-        ("Sunnyvale", Decimal("9.125")),         # state 7.25 + SCl 1.875 + city 0
+        ("Los Angeles", Decimal("9.500")),  # state 7.25 + LA Co 2.25 + city 0
+        ("San Diego", Decimal("7.750")),  # state 7.25 + SD Co 0.5 + city 0
+        ("San Jose", Decimal("9.375")),  # state 7.25 + SCl 1.875 + city 0.25
+        ("San Francisco", Decimal("8.625")),  # state 7.25 + SF 1.375 + city 0
+        ("Fresno", Decimal("8.350")),  # state 7.25 + Fresno 0.225 + city 0.875
+        ("Sacramento", Decimal("8.750")),  # state 7.25 + Sac 0.5 + city 1.0
+        ("Long Beach", Decimal("10.250")),  # state 7.25 + LA 2.25 + city 0.75
+        ("Oakland", Decimal("10.250")),  # state 7.25 + Alameda 2.0 + city 1.0
+        ("Bakersfield", Decimal("8.250")),  # state 7.25 + Kern 0 + city 1.0
+        ("Anaheim", Decimal("7.750")),  # state 7.25 + OC 0.5 + city 0
+        ("Santa Ana", Decimal("9.250")),  # state 7.25 + OC 0.5 + city 1.5
+        ("Hayward", Decimal("10.750")),  # state 7.25 + Alameda 2.0 + city 1.5
+        ("Oxnard", Decimal("9.250")),  # state 7.25 + Ventura 0 + city 2.0
+        ("Thousand Oaks", Decimal("7.250")),  # state 7.25 only -- the floor
+        ("Simi Valley", Decimal("7.250")),  # state 7.25 only
+        ("Vallejo", Decimal("9.250")),  # state 7.25 + Solano 0.125 + city 1.875
+        ("Modesto", Decimal("8.875")),  # state 7.25 + Stan 0.125 + city 1.5
+        ("Concord", Decimal("9.750")),  # state 7.25 + CC 1.5 + city 1.0
+        ("Stockton", Decimal("9.000")),  # state 7.25 + SJ 0.5 + city 1.25
+        ("Sunnyvale", Decimal("9.125")),  # state 7.25 + SCl 1.875 + city 0
         ("East Los Angeles", Decimal("9.500")),  # CDP -- LA County rate
     ],
 )
-def test_california_combined_rate_matches_cdtfa(
-    city_name: str, expected_combined: Decimal
-) -> None:
+def test_california_combined_rate_matches_cdtfa(city_name: str, expected_combined: Decimal) -> None:
     """Every covered CA city's combined rate must match CDTFA Q2 2026."""
     rows = list(CALIFORNIA.parse_rates(None, "v0.27-top-50"))
-    assert _combined_for(city_name, rows) == expected_combined, (
-        f"{city_name} combined rate did not equal {expected_combined}%"
-    )
+    assert (
+        _combined_for(city_name, rows) == expected_combined
+    ), f"{city_name} combined rate did not equal {expected_combined}%"
 
 
 def test_california_no_combined_rate_below_state_floor() -> None:
@@ -239,9 +235,9 @@ def test_california_no_combined_rate_below_state_floor() -> None:
     floor = Decimal("7.250")
     for city_name in CA_CITIES:
         combined = _combined_for(city_name, rows)
-        assert combined >= floor, (
-            f"{city_name} combined rate {combined}% is below the 7.250% state floor"
-        )
+        assert (
+            combined >= floor
+        ), f"{city_name} combined rate {combined}% is below the 7.250% state floor"
 
 
 def test_california_no_combined_rate_exceeds_known_max() -> None:
@@ -257,9 +253,7 @@ def test_california_no_combined_rate_exceeds_known_max() -> None:
     cap = Decimal("10.750")
     for city_name in CA_CITIES:
         combined = _combined_for(city_name, rows)
-        assert combined <= cap, (
-            f"{city_name} combined rate {combined}% exceeds the 10.750% cap"
-        )
+        assert combined <= cap, f"{city_name} combined rate {combined}% exceeds the 10.750% cap"
 
 
 # ---------------------------------------------------------------------------
@@ -281,9 +275,9 @@ def test_california_every_city_has_at_least_one_zip() -> None:
     """Every covered city must seed at least one ZIP for the boundary loader."""
     for city, (county, _city_rate, zips) in CA_CITIES.items():
         assert len(zips) >= 1, f"{city} has no ZIPs"
-        assert county in CA_COUNTY_RATE_PCT, (
-            f"{city} references {county} which is missing from CA_COUNTY_RATE_PCT"
-        )
+        assert (
+            county in CA_COUNTY_RATE_PCT
+        ), f"{city} references {county} which is missing from CA_COUNTY_RATE_PCT"
 
 
 def test_california_la_county_is_largest_district() -> None:

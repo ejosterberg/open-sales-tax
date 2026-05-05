@@ -61,12 +61,8 @@ def test_record_active_on_drops_future() -> None:
 
 def test_record_active_on_keeps_today_boundary() -> None:
     """Rows whose window includes ``as_of`` exactly at either edge are active."""
-    edge_low = _make_record(
-        eff_from=dt.date(2026, 5, 4), eff_to=dt.date(2026, 12, 31)
-    )
-    edge_high = _make_record(
-        eff_from=dt.date(2025, 1, 1), eff_to=dt.date(2026, 5, 4)
-    )
+    edge_low = _make_record(eff_from=dt.date(2026, 5, 4), eff_to=dt.date(2026, 12, 31))
+    edge_high = _make_record(eff_from=dt.date(2025, 1, 1), eff_to=dt.date(2026, 5, 4))
     assert _record_active_on(edge_low, dt.date(2026, 5, 4)) is True
     assert _record_active_on(edge_high, dt.date(2026, 5, 4)) is True
 

@@ -160,10 +160,7 @@ def test_parse_boundaries_emits_state_and_county_rows(monkeypatch) -> None:
     # The (auth_type, auth_name, zip5, zip4_low, zip4_high) tuple is
     # de-duplicated -- the same binding is never emitted twice in
     # one parse pass.
-    keys = [
-        (r.authority_type, r.authority_name, r.zip5, r.zip4_low, r.zip4_high)
-        for r in rows
-    ]
+    keys = [(r.authority_type, r.authority_name, r.zip5, r.zip4_low, r.zip4_high) for r in rows]
     assert len(keys) == len(set(keys))
 
 

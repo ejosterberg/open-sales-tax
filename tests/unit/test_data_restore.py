@@ -524,5 +524,3 @@ class TestCliRestoreCommand:
         assert result.exit_code == 1, result.output
         combined = result.output
         assert "schema" in combined.lower()
-
-

@@ -187,50 +187,50 @@ NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # ---- Remaining 43 counties from NY DTF Pub 718 (March 1, 2025) ----
     # All combined rates verified against Pub 718; per-county rate is
     # combined - 4% state - 0.375% MCTD (for MCTD counties only).
-    "Allegany County": Decimal("4.500"),       # combined 8.5%
-    "Cattaraugus County": Decimal("4.000"),    # combined 8% (Olean/Salamanca city codes share rate)
-    "Cayuga County": Decimal("4.000"),         # combined 8% (Auburn city code shares rate)
-    "Chautauqua County": Decimal("4.000"),     # combined 8%
-    "Chemung County": Decimal("4.000"),        # combined 8%
-    "Chenango County": Decimal("4.000"),       # combined 8% (Norwich city code shares rate)
-    "Clinton County": Decimal("4.000"),        # combined 8%
-    "Columbia County": Decimal("4.000"),       # combined 8%
-    "Cortland County": Decimal("4.000"),       # combined 8%
-    "Delaware County": Decimal("4.000"),       # combined 8%
-    "Dutchess County": Decimal("3.750"),       # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
-    "Essex County": Decimal("4.000"),          # combined 8%
-    "Franklin County": Decimal("4.000"),       # combined 8%
-    "Fulton County": Decimal("4.000"),         # combined 8%
-    "Genesee County": Decimal("4.000"),        # combined 8%
-    "Greene County": Decimal("4.000"),         # combined 8%
-    "Hamilton County": Decimal("4.000"),       # combined 8%
-    "Herkimer County": Decimal("4.250"),       # combined 8.25%
-    "Jefferson County": Decimal("4.000"),      # combined 8%
-    "Lewis County": Decimal("4.000"),          # combined 8%
-    "Livingston County": Decimal("4.000"),     # combined 8%
-    "Madison County": Decimal("4.000"),        # combined 8% (Oneida city code shares rate)
-    "Montgomery County": Decimal("4.000"),     # combined 8%
-    "Ontario County": Decimal("3.500"),        # combined 7.5%
-    "Orange County": Decimal("3.750"),         # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
-    "Orleans County": Decimal("4.000"),        # combined 8%
-    "Oswego County": Decimal("4.000"),         # combined 8% (Oswego city code shares rate)
-    "Otsego County": Decimal("4.000"),         # combined 8%
-    "Putnam County": Decimal("4.000"),         # combined 8.375% (MCTD); 8.375 - 4 - 0.375 = 4
-    "St. Lawrence County": Decimal("4.000"),   # combined 8% (Ogdensburg city code shares rate)
-    "Saratoga County": Decimal("3.000"),       # combined 7% (Saratoga Springs city code shares rate)
-    "Schoharie County": Decimal("4.000"),      # combined 8%
-    "Schuyler County": Decimal("4.000"),       # combined 8%
-    "Seneca County": Decimal("4.000"),         # combined 8%
-    "Steuben County": Decimal("4.000"),        # combined 8%
-    "Sullivan County": Decimal("4.000"),       # combined 8%
-    "Tioga County": Decimal("4.000"),          # combined 8%
-    "Tompkins County": Decimal("4.000"),       # combined 8% (Ithaca city code shares rate)
-    "Ulster County": Decimal("4.000"),         # combined 8%
-    "Warren County": Decimal("3.000"),         # combined 7% (Glens Falls city code shares rate)
-    "Washington County": Decimal("3.000"),     # combined 7%
-    "Wayne County": Decimal("4.000"),          # combined 8%
-    "Wyoming County": Decimal("4.000"),        # combined 8%
-    "Yates County": Decimal("4.000"),          # combined 8%
+    "Allegany County": Decimal("4.500"),  # combined 8.5%
+    "Cattaraugus County": Decimal("4.000"),  # combined 8% (Olean/Salamanca city codes share rate)
+    "Cayuga County": Decimal("4.000"),  # combined 8% (Auburn city code shares rate)
+    "Chautauqua County": Decimal("4.000"),  # combined 8%
+    "Chemung County": Decimal("4.000"),  # combined 8%
+    "Chenango County": Decimal("4.000"),  # combined 8% (Norwich city code shares rate)
+    "Clinton County": Decimal("4.000"),  # combined 8%
+    "Columbia County": Decimal("4.000"),  # combined 8%
+    "Cortland County": Decimal("4.000"),  # combined 8%
+    "Delaware County": Decimal("4.000"),  # combined 8%
+    "Dutchess County": Decimal("3.750"),  # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
+    "Essex County": Decimal("4.000"),  # combined 8%
+    "Franklin County": Decimal("4.000"),  # combined 8%
+    "Fulton County": Decimal("4.000"),  # combined 8%
+    "Genesee County": Decimal("4.000"),  # combined 8%
+    "Greene County": Decimal("4.000"),  # combined 8%
+    "Hamilton County": Decimal("4.000"),  # combined 8%
+    "Herkimer County": Decimal("4.250"),  # combined 8.25%
+    "Jefferson County": Decimal("4.000"),  # combined 8%
+    "Lewis County": Decimal("4.000"),  # combined 8%
+    "Livingston County": Decimal("4.000"),  # combined 8%
+    "Madison County": Decimal("4.000"),  # combined 8% (Oneida city code shares rate)
+    "Montgomery County": Decimal("4.000"),  # combined 8%
+    "Ontario County": Decimal("3.500"),  # combined 7.5%
+    "Orange County": Decimal("3.750"),  # combined 8.125% (MCTD); 8.125 - 4 - 0.375 = 3.75
+    "Orleans County": Decimal("4.000"),  # combined 8%
+    "Oswego County": Decimal("4.000"),  # combined 8% (Oswego city code shares rate)
+    "Otsego County": Decimal("4.000"),  # combined 8%
+    "Putnam County": Decimal("4.000"),  # combined 8.375% (MCTD); 8.375 - 4 - 0.375 = 4
+    "St. Lawrence County": Decimal("4.000"),  # combined 8% (Ogdensburg city code shares rate)
+    "Saratoga County": Decimal("3.000"),  # combined 7% (Saratoga Springs city code shares rate)
+    "Schoharie County": Decimal("4.000"),  # combined 8%
+    "Schuyler County": Decimal("4.000"),  # combined 8%
+    "Seneca County": Decimal("4.000"),  # combined 8%
+    "Steuben County": Decimal("4.000"),  # combined 8%
+    "Sullivan County": Decimal("4.000"),  # combined 8%
+    "Tioga County": Decimal("4.000"),  # combined 8%
+    "Tompkins County": Decimal("4.000"),  # combined 8% (Ithaca city code shares rate)
+    "Ulster County": Decimal("4.000"),  # combined 8%
+    "Warren County": Decimal("3.000"),  # combined 7% (Glens Falls city code shares rate)
+    "Washington County": Decimal("3.000"),  # combined 7%
+    "Wayne County": Decimal("4.000"),  # combined 8%
+    "Wyoming County": Decimal("4.000"),  # combined 8%
+    "Yates County": Decimal("4.000"),  # combined 8%
 }
 
 # Per-city seed. Tuple shape:
@@ -255,38 +255,190 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("4.500"),
         (
             # Manhattan (New York County) -- 100xx, 101xx, 102xx
-            "10001", "10002", "10003", "10004", "10005", "10006", "10007",
-            "10009", "10010", "10011", "10012", "10013", "10014", "10016",
-            "10017", "10018", "10019", "10020", "10021", "10022", "10023",
-            "10024", "10025", "10026", "10027", "10028", "10029", "10030",
-            "10031", "10032", "10033", "10034", "10035", "10036", "10037",
-            "10038", "10039", "10040", "10044", "10065", "10075", "10128",
-            "10280", "10282",
+            "10001",
+            "10002",
+            "10003",
+            "10004",
+            "10005",
+            "10006",
+            "10007",
+            "10009",
+            "10010",
+            "10011",
+            "10012",
+            "10013",
+            "10014",
+            "10016",
+            "10017",
+            "10018",
+            "10019",
+            "10020",
+            "10021",
+            "10022",
+            "10023",
+            "10024",
+            "10025",
+            "10026",
+            "10027",
+            "10028",
+            "10029",
+            "10030",
+            "10031",
+            "10032",
+            "10033",
+            "10034",
+            "10035",
+            "10036",
+            "10037",
+            "10038",
+            "10039",
+            "10040",
+            "10044",
+            "10065",
+            "10075",
+            "10128",
+            "10280",
+            "10282",
             # Bronx (Bronx County) -- 104xx
-            "10451", "10452", "10453", "10454", "10455", "10456", "10457",
-            "10458", "10459", "10460", "10461", "10462", "10463", "10464",
-            "10465", "10466", "10467", "10468", "10469", "10470", "10471",
-            "10472", "10473", "10474", "10475",
+            "10451",
+            "10452",
+            "10453",
+            "10454",
+            "10455",
+            "10456",
+            "10457",
+            "10458",
+            "10459",
+            "10460",
+            "10461",
+            "10462",
+            "10463",
+            "10464",
+            "10465",
+            "10466",
+            "10467",
+            "10468",
+            "10469",
+            "10470",
+            "10471",
+            "10472",
+            "10473",
+            "10474",
+            "10475",
             # Staten Island (Richmond County) -- 103xx
-            "10301", "10302", "10303", "10304", "10305", "10306", "10307",
-            "10308", "10309", "10310", "10311", "10312", "10314",
+            "10301",
+            "10302",
+            "10303",
+            "10304",
+            "10305",
+            "10306",
+            "10307",
+            "10308",
+            "10309",
+            "10310",
+            "10311",
+            "10312",
+            "10314",
             # Brooklyn (Kings County) -- 112xx
-            "11201", "11203", "11204", "11205", "11206", "11207", "11208",
-            "11209", "11210", "11211", "11212", "11213", "11214", "11215",
-            "11216", "11217", "11218", "11219", "11220", "11221", "11222",
-            "11223", "11224", "11225", "11226", "11228", "11229", "11230",
-            "11231", "11232", "11233", "11234", "11235", "11236", "11237",
-            "11238", "11239", "11249",
+            "11201",
+            "11203",
+            "11204",
+            "11205",
+            "11206",
+            "11207",
+            "11208",
+            "11209",
+            "11210",
+            "11211",
+            "11212",
+            "11213",
+            "11214",
+            "11215",
+            "11216",
+            "11217",
+            "11218",
+            "11219",
+            "11220",
+            "11221",
+            "11222",
+            "11223",
+            "11224",
+            "11225",
+            "11226",
+            "11228",
+            "11229",
+            "11230",
+            "11231",
+            "11232",
+            "11233",
+            "11234",
+            "11235",
+            "11236",
+            "11237",
+            "11238",
+            "11239",
+            "11249",
             # Queens (Queens County) -- 110xx, 111xx, 113xx, 114xx, 116xx
-            "11004", "11005", "11101", "11102", "11103", "11104", "11105",
-            "11106", "11354", "11355", "11356", "11357", "11358", "11360",
-            "11361", "11362", "11363", "11364", "11365", "11366", "11367",
-            "11368", "11369", "11370", "11371", "11372", "11373", "11374",
-            "11375", "11377", "11378", "11379", "11385", "11411", "11412",
-            "11413", "11414", "11415", "11416", "11417", "11418", "11419",
-            "11420", "11421", "11422", "11423", "11426", "11427", "11428",
-            "11429", "11432", "11433", "11434", "11435", "11436", "11691",
-            "11692", "11693", "11694", "11697",
+            "11004",
+            "11005",
+            "11101",
+            "11102",
+            "11103",
+            "11104",
+            "11105",
+            "11106",
+            "11354",
+            "11355",
+            "11356",
+            "11357",
+            "11358",
+            "11360",
+            "11361",
+            "11362",
+            "11363",
+            "11364",
+            "11365",
+            "11366",
+            "11367",
+            "11368",
+            "11369",
+            "11370",
+            "11371",
+            "11372",
+            "11373",
+            "11374",
+            "11375",
+            "11377",
+            "11378",
+            "11379",
+            "11385",
+            "11411",
+            "11412",
+            "11413",
+            "11414",
+            "11415",
+            "11416",
+            "11417",
+            "11418",
+            "11419",
+            "11420",
+            "11421",
+            "11422",
+            "11423",
+            "11426",
+            "11427",
+            "11428",
+            "11429",
+            "11432",
+            "11433",
+            "11434",
+            "11435",
+            "11436",
+            "11691",
+            "11692",
+            "11693",
+            "11694",
+            "11697",
         ),
     ),
     # ---- Buffalo -- 8.750% (4 + 4.75 Erie; no MCTD, no city tax) ----
@@ -294,9 +446,26 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Erie County",
         Decimal("0.000"),
         (
-            "14201", "14202", "14203", "14204", "14206", "14207", "14208",
-            "14209", "14210", "14211", "14212", "14213", "14214", "14215",
-            "14216", "14217", "14218", "14219", "14220", "14222",
+            "14201",
+            "14202",
+            "14203",
+            "14204",
+            "14206",
+            "14207",
+            "14208",
+            "14209",
+            "14210",
+            "14211",
+            "14212",
+            "14213",
+            "14214",
+            "14215",
+            "14216",
+            "14217",
+            "14218",
+            "14219",
+            "14220",
+            "14222",
         ),
     ),
     # ---- Rochester -- 8.000% (4 + 4 Monroe; no MCTD, no city tax) ----
@@ -304,9 +473,27 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Monroe County",
         Decimal("0.000"),
         (
-            "14604", "14605", "14606", "14607", "14608", "14609", "14610",
-            "14611", "14612", "14613", "14614", "14615", "14616", "14617",
-            "14618", "14619", "14620", "14621", "14623", "14624", "14625",
+            "14604",
+            "14605",
+            "14606",
+            "14607",
+            "14608",
+            "14609",
+            "14610",
+            "14611",
+            "14612",
+            "14613",
+            "14614",
+            "14615",
+            "14616",
+            "14617",
+            "14618",
+            "14619",
+            "14620",
+            "14621",
+            "14623",
+            "14624",
+            "14625",
         ),
     ),
     # ---- Yonkers -- 8.875% (4 + 3 Westchester + 0.375 MCTD + 1.5 city) ----
@@ -320,8 +507,16 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Onondaga County",
         Decimal("0.000"),
         (
-            "13202", "13203", "13204", "13205", "13206", "13207", "13208",
-            "13210", "13219", "13224",
+            "13202",
+            "13203",
+            "13204",
+            "13205",
+            "13206",
+            "13207",
+            "13208",
+            "13210",
+            "13219",
+            "13224",
         ),
     ),
     # ---- Albany -- 8.000% (4 + 4 Albany; no MCTD, no city tax) ----

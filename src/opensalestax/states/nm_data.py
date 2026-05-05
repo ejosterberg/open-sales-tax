@@ -121,9 +121,21 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # Sandoval (87114, 87120, 87124) are excluded because the
         # local rate differs across the county line.
         (
-            "87102", "87104", "87105", "87106", "87107", "87108",
-            "87109", "87110", "87111", "87112", "87113", "87116",
-            "87121", "87122", "87123",
+            "87102",
+            "87104",
+            "87105",
+            "87106",
+            "87107",
+            "87108",
+            "87109",
+            "87110",
+            "87111",
+            "87112",
+            "87113",
+            "87116",
+            "87121",
+            "87122",
+            "87123",
         ),
     ),
     "Santa Fe": (
@@ -131,7 +143,11 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.5625"),  # combined ~8.4375% (TRD loc code 01-123)
         # Santa Fe city limits in Santa Fe County.
         (
-            "87501", "87505", "87506", "87507", "87508",
+            "87501",
+            "87505",
+            "87506",
+            "87507",
+            "87508",
         ),
     ),
     "Las Cruces": (
@@ -139,7 +155,11 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.125"),  # combined ~8.000% (TRD loc code 07-105)
         # Las Cruces city limits in Doña Ana County.
         (
-            "88001", "88005", "88007", "88011", "88012",
+            "88001",
+            "88005",
+            "88007",
+            "88011",
+            "88012",
         ),
     ),
     "Rio Rancho": (
@@ -148,7 +168,8 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # Rio Rancho city limits in Sandoval County. 87124 is shared
         # with Bernalillo County but predominantly Rio Rancho.
         (
-            "87124", "87144",
+            "87124",
+            "87144",
         ),
     ),
     "Roswell": (
@@ -156,7 +177,9 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.6875"),  # combined ~7.5625% (TRD loc code 04-101)
         # Roswell city limits in Chaves County.
         (
-            "88201", "88202", "88203",
+            "88201",
+            "88202",
+            "88203",
         ),
     ),
     "Farmington": (
@@ -164,7 +187,8 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.250"),  # combined ~8.125% (TRD loc code 16-121)
         # Farmington city limits in San Juan County.
         (
-            "87401", "87402",
+            "87401",
+            "87402",
         ),
     ),
     "Hobbs": (
@@ -172,7 +196,8 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.6875"),  # combined ~6.5625% (TRD loc code 06-114)
         # Hobbs city limits in Lea County.
         (
-            "88240", "88242",
+            "88240",
+            "88242",
         ),
     ),
     "Carlsbad": (
@@ -180,7 +205,8 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.9583"),  # combined ~7.8333% (TRD loc code 03-205)
         # Carlsbad city limits in Eddy County.
         (
-            "88220", "88221",
+            "88220",
+            "88221",
         ),
     ),
     # ---- Tier-2 (top-30 coverage; published combined rates from TRD
@@ -203,7 +229,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Alamogordo": (
         "Otero County",
         Decimal("3.250"),  # combined ~8.125% (TRD loc code 15-118)
-        ("88310", "88311",),
+        (
+            "88310",
+            "88311",
+        ),
     ),
     "Gallup": (
         "McKinley County",
@@ -249,7 +278,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Silver City": (
         "Grant County",
         Decimal("3.250"),  # combined ~8.125% (TRD loc code 08-127)
-        ("88061", "88062",),
+        (
+            "88061",
+            "88062",
+        ),
     ),
     "Espanola": (
         # Crosses Rio Arriba and Santa Fe counties; primary is Rio Arriba

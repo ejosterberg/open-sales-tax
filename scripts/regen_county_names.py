@@ -91,18 +91,20 @@ def main() -> None:
     for abbrev, county_fips, name in rows:
         safe = name.replace('"', r"\"")
         out.append(f'    ("{abbrev}", "{county_fips}"): "{safe}",')
-    out.extend([
-        "}",
-        "",
-        "",
-        "def county_name(state_abbrev: str, county_fips_3digit: str) -> str | None:",
-        '    """Return the friendly county name for a (state, county) pair, or None."""',
-        "    return COUNTY_NAMES.get((state_abbrev.upper(), county_fips_3digit))",
-        "",
-        "",
-        '__all__ = ["COUNTY_NAMES", "county_name"]',
-        "",
-    ])
+    out.extend(
+        [
+            "}",
+            "",
+            "",
+            "def county_name(state_abbrev: str, county_fips_3digit: str) -> str | None:",
+            '    """Return the friendly county name for a (state, county) pair, or None."""',
+            "    return COUNTY_NAMES.get((state_abbrev.upper(), county_fips_3digit))",
+            "",
+            "",
+            '__all__ = ["COUNTY_NAMES", "county_name"]',
+            "",
+        ]
+    )
 
     TARGET.write_text("\n".join(out), encoding="utf-8")
     print(f"wrote {len(rows)} county entries to {TARGET}")
