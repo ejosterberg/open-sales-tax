@@ -323,3 +323,71 @@ class TestPickOneCityCountyPerZip5:
         picked = _pick_one_city_county_per_zip5(rows)
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["Hennepin Transit", "Metro Transportation"]
+
+
+    def test_typez_districts_all_apply(self) -> None:
+        """MN-style metro transit: all districts with type-z records stack.
+
+        Bloomington 55425 has 3 metro districts each with a type-z
+        record: Hennepin Transit + Metro Transportation + Metro Housing.
+        All three correctly apply to the entire ZIP.
+        """
+        state = _stub_authority(1, "Minnesota", "state")
+        d1 = _stub_authority(2, "Hennepin Transit", "district")
+        d2 = _stub_authority(3, "Metro Transportation", "district")
+        d3 = _stub_authority(4, "Metro Housing", "district")
+        rows = [(state, None), (d1, None), (d2, None), (d3, None)]
+        picked = _pick_one_city_county_per_zip5(rows)
+        district_names = sorted(a.name for a in picked if a.authority_type == "district")
+        assert district_names == ["Hennepin Transit", "Metro Housing", "Metro Transportation"]
+
+    def test_type4_only_districts_dropped(self) -> None:
+        """KS Olathe: 4 CIDs with only type-4 records -- drop all of them.
+
+        Pre-fix, KS 66061 returned 13.475% because 4 KS-district-209xx
+        CIDs (Community Improvement Districts) summed at ~1% each on top
+        of the legitimate state + county + city. CIDs are address-
+        specific; without ZIP+4, no single district can be authoritatively
+        chosen, so dropping all is safer than picking arbitrarily.
+        """
+        state = _stub_authority(1, "Kansas", "state")
+        county = _stub_authority(2, "Johnson County", "county")
+        city = _stub_authority(3, "Olathe", "city")
+        cid1 = _stub_authority(10, "KS-district-20910", "district")
+        cid2 = _stub_authority(11, "KS-district-21059", "district")
+        cid3 = _stub_authority(12, "KS-district-20917", "district")
+        rows = [
+            (state, None),
+            (county, None),
+            (city, "2917"),
+            (cid1, "1000"),
+            (cid1, "1001"),
+            (cid2, "5000"),
+            (cid3, "9000"),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        types = sorted(a.authority_type for a in picked)
+        # Should be: state + county + city -- NO districts (all were type-4 only)
+        assert types == ["city", "county", "state"]
+
+    def test_mix_typez_and_type4_districts(self) -> None:
+        """TN-style: 1 type-z district stays; 3 type-4-only ones drop.
+
+        TN 37027 (Brentwood) had 1 Williamson IMPROVE Act with type-z
+        plus 3 other-county IMPROVE Acts with only type-4 records.
+        Only the legitimate Williamson one should remain.
+        """
+        state = _stub_authority(1, "Tennessee", "state")
+        d_typez = _stub_authority(2, "TN-district-91950", "district")
+        d_t4_a = _stub_authority(3, "Other IMPROVE Act A", "district")
+        d_t4_b = _stub_authority(4, "Other IMPROVE Act B", "district")
+        rows = [
+            (state, None),
+            (d_typez, None),
+            (d_typez, "1234"),
+            (d_t4_a, "1000"),
+            (d_t4_b, "2000"),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        district_names = sorted(a.name for a in picked if a.authority_type == "district")
+        assert district_names == ["TN-district-91950"]
