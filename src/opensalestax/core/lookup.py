@@ -183,28 +183,38 @@ async def lookup_jurisdictions_by_zip(
     # match has already won for the city/county slot; skip the
     # dedup so per-+4 precision is preserved.
     if not precise_county_city_ids:
-        merged = await _dedup_typez_fallback(session, merged)
+        merged = await _dedup_typez_fallback(session, merged, zip5)
 
     return _stable_sort(merged)
 
 
 async def _dedup_typez_fallback(
-    session: AsyncSession, authorities: list[TaxAuthority]
+    session: AsyncSession, authorities: list[TaxAuthority], zip5: str
 ) -> list[TaxAuthority]:
     """Dedup a strict-lookup type-z fallback list to the same shape as the loose lookup.
 
-    Treats every authority as type-z (zip4_low=None) since they
-    came from the type-z merge step. Looks up total ZIP counts
-    for the more-specific-wins tiebreaker, then delegates to
-    ``_pick_one_city_county_per_zip5`` so the strict and loose
-    lookups produce the same authority stack for a given ZIP
-    when no precise type-4 match exists.
+    Pulls the same ``(authority, zip4_low)`` rows the loose lookup
+    uses (any boundary that touches ``zip5`` -- type-z and type-4
+    both count) so the dominant-by-row-count tiebreaker gets the
+    real per-ZIP coverage, not just the deduped 1-row-per-authority
+    we'd see if we treated every candidate as a single type-z. Also
+    queries total-ZIP coverage for the more-specific-wins
+    tiebreaker. Delegates to ``_pick_one_city_county_per_zip5`` so
+    the strict and loose lookups produce the same authority stack
+    for a given ZIP when no precise type-4 match exists.
     """
     if not authorities:
         return authorities
 
-    rows: list[tuple[TaxAuthority, str | None]] = [(a, None) for a in authorities]
     candidate_ids = {a.id for a in authorities}
+    rows_stmt = (
+        select(TaxAuthority, Boundary.zip4_low)
+        .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+        .where(Boundary.zip5 == zip5, TaxAuthority.id.in_(candidate_ids))
+        .options(selectinload(TaxAuthority.state))
+    )
+    rows = [(row[0], row[1]) for row in (await session.execute(rows_stmt)).all()]
+
     coverage_stmt = (
         select(Boundary.authority_id, func.count(Boundary.zip5.distinct()))
         .where(Boundary.authority_id.in_(candidate_ids))
