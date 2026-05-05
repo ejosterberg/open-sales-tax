@@ -11,7 +11,6 @@ import pytest
 
 from opensalestax.states import get_state_module
 from opensalestax.states.no_tax import (
-    ALASKA,
     DELAWARE,
     MONTANA,
     NEW_HAMPSHIRE,
@@ -20,16 +19,21 @@ from opensalestax.states.no_tax import (
     NoTaxState,
 )
 
+# Use Delaware as the canonical no-tax exemplar in tests that
+# previously hard-coded ALASKA. Alaska moved to its own module in
+# v0.49 (cities-only ARSSTC MVP) and is no longer a NoTaxState.
+_EXEMPLAR = DELAWARE
 
-def test_five_no_tax_states_exported() -> None:
-    assert len(NO_TAX_STATES) == 5
-    assert {s.state_abbrev for s in NO_TAX_STATES} == {"AK", "DE", "MT", "NH", "OR"}
+
+def test_four_no_tax_states_exported() -> None:
+    """v0.49 demoted AK from no-tax to a real state module; 4 remain."""
+    assert len(NO_TAX_STATES) == 4
+    assert {s.state_abbrev for s in NO_TAX_STATES} == {"DE", "MT", "NH", "OR"}
 
 
 @pytest.mark.parametrize(
     "instance,abbrev,name",
     [
-        (ALASKA, "AK", "Alaska"),
         (DELAWARE, "DE", "Delaware"),
         (MONTANA, "MT", "Montana"),
         (NEW_HAMPSHIRE, "NH", "New Hampshire"),
@@ -44,7 +48,7 @@ def test_each_no_tax_state_metadata(instance: NoTaxState, abbrev: str, name: str
     assert instance.tier == 1
 
 
-@pytest.mark.parametrize("abbrev", ["AK", "DE", "MT", "NH", "OR"])
+@pytest.mark.parametrize("abbrev", ["DE", "MT", "NH", "OR"])
 def test_no_tax_states_are_registered(abbrev: str) -> None:
     mod = get_state_module(abbrev)
     assert mod is not None
@@ -52,29 +56,33 @@ def test_no_tax_states_are_registered(abbrev: str) -> None:
 
 
 def test_parse_rates_returns_empty() -> None:
-    rows = list(ALASKA.parse_rates(Path("ignored"), "ignored"))
+    rows = list(_EXEMPLAR.parse_rates(Path("ignored"), "ignored"))
     assert rows == []
 
 
 def test_parse_boundaries_returns_empty() -> None:
-    rows = list(ALASKA.parse_boundaries(Path("ignored"), "ignored"))
+    rows = list(_EXEMPLAR.parse_boundaries(Path("ignored"), "ignored"))
     assert rows == []
 
 
 @pytest.mark.parametrize("category", ["general", "clothing", "groceries", "anything"])
 def test_taxability_for_returns_non_taxable(category: str) -> None:
-    rule = ALASKA.taxability_for(category, dt.date(2026, 5, 3))
+    rule = _EXEMPLAR.taxability_for(category, dt.date(2026, 5, 3))
     assert rule is not None
     assert rule.is_taxable is False
     assert rule.item_category == category
 
 
 def test_special_cases_returns_empty() -> None:
-    cases = list(ALASKA.special_cases())
+    cases = list(_EXEMPLAR.special_cases())
     assert cases == []
 
 
-def test_alaska_has_arsstc_note() -> None:
-    """The ARSSTC caveat is documented in the notes for visibility."""
-    assert "arsstc" in ALASKA.notes.lower()
-    assert "Alaska Remote Seller Sales Tax Commission" in ALASKA.notes
+def test_alaska_no_longer_a_no_tax_state() -> None:
+    """v0.49 promotes Alaska to a real state module via ARSSTC data."""
+    mod = get_state_module("AK")
+    assert mod is not None
+    assert not isinstance(
+        mod, NoTaxState
+    ), "AK should now be the cities-only ARSSTC module, not NoTaxState"
+    assert mod.has_sales_tax is True

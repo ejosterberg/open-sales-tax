@@ -101,18 +101,9 @@ del _PROTOCOL_CHECK
 # ---------------------------------------------------------------------------
 # Registered instances -- one per no-tax state
 # ---------------------------------------------------------------------------
-ALASKA = register(
-    NoTaxState(
-        "AK",
-        "Alaska",
-        notes=(
-            "No statewide sales tax. ~110 boroughs/cities collect local "
-            "sales tax (many via the Alaska Remote Seller Sales Tax "
-            "Commission, https://arsstc.org). Phase 1 does not model "
-            "Alaska localities."
-        ),
-    )
-)
+# NOTE: Alaska was previously registered here as a no-tax state but
+# moved to ``opensalestax.states.alaska`` in v0.49 to model the ~20
+# largest sales-tax-collecting AK municipalities via ARSSTC data.
 
 DELAWARE = register(NoTaxState("DE", "Delaware"))
 
@@ -141,4 +132,4 @@ OREGON = register(
     )
 )
 
-NO_TAX_STATES = (ALASKA, DELAWARE, MONTANA, NEW_HAMPSHIRE, OREGON)
+NO_TAX_STATES = (DELAWARE, MONTANA, NEW_HAMPSHIRE, OREGON)
