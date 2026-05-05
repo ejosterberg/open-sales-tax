@@ -535,6 +535,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # PA: Lancaster County edge ZIP (Manheim Township) -- Lancaster
     # County has 0% local so combined is 6.0% statewide flat.
     ("PA", "Lancaster County edge", "17601", "0001", "6.000", "0.05", "PA DOR (state 6% only -- Lancaster Co has no local tax) -- post-v0.29 ZCTA"),
+    # ----- v0.32 Hawaii per-county GET surcharges -------------------------
+    # Source: HI DOTAX Tax Facts 31-1 + HRS section 46-16.8 (county
+    # surcharge on state tax). State 4.0% + county surcharge per
+    # HI_COUNTY_RATE_PCT. Three of four inhabited counties impose
+    # the 0.5% surcharge as of 2025-01-01; Maui has not enacted it.
+    ("HI", "Honolulu (Oahu)", "96813", "0001", "4.500", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% + Honolulu County 0.5%) -- v0.32 per-county"),
+    ("HI", "Hilo (Big Island)", "96720", "0001", "4.500", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% + Hawaii County 0.5%, effective 2020-01-01) -- v0.32 per-county"),
+    ("HI", "Lihue (Kauai)", "96766", "0001", "4.500", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% + Kauai County 0.5%, effective 2019-01-01) -- v0.32 per-county"),
+    ("HI", "Kahului (Maui)", "96732", "0001", "4.000", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% only -- Maui no surcharge as of 2025-01-01) -- v0.32 per-county"),
 ]
 
 

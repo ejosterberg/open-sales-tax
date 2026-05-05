@@ -82,42 +82,42 @@ These reduced rates are documented in
 ``specs/research/references.md`` for completeness; the engine does
 not surface them via ``/v1/calculate`` in v1.
 
-Per-county surcharges (DEFERRED in v1; documented here)
--------------------------------------------------------
-Hawaii authorizes each of its four counties to enact a **0.5% county
-surcharge** on top of the state GET under **HRS § 46-16.8** (county
-surcharge on state tax). All four counties have enacted the
-surcharge as of 2026-01-01:
+Per-county surcharges (SHIPPED in v0.32)
+----------------------------------------
+Hawaii authorizes each of its four inhabited counties to enact a
+**0.5% county surcharge** on top of the state GET under **HRS
+section 46-16.8** (county surcharge on state tax). As of the most
+recent Hawaii Department of Taxation Tax Facts 31-1 publication
+(verified against the official DOTAX surcharge schedule on
+2026-05-04), three of the four inhabited counties currently impose
+the surcharge:
 
 - **Honolulu County** (City and County of Honolulu, the entire
   island of Oahu) -- **0.5% effective 2007-01-01**, the longest-
   running county surcharge. Combined Oahu GET rate: **4.5%**.
 - **Kauai County** (the entire island of Kauai) -- **0.5% effective
-  2019-01-01**.
+  2019-01-01**. Combined GET: **4.5%**.
 - **Hawaii County** (the Big Island) -- **0.5% effective
-  2020-01-01**.
-- **Maui County** (Maui, Molokai, Lanai, and Kahoolawe) -- **0.5%
-  effective 2024-01-01**, the most recent enactment.
+  2020-01-01**. Combined GET: **4.5%**.
+- **Maui County** (Maui, Molokai, Lanai, and Kahoolawe) -- **NO
+  surcharge in effect as of 2025-01-01**. Combined GET remains
+  **4.0%**. (Maui Bill No. 30 of 2023 authorized but did not
+  enact a 0.5% surcharge.)
 
-The county surcharges apply to the same gross-receipts base as the
-state GET, which means the combined effective rate is **4.5% on every
-inhabited Hawaiian island** as of 2026. Because HI has no Streamlined
-Sales Tax membership and no machine-readable per-county GET file
-analogous to Texas's Comptroller file, **per-county surcharge data
-ingestion is deferred** (mirrors the documented-deferral pattern used
-by Colorado, South Carolina, Missouri, Mississippi, and Nevada). API
-consumers calling ``/v1/calculate`` for a Hawaii address in v1
-receive the **state-only 4.0% rate** -- an under-collection of 0.5
-percentage points on every inhabited Hawaii address. The module's
-docstring AND the general taxability rule's notes call this out
-explicitly so an integrator does not silently miscompute Hawaii tax.
+Per-county data is now seeded in :mod:`opensalestax.states.hi_data`
+(``HI_COUNTY_RATE_PCT`` / ``HI_COUNTY_SURCHARGE_EFFECTIVE``).
+:meth:`Hawaii.parse_rates` emits a state RateRow plus one county
+RateRow per HI county; :meth:`Hawaii.parse_boundaries` iterates
+:data:`opensalestax.data.zip_county.ZIP_COUNTY` and emits state +
+county bindings for every HI ZIP (mirrors the SC/VA/MS pattern with
+FIPS-sort + city-anchor dedup).
 
-Once a Hawaii per-county data path lands (Phase 4+ when address-level
-resolution + boundaries ship, or earlier if a contributor builds a
-Hawaii County / Maui County / Kauai County / Honolulu County boundary
-file by ZIP), this module should emit four additional ``RateRow``
-instances with ``authority_type='county'`` and
-``parent_authority_name='Hawaii'``.
+A 5th HI county FIPS exists for **Kalawao County** (FIPS 005, the
+former Hansen's-disease settlement on Molokai administered by the
+State Department of Health, ~80 residents); it has no county
+government authority to levy a surcharge and is encoded at 0% so
+the boundary loader can resolve its single ZIP (96742) to a
+queryable state-only rate.
 
 Taxability matrix (per HRS Chapter 237)
 ---------------------------------------
@@ -192,9 +192,16 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Iterable
-from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_names import county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
+from opensalestax.states.hi_data import (
+    HI_COUNTY_RATE_PCT,
+    HI_COUNTY_SURCHARGE_EFFECTIVE,
+    HI_STATE_EFFECTIVE_FROM,
+    HI_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -266,10 +273,10 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "food rate (unlike Maine's statutory 8% prepared-food rate); "
             "restaurant meals, takeout, and catering are all subject to "
             "the standard 4.0% GET under HRS section 237-13(2)(A). On "
-            "Oahu the combined rate is 4.5% (state 4.0% + Honolulu "
-            "County 0.5% surcharge), but per-county surcharges are "
-            "deferred from v1 (see module docstring). Calculation only "
-            "-- not legal or tax advice."
+            "Oahu / Kauai / Hawaii Island the combined rate is 4.5% "
+            "(state 4.0% + 0.5% county surcharge under HRS section "
+            "46-16.8); Maui County remains at 4.0% as of 2025-01-01. "
+            "Calculation only -- not legal or tax advice."
         ),
     ),
     "digital_goods": TaxabilityRule(
@@ -303,13 +310,11 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "Hawaii does NOT levy a sales tax: the GET is a gross-"
             "receipts tax on the SELLER, not a transactional tax on the "
             "buyer (see module docstring for the legal distinction). "
-            "WARNING -- per-county surcharges (Honolulu 0.5% since 2007, "
-            "Kauai 0.5% since 2019, Hawaii County 0.5% since 2020, Maui "
-            "0.5% since 2024) bring the combined rate to 4.5% at every "
-            "inhabited Hawaii address as of 2026, but the v1 engine "
-            "models the state-only 4.0% rate -- an under-collection of "
-            "0.5 percentage points on every Hawaii transaction until the "
-            "per-county surcharge data path lands. Calculation only -- "
+            "Per-county surcharges under HRS section 46-16.8 are now "
+            "encoded (v0.32): Honolulu 0.5% since 2007, Kauai 0.5% "
+            "since 2019, Hawaii County 0.5% since 2020 (combined 4.5% "
+            "in those counties); Maui County remains at 4.0% as of "
+            "2025-01-01 (no surcharge enacted). Calculation only -- "
             "not legal or tax advice."
         ),
     ),
@@ -318,17 +323,19 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # Statewide-rate effective date: January 1, 1965. The 4.0% general-
 # retail GET rate took effect under Act 155, SLH 1965, which raised
 # the rate from 3.5% to 4.0% effective 1965-01-01. The 4.0% general
-# rate has been stable for the 60+ years since (per-county 0.5%
-# surcharges are layered on top under HRS section 46-16.8 and are
-# deferred from v1).
-_RATE_EFFECTIVE_FROM = dt.date(1965, 1, 1)
+# rate has been stable for the 60+ years since. Per-county 0.5%
+# surcharges layered on top under HRS section 46-16.8 are now
+# encoded (v0.32) via :mod:`opensalestax.states.hi_data`.
+_RATE_EFFECTIVE_FROM = HI_STATE_EFFECTIVE_FROM
 
 
 class Hawaii:
-    """Hawaii state module (tier 1; 4.0% GET; per-county surcharges deferred).
+    """Hawaii state module (tier 1; state 4.0% GET + per-county surcharges).
 
     See module docstring for the General Excise Tax legal model and
     the rationale for encoding HI as a sales tax for API purposes.
+    Per-county surcharges (Honolulu / Kauai / Hawaii / Maui)
+    shipped in v0.32 via :mod:`opensalestax.states.hi_data`.
     """
 
     state_abbrev: str = "HI"
@@ -342,45 +349,90 @@ class Hawaii:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Hawaii's statewide 4.0% GET rate.
+        """Yield Hawaii's state 4.0% GET + per-county surcharge rates.
 
         ``source_file`` is intentionally ignored -- HI is non-SST and
         has no upstream file. Pass ``None`` from the loader.
 
-        The four 0.5% county surcharges (Honolulu, Kauai, Hawaii
-        County, Maui) authorized under HRS section 46-16.8 are NOT
-        emitted as RateRow instances in v1; per-county data
-        ingestion is deferred until a Hawaii boundary loader lands.
-        See the module docstring's "Per-county surcharges" section
-        for the full deferral rationale and the four enactment dates.
-        Once that loader lands, additional ``RateRow`` instances with
-        ``authority_type='county'`` and
-        ``parent_authority_name='Hawaii'`` should be emitted here.
+        Counties yielded: every county in :data:`HI_COUNTY_RATE_PCT`
+        (Hawaii / Honolulu / Kalawao / Kauai / Maui). The
+        ZIP_COUNTY-driven boundary loader binds every HI ZIP to its
+        county, so every county must have a queryable rate (even the
+        0% ones -- Maui has not enacted a surcharge as of 2025-01-01;
+        Kalawao has no county tax authority). Per-county effective
+        dates from :data:`HI_COUNTY_SURCHARGE_EFFECTIVE` are used for
+        counties with a surcharge enacted; the state effective date is
+        used as a placeholder for 0% counties so the audit trail still
+        records a valid effective range.
         """
         del source_file, version_label
         yield RateRow(
             authority_name="Hawaii",
             authority_type="state",
-            rate_pct=Decimal("4.000"),
+            rate_pct=HI_STATE_RATE_PCT,
             effective_from=_RATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
         )
+        # Emit a county RateRow for every HI county. The ZIP_COUNTY-
+        # driven boundary loader binds every HI ZIP to its county, so
+        # every county must have a queryable rate (even the 0% ones).
+        for hi_county_name in sorted(HI_COUNTY_RATE_PCT):
+            county_effective = (
+                HI_COUNTY_SURCHARGE_EFFECTIVE.get(hi_county_name) or _RATE_EFFECTIVE_FROM
+            )
+            yield RateRow(
+                authority_name=hi_county_name,
+                authority_type="county",
+                rate_pct=HI_COUNTY_RATE_PCT[hi_county_name],
+                effective_from=county_effective,
+                effective_to=None,
+                parent_authority_name="Hawaii",
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundary rows shipped in v1.
+        """Yield (state, county) boundary rows for every HI ZIP.
 
-        Hawaii has no county-level GET data file analogous to SST
-        quarterly files or to Texas's Comptroller file. The four
-        county surcharges (Honolulu / Kauai / Hawaii County / Maui)
-        are documented in the module docstring; per-county boundary
-        ingestion is deferred (mirrors CO/SC/MO/MS/NV deferral
-        patterns).
+        Iterates :data:`opensalestax.data.zip_county.ZIP_COUNTY` and
+        emits state + county bindings for every ZIP intersecting an
+        HI county. Mirrors the v0.31 SC/VA/MS pattern with FIPS-sort
+        + city-anchor dedup -- HI has no city-level GET, so there is
+        no city-anchor map to consult; the FIPS-sorted single-county
+        pick handles the (very rare) cross-county-line ZIP cases
+        (e.g., a ZIP that Census lists under both Maui and Kalawao).
         """
         del source_file, version_label
-        return iter(())
+        # Pass 1: state + county for every HI ZIP per Census ZCTA.
+        # Emit at most one county per ZIP: take the first HI county
+        # in deterministic FIPS-sorted order. (HI has no city-level
+        # GET, so no city-anchor preference is needed.)
+        for zip5, pairs in ZIP_COUNTY.items():
+            sorted_hi_pairs = sorted(cf for sa, cf in pairs if sa == "HI")
+            chosen_county: str | None = None
+            for county_fips in sorted_hi_pairs:
+                hi_county_name = county_name("HI", county_fips)
+                if hi_county_name is None or hi_county_name not in HI_COUNTY_RATE_PCT:
+                    continue
+                chosen_county = hi_county_name
+                break
+            if chosen_county is None:
+                continue
+            yield BoundaryRow(
+                authority_name="Hawaii",
+                authority_type="state",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
+            yield BoundaryRow(
+                authority_name=chosen_county,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return Hawaii's taxability rule for ``item_category``."""

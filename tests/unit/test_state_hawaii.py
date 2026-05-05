@@ -64,21 +64,46 @@ def test_hawaii_unknown_category_returns_none() -> None:
     assert HAWAII.taxability_for("shave-ice", dt.date(2026, 5, 3)) is None
 
 
-def test_hawaii_parse_rates_yields_4_0_pct() -> None:
-    """Hawaii's statewide GET rate is 4.0% effective 1965-01-01 (Act 155, SLH 1965)."""
-    rows = list(HAWAII.parse_rates(None, "v0.13-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
-    assert row.authority_name == "Hawaii"
-    assert row.authority_type == "state"
-    assert row.rate_pct == Decimal("4.000")
-    assert row.effective_from == dt.date(1965, 1, 1)
-    assert row.effective_to is None
-    assert row.parent_authority_name is None  # state-level rate has no parent
+def test_hawaii_parse_rates_yields_state_4_0_pct_and_per_county_surcharges() -> None:
+    """Hawaii's statewide GET rate is 4.0% effective 1965-01-01 (Act 155, SLH
+    1965), plus per-county surcharges under HRS section 46-16.8 shipped in v0.32.
+    """
+    rows = list(HAWAII.parse_rates(None, "v0.32-counties"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    county_rows = [r for r in rows if r.authority_type == "county"]
+    assert len(state_rows) == 1
+    state = state_rows[0]
+    assert state.authority_name == "Hawaii"
+    assert state.rate_pct == Decimal("4.000")
+    assert state.effective_from == dt.date(1965, 1, 1)
+    assert state.effective_to is None
+    assert state.parent_authority_name is None  # state-level rate has no parent
+    # 5 HI counties: Hawaii / Honolulu / Kalawao / Kauai / Maui.
+    county_by_name = {r.authority_name: r for r in county_rows}
+    assert set(county_by_name) == {
+        "Hawaii County",
+        "Honolulu County",
+        "Kalawao County",
+        "Kauai County",
+        "Maui County",
+    }
+    # Per-county surcharge rates (HI DOTAX Tax Facts 31-1, verified 2026-05-04).
+    assert county_by_name["Honolulu County"].rate_pct == Decimal("0.500")
+    assert county_by_name["Kauai County"].rate_pct == Decimal("0.500")
+    assert county_by_name["Hawaii County"].rate_pct == Decimal("0.500")
+    assert county_by_name["Maui County"].rate_pct == Decimal("0.000")
+    assert county_by_name["Kalawao County"].rate_pct == Decimal("0.000")
+    # Each county RateRow's parent must be the state.
+    for c in county_rows:
+        assert c.parent_authority_name == "Hawaii"
+    # Per-county surcharge effective dates (HRS section 46-16.8).
+    assert county_by_name["Honolulu County"].effective_from == dt.date(2007, 1, 1)
+    assert county_by_name["Kauai County"].effective_from == dt.date(2019, 1, 1)
+    assert county_by_name["Hawaii County"].effective_from == dt.date(2020, 1, 1)
 
 
 def test_hawaii_parse_rates_ignores_source_file() -> None:
-    """parse_rates returns the same row whether given a path or None."""
+    """parse_rates returns the same rows whether given a path or None."""
     from pathlib import Path
 
     rows_with_none = list(HAWAII.parse_rates(None, "test"))
@@ -86,12 +111,60 @@ def test_hawaii_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_hawaii_parse_boundaries_returns_empty() -> None:
-    """Hawaii's per-county surcharges (Honolulu/Kauai/Hawaii/Maui) are deferred
-    from v1 -- no boundary rows are shipped until a per-county data path lands.
+def test_hawaii_parse_boundaries_emits_state_and_county_for_every_hi_zip() -> None:
+    """v0.32: HI ZCTA-driven boundaries -- every HI ZIP gets state + county
+    bindings so per-county surcharges resolve correctly. Spot-check the four
+    inhabited counties via known centroid ZIPs.
     """
-    rows = list(HAWAII.parse_boundaries(None, "v0.13-statewide"))
-    assert rows == []
+    rows = list(HAWAII.parse_boundaries(None, "v0.32-counties"))
+    # Every emitted row must be tagged "Hawaii" (state) or one of the 5 county names.
+    valid_authorities = {
+        "Hawaii",
+        "Hawaii County",
+        "Honolulu County",
+        "Kalawao County",
+        "Kauai County",
+        "Maui County",
+    }
+    for row in rows:
+        assert row.authority_name in valid_authorities, row.authority_name
+    # Spot-check: Honolulu 96813 -> state + Honolulu County.
+    honolulu = [r for r in rows if r.zip5 == "96813"]
+    names = sorted(r.authority_name for r in honolulu)
+    assert names == ["Hawaii", "Honolulu County"]
+    # Spot-check: Hilo 96720 -> state + Hawaii County (Big Island).
+    hilo = [r for r in rows if r.zip5 == "96720"]
+    names = sorted(r.authority_name for r in hilo)
+    assert names == ["Hawaii", "Hawaii County"]
+    # Spot-check: Lihue 96766 -> state + Kauai County.
+    lihue = [r for r in rows if r.zip5 == "96766"]
+    names = sorted(r.authority_name for r in lihue)
+    assert names == ["Hawaii", "Kauai County"]
+    # Spot-check: Kahului 96732 -> state + Maui County (no surcharge as of 2025-01-01).
+    kahului = [r for r in rows if r.zip5 == "96732"]
+    names = sorted(r.authority_name for r in kahului)
+    assert names == ["Hawaii", "Maui County"]
+
+
+def test_hawaii_combined_rate_oahu_arithmetic() -> None:
+    """state 4.0% + Honolulu County 0.5% should sum to 4.5% on Oahu."""
+    rows = list(HAWAII.parse_rates(None, "v0.32-counties"))
+    state = next(r for r in rows if r.authority_type == "state")
+    honolulu = next(r for r in rows if r.authority_name == "Honolulu County")
+    combined = state.rate_pct + honolulu.rate_pct
+    assert combined == Decimal("4.500")
+
+
+def test_hawaii_combined_rate_maui_remains_4_0() -> None:
+    """Maui County has NOT enacted a surcharge as of 2025-01-01; combined
+    GET on Maui remains 4.0% (state-only). Verify against HI DOTAX Tax
+    Facts 31-1.
+    """
+    rows = list(HAWAII.parse_rates(None, "v0.32-counties"))
+    state = next(r for r in rows if r.authority_type == "state")
+    maui = next(r for r in rows if r.authority_name == "Maui County")
+    combined = state.rate_pct + maui.rate_pct
+    assert combined == Decimal("4.000")
 
 
 def test_hawaii_special_cases_empty() -> None:
@@ -137,17 +210,18 @@ def test_hawaii_module_docstring_documents_get_not_sales_tax() -> None:
     assert "Chapter 237" in docstring or "HRS Chapter 237" in docstring
 
 
-def test_hawaii_module_docstring_documents_per_county_surcharge_deferral() -> None:
+def test_hawaii_module_docstring_documents_per_county_surcharge_data() -> None:
     """Regression test: the module docstring MUST document the four
-    county surcharges (Honolulu / Kauai / Hawaii County / Maui) and
-    their deferral. Otherwise a maintainer might silently encode one
-    county without addressing the under-collection on the others.
+    inhabited county surcharges (Honolulu / Kauai / Hawaii County /
+    Maui), their per-county effective dates, and the controlling
+    statute (HRS section 46-16.8). Otherwise a maintainer might
+    silently change a rate without traceability to the source.
     """
     import opensalestax.states.hawaii as hi_mod
 
     docstring = hi_mod.__doc__ or ""
     docstring_lower = docstring.lower()
-    # All four counties must be enumerated.
+    # All four inhabited counties must be enumerated.
     assert "honolulu" in docstring_lower
     assert "kauai" in docstring_lower
     assert "maui" in docstring_lower
@@ -157,8 +231,9 @@ def test_hawaii_module_docstring_documents_per_county_surcharge_deferral() -> No
     # Must cite HRS section 46-16.8 (the county surcharge authorizing
     # statute).
     assert "46-16.8" in docstring
-    # Must call out the deferral.
-    assert "defer" in docstring_lower
+    # Must record that per-county data shipped (v0.32 promotion) so a
+    # future maintainer doesn't reintroduce the deferral.
+    assert "v0.32" in docstring or "shipped" in docstring_lower
 
 
 def test_hawaii_groceries_notes_call_out_food_tax_credit_distinction() -> None:
@@ -186,10 +261,11 @@ def test_hawaii_prescription_drugs_cite_section_237_24_3() -> None:
     assert "237-24.3" in (rule.notes or "")
 
 
-def test_hawaii_general_notes_call_out_get_model_and_county_undercollection() -> None:
+def test_hawaii_general_notes_call_out_get_model_and_county_surcharges() -> None:
     """The general rule must call out (a) the GET-vs-sales-tax legal
-    distinction and (b) the per-county-surcharge under-collection.
-    Both are load-bearing distinctions integrators rely on.
+    distinction and (b) the per-county-surcharge structure (Honolulu /
+    Kauai / Hawaii County at 4.5% combined; Maui at 4.0%). Both are
+    load-bearing distinctions integrators rely on.
     """
     rule = HAWAII.taxability_for("general", dt.date(2026, 5, 3))
     assert rule is not None
@@ -198,9 +274,9 @@ def test_hawaii_general_notes_call_out_get_model_and_county_undercollection() ->
     # Must mention the GET-vs-sales-tax legal distinction.
     assert "get" in notes_lower or "general excise tax" in notes_lower
     assert "not" in notes_lower and "sales tax" in notes_lower
-    # Must call out the per-county under-collection.
+    # Must call out the per-county surcharge structure and statute.
     assert "0.5" in notes or "4.5" in notes or "surcharge" in notes_lower
-    assert "under-collect" in notes_lower or "undercollect" in notes_lower
+    assert "46-16.8" in notes
 
 
 def test_hawaii_general_taxability_cites_section_237_13() -> None:
