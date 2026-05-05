@@ -2705,6 +2705,45 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "PR Hacienda (state 10.5% + municipal SUT 1.0% = 11.5% combined; uniform across 78 municipalities) -- v0.32 split",
     ),
+    # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
+    # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
+    # county-wide-overlay heuristic (107 type-4 rows, well above
+    # the v0.48 threshold of 20).
+    (
+        "GA",
+        "Roswell",
+        "30075",
+        "0001",
+        "7.750",
+        "0.05",
+        "GA DOR (state 4% + Fulton 3% + Fulton TSPLOST 0.75%) -- post-v0.47/v0.48",
+    ),
+    # GA Suwanee -- v0.48 stray-binding filter verification.
+    # ZIP 30024 is in Gwinnett County; Fulton TSPLOST has 7
+    # stray type-4 rows here (below the 20-row threshold) and
+    # is correctly dropped.
+    (
+        "GA",
+        "Suwanee",
+        "30024",
+        "0001",
+        "6.000",
+        "0.05",
+        "GA DOR (state 4% + Gwinnett 2%; Fulton TSPLOST stray binding filtered) -- post-v0.48",
+    ),
+    # NE Papillion -- v0.46 most-rows tiebreaker verification.
+    # All 3 cities binding 68046 (La Vista, Papillion, Omaha)
+    # impose 2.0% city tax; the v0.46 reorder picks Papillion
+    # by per-ZIP row count rather than the stray La Vista typez.
+    (
+        "NE",
+        "Papillion",
+        "68046",
+        "0001",
+        "7.500",
+        "0.05",
+        "NE DOR (state 5.5% + Papillion 2.0%) -- post-v0.46 tiebreaker reorder",
+    ),
 ]
 
 
