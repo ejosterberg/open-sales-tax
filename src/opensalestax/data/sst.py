@@ -187,8 +187,15 @@ def open_sst_csv(path: Path) -> Iterator[str]:
     transparently. Raises :class:`ValueError` if the ZIP contains
     multiple files (shouldn't happen for SST data; defensive).
     """
+    # ``utf-8-sig`` transparently strips the UTF-8 BOM (``﻿``)
+    # if present. VT's quarterly files (e.g. ``VTB2026Q2FEB20.csv``)
+    # ship with a BOM that would otherwise prefix the first row's
+    # record-type column, turning ``A`` into ``﻿A`` and causing
+    # the boundary parser to reject the entire first record. Without
+    # this fix, VT loaded zero boundary rows and Burlington 05401
+    # silently fell back to the state-only 6% rate.
     if path.suffix.lower() == ".csv":
-        with path.open("r", encoding="utf-8", newline="") as fh:
+        with path.open("r", encoding="utf-8-sig", newline="") as fh:
             yield from fh
         return
 
@@ -200,8 +207,16 @@ def open_sst_csv(path: Path) -> Iterator[str]:
         if len(names) != 1:
             raise ValueError(f"expected exactly one CSV inside {path.name}, found {names}")
         with zf.open(names[0]) as fh:
+            first = True
             for raw_line in fh:
-                yield raw_line.decode("utf-8", errors="replace")
+                line = raw_line.decode("utf-8", errors="replace")
+                if first:
+                    # Same BOM-strip semantics as the CSV branch
+                    # above, since reading from inside a zipfile
+                    # bypasses Python's encoding= machinery.
+                    line = line.lstrip("﻿")
+                    first = False
+                yield line
 
 
 def _sha256(path: Path) -> str:

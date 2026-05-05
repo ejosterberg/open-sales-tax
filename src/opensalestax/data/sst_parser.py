@@ -147,10 +147,18 @@ def parse_rates_csv(lines: Iterable[str]) -> Iterator[SstRateRecord]:
                 state_fips=cols[0],
                 jurisdiction_type=cols[1],
                 jurisdiction_code=cols[2],
-                general_rate=Decimal(cols[3]),
-                food_rate=Decimal(cols[4]),
-                drug_rate=Decimal(cols[5]),
-                residential_utility_rate=Decimal(cols[6]),
+                general_rate=_decimal_or_zero(cols[3]),
+                # food/drug/residential-utility rate columns are
+                # blank on some legacy district rows (VT type-02
+                # rows for districts that pre-date the SST food/drug
+                # category breakout). Treat blank as 0 -- the row
+                # still encodes a valid general_rate that callers
+                # should see, and a zero food/drug rate falls
+                # through to the general rate via the engine's
+                # category-rule machinery.
+                food_rate=_decimal_or_zero(cols[4]),
+                drug_rate=_decimal_or_zero(cols[5]),
+                residential_utility_rate=_decimal_or_zero(cols[6]),
                 effective_from=_parse_date(cols[7]),
                 effective_to=_parse_end_date(cols[8]),
             )
@@ -306,6 +314,21 @@ def active_only(
         if record.effective_to is not None and record.effective_to < target:
             continue
         yield record
+
+
+def _decimal_or_zero(raw: str) -> Decimal:
+    """Parse a rate string; return Decimal(0) for blanks.
+
+    SST rate files occasionally leave food/drug/utility rate
+    columns blank on legacy district rows (e.g. VT type-02 rows
+    that pre-date the SST food-and-food-ingredients category
+    breakout). Without this helper, ``Decimal('')`` raises
+    ``InvalidOperation`` and the row is dropped entirely -- which
+    silently loses the row's general_rate too.
+    """
+    if not raw:
+        return Decimal("0")
+    return Decimal(raw)
 
 
 def _parse_date(raw: str) -> dt.date:
