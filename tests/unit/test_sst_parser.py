@@ -133,6 +133,49 @@ def test_parse_boundary_normalizes_record_type_case(tmp_path) -> None:
     assert types == ["4", "z"], f"expected normalized ['4', 'z']; got {types}"
 
 
+def test_parse_boundary_handles_address_level_records(tmp_path) -> None:
+    """Type-'A' (address-level) records used by VT must parse.
+
+    Vermont's SST boundary file ships address-level rows where zip5
+    is at col 15 (instead of col 17 for 'z'/'4' records) and zip4 at
+    col 16. The parser must collapse 'A' rows to a zip5-wide binding
+    (zip4_low/high left None) so the loose lookup picks them up the
+    same as 'z' rows -- otherwise per-street rows would either be
+    silently dropped (status quo before this test) or bloat the DB
+    with millions of single-address boundaries.
+
+    Regression for ``specs/decisions/08-vt-address-record-format.md``.
+    """
+    from opensalestax.data.sst_parser import BOUNDARY_COLUMNS
+
+    csv = tmp_path / "VTB2026Q2FEB20.csv"
+    base_cols = [""] * BOUNDARY_COLUMNS
+    base_cols[1] = "20250101"
+    base_cols[2] = "29991231"
+    base_cols[14] = "BURLINGTON"  # city/place name (informational)
+    base_cols[15] = "05401"  # zip5 (NOT col 17 like 'z'/'4' rows)
+    base_cols[16] = "1234"  # zip4 (informational; not loaded as range)
+    base_cols[22] = "50"  # state FIPS
+    # county_fips at col 24 left blank (VT 'A' rows omit it)
+    base_cols[25] = "10675"  # FIPS Place 10675 = Burlington
+    record_a_upper = ",".join(["A", *base_cols[1:]])
+    record_a_lower = ",".join(["a", *base_cols[1:]])
+    csv.write_text(record_a_upper + "\n" + record_a_lower + "\n")
+
+    records = list(parse_boundary_csv(open_sst_csv(csv)))
+    assert len(records) == 2
+    for rec in records:
+        assert rec.record_type == "a"
+        assert rec.zip5_low == "05401"
+        assert rec.zip5_high == "05401"
+        # zip4 must be None so the loose lookup treats this as a
+        # zip-wide binding rather than a single-address record.
+        assert rec.zip4_low is None
+        assert rec.zip4_high is None
+        assert rec.state_fips == "50"
+        assert rec.city_code == "10675"
+
+
 def test_parse_boundary_zero_pads_zip4_ranges(tmp_path) -> None:
     """Type-4 records with un-padded +4 ranges (e.g. "1" instead of "0001")
     must be zero-padded so downstream string comparison behaves numerically.

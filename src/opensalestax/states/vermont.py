@@ -402,6 +402,16 @@ class Vermont(SstStateModule):
 
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Substitute friendly names for the curated VT FIPS Place codes."""
+        from opensalestax.states.vt_names import city_name as _vt_city
+
+        if authority_type == "city":
+            friendly = _vt_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
+
 
 # Compile-time Protocol satisfaction check + module-import-time
 # registration. Importing ``opensalestax.states.vermont`` registers

@@ -170,7 +170,11 @@ class SstStateModule:
         as_of = self._boundaries_as_of()
         seen: set[tuple[str, str, str, str | None, str | None]] = set()
         for record in parse_boundary_csv(open_sst_csv(source_file)):
-            if record.record_type not in {"z", "4"}:
+            # 'z' = zip-wide, '4' = ZIP+4 range, 'a' = address-level
+            # (VT). 'a' records are pre-collapsed by the parser to a
+            # single zip5-wide binding (zip4 omitted) so the loose
+            # lookup picks them up the same as 'z' rows.
+            if record.record_type not in {"z", "4", "a"}:
                 continue
             if not record.zip5_low:
                 continue

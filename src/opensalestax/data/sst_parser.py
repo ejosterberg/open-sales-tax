@@ -92,7 +92,7 @@ class SstBoundaryRecord:
     - col32 SST jurisdiction type (matches col2 in the rate file)
     """
 
-    record_type: str  # 'z' or '4'
+    record_type: str  # 'z' (zip-wide), '4' (zip+4 range), or 'a' (address-level)
     effective_from: dt.date
     effective_to: dt.date | None
     zip5_low: str
@@ -180,10 +180,11 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             continue
 
         # SST publishes record-type codes in either case ("z" / "Z",
-        # "4"). Normalize to lowercase so downstream consumers can
-        # compare without worrying about file-by-file casing.
+        # "4", "a" / "A"). Normalize to lowercase so downstream
+        # consumers can compare without worrying about file-by-file
+        # casing.
         record_type = cols[0].lower()
-        if record_type not in {"z", "4"}:
+        if record_type not in {"z", "4", "a"}:
             logger.warning(
                 "boundary row %d has unknown record type %r; skipping",
                 line_num,
@@ -192,36 +193,52 @@ def parse_boundary_csv(lines: Iterable[str]) -> Iterator[SstBoundaryRecord]:
             continue
 
         try:
-            zip5_low = cols[17] or ""
-            zip5_high = cols[19] or zip5_low
-            zip4_low_raw = cols[18] or ""
-            zip4_high_raw = cols[20] or zip4_low_raw
-            # Zero-pad +4 ranges to 4 chars so downstream string
-            # comparison ("0001" <= "1015" <= "0007") behaves
-            # numerically. The SST file publishes "1" instead of
-            # "0001" when the leading digits are zero; without
-            # padding, "1015" lexicographically falls between "1"
-            # and "7", spuriously matching every range that starts
-            # at "1" (e.g. OK 73072-1015 was matched against Norman
-            # ranges 1..7, 1..9 and McClain ranges 1..11).
-            zip4_low_padded = (
-                zip4_low_raw.zfill(4) if record_type == "4" and zip4_low_raw else zip4_low_raw
-            )
-            zip4_high_padded = (
-                zip4_high_raw.zfill(4) if record_type == "4" and zip4_high_raw else zip4_high_raw
-            )
+            if record_type == "a":
+                # Address-level rows (used by VT) carry a single ZIP+4
+                # at cols 15/16 instead of the col-17..21 range used
+                # by 'z'/'4' rows. We collapse 'a' rows to a zip5-wide
+                # binding (zip4 omitted) so a million per-street rows
+                # don't bloat the boundaries table; the loose lookup
+                # only needs to know "this ZIP is in this city".
+                zip5_low = cols[15] or ""
+                zip5_high = zip5_low
+                zip4_low_padded: str = ""
+                zip4_high_padded: str = ""
+            else:
+                zip5_low = cols[17] or ""
+                zip5_high = cols[19] or zip5_low
+                zip4_low_raw = cols[18] or ""
+                zip4_high_raw = cols[20] or zip4_low_raw
+                # Zero-pad +4 ranges to 4 chars so downstream string
+                # comparison ("0001" <= "1015" <= "0007") behaves
+                # numerically. The SST file publishes "1" instead of
+                # "0001" when the leading digits are zero; without
+                # padding, "1015" lexicographically falls between "1"
+                # and "7", spuriously matching every range that starts
+                # at "1" (e.g. OK 73072-1015 was matched against Norman
+                # ranges 1..7, 1..9 and McClain ranges 1..11).
+                zip4_low_padded = (
+                    zip4_low_raw.zfill(4) if record_type == "4" and zip4_low_raw else zip4_low_raw
+                )
+                zip4_high_padded = (
+                    zip4_high_raw.zfill(4)
+                    if record_type == "4" and zip4_high_raw
+                    else zip4_high_raw
+                )
             common: dict[str, Any] = {
                 "record_type": record_type,
                 "effective_from": _parse_date(cols[1]),
                 "effective_to": _parse_end_date(cols[2]),
                 "zip5_low": zip5_low,
                 "zip5_high": zip5_high,
-                # SST publishes ZIP+4 fields only on type-4 rows;
-                # type-z rows leave them blank (treated as None so
-                # the engine's "no +4 range" branch matches).
+                # ZIP+4 fields populated only on type-4 rows; 'z' and
+                # 'a' rows leave them None so the engine's "no +4
+                # range" branch matches (treat as zip-wide).
                 "zip4_low": (zip4_low_padded or None) if record_type == "4" else None,
                 "zip4_high": (zip4_high_padded or None) if record_type == "4" else None,
                 "state_fips": cols[22],
+                # 'a' rows in VT leave county_fips blank; the city
+                # code (col 25) is the binding we care about.
                 "county_fips": cols[24] or None,
                 "city_code": cols[25] or None,
                 "raw_columns": tuple(cols),
