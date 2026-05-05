@@ -391,6 +391,36 @@ class TestPickOneCityCountyPerZip5:
         district_names = sorted(a.name for a in picked if a.authority_type == "district")
         assert district_names == ["TN-district-91950"]
 
+    def test_curated_name_wins_over_placeholder(self) -> None:
+        """When two cities tie on every other signal, prefer the vetted name.
+
+        Regression for VT 05401 (Burlington): the SST 'A'-record loader
+        binds the ZIP to BOTH city ``10675`` (= "Burlington") and the
+        regional code ``66175`` (placeholder ``VT-city-66175``). Both are
+        type-z (zip-wide via the 'A'-collapse) and have the same row count
+        after dedup. Without this tiebreaker the lower authority id wins
+        arbitrarily, causing the API response to display the placeholder
+        instead of "Burlington" -- the rate is correct but the city name
+        is unhelpful. Curated names indicate a maintainer-vetted code.
+        """
+        vt_state = SimpleNamespace(abbrev="VT")
+        # Lower id but placeholder name -- would win without the new
+        # tiebreaker.
+        regional = _stub_authority(1, "VT-city-66175", "city")
+        regional.state = vt_state
+        burlington = _stub_authority(2, "Burlington", "city")
+        burlington.state = vt_state
+        rows = [
+            (regional, None),  # 'A'-collapse: zip4_low None (type-z proxy)
+            (burlington, None),
+        ]
+        picked = _pick_one_city_county_per_zip5(rows)
+        names = [a.name for a in picked if a.authority_type == "city"]
+        assert names == ["Burlington"], (
+            f"expected ['Burlington']; got {names} (placeholder beat the "
+            "curated name -- tiebreaker regression)"
+        )
+
     def test_tn_city_drops_county(self) -> None:
         """TN's city codes already include the county rate; drop county."""
         tn_state_attr = SimpleNamespace(abbrev="TN")

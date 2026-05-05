@@ -211,6 +211,25 @@ async def lookup_jurisdictions_by_zip5_loose(
     return _pick_one_city_county_per_zip5(rows)
 
 
+def _is_placeholder_name(auth: TaxAuthority) -> bool:
+    """Return True if ``auth.name`` is the loader's ``XX-type-NNNNN`` fallback.
+
+    Authorities whose state module's ``_authority_name`` couldn't
+    map the SST jurisdiction code to a friendly name fall back to
+    ``"{state_abbrev}-{authority_type}-{code}"`` (e.g.
+    ``VT-city-66175``). These represent codes that no maintainer has
+    vetted -- often broad regional / county-overlay zones that
+    incidentally claim the same ZIPs as the more specific city
+    authority. When two candidates tie on all other signals, prefer
+    the one with a curated name as a proxy for "vetted by a state
+    module maintainer".
+    """
+    state_abbrev = getattr(getattr(auth, "state", None), "abbrev", None)
+    if not state_abbrev:
+        return False
+    return auth.name.startswith(f"{state_abbrev}-{auth.authority_type}-")
+
+
 def _pick_one_city_county_per_zip5(
     rows: list[tuple[TaxAuthority, str | None]],
 ) -> list[TaxAuthority]:
@@ -222,7 +241,13 @@ def _pick_one_city_county_per_zip5(
 
     1. Has a type-z record (zip-wide claim wins over per-+4 only).
     2. Highest boundary-row count (most precise/extensive coverage).
-    3. Lowest authority id (stable tiebreaker for testability).
+    3. Has a curated friendly name (placeholder ``XX-city-NNNNN``
+       loses to a vetted name). Catches VT 05401 where the SST
+       address-level data binds the ZIP to both city ``10675``
+       (= "Burlington", curated) and a regional code ``66175``
+       (placeholder, covers 38 ZIPs). The vetted name corresponds
+       to the dominant city; the placeholder is a broader overlay.
+    4. Lowest authority id (stable tiebreaker for testability).
 
     State and district authorities pass through unchanged.
     """
@@ -245,13 +270,15 @@ def _pick_one_city_county_per_zip5(
     picked_county: TaxAuthority | None = None
     for auth_type, aids in by_type.items():
         if auth_type in ("city", "county"):
-            # Dominant authority wins. Sort key: type-z first (True > False),
-            # then most rows, then lowest id.
+            # Dominant authority wins. Sort key: type-z first
+            # (True > False), then most rows, then non-placeholder
+            # name (True > False -- vetted name wins), then lowest id.
             best_id = max(
                 aids,
                 key=lambda aid: (
                     has_typez.get(aid, False),
                     counts.get(aid, 0),
+                    not _is_placeholder_name(seen_authorities[aid]),
                     -aid,
                 ),
             )
