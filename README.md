@@ -185,7 +185,7 @@ Or try these curl recipes:
 
 ```bash
 curl -s https://api.opensalestax.org/v1/health
-# {"status":"ok","version":"0.53.1","database_connected":true}
+# {"status":"ok","version":"0.54.0","database_connected":true}
 ```
 
 ### 2. List tier-1 states
