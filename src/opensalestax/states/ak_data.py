@@ -85,6 +85,25 @@ from decimal import Decimal
 # row in the rate stack); its rate is 0%.
 AK_STATE_RATE_PCT: Decimal = Decimal("0.000")
 
+# Boroughs that levy a borough-WIDE sales tax (collected on every
+# transaction in unincorporated borough territory; per ARSSTC and
+# borough practice, NOT collected inside any city's incorporated
+# limits where a city tax already applies). Used as the
+# state-only-fallback rate for ZIPs in the borough that aren't in
+# any AK_CITIES coverage set.
+#
+# Consolidated city-boroughs (Sitka City and Borough, Juneau City
+# and Borough, Wrangell City and Borough, Yakutat City and Borough,
+# Petersburg Borough, Haines Borough, Skagway Municipality) are NOT
+# in this map -- they're modeled as cities in AK_CITIES because the
+# borough IS the city; there's no unincorporated territory.
+#
+# Format: {borough_name: borough_wide_rate_pct}
+AK_BOROUGHS: dict[str, Decimal] = {
+    "Kenai Peninsula Borough": Decimal("3.000"),
+    "Ketchikan Gateway Borough": Decimal("2.500"),
+}
+
 # (borough name, general retail rate, frozenset of ZIPs)
 AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
     "Adak": (

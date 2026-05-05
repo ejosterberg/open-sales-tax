@@ -28,7 +28,9 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
-from opensalestax.states.ak_data import AK_CITIES, AK_STATE_RATE_PCT
+from opensalestax.data.county_names import county_name as _county_name
+from opensalestax.data.zip_county import ZIP_COUNTY
+from opensalestax.states.ak_data import AK_BOROUGHS, AK_CITIES, AK_STATE_RATE_PCT
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -97,7 +99,7 @@ class Alaska:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Alaska's 0% state row + per-city rates from AK_CITIES."""
+        """Yield Alaska's 0% state + per-borough + per-city rates."""
         del source_file, version_label
         yield RateRow(
             authority_name="Alaska",
@@ -107,6 +109,20 @@ class Alaska:
             effective_to=None,
             parent_authority_name=None,
         )
+        # Borough-wide rates: bound to unincorporated ZIPs in
+        # parse_boundaries. Encoded as authority_type="county" so the
+        # engine's existing dedup logic treats them like a county
+        # rate (mutually-exclusive with a city authority for the same
+        # ZIP, per the v0.36 TN/WA city-includes-county precedent).
+        for borough_name, borough_rate in sorted(AK_BOROUGHS.items()):
+            yield RateRow(
+                authority_name=borough_name,
+                authority_type="county",
+                rate_pct=borough_rate,
+                effective_from=_RATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Alaska",
+            )
         for city_name, (_borough, city_rate, _zips) in sorted(AK_CITIES.items()):
             yield RateRow(
                 authority_name=city_name,
@@ -120,16 +136,29 @@ class Alaska:
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, city) boundary rows for every covered AK city ZIP.
+        """Yield (state, [borough,] [city]) boundary rows for AK ZIPs.
 
-        Cities-only MVP: state row is emitted for each city ZIP so the
-        engine resolves the rate stack correctly; borough rows are
-        deliberately NOT emitted (per the per-borough exclusivity
-        deferral documented in ``ak_data.py``).
+        Two passes:
+
+        1. Cities (AK_CITIES): emit state + city BoundaryRows for each
+           covered city ZIP. The city's rate wins per the TN/WA
+           city-includes-county precedent in v0.36 (see
+           ``_pick_one_city_county_per_zip5``).
+
+        2. Borough-wide rates (AK_BOROUGHS): for each ZIP whose
+           Census ZCTA places it in a borough that imposes a
+           borough-wide tax AND that ZIP is NOT in any AK_CITIES
+           coverage set, emit state + county (= borough) BoundaryRows.
+           The "not in city" check enforces per-borough city-exclusion
+           (KPB and KGB borough rates are NOT collected inside
+           incorporated city limits per ARSSTC).
         """
         del source_file, version_label
+        # Pass 1: cities (already covered ZIPs)
+        city_zips: set[str] = set()
         for city_name, (_borough, _city_rate, zips) in sorted(AK_CITIES.items()):
             for zip5 in sorted(zips):
+                city_zips.add(zip5)
                 yield BoundaryRow(
                     authority_name="Alaska",
                     authority_type="state",
@@ -144,6 +173,32 @@ class Alaska:
                     zip4_low=None,
                     zip4_high=None,
                 )
+
+        # Pass 2: unincorporated borough ZIPs.
+        for zip5, pairs in sorted(ZIP_COUNTY.items()):
+            if zip5 in city_zips:
+                continue  # city-only; borough rate suppressed
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "AK":
+                    continue
+                borough_name = _county_name("AK", county_fips)
+                if borough_name is None or borough_name not in AK_BOROUGHS:
+                    continue
+                yield BoundaryRow(
+                    authority_name="Alaska",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=borough_name,
+                    authority_type="county",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                break  # at most one borough per ZIP
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return Alaska's taxability rule for ``item_category`` (general only)."""

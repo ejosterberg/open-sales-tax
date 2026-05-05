@@ -87,25 +87,68 @@ def test_parse_rates_city_rates_match_ak_cities() -> None:
 # ---------------------------------------------------------------------------
 # parse_boundaries -- state + city per covered ZIP
 # ---------------------------------------------------------------------------
-def test_parse_boundaries_yields_state_and_city_per_zip() -> None:
+def test_parse_boundaries_yields_state_with_city_or_county_per_zip() -> None:
+    """Every emitted ZIP gets state + (city OR county). Unincorporated
+    KPB/KGB ZIPs get a county (borough-wide rate) binding instead of city.
+    """
     rows = list(ALASKA.parse_boundaries(None, "ignored"))
     by_zip: dict[str, list[str]] = {}
     for row in rows:
         by_zip.setdefault(row.zip5, []).append(row.authority_type)
-    # Every ZIP that appears at all must have BOTH a state and a city row.
     for zip5, types in by_zip.items():
         assert "state" in types, f"ZIP {zip5} missing state binding"
-        assert "city" in types, f"ZIP {zip5} missing city binding"
+        assert (
+            "city" in types or "county" in types
+        ), f"ZIP {zip5} has only state binding; expected city or county"
 
 
 def test_parse_boundaries_covers_every_ak_city_zip() -> None:
-    """Each ZIP in AK_CITIES gets both state + city BoundaryRows."""
+    """Each ZIP in AK_CITIES gets both state + city BoundaryRows.
+
+    City-covered ZIPs do NOT get a county (borough) binding because
+    borough rates are suppressed inside city limits per ARSSTC and
+    borough practice.
+    """
     rows = list(ALASKA.parse_boundaries(None, "ignored"))
-    state_zips = {r.zip5 for r in rows if r.authority_type == "state"}
     city_zips = {r.zip5 for r in rows if r.authority_type == "city"}
-    expected_zips = {z for _city, (_b, _r, zs) in AK_CITIES.items() for z in zs}
-    assert state_zips == expected_zips
-    assert city_zips == expected_zips
+    expected_city_zips = {z for _city, (_b, _r, zs) in AK_CITIES.items() for z in zs}
+    assert city_zips == expected_city_zips
+    # State row also exists for every city ZIP
+    state_zips = {r.zip5 for r in rows if r.authority_type == "state"}
+    assert expected_city_zips.issubset(state_zips)
+
+
+def test_parse_boundaries_emits_borough_row_for_unincorporated_kpb_zip() -> None:
+    """KPB unincorporated ZIPs (e.g. 99556 Anchor Point) get borough binding."""
+    rows = list(ALASKA.parse_boundaries(None, "ignored"))
+    borough_zips_for_kpb = {
+        r.zip5
+        for r in rows
+        if r.authority_type == "county" and r.authority_name == "Kenai Peninsula Borough"
+    }
+    # Anchor Point 99556 is in KPB and not in any AK_CITIES set.
+    assert "99556" in borough_zips_for_kpb
+    # Kenai 99611 IS in AK_CITIES, must NOT be borough-bound.
+    assert "99611" not in borough_zips_for_kpb
+
+
+def test_parse_boundaries_borough_row_only_for_unincorporated() -> None:
+    """City-covered ZIPs never get a borough (county) binding."""
+    rows = list(ALASKA.parse_boundaries(None, "ignored"))
+    city_zips = {z for _city, (_b, _r, zs) in AK_CITIES.items() for z in zs}
+    county_rows = [r for r in rows if r.authority_type == "county"]
+    for r in county_rows:
+        assert r.zip5 not in city_zips, (
+            f"ZIP {r.zip5} has both city ({_city_for_zip(r.zip5)}) and county "
+            f"({r.authority_name}) bindings -- borough should be suppressed inside city limits"
+        )
+
+
+def _city_for_zip(zip5: str) -> str | None:
+    for city, (_b, _r, zs) in AK_CITIES.items():
+        if zip5 in zs:
+            return city
+    return None
 
 
 # ---------------------------------------------------------------------------
