@@ -428,14 +428,18 @@ def test_alabama_parse_rates_emits_all_67_counties() -> None:
     assert len(counties) == 67
     by_name = {r.authority_name: r for r in counties}
     # Spot-check a county touched by a covered city (Jefferson hosts
-    # Birmingham + 6 others) and a long-tail PLACEHOLDER county.
+    # Birmingham + 6 others) and a long-tail (non-anchor) county.
     assert "Jefferson County" in by_name
     assert by_name["Jefferson County"].rate_pct == Decimal("2.000")
     assert by_name["Jefferson County"].parent_authority_name == "Alabama"
     # Madison County hosts Huntsville + Madison city.
     assert by_name["Madison County"].rate_pct == Decimal("0.500")
-    # PLACEHOLDER county (long tail).
-    assert by_name["Cullman County"].rate_pct == Decimal("0.000")
+    # Long-tail county filled from ALDOR taxrates.csv (was 0.000
+    # placeholder until the long-tail fill ratchet 2026-05-04).
+    assert by_name["Cullman County"].rate_pct == Decimal("4.500")
+    # And another long-tail county to lock in the no-more-placeholders
+    # invariant for this ratchet.
+    assert by_name["Pike County"].rate_pct == Decimal("2.500")
 
 
 def test_alabama_parse_rates_emits_top_30_cities() -> None:

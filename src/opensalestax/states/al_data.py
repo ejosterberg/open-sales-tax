@@ -40,12 +40,14 @@ NOT modeled in this ratchet (partial-coverage caveats):
 - **Counties not touched by a covered city.** All 67 AL counties
   are seeded in :data:`AL_COUNTY_RATE_PCT` so the
   ZIP_COUNTY-driven boundary loader has a queryable rate for
-  every AL ZIP, but counties not anchored by one of the 30 covered
-  cities sit at a **0.000% PLACEHOLDER** (mirrors the MO long-tail
-  pattern from v0.30). A future maintainer should walk the
-  ALDOR rate file and bump non-zero unseeded counties to their
-  published rate; until then those addresses will under-collect
-  by the unseeded county's portion (typically 1-3%).
+  every AL ZIP. The 49 non-anchor counties were filled from the
+  ALDOR machine-readable rate file in this ratchet (previously
+  0.000% placeholders). For counties where ALDOR publishes
+  per-jurisdiction variants (CL/PJ/EXC), the **inside-city** rate
+  is used (matches the convention used for the 18 anchor counties).
+  Addresses in unincorporated areas of those counties may still
+  under-collect by 1-3% relative to ALDOR's "EXC <city>" rate;
+  this trade-off favours the more common populated-ZIP case.
 
 Cities seeded (top 30 by 2026 population):
 
@@ -144,82 +146,98 @@ AL_STATE_EFFECTIVE_FROM = dt.date(1969, 12, 8)
 # All 67 AL counties listed so the ZIP_COUNTY-driven boundary loader
 # has a queryable rate for every AL ZIP. Counties touched by a covered
 # AL_CITIES entry are at their verified per-city centroid rate (see
-# the Source Disagreements section in the module docstring); counties
-# NOT touched by a covered city are at 0.000% PLACEHOLDER (mirrors
-# the MO long-tail pattern). A future maintainer should bump non-zero
-# unseeded counties to their published ALDOR rate.
+# the Source Disagreements section in the module docstring); the
+# remaining counties are at the rate published in the ALDOR machine-
+# readable rate file.
 #
-# Source: Avalara per-city pages cross-checked against SalesTaxHandbook
-# county pages (verified 2026-05-04). County names match
-# :data:`opensalestax.data.county_names.COUNTY_NAMES` exactly.
+# Sources:
+#   * Avalara per-city pages cross-checked against SalesTaxHandbook
+#     county pages (verified 2026-05-04) -- used for the city-anchor
+#     counties (Autauga, Baldwin, Calhoun, Coffee, Dallas, Etowah,
+#     Houston, Jefferson, Lauderdale, Lee, Limestone, Madison,
+#     Mobile, Montgomery, Morgan, Russell, Shelby, Tuscaloosa).
+#   * ALDOR "Local Sales, Use, Rental & Lodgings Tax Rates Text File"
+#     at https://www.revenue.alabama.gov/wp-content/uploads/2024/03/
+#     taxrates.csv (retrieved 2026-05-04). Filtered to TaxType=ST
+#     (sales tax) RateType=GENER (general retail) currently-active
+#     rows. For the long-tail (non-anchor) counties the script
+#     scripts/extract_al_county_rates.py emits the dict; for counties
+#     where ALDOR publishes a county-wide CL rate (rate inside ALL
+#     incorporated cities) we use the CL rate to match the inside-
+#     city convention used by the v0.33 city-anchor seeds (e.g.
+#     Chambers, Chilton, Marshall, Talladega).
+#
+# County names match :data:`opensalestax.data.county_names.COUNTY_NAMES`
+# exactly. All values represent the county's general-retail sales tax
+# portion, NOT including the 4.000% statewide rate or any city tax.
 AL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Autauga County": Decimal("2.000"),       # Prattville centroid: 4 + 2 + 3.5 = 9.5
     "Baldwin County": Decimal("3.000"),       # Daphne 4+3+2.5=9.5; Foley 4+3+3=10
-    "Barbour County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Bibb County": Decimal("0.000"),          # PLACEHOLDER -- no covered city
-    "Blount County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Bullock County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Butler County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
+    "Barbour County": Decimal("1.500"),       # ALDOR taxrates.csv flat county rate
+    "Bibb County": Decimal("4.000"),          # ALDOR taxrates.csv flat county rate
+    "Blount County": Decimal("3.000"),        # ALDOR taxrates.csv flat county rate
+    "Bullock County": Decimal("2.500"),       # ALDOR taxrates.csv flat county rate
+    "Butler County": Decimal("1.500"),        # ALDOR taxrates.csv flat county rate
     "Calhoun County": Decimal("1.000"),       # Anniston centroid: 4 + 1 + 5 = 10
-    "Chambers County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
-    "Cherokee County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
-    "Chilton County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Choctaw County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Clarke County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Clay County": Decimal("0.000"),          # PLACEHOLDER -- no covered city
-    "Cleburne County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
+    "Chambers County": Decimal("1.000"),      # ALDOR CL rate (inside any city); EXC unincorp = 6.0
+    "Cherokee County": Decimal("3.500"),      # ALDOR taxrates.csv flat county rate
+    "Chilton County": Decimal("3.000"),       # ALDOR CL 4-cities rate; EXC = 4.0
+    "Choctaw County": Decimal("3.000"),       # ALDOR taxrates.csv flat county rate
+    "Clarke County": Decimal("1.000"),        # ALDOR taxrates.csv flat county rate
+    "Clay County": Decimal("2.000"),          # ALDOR taxrates.csv flat county rate
+    "Cleburne County": Decimal("2.000"),      # ALDOR taxrates.csv flat county rate
     "Coffee County": Decimal("1.000"),        # Enterprise centroid: 4 + 1 + 4 = 9
-    "Colbert County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Conecuh County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Coosa County": Decimal("0.000"),         # PLACEHOLDER -- no covered city
-    "Covington County": Decimal("0.000"),     # PLACEHOLDER -- no covered city
-    "Crenshaw County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
-    "Cullman County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Dale County": Decimal("0.000"),          # PLACEHOLDER -- no covered city
+    "Colbert County": Decimal("1.500"),       # ALDOR taxrates.csv flat county rate
+    "Conecuh County": Decimal("2.000"),       # ALDOR taxrates.csv flat county rate
+    "Coosa County": Decimal("2.000"),         # ALDOR taxrates.csv flat county rate
+    "Covington County": Decimal("2.500"),     # ALDOR taxrates.csv flat county rate
+    "Crenshaw County": Decimal("3.500"),      # ALDOR taxrates.csv flat county rate
+    "Cullman County": Decimal("4.500"),       # ALDOR base rate; CL+PJ Arab specifically = 3.5
+    "Dale County": Decimal("2.000"),          # ALDOR taxrates.csv flat county rate
     "Dallas County": Decimal("1.500"),        # Selma centroid: 4 + 1.5 + 4.5 = 10
-    "DeKalb County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Elmore County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Escambia County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
+    "DeKalb County": Decimal("1.000"),        # ALDOR taxrates.csv flat county rate
+    "Elmore County": Decimal("1.000"),        # ALDOR base rate; CL Prattville specifically = 2.0
+    "Escambia County": Decimal("2.000"),      # ALDOR base rate; EXC 5 cities = 5.0, PJ variants 3.5/4.0
     "Etowah County": Decimal("1.000"),        # Gadsden centroid: 4 + 1 + 5 = 10
-    "Fayette County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Franklin County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
-    "Geneva County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Greene County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Hale County": Decimal("0.000"),          # PLACEHOLDER -- no covered city
-    "Henry County": Decimal("0.000"),         # PLACEHOLDER -- no covered city
+    "Fayette County": Decimal("2.000"),       # ALDOR taxrates.csv flat county rate
+    "Franklin County": Decimal("2.000"),      # ALDOR taxrates.csv flat county rate
+    "Geneva County": Decimal("2.000"),        # ALDOR taxrates.csv flat county rate
+    "Greene County": Decimal("3.000"),        # ALDOR taxrates.csv flat county rate
+    "Hale County": Decimal("3.000"),          # ALDOR taxrates.csv flat county rate
+    "Henry County": Decimal("2.000"),         # ALDOR taxrates.csv flat county rate
     "Houston County": Decimal("1.000"),       # Dothan centroid: 4 + 1 + 4 = 9
-    "Jackson County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
+    "Jackson County": Decimal("2.000"),       # ALDOR taxrates.csv flat county rate
     "Jefferson County": Decimal("2.000"),     # Birmingham, Hoover, Vestavia Hills, Homewood, Bessemer, Mountain Brook, Trussville
-    "Lamar County": Decimal("0.000"),         # PLACEHOLDER -- no covered city
+    "Lamar County": Decimal("2.000"),         # ALDOR taxrates.csv flat county rate
     "Lauderdale County": Decimal("1.000"),    # Florence centroid: 4 + 1 + 4.5 = 9.5
-    "Lawrence County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
+    "Lawrence County": Decimal("3.000"),      # ALDOR taxrates.csv flat county rate
     "Lee County": Decimal("1.000"),           # Auburn 4+1+4=9; Opelika 4+1+4=9
     "Limestone County": Decimal("2.000"),     # Athens centroid: 4 + 2 + 3 = 9
-    "Lowndes County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Macon County": Decimal("0.000"),         # PLACEHOLDER -- no covered city
+    "Lowndes County": Decimal("4.000"),       # ALDOR taxrates.csv flat county rate
+    "Macon County": Decimal("2.500"),         # ALDOR taxrates.csv flat county rate
     "Madison County": Decimal("0.500"),       # Huntsville 4+0.5+4.5=9; Madison city 4+0.5+3.5=8 (no special district)
-    "Marengo County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Marion County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Marshall County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
+    "Marengo County": Decimal("3.000"),       # ALDOR taxrates.csv flat county rate
+    "Marion County": Decimal("2.000"),        # ALDOR base rate; CL Winfield specifically = 1.0
+    "Marshall County": Decimal("1.000"),      # ALDOR CL 4-cities rate; EXC = 2.0
     "Mobile County": Decimal("1.000"),        # Mobile city centroid: 4 + 1 + 5 = 10 (Avalara). Unincorporated Mobile Co. is 1.5%; under-collect by 0.5% in this ratchet
-    "Monroe County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
+    "Monroe County": Decimal("3.500"),        # ALDOR taxrates.csv flat county rate
     "Montgomery County": Decimal("2.500"),    # Montgomery centroid: 4 + 2.5 + 3.5 = 10
     "Morgan County": Decimal("1.000"),        # Decatur centroid: 4 + 1 + 4 = 9
-    "Perry County": Decimal("0.000"),         # PLACEHOLDER -- no covered city
-    "Pickens County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
-    "Pike County": Decimal("0.000"),          # PLACEHOLDER -- no covered city
-    "Randolph County": Decimal("0.000"),      # PLACEHOLDER -- no covered city
+    "Perry County": Decimal("3.000"),         # ALDOR taxrates.csv flat county rate
+    "Pickens County": Decimal("4.000"),       # ALDOR taxrates.csv flat county rate
+    "Pike County": Decimal("2.500"),          # ALDOR CL Troy rate; EXC = 3.5
+    "Randolph County": Decimal("2.500"),      # ALDOR taxrates.csv flat county rate
     "Russell County": Decimal("1.000"),       # Phenix City centroid: 4 + 1 + 4.75 = 9.75
-    "St. Clair County": Decimal("0.000"),     # PLACEHOLDER -- no covered city
+    "St. Clair County": Decimal("2.000"),     # ALDOR base rate; CL Pell City specifically = 1.0
     "Shelby County": Decimal("1.000"),        # Alabaster, Pelham, Helena -- all 4 + 1 + 5 = 10
-    "Sumter County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Talladega County": Decimal("0.000"),     # PLACEHOLDER -- no covered city
-    "Tallapoosa County": Decimal("0.000"),    # PLACEHOLDER -- no covered city
+    "Sumter County": Decimal("4.000"),        # ALDOR taxrates.csv flat county rate
+    "Talladega County": Decimal("1.000"),     # ALDOR CL rate; PJ = 2.0, base unincorp = 3.0
+    "Tallapoosa County": Decimal("2.000"),    # ALDOR taxrates.csv flat county rate
     "Tuscaloosa County": Decimal("3.000"),    # Tuscaloosa, Northport -- both 4 + 3 + 3 = 10
-    "Walker County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Washington County": Decimal("0.000"),    # PLACEHOLDER -- no covered city
-    "Wilcox County": Decimal("0.000"),        # PLACEHOLDER -- no covered city
-    "Winston County": Decimal("0.000"),       # PLACEHOLDER -- no covered city
+    "Walker County": Decimal("2.000"),        # ALDOR taxrates.csv flat county rate
+    "Washington County": Decimal("1.000"),    # ALDOR taxrates.csv flat county rate
+    "Wilcox County": Decimal("4.500"),        # ALDOR taxrates.csv flat county rate
+    "Winston County": Decimal("2.000"),       # ALDOR taxrates.csv flat county rate
 }
 
 # Per-city general-retail rate (NOT including state or county).
