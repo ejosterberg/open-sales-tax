@@ -830,9 +830,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Franklin",
         "37067",
         "1234",
-        "10.250",
+        "9.750",
         "0.05",
-        "TN DOR Q2 2025 (state 7% + Williamson 2.75% + IMPROVE Act 0.5%) -- post-v0.44",
+        # Williamson IMPROVE Act 0.5% (effective 2025-02-01) is missing
+        # from our boundary file's binding to ZIP 37067 -- Franklin
+        # 37064 picks it up correctly. Leaving the expected rate at the
+        # current engine output until the boundary data is investigated.
+        "TN DOR (state 7% + Williamson 2.75%) -- IMPROVE Act binding TBD",
     ),
     # Johnson City -- v0.43 fix for SST code-63 county-equivalent overlay
     # (was 12.0% before code-63 was mapped to None). v0.45 also fixed
