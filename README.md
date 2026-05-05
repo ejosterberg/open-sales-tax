@@ -4,12 +4,22 @@
 > contributor-driven. Apache 2.0.
 
 [![CI](https://github.com/ejosterberg/open-sales-tax/actions/workflows/ci.yml/badge.svg)](https://github.com/ejosterberg/open-sales-tax/actions/workflows/ci.yml)
+[![Build data dump](https://github.com/ejosterberg/open-sales-tax/actions/workflows/build-data-dump.yml/badge.svg)](https://github.com/ejosterberg/open-sales-tax/actions/workflows/build-data-dump.yml)
+[![Latest release](https://img.shields.io/github/v/release/ejosterberg/open-sales-tax?label=release&color=blue)](https://github.com/ejosterberg/open-sales-tax/releases/latest)
+[![License](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![DOR-validated](https://img.shields.io/badge/DOR--validated-308%2F308_ZIPs-brightgreen)](tests/integration/test_sst_dor_validation.py)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![DCO](https://img.shields.io/badge/DCO-required-blue)](https://developercertificate.org/)
 
 OpenSalesTax answers one question for any US transaction: **how
 much sales tax should I charge?** It uses free public data from
 the Streamlined Sales Tax (SST) project plus per-state contributor
 modules to cover the messy reality of US sales tax (~13,000 taxing
 jurisdictions, every state with its own quirks).
+
+**Live demo**: [demo.opensalestax.org](https://demo.opensalestax.org) ·
+**Live API**: [api.opensalestax.org](https://api.opensalestax.org/v1/docs)
 
 ⚠️ **Calculation only. Not legal or tax advice.** Verify against
 your state Department of Revenue before remitting.
@@ -29,7 +39,7 @@ export OPENSALESTAX_DATABASE_URL="postgresql+asyncpg://USER:PASSWORD@HOST:5432/o
 # 2. Apply the schema
 alembic -c $(python -c "import opensalestax, pathlib, os; print(os.path.join(pathlib.Path(opensalestax.__file__).parent.parent.parent, 'alembic.ini'))") upgrade head
 
-# 3. Restore the latest pre-built dump (all 24 SST states + AZ)
+# 3. Restore the latest pre-built dump (all 52 jurisdictions)
 opensalestax data restore
 
 # 4. Serve the API
@@ -95,13 +105,29 @@ curl -X POST http://localhost:8080/v1/calculate \
 Visit **http://localhost:8080/v1/docs** for the auto-generated
 Swagger UI.
 
-## What's covered (Phase 1, v0.1)
+## What's covered
 
-| Coverage tier | Count | States |
-|---|---:|---|
-| **Tier 1** -- fully maintained (taxability matrix + tests) | 7 | MN, WI, AK, DE, MT, NH, OR |
-| **Tier 2** -- rate-only via SST data, default taxability | 22 | AR, GA, IA, IN, KS, KY, MI, NE, NV, NJ, NC, ND, OH, OK, RI, SD, TN, UT, VT, WA, WV, WY |
-| **Unsupported** (Phase 2+) | 23 | CA, TX, NY, FL, IL, PA, AL, AZ, CO, CT, DC, HI, ID, LA, MD, MA, MS, MO, NM, PA, PR, SC, VA |
+All 52 US sales-tax jurisdictions (50 states + DC + Puerto Rico) are
+**tier-1 maintained** -- meaning each ships a per-state module with
+a taxability matrix and is exercised by the regression tests. The
+five no-sales-tax states (AK, DE, MT, NH, OR) are correctly modeled
+with `has_sales_tax=False`.
+
+Per-locality coverage breakdown:
+
+| Coverage type | States | How |
+|---|---|---|
+| Full SST data (rates + boundaries from quarterly file) | 24 SST member states | AR, GA, IA, IN, KS, KY, MI, MN, NE, NC, ND, NJ, NV, OH, OK, RI, SD, TN, UT, VT, WA, WI, WV, WY |
+| Per-county + per-city seeded from state DOR | 16 non-SST self-seeded | AZ, CA, FL, NY, TX, IL, PA, MO, MS, SC, VA, AL, NM, HI (with county surcharges), PR (with municipal SUT), CT (flat statewide) |
+| Statewide flat rate (no locals to model) | 3 | DC, MD, MA |
+| Tier-1 no-sales-tax | 5 | AK, DE, MT, NH, OR |
+| Pending SubJurisdiction Protocol architectural work | 2 | CO (home-rule cities), LA (parishes) |
+
+**308 ZIPs validated against published state DOR rates** on every
+release ([the live regression test](tests/integration/test_sst_dor_validation.py)).
+The grid spans every state with locals; CI auto-rebuilds the
+[pre-loaded data dump](https://github.com/ejosterberg/open-sales-tax/releases/latest)
+on every release tag.
 
 ## Refresh from source (current DOR data)
 
@@ -146,30 +172,33 @@ See [docs/api.md](docs/api.md) for request/response examples.
 
 ## Try it out
 
-A live development instance runs at `http://10.32.161.126:8080`.
+A live instance runs at [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 Open `/v1/docs` in a browser for an interactive Swagger UI with
 "Try it out" buttons that prefill realistic request bodies.
+
+The [demo site](https://demo.opensalestax.org) has click-to-run
+calculators for Minneapolis, Dallas, San Francisco, and NYC.
 
 Or try these curl recipes:
 
 ### 1. Health check
 
 ```bash
-curl -s http://10.32.161.126:8080/v1/health
-# {"status":"ok","version":"0.7.1","database_connected":true}
+curl -s https://api.opensalestax.org/v1/health
+# {"status":"ok","version":"0.36.0","database_connected":true}
 ```
 
 ### 2. List tier-1 states
 
 ```bash
-curl -s http://10.32.161.126:8080/v1/states \
+curl -s https://api.opensalestax.org/v1/states \
   | jq '.states[] | select(.tier == 1) | .abbrev'
 ```
 
 ### 3. Calculate tax with per-jurisdiction breakdown
 
 ```bash
-curl -s -X POST http://10.32.161.126:8080/v1/calculate \
+curl -s -X POST https://api.opensalestax.org/v1/calculate \
   -H 'Content-Type: application/json' \
   -d '{
     "address": {"zip5": "55401"},
@@ -188,14 +217,14 @@ can reconcile state/county/city/district splits.
 ### 4. Inspect rate stack for a ZIP
 
 ```bash
-curl -s 'http://10.32.161.126:8080/v1/rates?zip5=55401' | jq
+curl -s 'https://api.opensalestax.org/v1/rates?zip5=55401' | jq
 ```
 
 ### 5. Holiday-aware calculation (TX back-to-school)
 
 ```bash
 # A $75 clothing item is exempt during the August holiday in Texas
-curl -s -X POST http://10.32.161.126:8080/v1/calculate \
+curl -s -X POST https://api.opensalestax.org/v1/calculate \
   -H 'Content-Type: application/json' \
   -d '{
     "address": {"zip5": "75201"},
@@ -230,7 +259,12 @@ Vertex, Sovos, TaxCloud). See [constitution §3](specs/constitution.md).
 
 ## Status
 
-**v0.2 in flight.** v0.1 shipped the API + 29-state coverage;
-v0.2 lands the data-load CLI (this batch), API-key auth mode,
-and the first non-SST tier-1 state. Production self-hosting is
-viable today for SST states.
+Active development. Latest stable: see the
+[releases page](https://github.com/ejosterberg/open-sales-tax/releases/latest).
+Production self-hosting is viable today for every state listed in the
+coverage table above.
+
+Recent releases ship via the [`Build data dump`](https://github.com/ejosterberg/open-sales-tax/actions/workflows/build-data-dump.yml)
+workflow that pre-loads every state's data into a PostgreSQL dump and
+attaches it as a release asset, so a fresh install can call
+`opensalestax data restore` and be live in under two minutes.

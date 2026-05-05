@@ -62,11 +62,19 @@ poetry run pytest
 
 ### Linting and formatting
 
+The CI workflow runs **all four** of these on every push -- run them
+locally before committing to avoid red builds:
+
 ```bash
-poetry run ruff check       # lint
-poetry run ruff format      # format
-poetry run mypy src/        # type check
+poetry run ruff check src tests        # lint
+poetry run ruff format --check         # format CHECK (CI gate)
+poetry run mypy src/                   # type check
+poetry run pytest -q                   # tests
 ```
+
+If `ruff format --check` reports diffs, run `poetry run ruff format`
+to apply them, then commit. Do NOT commit only after `ruff check` --
+the format check is a separate gate and a common red-CI cause.
 
 `pre-commit` runs lint + format on every commit; install it once with
 `poetry run pre-commit install` and you'll never need to think about it.
