@@ -285,6 +285,17 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("AL", "Florence", "35630", "0001", "9.500", "0.10", "ALDOR + Avalara (state 4% + Lauderdale 1% + Florence 4.5%)"),
     ("AL", "Gadsden", "35901", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Etowah 1% + Gadsden 5%)"),
     ("AL", "Selma", "36701", "0001", "10.000", "0.10", "ALDOR + Avalara (state 4% + Dallas 1.5% + Selma 4.5%)"),
+    # Alabama long-tail county fills (added when AL_COUNTY_RATE_PCT
+    # placeholders were replaced with ALDOR taxrates.csv values
+    # 2026-05-04). These ZIPs sit in counties that are NOT anchored
+    # by a covered AL_CITIES seed and are inside towns that ALDOR
+    # publishes at 0.0% city tax -- so the engine answer (state +
+    # county) matches the ALDOR + Avalara combined rate exactly.
+    ("AL", "Paint Rock (Jackson County)", "35764", "0001", "6.000", "0.05", "ALDOR + Avalara (state 4% + Jackson 2%; Paint Rock city = 0% per ALDOR taxrates.csv)"),
+    ("AL", "Knoxville (Greene County)", "35469", "0001", "7.000", "0.05", "Avalara (state 4% + Greene 3%; Knoxville unincorp / no city tax in ZIP 35469)"),
+    ("AL", "Vredenburgh (Monroe County)", "36481", "0001", "7.500", "0.05", "ALDOR + Avalara (state 4% + Monroe 3.5%; Vredenburgh city = 0% per ALDOR taxrates.csv)"),
+    ("AL", "Epes (Sumter County)", "35460", "0001", "8.000", "0.05", "ALDOR + Avalara (state 4% + Sumter 4%; Epes city = 0% per ALDOR taxrates.csv)"),
+    ("AL", "Holly Pond (Cullman County)", "35083", "0001", "8.500", "0.05", "ALDOR + Avalara (state 4% + Cullman 4.5%; Holly Pond city = 0% per ALDOR taxrates.csv)"),
     # Virginia -- VA Dept of Taxation rate-by-locality chart (verified 2026-05-04)
     # Hampton Roads / Northern VA / Central VA add 0.7% on top of the
     # 5.3% statewide minimum -> 6.0% combined. Roanoke and Lynchburg
