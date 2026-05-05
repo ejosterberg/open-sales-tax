@@ -2770,6 +2770,36 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "ARSSTC (City of Kodiak, general retail) -- v0.49 AK promotion",
     ),
+    # AK borough rates (v0.52) -- KPB-unincorporated ZIPs that
+    # were 0% pre-v0.52. Each tests the city-suppresses-borough
+    # rule (city ZIPs are NOT in this section -- they live above).
+    (
+        "AK",
+        "Anchor Point (KPB unincorporated)",
+        "99556",
+        "0001",
+        "3.000",
+        "0.05",
+        "ARSSTC (Kenai Peninsula Borough, general retail) -- v0.52 borough fallback",
+    ),
+    (
+        "AK",
+        "Sterling (KPB unincorporated)",
+        "99672",
+        "0001",
+        "3.000",
+        "0.05",
+        "ARSSTC (Kenai Peninsula Borough, general retail) -- v0.52 borough fallback",
+    ),
+    (
+        "AK",
+        "Ninilchik (KPB unincorporated)",
+        "99639",
+        "0001",
+        "3.000",
+        "0.05",
+        "ARSSTC (Kenai Peninsula Borough, general retail) -- v0.52 borough fallback",
+    ),
     # NE Papillion -- v0.46 most-rows tiebreaker verification.
     # All 3 cities binding 68046 (La Vista, Papillion, Omaha)
     # impose 2.0% city tax; the v0.46 reorder picks Papillion
