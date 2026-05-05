@@ -814,25 +814,34 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "AZ DOR May 2026 CSV (state 5.6% + Apache 0.5%) -- unincorporated; post-zip_county",
     ),
-    # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24)
+    # TN suburb double-counting bug fix verification (was 14.75% / 17.5% pre-v0.24,
+    # then 11.75% post-v0.43 boundary refresh, fixed in v0.44 IMPROVE Act dedup).
     (
         "TN",
         "Brentwood",
         "37027",
         "1234",
-        "9.750",
+        "10.250",
         "0.05",
-        "TN DOR (state 7% + Davidson 2.25% + IMPROVE Act 0.5%) -- post-v0.24 expired-record filter",
+        "TN DOR Q2 2025 (state 7% + Williamson 2.75% + IMPROVE Act 0.5%) -- post-v0.44",
     ),
     (
         "TN",
         "Franklin",
         "37067",
         "1234",
-        "9.750",
+        "10.250",
         "0.05",
-        "TN DOR (state 7% + Williamson 2.75%) -- post-v0.24 expired-record filter",
+        "TN DOR Q2 2025 (state 7% + Williamson 2.75% + IMPROVE Act 0.5%) -- post-v0.44",
     ),
+    # NOTE: Johnson City 37601 is a v0.43/v0.44 fix target for the loose
+    # (zip5-only) lookup path. The strict (zip+4) lookup path still
+    # over-collects when the supplied +4 doesn't match a real type-4 range
+    # (synthetic +4 values like "1234" fall back to type-z and currently
+    # stack every city/county/district that claims the ZIP zip-wide). See
+    # specs/decisions/09-strict-lookup-typez-dedup.md (TODO) for the
+    # follow-up; once that lands, add Johnson City 37601 with a real +4
+    # back to this grid.
     # OK Newcastle (city 51150) -- the McClain-side suburb of Norman
     (
         "OK",
