@@ -2,19 +2,30 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.50.0 is the latest release.** Live at
+**v0.53.1 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **312 sampled
+every published DOR rate within 0.05% across **322 sampled
 ZIP+4s** on the live engine.
 
-**Alaska is no longer a no-tax state** as of v0.49 — 32 verified
-municipalities now ship via ARSSTC data (`src/opensalestax/states/alaska.py`).
-Anchorage and Fairbanks correctly return 0%; the long tail of
-small AK cities and per-borough rate-stacking rules remain
-deferred and documented in `ak_data.py`.
+**Alaska is no longer a no-tax state** as of v0.49 — 42 verified
+municipalities + 2 borough-wide rates (KPB 3%, KGB 2.5%) ship via
+ARSSTC data (`src/opensalestax/states/alaska.py`). Anchorage and
+Fairbanks correctly return 0% (in-state retail); the long tail of
+small AK cities and seasonal rates remain deferred and documented
+in `ak_data.py`. Decision 07 (WY multi-row counties) was closed
+in iter 43 -- WY rates verified correct against SalesTaxHandbook.
+
+**Lookup-engine changes are fragile.** v0.53 widened the
+strict-lookup typez fallback, which regressed OK cross-county +4
+lookups (Edmond 73034-1234, Tulsa 74008-1234). v0.53.1 reverted.
+Lesson: ALWAYS run the full live DOR grid (`pytest -m liveapi`,
+~4 min) after any lookup-engine change, not just the targeted
+tests. Decision 10 captures the synthetic-+4 limitation (Casper
+WY 82601-0001 under-collects by 1%) for a more careful future
+fix.
 
 **Dedup logic stabilized in v0.43-v0.48** after a deep TN bug
 hunt that found systemic issues:

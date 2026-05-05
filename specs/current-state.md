@@ -1,7 +1,7 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-05
-**Status:** **v0.50.0 shipped.** SST loader + lookup engine now
+**Status:** **v0.53.1 shipped.** SST loader + lookup engine now
 matches every published DOR rate within 0.05% across **322 sampled
 city/ZIP+4 combos** on the live engine. The dedup logic stabilized
 across six consecutive refinements (v0.43-v0.48): TN code-63
@@ -11,10 +11,13 @@ tiebreaker, lone-district county-overlay heuristic, and the 20-
 row threshold to filter stray district bindings.
 
 **Alaska is no longer a no-tax state.** v0.49 promoted AK from
-``NoTaxState`` to a real state module via ARSSTC data; v0.50
-extended coverage to 32 verified municipalities. Anchorage and
-Fairbanks correctly return 0% (in-state retail unchanged); 30
-small/long-tail cities and borough-wide rates remain deferred.
+``NoTaxState`` to a real state module via ARSSTC data; v0.50/v0.51
+extended coverage to 42 verified municipalities; v0.52 added
+borough-wide rates (Kenai Peninsula 3%, Ketchikan Gateway 2.5%)
+for unincorporated ZIPs with the city-suppresses-borough rule.
+Anchorage and Fairbanks correctly return 0% (in-state retail
+unchanged); the long tail of small AK cities and seasonal rates
+remain deferred.
 
 VT Local Option Sales Tax (Burlington + ~17 other LOST
 municipalities at 7%) now collected via SST 'A' (address-level)
@@ -104,6 +107,10 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.48.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.48.0) | 2026-05-05 | 20-row threshold filters stray district bindings (Suwanee GA 30024: 6.75% → 6.0%) — Fulton TSPLOST's 7 stray rows in this Gwinnett ZIP no longer apply. |
 | [v0.49.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.49.0) | 2026-05-05 | **Alaska promoted from no-tax to a real state module** via the Alaska Remote Seller Sales Tax Commission (ARSSTC) data. 20 verified municipalities ship general-retail rates (Juneau 5%, Sitka 6%, Kodiak 7%, Wasilla 2.5%, Bethel 6%, etc.); pre-v0.49 every AK ZIP returned 0%. Anchorage and Fairbanks correctly return 0%; borough-stack rules and seasonal rates documented as deferred. |
 | [v0.50.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.50.0) | 2026-05-05 | AK coverage extends from 20 → 32 cities (+12 ARSSTC entries: Adak 4%, Craig 7%, Dillingham 6%, Galena 3%, Houston 2%, Kake 5%, Nenana 4%, Old Harbor 3%, Ouzinkie 6%, Saint Paul 3.5%, Unalakleet 5%, Unalaska 3%). |
+| [v0.51.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.51.0) | 2026-05-05 | AK coverage 32 → 42 cities (+10 more ARSSTC: Aleknagik, Aniak, Gustavus, Mountain Village, Quinhagak, Selawik, Seldovia, Tenakee Springs, Thorne Bay, Togiak). Spec docs refreshed. |
+| [v0.52.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.52.0) | 2026-05-05 | AK borough-wide rates for unincorporated ZIPs (KPB 3%, KGB 2.5%) -- Anchor Point 99556, Sterling 99672, Ninilchik 99639, etc. now return their borough rate. Suppressed inside city limits per the existing v0.36 city-includes-county exclusivity. |
+| [v0.53.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.53.0) | 2026-05-05 | Strict-lookup typez-fallback rewrite (REVERTED in v0.53.1 -- regressed OK Edmond 73034-1234 cross-county +4 lookups). |
+| [v0.53.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.53.1) | 2026-05-05 | Revert v0.53 typez-fallback widening; restore v0.51 candidate-restricted dedup. Decision 10 documents the synthetic-+4 case (Casper WY 82601-0001 returns 5% instead of 6%) as deferred future work. |
 
 ## Coverage (after v0.5)
 
