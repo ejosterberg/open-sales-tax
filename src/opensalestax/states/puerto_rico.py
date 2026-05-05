@@ -75,38 +75,31 @@ every point of sale on the island:
 The **combined consumer-facing rate is therefore 11.5% at every
 address in Puerto Rico**, identically.
 
-### Encoding decision: single combined 11.5% state-level row
+### Encoding decision (v0.32): split into 10.5% state + 1.0% municipal rows
 
-After consulting the per-state-research brief and the rate-stacking
-patterns used by states with no per-municipality variation
-(IN/KY/MI/RI), this module emits a **single combined 11.5%
-authority** rather than splitting into two RateRow instances. The
-rationale:
+This module emits **TWO RateRow instances** that mirror the legal
+structure -- a 10.5% state-level "Puerto Rico" authority plus a 1.0%
+"Puerto Rico Municipal SUT" authority parented to "Puerto Rico". The
+combined consumer-facing rate is **11.5%** at every PR address; the
+engine sums the two rows to produce that combined rate. The split
+preserves the statutory components for receipt clarity and for any
+downstream compliance or audit-trail consumer.
 
-- **The consumer experience is a single 11.5% combined rate** at
-  every PR address. There is no jurisdiction-shopping, no boundary
-  to cross to find a different rate, no per-municipality lookup
-  that an integrator would benefit from.
-- **The 1.0% municipal portion is uniform and centrally collected.**
-  An integrator computing tax for a PR sale receives the same
-  number whether the rate is presented as 11.5% in one row or
-  10.5% + 1.0% in two rows; there is no transaction-relevant
-  distinction.
-- **No-local-tax peer states are encoded as single rows.** ME/IN/KY/
-  MI/RI all collapse to a single state-level RateRow despite having
-  similar statutory structures (state-level imposition only); the
-  PR encoding follows the same pattern with one extra justification
-  in the docstring.
-- **The legal split is documented in this docstring + the
-  TaxabilityRule notes** so a future maintainer or auditor can
-  trace the 11.5% back to the 10.5% + 1.0% statutory components
-  without confusion.
+Rationale for the two-row encoding:
 
-If a later phase needs the legal split (e.g., for compliance
-reporting that requires separate state and municipal lines), this
-module can be revisited to emit two RateRow instances under
-``parent_authority_name="Puerto Rico"`` for the 1.0% municipal
-authority. The combined-rate engine output would be unchanged.
+- **The legal structure has two distinct components.** 13 L.P.R.A.
+  section 32021 imposes the 10.5% state portion; 13 L.P.R.A.
+  section 32024 imposes the 1.0% municipal portion. A receipt or
+  remittance worksheet that mirrors the statute helps an integrator
+  reconcile the SUT to PR Hacienda's filings.
+- **The combined rate is unchanged: still 11.5%.** API consumers
+  computing tax at a PR address receive the same dollar result; the
+  engine sums the two authorities at the lookup site.
+- **Earlier versions of this module emitted a single combined row.**
+  v0.32 promoted the encoding to two rows after a correctness audit
+  flagged that the single-row form obscured the receipt-relevant
+  legal split. The 11.5% combined arithmetic is preserved (DOR
+  validation rows continue to pass).
 
 ### Special IVU on B2B services (NOT applied to retail sales)
 
@@ -267,6 +260,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -438,20 +432,20 @@ class PuertoRico:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Puerto Rico's combined 11.5% IVU rate.
+        """Yield Puerto Rico's IVU rates: 10.5% state + 1.0% municipal.
 
         ``source_file`` is intentionally ignored -- PR is not an SST
         member and has no upstream rate file. Pass ``None`` from the
         loader.
 
-        Encoding decision: this method emits a SINGLE 11.5%
-        territory-level RateRow rather than splitting into a 10.5%
-        state component + 1.0% municipal component. The legal split
-        is documented in this module's docstring; the consumer-facing
-        rate at every PR address is uniformly 11.5%, so the single-
-        row encoding matches the IN/KY/MI/RI/ME no-local-tax
-        precedent. (See the module docstring's "Encoding decision"
-        section for the full rationale.)
+        Encoding decision (v0.32): this method emits TWO RateRow
+        instances mirroring the legal structure -- a 10.5%
+        territory-level "Puerto Rico" row (per 13 L.P.R.A. section
+        32021) plus a 1.0% "Puerto Rico Municipal SUT" row parented
+        to "Puerto Rico" (per 13 L.P.R.A. section 32024). The
+        combined consumer-facing rate is 11.5% at every PR address;
+        the engine sums the two rows. (See the module docstring's
+        "Encoding decision" section for the full rationale.)
 
         The separate 4% Special IVU on B2B services (13 L.P.R.A.
         section 32022) is OUT OF SCOPE for the v1 retail engine and
@@ -461,26 +455,49 @@ class PuertoRico:
         yield RateRow(
             authority_name="Puerto Rico",
             authority_type="state",
-            rate_pct=Decimal("11.500"),
+            rate_pct=Decimal("10.500"),
             effective_from=_RATE_EFFECTIVE_FROM,
             effective_to=None,
             parent_authority_name=None,
+        )
+        yield RateRow(
+            authority_name="Puerto Rico Municipal SUT",
+            authority_type="county",
+            rate_pct=Decimal("1.000"),
+            effective_from=_RATE_EFFECTIVE_FROM,
+            effective_to=None,
+            parent_authority_name="Puerto Rico",
         )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundary rows: PR's IVU is uniform across the territory.
+        """Yield (state, municipal-SUT) boundary rows for every PR ZIP.
 
         Although PR has 78 municipalities, the 1.0% municipal IVU is
         STATUTORILY UNIFORM across all of them (per 13 L.P.R.A.
         section 32024). There is no per-municipality variation and
         no boundary lookup that would resolve to a different rate.
-        The single 11.5% territory-level authority covers every PR
-        address.
+
+        v0.32: with the rate split into two authorities (10.5%
+        state + 1.0% municipal), the boundary loader must bind every
+        PR ZIP to the municipal SUT authority too -- otherwise the
+        engine's lookup would only return the state row and
+        under-collect by 1.0%. State-level binding is provided by the
+        ZCTA loader; this method emits the municipal-SUT layer for
+        every PR ZIP found in :data:`opensalestax.data.zip_county.ZIP_COUNTY`.
         """
         del source_file, version_label
-        return iter(())
+        for zip5, pairs in ZIP_COUNTY.items():
+            if not any(sa == "PR" for sa, _cf in pairs):
+                continue
+            yield BoundaryRow(
+                authority_name="Puerto Rico Municipal SUT",
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return Puerto Rico's IVU taxability rule for ``item_category``."""

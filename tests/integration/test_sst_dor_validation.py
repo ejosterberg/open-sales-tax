@@ -544,6 +544,14 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("HI", "Hilo (Big Island)", "96720", "0001", "4.500", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% + Hawaii County 0.5%, effective 2020-01-01) -- v0.32 per-county"),
     ("HI", "Lihue (Kauai)", "96766", "0001", "4.500", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% + Kauai County 0.5%, effective 2019-01-01) -- v0.32 per-county"),
     ("HI", "Kahului (Maui)", "96732", "0001", "4.000", "0.05", "HI DOTAX Tax Facts 31-1 (state 4% only -- Maui no surcharge as of 2025-01-01) -- v0.32 per-county"),
+    # ----- v0.32 Puerto Rico IVU split into state + municipal authorities ---
+    # The combined consumer-facing rate is 11.5% at every PR address;
+    # v0.32 promoted the encoding from a single 11.5% row to two rows
+    # (10.5% state per 13 L.P.R.A. section 32021 + 1.0% municipal SUT
+    # per 13 L.P.R.A. section 32024) for receipt clarity. The combined
+    # rate is unchanged from the consumer-facing perspective.
+    ("PR", "San Juan", "00901", "0001", "11.500", "0.05", "PR Hacienda (state 10.5% + municipal SUT 1.0% = 11.5% combined) -- v0.32 split"),
+    ("PR", "Adjuntas", "00601", "0001", "11.500", "0.05", "PR Hacienda (state 10.5% + municipal SUT 1.0% = 11.5% combined; uniform across 78 municipalities) -- v0.32 split"),
 ]
 
 

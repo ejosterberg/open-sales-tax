@@ -63,24 +63,36 @@ def test_puerto_rico_unknown_category_returns_none() -> None:
     assert PUERTO_RICO.taxability_for("piragua-cart", dt.date(2026, 5, 3)) is None
 
 
-def test_puerto_rico_parse_rates_yields_combined_11_5_pct() -> None:
-    """PR's combined IVU rate is 11.5% (10.5% state + 1.0% municipal),
-    encoded as a single territory-level row per the module's encoding
-    decision. Effective from 2015-07-01 (Act No. 72 of 2015).
+def test_puerto_rico_parse_rates_yields_state_and_municipal_components() -> None:
+    """v0.32: PR's IVU is now encoded as TWO RateRows -- 10.5% state
+    (per 13 L.P.R.A. section 32021) + 1.0% municipal SUT (per
+    13 L.P.R.A. section 32024) -- summing to the 11.5% combined rate
+    at every PR address. Effective from 2015-07-01 (Act No. 72 of
+    2015).
     """
-    rows = list(PUERTO_RICO.parse_rates(None, "v0.13-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
-    assert row.authority_name == "Puerto Rico"
-    assert row.authority_type == "state"
-    assert row.rate_pct == Decimal("11.500")
-    assert row.effective_from == dt.date(2015, 7, 1)
-    assert row.effective_to is None
-    assert row.parent_authority_name is None  # territory-level rate has no parent
+    rows = list(PUERTO_RICO.parse_rates(None, "v0.32-municipal-split"))
+    assert len(rows) == 2
+    by_name = {r.authority_name: r for r in rows}
+    state = by_name["Puerto Rico"]
+    municipal = by_name["Puerto Rico Municipal SUT"]
+    # State portion: 10.5% per section 32021.
+    assert state.authority_type == "state"
+    assert state.rate_pct == Decimal("10.500")
+    assert state.effective_from == dt.date(2015, 7, 1)
+    assert state.effective_to is None
+    assert state.parent_authority_name is None
+    # Municipal portion: 1.0% per section 32024, parented to "Puerto Rico".
+    assert municipal.authority_type == "county"
+    assert municipal.rate_pct == Decimal("1.000")
+    assert municipal.effective_from == dt.date(2015, 7, 1)
+    assert municipal.effective_to is None
+    assert municipal.parent_authority_name == "Puerto Rico"
+    # Combined consumer-facing rate is preserved: 10.5 + 1.0 = 11.5.
+    assert state.rate_pct + municipal.rate_pct == Decimal("11.500")
 
 
 def test_puerto_rico_parse_rates_ignores_source_file() -> None:
-    """parse_rates returns the same row whether given a path or None."""
+    """parse_rates returns the same rows whether given a path or None."""
     from pathlib import Path
 
     rows_with_none = list(PUERTO_RICO.parse_rates(None, "test"))
@@ -88,12 +100,23 @@ def test_puerto_rico_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_puerto_rico_parse_boundaries_returns_empty() -> None:
-    """PR's IVU is statutorily uniform across all 78 municipalities --
-    no per-municipality variation, so no sub-state boundaries to ship.
+def test_puerto_rico_parse_boundaries_emits_municipal_sut_for_every_pr_zip() -> None:
+    """v0.32: with the rate split into state + municipal authorities,
+    parse_boundaries must bind every PR ZIP to the municipal SUT
+    authority so the engine's lookup returns BOTH components and
+    sums to 11.5%. State-level binding is provided by the ZCTA
+    loader; this method covers the municipal layer.
     """
-    rows = list(PUERTO_RICO.parse_boundaries(None, "v0.13-statewide"))
-    assert rows == []
+    rows = list(PUERTO_RICO.parse_boundaries(None, "v0.32-municipal-split"))
+    # Every emitted row must reference the municipal SUT authority.
+    assert rows  # non-empty
+    for row in rows:
+        assert row.authority_name == "Puerto Rico Municipal SUT"
+        assert row.authority_type == "county"
+        assert row.zip4_low is None
+        assert row.zip4_high is None
+    # Spot-check a known PR ZIP (San Juan 00901).
+    assert any(r.zip5 == "00901" for r in rows)
 
 
 def test_puerto_rico_special_cases_empty() -> None:
@@ -147,11 +170,11 @@ def test_puerto_rico_module_docstring_documents_territorial_status() -> None:
 
 def test_puerto_rico_module_docstring_documents_combined_rate_rationale() -> None:
     """Regression test: the module docstring MUST document the
-    encoding decision to emit a SINGLE combined 11.5% rate rather
-    than splitting into 10.5% state + 1.0% municipal rows. Future
-    maintainers (or auditors) need to find this rationale without
-    re-deriving it; the docstring is the canonical home for the
-    decision.
+    encoding decision (v0.32) to emit TWO RateRows mirroring the
+    legal split (10.5% state + 1.0% municipal SUT) summing to 11.5%
+    combined. Future maintainers (or auditors) need to find this
+    rationale without re-deriving it; the docstring is the canonical
+    home for the decision.
     """
     from opensalestax.states import puerto_rico as pr_module
 
