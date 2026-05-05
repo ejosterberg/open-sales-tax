@@ -30,6 +30,7 @@ import pytest
 
 from opensalestax.states import get_state_module
 from opensalestax.states.new_mexico import NEW_MEXICO, NewMexico
+from opensalestax.states.nm_data import NM_LOCATION_RATES, NM_STATE_RATE_PCT
 from opensalestax.states.protocol import HolidayWindow, StateModule
 
 
@@ -97,13 +98,18 @@ def test_new_mexico_unknown_category_returns_none() -> None:
 # ---------------------------------------------------------------------------
 # parse_rates / parse_boundaries / special_cases
 # ---------------------------------------------------------------------------
-def test_new_mexico_parse_rates_yields_4_875_pct() -> None:
-    """NM's statewide GRT rate is 4.875% effective 2023-07-01 (HB 163 of 2022)."""
-    rows = list(NEW_MEXICO.parse_rates(None, "v1-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
+def test_new_mexico_parse_rates_yields_state_4_875_pct() -> None:
+    """NM's statewide GRT rate is 4.875% effective 2023-07-01 (HB 163 of 2022).
+
+    Post-NM-locations ratchet the loader also yields per-county and
+    per-location rows for the top-30 covered locations; we still
+    verify the state row is present and correct.
+    """
+    rows = list(NEW_MEXICO.parse_rates(None, "v1-state-county-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    row = state_rows[0]
     assert row.authority_name == "New Mexico"
-    assert row.authority_type == "state"
     assert row.rate_pct == Decimal("4.875")
     assert row.effective_from == dt.date(2023, 7, 1)
     # No scheduled sunset -- the contingent 4.500% trigger in HB 163 has
@@ -113,16 +119,10 @@ def test_new_mexico_parse_rates_yields_4_875_pct() -> None:
 
 
 def test_new_mexico_parse_rates_ignores_source_file() -> None:
-    """parse_rates returns the same row whether given a path or None."""
+    """parse_rates returns the same rows whether given a path or None."""
     rows_with_none = list(NEW_MEXICO.parse_rates(None, "test"))
     rows_with_path = list(NEW_MEXICO.parse_rates(Path("/dev/null"), "test"))
     assert rows_with_none == rows_with_path
-
-
-def test_new_mexico_parse_boundaries_returns_empty() -> None:
-    """v1 doesn't ship NM boundaries; per-county load deferred (mirrors CO/LA)."""
-    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-statewide"))
-    assert rows == []
 
 
 def test_new_mexico_special_cases_empty() -> None:
@@ -416,3 +416,241 @@ def test_new_mexico_holiday_unknown_year_returns_empty() -> None:
     assert list(NEW_MEXICO.holidays_for(2025)) == []
     assert list(NEW_MEXICO.holidays_for(2027)) == []
     assert list(NEW_MEXICO.holidays_for(2099)) == []
+
+
+# ---------------------------------------------------------------------------
+# Per-location combined-rate tests (NM TRD GRT Rate Schedule, top-30 cities)
+# ---------------------------------------------------------------------------
+def test_new_mexico_parse_rates_emits_state_county_city_layers() -> None:
+    """parse_rates yields one state row + N county rows + M location rows."""
+    rows = list(NEW_MEXICO.parse_rates(None, "v1-state-county-city"))
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    county_rows = [r for r in rows if r.authority_type == "county"]
+    city_rows = [r for r in rows if r.authority_type == "city"]
+    assert len(state_rows) == 1
+    # Counties seeded == unique counties referenced by NM_LOCATION_RATES.
+    expected_counties = {county for (county, _r, _z) in NM_LOCATION_RATES.values()}
+    assert {r.authority_name for r in county_rows} == expected_counties
+    # Every location is emitted as a city authority.
+    assert {r.authority_name for r in city_rows} == set(NM_LOCATION_RATES)
+    # Every county's rate is 0% (combined-local is folded into the city).
+    for r in county_rows:
+        assert r.rate_pct == Decimal("0.000")
+        assert r.parent_authority_name == "New Mexico"
+
+
+# DOR-verified combined rates (NM TRD GRT Rate Schedule effective
+# 2026-01-01) -- the eight cities the orchestrator brief calls out
+# as the maintainer-verified test grid. Combined = state 4.875% +
+# city authority's local-combined rate.
+@pytest.mark.parametrize(
+    "city,county,expected_combined_pct",
+    [
+        ("Albuquerque", "Bernalillo County", Decimal("7.875")),
+        ("Santa Fe", "Santa Fe County", Decimal("8.4375")),
+        ("Las Cruces", "Doña Ana County", Decimal("8.000")),
+        ("Rio Rancho", "Sandoval County", Decimal("7.6875")),
+        ("Roswell", "Chaves County", Decimal("7.5625")),
+        ("Farmington", "San Juan County", Decimal("8.125")),
+        ("Hobbs", "Lea County", Decimal("6.5625")),
+        ("Carlsbad", "Eddy County", Decimal("7.8333")),
+    ],
+)
+def test_new_mexico_dor_verified_combined_rates(
+    city: str, county: str, expected_combined_pct: Decimal
+) -> None:
+    """Eight DOR-verified cities reproduce the published TRD combined rate.
+
+    Combined = state 4.875% + city authority's local-combined rate
+    (with county at 0% per the published-combined-rate model). These
+    rates are spot-checked against the NM TRD GRT Rate Schedule
+    effective 2026-01-01 and form the maintainer-verified test grid
+    per the orchestrator brief.
+    """
+    rows = list(NEW_MEXICO.parse_rates(None, "v1-state-county-city"))
+    by_name = {r.authority_name: r for r in rows}
+    assert city in by_name, f"{city} not emitted as a RateRow"
+    city_row = by_name[city]
+    assert city_row.authority_type == "city"
+    assert city_row.parent_authority_name == county
+    combined = NM_STATE_RATE_PCT + city_row.rate_pct
+    assert combined == expected_combined_pct, (
+        f"{city}: expected combined {expected_combined_pct}%, got {combined}% "
+        f"(state {NM_STATE_RATE_PCT}% + local {city_row.rate_pct}%)"
+    )
+
+
+def test_new_mexico_albuquerque_combined_in_target_range() -> None:
+    """ABQ combined rate must be in the 7-8% range per orchestrator brief.
+
+    The brief explicitly states 'Albuquerque/Santa Fe/Las Cruces return
+    correct combined rates (~7-8%) instead of state-only 4.875%' as the
+    success criterion. This test guards against an accidental regression
+    that would put ABQ back at the state-only 4.875%.
+    """
+    rows = list(NEW_MEXICO.parse_rates(None, "v1-state-county-city"))
+    by_name = {r.authority_name: r for r in rows}
+    abq = by_name["Albuquerque"]
+    combined = NM_STATE_RATE_PCT + abq.rate_pct
+    assert Decimal("7.0") <= combined <= Decimal("8.5"), (
+        f"Albuquerque combined rate {combined}% out of target 7-8.5% range -- "
+        f"would mean local GRT regressed to under-collecting"
+    )
+
+
+def test_new_mexico_top_30_brief_cities_present() -> None:
+    """The eight DOR-verified cities from the brief must all be present.
+
+    These eight (ABQ, SF, LC, RR, Roswell, Farmington, Hobbs, Carlsbad)
+    are the orchestrator-brief-required minimum coverage. The remaining
+    21 in NM_LOCATION_RATES round out the top-30 and may be tuned in
+    future ratchets without failing this regression test.
+    """
+    required_cities = {
+        "Albuquerque", "Santa Fe", "Las Cruces", "Rio Rancho",
+        "Roswell", "Farmington", "Hobbs", "Carlsbad",
+    }
+    assert required_cities.issubset(set(NM_LOCATION_RATES))
+
+
+def test_new_mexico_location_count_at_least_25() -> None:
+    """Coverage must include at least 25 NM locations (target is top-30).
+
+    Lets the brief's 'top-30' coverage flex to 25-30 to accommodate
+    municipalities that share ZIPs with another covered location and
+    can't be cleanly distinguished without +4 ZIP precision.
+    """
+    assert len(NM_LOCATION_RATES) >= 25
+
+
+def test_new_mexico_parse_boundaries_yields_albuquerque_zip() -> None:
+    """ABQ ZIP 87102 binds to state + Bernalillo County + Albuquerque."""
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    abq_rows = [b for b in rows if b.zip5 == "87102"]
+    names = sorted(b.authority_name for b in abq_rows)
+    assert names == ["Albuquerque", "Bernalillo County", "New Mexico"]
+
+
+def test_new_mexico_parse_boundaries_yields_santa_fe_zip() -> None:
+    """Santa Fe ZIP 87501 binds to state + Santa Fe County + Santa Fe."""
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    sf_rows = [b for b in rows if b.zip5 == "87501"]
+    names = sorted(b.authority_name for b in sf_rows)
+    assert names == ["New Mexico", "Santa Fe", "Santa Fe County"]
+
+
+def test_new_mexico_parse_boundaries_yields_las_cruces_zip() -> None:
+    """Las Cruces ZIP 88001 binds to state + Doña Ana County + Las Cruces."""
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    lc_rows = [b for b in rows if b.zip5 == "88001"]
+    names = sorted(b.authority_name for b in lc_rows)
+    assert names == ["Doña Ana County", "Las Cruces", "New Mexico"]
+
+
+def test_new_mexico_parse_boundaries_dedupes_county_per_zip() -> None:
+    """Each NM ZIP must bind to AT MOST ONE county.
+
+    Many NM ZIPs span multiple counties in the Census ZCTA file; the
+    loader must pick exactly one (preferring the city-anchor county
+    when the ZIP is in NM_LOCATION_RATES) so the engine doesn't
+    double-count any county-level layer.
+    """
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    by_zip: dict[str, list[str]] = {}
+    for b in rows:
+        if b.authority_type == "county":
+            by_zip.setdefault(b.zip5, []).append(b.authority_name)
+    multi = {z: counties for z, counties in by_zip.items() if len(counties) > 1}
+    assert multi == {}, (
+        f"Found ZIPs bound to multiple NM counties (would double-count "
+        f"local layers): {multi}"
+    )
+
+
+def test_new_mexico_parse_boundaries_dedupes_city_per_zip() -> None:
+    """Each NM ZIP must bind to AT MOST ONE NM_LOCATION city.
+
+    If a ZIP appears in two NM_LOCATION_RATES entries' tuple of ZIPs,
+    the engine would try to apply two different combined-local rates
+    to the same address. The seeded location ZIP lists must therefore
+    be disjoint.
+    """
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    by_zip: dict[str, list[str]] = {}
+    for b in rows:
+        if b.authority_type == "city":
+            by_zip.setdefault(b.zip5, []).append(b.authority_name)
+    multi = {z: cities for z, cities in by_zip.items() if len(cities) > 1}
+    assert multi == {}, (
+        f"Found ZIPs bound to multiple NM locations (would double-count "
+        f"the local GRT): {multi}"
+    )
+
+
+def test_new_mexico_parse_boundaries_emits_many_zips() -> None:
+    """Sanity: post-ratchet NM emits boundary rows for many ZIPs.
+
+    Census ZCTA pass should bind every NM ZIP in the seeded counties,
+    not just the ZIPs explicitly listed in NM_LOCATION_RATES.
+    """
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    state_zips = {b.zip5 for b in rows if b.authority_type == "state"}
+    # The 29 seeded locations alone reach ~50 ZIPs; the Census pass
+    # against the seeded counties (Bernalillo, Santa Fe, Doña Ana,
+    # Sandoval, Chaves, San Juan, Lea, Eddy, Curry, Otero, McKinley,
+    # Valencia, San Miguel, Luna, Roosevelt, Grant, Rio Arriba, Cibola,
+    # Sierra, Taos, Lincoln) lifts coverage well past 100 ZIPs.
+    assert len(state_zips) > 100, (
+        f"Expected post-ratchet NM ZIP coverage > 100; got {len(state_zips)} "
+        f"-- ratchet may not be wired correctly"
+    )
+
+
+def test_new_mexico_parse_boundaries_state_authority_matches_state_name() -> None:
+    """State BoundaryRows use the canonical state name 'New Mexico'."""
+    rows = list(NEW_MEXICO.parse_boundaries(None, "v1-state-county-city"))
+    state_authorities = {b.authority_name for b in rows if b.authority_type == "state"}
+    assert state_authorities == {"New Mexico"}
+
+
+def test_new_mexico_location_rate_decimal_precision_under_4_digits() -> None:
+    """Encoded local-combined rates use at most 4 fractional digits.
+
+    NM TRD publishes rates to four decimal places (e.g., 8.4375%). Any
+    rate with more digits is a rounding-error tell that should be
+    re-checked against the source.
+    """
+    for city, (_county, rate, _zips) in NM_LOCATION_RATES.items():
+        # Strip trailing zeros, then count fractional digits.
+        normalized = rate.normalize()
+        sign, digits, exponent = normalized.as_tuple()
+        # Pure integer rate (e.g., Decimal('3') -> exponent positive)
+        # is fine; only check fractional precision.
+        if isinstance(exponent, int) and exponent < 0:
+            assert -exponent <= 4, (
+                f"{city} local-combined rate {rate} has more than 4 "
+                f"fractional digits -- check the source"
+            )
+
+
+def test_new_mexico_bernalillo_town_lives_in_sandoval_county() -> None:
+    """The town of Bernalillo is in SANDOVAL County, NOT Bernalillo County.
+
+    Common NM-trivia foot-gun: the city of Albuquerque sits in
+    Bernalillo County, but the town of Bernalillo (north of ABQ on
+    I-25) sits in Sandoval County. Guarding against an accidental
+    swap.
+    """
+    county, _rate, _zips = NM_LOCATION_RATES["Bernalillo"]
+    assert county == "Sandoval County"
+
+
+def test_new_mexico_las_vegas_lives_in_san_miguel_county_not_nv() -> None:
+    """Las Vegas in NM_LOCATION_RATES is the NM city, NOT the NV city.
+
+    Sanity guard: the NM Las Vegas is in San Miguel County. If a
+    future maintainer accidentally seeds Nevada's Las Vegas (Clark
+    County), this test fails immediately.
+    """
+    county, _rate, _zips = NM_LOCATION_RATES["Las Vegas"]
+    assert county == "San Miguel County"
