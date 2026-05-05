@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "opensalestax"
-version = "0.31.0"
+version = "0.32.0"
 description = "Open-source US sales tax calculation API. Free, self-hostable, contributor-driven."
 authors = ["Eric Osterberg <ejosterberg@gmail.com>"]
 license = "Apache-2.0"
