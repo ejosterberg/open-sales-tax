@@ -2,13 +2,19 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.48.0 is the latest release.** Live at
+**v0.50.0 is the latest release.** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
 every published DOR rate within 0.05% across **312 sampled
 ZIP+4s** on the live engine.
+
+**Alaska is no longer a no-tax state** as of v0.49 — 32 verified
+municipalities now ship via ARSSTC data (`src/opensalestax/states/alaska.py`).
+Anchorage and Fairbanks correctly return 0%; the long tail of
+small AK cities and per-borough rate-stacking rules remain
+deferred and documented in `ak_data.py`.
 
 **Dedup logic stabilized in v0.43-v0.48** after a deep TN bug
 hunt that found systemic issues:

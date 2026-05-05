@@ -92,6 +92,16 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("4.000"),
         frozenset({"99546"}),
     ),
+    "Aleknagik": (
+        "Dillingham Census Area",
+        Decimal("5.000"),
+        frozenset({"99555"}),
+    ),
+    "Aniak": (
+        "Bethel Census Area",
+        Decimal("2.000"),
+        frozenset({"99557"}),
+    ),
     "Bethel": (
         "Bethel Census Area",
         Decimal("6.000"),
@@ -116,6 +126,11 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Yukon-Koyukuk Census Area",
         Decimal("3.000"),
         frozenset({"99741"}),
+    ),
+    "Gustavus": (
+        "Hoonah-Angoon Census Area",
+        Decimal("3.000"),
+        frozenset({"99826"}),
     ),
     "Haines": (
         "Haines Borough",
@@ -146,6 +161,11 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Kenai Peninsula Borough",
         Decimal("3.000"),
         frozenset({"99611"}),
+    ),
+    "Mountain Village": (
+        "Kusilvak Census Area",
+        Decimal("3.000"),
+        frozenset({"99632"}),
     ),
     "Ketchikan": (
         "Ketchikan Gateway Borough",
@@ -182,6 +202,11 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("3.000"),
         frozenset({"99643"}),
     ),
+    "Quinhagak": (
+        "Bethel Census Area",
+        Decimal("3.000"),
+        frozenset({"99655"}),
+    ),
     "Ouzinkie": (
         "Kodiak Island Borough",
         Decimal("6.000"),
@@ -202,6 +227,16 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("3.500"),
         frozenset({"99660"}),
     ),
+    "Selawik": (
+        "Northwest Arctic Borough",
+        Decimal("6.500"),
+        frozenset({"99770"}),
+    ),
+    "Seldovia": (
+        "Kenai Peninsula Borough",
+        Decimal("6.500"),  # ARSSTC peak; winter rate 2.0%
+        frozenset({"99663"}),
+    ),
     "Seward": (
         "Kenai Peninsula Borough",
         Decimal("4.000"),
@@ -221,6 +256,21 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         "Kenai Peninsula Borough",
         Decimal("3.000"),
         frozenset({"99669"}),
+    ),
+    "Tenakee Springs": (
+        "Hoonah-Angoon Census Area",
+        Decimal("2.000"),
+        frozenset({"99841"}),
+    ),
+    "Thorne Bay": (
+        "Prince of Wales-Hyder Census Area",
+        Decimal("6.000"),
+        frozenset({"99919"}),
+    ),
+    "Togiak": (
+        "Dillingham Census Area",
+        Decimal("2.000"),
+        frozenset({"99678"}),
     ),
     "Unalakleet": (
         "Nome Census Area",
