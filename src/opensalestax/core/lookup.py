@@ -202,31 +202,34 @@ async def _dedup_typez_fallback(
 ) -> list[TaxAuthority]:
     """Dedup a strict-lookup type-z fallback list to the same shape as the loose lookup.
 
-    Pulls every authority that binds to ``zip5`` (any boundary type --
-    type-z, type-4, type-a all count), not just those already in the
-    ``authorities`` list. Catches the v0.52 regression where the strict
-    lookup's ``z_authorities`` query missed type-4-only city
-    authorities (e.g. WY-city-13150 = Casper has no type-z record for
-    82601, only type-4 ranges); without this query a synthetic +4 would
-    miss the city via type-z and the v0.45 dedup would never see it.
+    Pulls the same ``(authority, zip4_low)`` rows the loose lookup
+    uses (any boundary that touches ``zip5`` -- type-z and type-4
+    both count) so the dominant-by-row-count tiebreaker gets the
+    real per-ZIP coverage. Restricted to the candidate authorities
+    already in the merged list so we don't override the strict
+    lookup's precise-match selection (Edmond OK 73034-1234 picks
+    the Logan County type-4 binding via precise match; widening
+    the dedup to ALL ZIP authorities would let Oklahoma County's
+    wider boundary outvote it on row count).
 
-    Then computes per-ZIP row counts and total-ZIP-coverage for the
-    tiebreaker chain and delegates to
-    ``_pick_one_city_county_per_zip5`` so the strict and loose lookups
-    produce the same authority stack for a given ZIP when no precise
-    type-4 match exists.
+    Decision 10 documents the remaining edge case (synthetic +4
+    addresses in WY where a wide-range county/state type-4 record
+    matches but the city's narrow ranges don't); fixing that
+    without regressing OK-style cross-county +4 matches needs a
+    more careful design.
     """
+    if not authorities:
+        return authorities
+
+    candidate_ids = {a.id for a in authorities}
     rows_stmt = (
         select(TaxAuthority, Boundary.zip4_low)
         .join(Boundary, Boundary.authority_id == TaxAuthority.id)
-        .where(Boundary.zip5 == zip5)
+        .where(Boundary.zip5 == zip5, TaxAuthority.id.in_(candidate_ids))
         .options(selectinload(TaxAuthority.state))
     )
     rows = [(row[0], row[1]) for row in (await session.execute(rows_stmt)).all()]
-    if not rows:
-        return authorities
 
-    candidate_ids = {a.id for a, _ in rows}
     coverage_stmt = (
         select(Boundary.authority_id, func.count(Boundary.zip5.distinct()))
         .where(Boundary.authority_id.in_(candidate_ids))
