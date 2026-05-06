@@ -95,6 +95,26 @@ shipped 3 agents in parallel (~1900 lines, 1 hour wall-clock).
   boundaries. Use the `--boundary-version` CLI flag to load
   both: `data load --state TN --version 2025Q1MAR07
   --boundary-version 2026Q2FEB23`.
+- **ND data** has the same split: `NDR2026Q2FEB11` for rates,
+  `NDB2026Q2FEB19` for boundaries. Without `--boundary-version`,
+  ND loads with 0 boundaries -- locality lookups fall back to
+  state-only. Iter-59 hit this; the fix is `data load --state ND
+  --version 2026Q2FEB11 --boundary-version 2026Q2FEB19`.
+- **Reloading SST data on top of v0.54.x is dangerous if you
+  haven't refreshed since 2026-05-04.** Iter-59 surfaced two
+  related issues that compound:
+  - `c512354` (2026-05-05) added type-'A' (address-level) boundary
+    record support. Files like KSB are 84% 'A' records, so a fresh
+    parse adds large numbers of boundaries that the prior parser
+    silently dropped.
+  - For KS, the new bindings include code-63 CID/TDD rows which
+    are special-purpose districts that should NOT apply at the ZIP
+    level. Pre-fix this added ~6% to Lawrence/Salina/Wichita on
+    general retail. Iter-59 fixed via the same per-state opt-out
+    TN already used (`jurisdiction_types["63"] = None`).
+  - **Lesson:** every time a state without an explicit per-state
+    code-63 entry gets reloaded, audit a representative city
+    afterwards. ND/AR were spot-clean here; KS was not.
 
 ## Where the iter-loop is currently focused
 
