@@ -147,15 +147,21 @@ def parse_rates_csv(lines: Iterable[str]) -> Iterator[SstRateRecord]:
                 state_fips=cols[0],
                 jurisdiction_type=cols[1],
                 jurisdiction_code=cols[2],
-                general_rate=_decimal_or_zero(cols[3]),
-                # food/drug/residential-utility rate columns are
-                # blank on some legacy district rows (VT type-02
-                # rows for districts that pre-date the SST food/drug
-                # category breakout). Treat blank as 0 -- the row
-                # still encodes a valid general_rate that callers
-                # should see, and a zero food/drug rate falls
-                # through to the general rate via the engine's
-                # category-rule machinery.
+                # general_rate must parse strictly: a blank value is the
+                # SST file's signal that a row is a special-purpose stub
+                # (CID/TDD-style local-improvement districts on KS, etc.)
+                # that should NOT contribute to the general retail rate
+                # stack. v0.54.x briefly relaxed this to Decimal(0) and
+                # silently broke KS Lawrence/Salina/Wichita post-reload --
+                # see specs/security/audit-2026-05-04.md for the regression
+                # writeup. The 18 VT type-02 legacy rows the relaxation
+                # was meant to preserve are an acceptable loss; their
+                # boundaries are absent from the live grid anyway.
+                general_rate=Decimal(cols[3]),
+                # food/drug/residential-utility rate columns are still
+                # tolerated as blank since those columns are routinely
+                # empty on rows with a valid general_rate (the "rate"
+                # for a category that just falls through to general).
                 food_rate=_decimal_or_zero(cols[4]),
                 drug_rate=_decimal_or_zero(cols[5]),
                 residential_utility_rate=_decimal_or_zero(cols[6]),
