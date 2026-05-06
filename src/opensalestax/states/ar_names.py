@@ -9,10 +9,12 @@ Verified by ZIP probe + rate cross-check against AR DFA's
 from __future__ import annotations
 
 AR_CITY_NAMES: dict[str, str] = {
+    "05320": "Bentonville",  # ZIP 72712 (verified by probe; FIPS Place 0505320)
     "23290": "Fayetteville",
     "24550": "Fort Smith",
     "35710": "Jonesboro",
     "41000": "Little Rock",
+    "55310": "Pine Bluff",  # ZIP 71601 (verified by probe; FIPS Place 0555310)
 }
 
 

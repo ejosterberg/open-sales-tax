@@ -10,8 +10,10 @@ from __future__ import annotations
 
 KS_CITY_NAMES: dict[str, str] = {
     "36000": "Kansas City",
+    "38900": "Lawrence",  # ZIP 66044 (verified by probe; FIPS Place 2038900)
     "52575": "Olathe",
     "53775": "Overland Park",
+    "62700": "Salina",  # ZIP 67401 (verified by probe; FIPS Place 2062700)
     "71000": "Topeka",
     "79000": "Wichita",
 }

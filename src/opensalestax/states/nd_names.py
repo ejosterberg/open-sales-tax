@@ -11,8 +11,11 @@ from __future__ import annotations
 
 ND_CITY_NAMES: dict[str, str] = {
     "07200": "Bismarck",
+    "19620": "Dickinson",  # ZIP 58601 (verified by probe; FIPS Place 3819620)
     "25700": "Fargo",
     "32060": "Grand Forks",
+    "53380": "Minot",  # ZIP 58701 (verified by probe; FIPS Place 3853380)
+    "86220": "Williston",  # ZIP 58801 (verified by probe; FIPS Place 3886220)
 }
 
 
