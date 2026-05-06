@@ -144,20 +144,25 @@ def test_kansas_general_rule_cites_imposition_statute() -> None:
     assert "79-3603(a)" in (rule.notes or "")
 
 
-def test_kansas_jurisdiction_types_include_district() -> None:
-    """KS uses the canonical SST jurisdiction-type code mapping (assumed).
+def test_kansas_jurisdiction_types_skip_code_63() -> None:
+    """KS skips SST code-63 rows (CID/TDD over-collect via 'A' bindings).
 
-    The default mapping includes ``45`` state, ``00`` county, ``01``
-    city, and ``63`` district. Districts cover Community Improvement
-    Districts (CIDs), Transportation Development Districts (TDDs),
-    and Star Bond / redevelopment districts authorized under K.S.A.
-    chapter 12.
+    Pre-iter-59 the canonical SST mapping treated KS code-63 as a
+    generic "district". Post-c512354 the boundary parser learned to
+    consume type-'A' (address-level) records, which then bound every
+    CID/TDD touching a ZIP to that ZIP for the whole ZIP -- adding
+    ~6% spurious tax to KS Lawrence/Salina/Wichita on general retail.
+    Same pattern as TN code-63; ``None`` tells the inherited base
+    parser to skip the row entirely. ZIP-level callers may slightly
+    under-collect for addresses physically inside a CID, but that is
+    a smaller error than the previously observed ZIP-wide over-
+    collection.
     """
     types = Kansas().jurisdiction_types
     assert types["45"] == "state"
     assert types["00"] == "county"
     assert types["01"] == "city"
-    assert types["63"] == "district"
+    assert types["63"] is None
 
 
 # ---------------------------------------------------------------------------

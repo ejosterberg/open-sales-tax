@@ -161,11 +161,26 @@ from opensalestax.states.registry import register
 # data). This is consistent with SST's stated goal of uniform
 # data formats across member states. A state maintainer should
 # validate against an actual KSR<...>.csv file at next refresh.
-_JURISDICTION_TYPE: dict[str, str] = {
+_JURISDICTION_TYPE: dict[str, str | None] = {
     "45": "state",
     "00": "county",
     "01": "city",
-    "63": "district",
+    # KS code-63 rows encode Community Improvement Districts (CIDs) and
+    # Transportation Development Districts (TDDs): special-purpose
+    # local-improvement districts that apply only to addresses inside
+    # the district boundary, not to every retail sale in the ZIP. The
+    # SST quarterly boundary file binds them to ZIPs via type-'A'
+    # (address-level) records; once those records are parsed (which they
+    # are post-c512354), a ZIP-level lookup picks up every CID/TDD that
+    # touches the ZIP -- adding ~6% spurious tax to KS Lawrence/
+    # Salina/Wichita on general retail. Same pattern as TN code-63
+    # (see src/opensalestax/states/tennessee.py for the original
+    # writeup); ``None`` here tells the inherited base parser to skip
+    # the row entirely. ZIP-level callers may slightly under-collect
+    # for addresses physically inside a CID, but the previously
+    # observed ZIP-wide over-collection was the larger correctness
+    # problem.
+    "63": None,
 }
 
 # Static taxability matrix per K.S.A. chapter 79, article 36.
@@ -306,7 +321,7 @@ class Kansas(SstStateModule):
     tier: StateTier = 1
 
     # Override the base-class defaults with KS-specific data.
-    jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
+    jurisdiction_types: dict[str, str | None] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
 
     def _authority_name(self, code: str, authority_type: str) -> str:
