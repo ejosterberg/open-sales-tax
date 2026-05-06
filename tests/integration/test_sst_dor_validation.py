@@ -3087,7 +3087,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ("MD", "Baltimore", "21201", "0001", "6.000", "0.05", "MD DOR (flat statewide)"),
     ("ME", "Portland", "04101", "0001", "5.500", "0.05", "ME DOR (flat statewide)"),
     ("MI", "Detroit", "48201", "0001", "6.000", "0.05", "MI DOR (flat statewide)"),
-    ("MT", "Billings", "59101", "0001", "0.000", "0.05", "MT DOR (no statewide; resort tax narrow)"),
+    (
+        "MT",
+        "Billings",
+        "59101",
+        "0001",
+        "0.000",
+        "0.05",
+        "MT DOR (no statewide; resort tax narrow)",
+    ),
     ("NH", "Concord", "03301", "0001", "0.000", "0.05", "NH DOR (no sales tax)"),
     ("NJ", "Newark", "07102", "0001", "6.625", "0.05", "NJ DOR (flat statewide; UEZ deferred)"),
     (
