@@ -2,13 +2,25 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.53.1 is the latest release.** Live at
+**v0.54.1 is the latest release (security fix).** Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **322 sampled
-ZIP+4s** on the live engine.
+every published DOR rate within 0.05% across **375 sampled
+ZIP+4s** on the live engine (every US jurisdiction covered).
+
+**v0.54.1 closed a real security hole**: slowapi was registered but
+`SlowAPIMiddleware` was never added, so the configured per-IP
+rate limit was inert across every prior release. Verified
+empirically against the public engine before the fix (80 rapid
+POSTs all 200ed). Same release added a `SecurityHeadersMiddleware`
+(HSTS / nosniff / X-Frame-Options DENY / Referrer-Policy /
+Permissions-Policy) and the inaugural security audit baseline at
+`specs/security/audit-2026-05-04.md`. SonarQube re-scan at v0.54.0
+came back A across all four ratings, zero security findings; 308
+code smells (mostly S1192 string-dup in data tables) flagged as
+quality follow-up.
 
 **Alaska is no longer a no-tax state** as of v0.49 — 42 verified
 municipalities + 2 borough-wide rates (KPB 3%, KGB 2.5%) ship via

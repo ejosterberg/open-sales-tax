@@ -1,11 +1,19 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-05
-**Status:** **v0.54.0 shipped.** SST loader + lookup engine now
-matches every published DOR rate within 0.05% across **375 sampled
-city/ZIP+4 combos** on the live engine -- coverage spans **every
-US jurisdiction (50 states + DC + PR)** for the first time as of
-iter 57. The dedup logic stabilized
+**Last updated:** 2026-05-06
+**Status:** **v0.54.1 shipped (security fix).** Wired
+`SlowAPIMiddleware` so the configured per-IP rate limit actually
+enforces (it was inert in v0.54.0 and earlier despite being
+registered) and added a `SecurityHeadersMiddleware` that attaches
+HSTS / nosniff / X-Frame-Options DENY / Referrer-Policy /
+Permissions-Policy to every response. First formal security audit
+landed at `specs/security/audit-2026-05-04.md`; SonarQube re-scan
+came back A across all four ratings with zero security findings.
+
+SST loader + lookup engine matches every published DOR rate within
+0.05% across **375 sampled city/ZIP+4 combos** on the live engine
+-- coverage spans **every US jurisdiction (50 states + DC + PR)**
+for the first time as of iter 57. The dedup logic stabilized
 across six consecutive refinements (v0.43-v0.48): TN code-63
 county-equivalent skip, cross-county IMPROVE Act dedup, strict-
 lookup type-z fallback dedup, "most rows beats has-typez"
@@ -113,6 +121,8 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.52.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.52.0) | 2026-05-05 | AK borough-wide rates for unincorporated ZIPs (KPB 3%, KGB 2.5%) -- Anchor Point 99556, Sterling 99672, Ninilchik 99639, etc. now return their borough rate. Suppressed inside city limits per the existing v0.36 city-includes-county exclusivity. |
 | [v0.53.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.53.0) | 2026-05-05 | Strict-lookup typez-fallback rewrite (REVERTED in v0.53.1 -- regressed OK Edmond 73034-1234 cross-county +4 lookups). |
 | [v0.53.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.53.1) | 2026-05-05 | Revert v0.53 typez-fallback widening; restore v0.51 candidate-restricted dedup. Decision 10 documents the synthetic-+4 case (Casper WY 82601-0001 returns 5% instead of 6%) as deferred future work. |
+| [v0.54.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.0) | 2026-05-05 | AK coverage 42 → 50 cities (+8 ARSSTC long-tail entries). |
+| [v0.54.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.1) | 2026-05-06 | **Security fix.** `SlowAPIMiddleware` wired so per-IP rate limit actually enforces (it was inert pre-fix); `SecurityHeadersMiddleware` attaches HSTS / nosniff / X-Frame-Options DENY / Referrer-Policy / Permissions-Policy on every response. First formal security audit baseline at `specs/security/audit-2026-05-04.md`. |
 
 ## Coverage (after v0.5)
 
