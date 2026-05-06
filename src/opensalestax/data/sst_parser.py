@@ -143,28 +143,25 @@ def parse_rates_csv(lines: Iterable[str]) -> Iterator[SstRateRecord]:
             continue
 
         try:
+            # Restoring the pre-d5f9379 strict parsing for ALL four rate
+            # columns. The blank-tolerance relaxation was meant to keep
+            # 18 VT legacy type-02 rows (effective 2006-2022, all expired
+            # by 2024) but post-deploy of v0.54.1 it surfaced a real
+            # regression: KS rows with non-blank general_rate but blank
+            # food/drug/utility columns were also being included as if
+            # they were normal CID/TDD-style local-improvement districts,
+            # adding ~6% spurious tax to KS Lawrence/Salina/Wichita on
+            # general retail. Strict parsing drops both classes of row;
+            # the VT loss is irrelevant (those rows are expired) and the
+            # KS over-collect is fixed. See specs/security/audit-2026-05-04.md.
             yield SstRateRecord(
                 state_fips=cols[0],
                 jurisdiction_type=cols[1],
                 jurisdiction_code=cols[2],
-                # general_rate must parse strictly: a blank value is the
-                # SST file's signal that a row is a special-purpose stub
-                # (CID/TDD-style local-improvement districts on KS, etc.)
-                # that should NOT contribute to the general retail rate
-                # stack. v0.54.x briefly relaxed this to Decimal(0) and
-                # silently broke KS Lawrence/Salina/Wichita post-reload --
-                # see specs/security/audit-2026-05-04.md for the regression
-                # writeup. The 18 VT type-02 legacy rows the relaxation
-                # was meant to preserve are an acceptable loss; their
-                # boundaries are absent from the live grid anyway.
                 general_rate=Decimal(cols[3]),
-                # food/drug/residential-utility rate columns are still
-                # tolerated as blank since those columns are routinely
-                # empty on rows with a valid general_rate (the "rate"
-                # for a category that just falls through to general).
-                food_rate=_decimal_or_zero(cols[4]),
-                drug_rate=_decimal_or_zero(cols[5]),
-                residential_utility_rate=_decimal_or_zero(cols[6]),
+                food_rate=Decimal(cols[4]),
+                drug_rate=Decimal(cols[5]),
+                residential_utility_rate=Decimal(cols[6]),
                 effective_from=_parse_date(cols[7]),
                 effective_to=_parse_end_date(cols[8]),
             )
