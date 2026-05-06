@@ -36,14 +36,17 @@ VT_CITY_NAMES: dict[str, str] = {
     "85150": "Winooski",  # ZIPs: {05404}
     # Multi-ZIP codes where every covered ZIP unambiguously
     # belongs to the same Vermont town per USPS attribution.
+    "03175": "Barre City",  # ZIP 05641 (verified by probe; FIPS Place 5003175)
     "07900": "Brattleboro",  # ZIPs: {05301, 05302}
     "10675": "Burlington",  # ZIPs: {05401, 05402, 05403, 05405, 05406, 05408}
     "14875": "Colchester",  # ZIPs: {05446}
     "17875": "Dover",  # ZIP 05356 (verified by probe)
     "24400": "Essex Junction",  # ZIPs: {05452, 05453}
     "42850": "Manchester",  # ZIPs: {05250, 05254, 05255} (Manchester Center/Village)
+    "44350": "Middlebury",  # ZIP 05753 (verified by probe; FIPS Place 5044350)
     "46000": "Montpelier",  # ZIPs: {05601-05671 cluster, state capital}
     "61225": "Rutland City",  # ZIPs: {05701, 05702}
+    "61675": "St. Albans City",  # ZIP 05478 (verified by probe; FIPS Place 5061675)
     "70525": "Stowe",  # ZIPs: {05662, 05672}
     "85975": "Woodstock",  # ZIPs: {05071, 05073, 05091}
 }

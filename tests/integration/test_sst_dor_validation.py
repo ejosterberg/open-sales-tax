@@ -24,6 +24,7 @@ date so future maintainers know which entries are fresh.
 from __future__ import annotations
 
 import os
+import time
 from decimal import Decimal
 
 import httpx
@@ -3137,6 +3138,60 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "VT DOR (state 6% + Burlington LOST 1%) -- v0.40 'A'-record support",
     ),
     (
+        "VT",
+        "Montpelier",
+        "05602",
+        "0001",
+        "7.000",
+        "0.05",
+        "VT DOR (state 6% + Montpelier LOST 1%)",
+    ),
+    (
+        "VT",
+        "Essex Junction",
+        "05452",
+        "0001",
+        "7.000",
+        "0.05",
+        "VT DOR (state 6% + Essex Junction LOST 1%)",
+    ),
+    (
+        "VT",
+        "Middlebury",
+        "05753",
+        "0001",
+        "7.000",
+        "0.05",
+        "VT DOR (state 6% + Middlebury LOST 1%)",
+    ),
+    (
+        "VT",
+        "Barre City",
+        "05641",
+        "0001",
+        "7.000",
+        "0.05",
+        "VT DOR (state 6% + Barre City LOST 1%)",
+    ),
+    (
+        "VT",
+        "St. Albans City",
+        "05478",
+        "0001",
+        "7.000",
+        "0.05",
+        "VT DOR (state 6% + St. Albans City LOST 1%)",
+    ),
+    (
+        "VT",
+        "Bennington (no LOST)",
+        "05201",
+        "0001",
+        "6.000",
+        "0.05",
+        "VT DOR (state 6%, no LOST)",
+    ),
+    (
         "WV",
         "Charleston",
         "25301",
@@ -3256,11 +3311,15 @@ def test_combined_rate_matches_dor(
     Tolerance is 0.05% by default to absorb ZIP+4 micro-variation
     (e.g. some +4 ranges fall in additional special districts).
     """
-    # Retry once on transient network errors so an occasional Cloudflare cold
-    # start or DNS hiccup doesn't false-flag the whole grid.
+    # Retry on transient network errors AND on 429s. Since v0.54.1 the
+    # public engine enforces a 60/min per-IP rate limit, so a back-to-back
+    # bulk run of this 375-row grid will trip the limiter unless each test
+    # waits out a Retry-After when prompted. slowapi sets Retry-After to
+    # the seconds-until-reset, capped here at 90s so a misconfigured limit
+    # can't stall CI indefinitely.
     last_exc: Exception | None = None
     response = None
-    for _ in range(2):
+    for _attempt in range(5):
         try:
             response = httpx.post(
                 API,
@@ -3270,9 +3329,14 @@ def test_combined_rate_matches_dor(
                 },
                 timeout=15.0,
             )
-            break
         except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as exc:
             last_exc = exc
+            continue
+        if response.status_code == 429:
+            wait = min(int(response.headers.get("Retry-After", "5")), 90)
+            time.sleep(max(wait, 1))
+            continue
+        break
     if response is None:
         raise AssertionError(f"{state} {city} {zip5}-{zip4}: live engine unreachable: {last_exc}")
     assert response.status_code == 200, f"engine HTTP {response.status_code}: {response.text}"

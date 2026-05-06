@@ -130,11 +130,18 @@ def create_app() -> FastAPI:
 
 
 def _rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Return a friendlier JSON body when a client exceeds the rate limit."""
+    """Return a friendlier JSON body when a client exceeds the rate limit.
+
+    Sets a conservative ``Retry-After: 60`` so well-behaved clients (and
+    our own integration tests) can back off cleanly. The actual reset
+    window may be shorter under a sliding-window storage backend, but 60s
+    is correct as an upper bound for a per-minute limit.
+    """
     del request, exc
     return JSONResponse(
         status_code=429,
         content={
             "detail": "Rate limit exceeded. Slow down or use API-key mode.",
         },
+        headers={"Retry-After": "60"},
     )
