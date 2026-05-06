@@ -1,9 +1,11 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-05
-**Status:** **v0.53.1 shipped.** SST loader + lookup engine now
+**Status:** **v0.54.0 shipped.** SST loader + lookup engine now
 matches every published DOR rate within 0.05% across **375 sampled
-city/ZIP+4 combos** on the live engine. The dedup logic stabilized
+city/ZIP+4 combos** on the live engine -- coverage spans **every
+US jurisdiction (50 states + DC + PR)** for the first time as of
+iter 57. The dedup logic stabilized
 across six consecutive refinements (v0.43-v0.48): TN code-63
 county-equivalent skip, cross-county IMPROVE Act dedup, strict-
 lookup type-z fallback dedup, "most rows beats has-typez"

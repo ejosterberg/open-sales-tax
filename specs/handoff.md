@@ -27,6 +27,21 @@ tests. Decision 10 captures the synthetic-+4 limitation (Casper
 WY 82601-0001 under-collects by 1%) for a more careful future
 fix.
 
+**Pre-commit checklist (DON'T forget either gate):**
+
+```bash
+poetry run ruff check src tests        # lint
+poetry run ruff format --check         # FORMAT -- separate gate, easy to skip
+poetry run mypy src/                   # type
+poetry run pytest tests/unit -q        # unit tests
+```
+
+Iter 57 shipped a CI-red commit (1e4a2ba) by running `ruff check`
+locally but skipping `ruff format --check` -- the new test rows
+fit on one line each but ruff format wanted line-wrap and CI
+caught it. **Also check `gh run list --workflow=ci.yml --limit 3`
+after every push** -- waiting for the GitHub email is too slow.
+
 **Dedup logic stabilized in v0.43-v0.48** after a deep TN bug
 hunt that found systemic issues:
 - v0.43: TN code-63 county-equivalent overlays skipped at parse
