@@ -14,18 +14,49 @@ For tests and embedded use cases, call :func:`create_app` directly.
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import for side-effect: triggers state-module registration.
 import opensalestax.states  # noqa: F401
 from opensalestax import __version__
 from opensalestax.api.v1 import router as v1_router
 from opensalestax.settings import get_settings
+
+# Defense-in-depth response headers. JSON-only API; no CSP because the
+# /v1/docs Swagger UI requires inline scripts that a strict CSP would
+# block. HSTS + nosniff + frame-deny + locked-down referrer/permissions
+# cover the realistic browser-side risks for an unauthenticated public
+# engine sitting behind Cloudflare.
+_SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+}
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Attach defense-in-depth response headers to every response."""
+
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        response = await call_next(request)
+        for key, value in _SECURITY_HEADERS.items():
+            response.headers.setdefault(key, value)
+        return response
 
 
 def create_app() -> FastAPI:
@@ -62,6 +93,15 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+
+    # Middleware execution order is REVERSE of add_middleware order:
+    # CORS runs first on the request (handles preflight cleanly),
+    # then SecurityHeaders, then SlowAPI enforces the limit. On the
+    # response, SlowAPI -> SecurityHeaders -> CORS, so security
+    # headers and CORS headers attach to all responses, including
+    # 429s emitted by the rate-limit exception handler.
+    app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Permit cross-origin browser callers (the opensalestax.org
     # calculator demo, third-party SPA integrations, etc.). The
