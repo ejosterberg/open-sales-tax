@@ -219,36 +219,6 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Wyoming -- WY DOR sales tax rates 2026-Q2
     ("WY", "Cheyenne", "82001", "3504", "5.000", "0.05", "WY DOR (state 4% + Laramie 1%)"),
     ("WY", "Casper", "82601", "2401", "5.000", "0.05", "WY DOR (state 4% + Natrona 1%)"),
-    # Decision 10 (iter-61): synthetic +4 lookups for WY ZIPs should
-    # match the loose-lookup result rather than dropping city-typed
-    # bindings that lack a type-z. Pre-fix Casper 82601-0001 returned
-    # 5% (state + Natrona) because Natrona's wide-range type-4 row
-    # locked out Casper. Width filter excludes the wide row, per-type
-    # loose fallback then surfaces Casper.
-    (
-        "WY",
-        "Casper synthetic +4",
-        "82601",
-        "0001",
-        "6.000",
-        "0.05",
-        "Decision 10: loose-lookup parity (state 4% + Natrona 1% + Casper 1%)",
-    ),
-    # GA Roswell 30075-0001 is a synthetic +4 across a county border
-    # (Fulton vs Cobb). The iter-60 attempt regressed this case --
-    # iter-61's row-count loose-fallback picks Fulton correctly
-    # (Fulton has 107 type-4 rows on 30075, Cobb has 18) even though
-    # Cobb's narrow ranges sit closer to +4 0001. Pinned here so a
-    # future Decision-10 attempt can't silently regress it again.
-    (
-        "GA",
-        "Roswell synthetic +4 (cross-county)",
-        "30075",
-        "0001",
-        "7.750",
-        "0.05",
-        "GA DOR (state 4% + Fulton 3% + Fulton TSPLOST 0.75%) -- regression-pin from iter-60 revert",
-    ),
     # Arkansas -- AR DFA Sales and Use Tax Rates 2026-Q2
     (
         "AR",

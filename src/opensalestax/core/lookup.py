@@ -31,18 +31,6 @@ from opensalestax.db.models import Boundary, TaxAuthority
 # stray bindings ship 1-10.
 _MIN_LONE_DISTRICT_ROWS = 20
 
-# Decision 10 wide-range type-4 threshold. SST files for some states
-# (notably WY) encode "this authority covers essentially the entire
-# ZIP" as a single type-4 row spanning 0000-0999, semantically
-# acting as a type-z record. The strict precise-match query treats
-# any matching type-4 row as truth and locks out other authorities,
-# which under-collects on synthetic +4 values that happen to fall
-# inside the wide range -- e.g. Casper 82601-0001 silently dropping
-# Casper-city for state+county only. Real per-block ranges are < 100
-# +4s; 1000 is the empirical threshold (KY/IN/NV/WY/WA/NC/ND ship
-# rows with high='0900' or higher).
-_WIDE_TYPE4_RANGE_THRESHOLD = 1000
-
 
 async def lookup_jurisdictions_by_zip(
     session: AsyncSession,
@@ -85,20 +73,10 @@ async def lookup_jurisdictions_by_zip(
     # encoding ("this +4 is in city X" vs "this +4 is in
     # unincorporated county Y") the type-4 row is the precise
     # truth and the type-z fallback would double-count.
-    #
-    # Decision 10 (iter-61 retry): drop wide-range (>= 1000 +4s)
-    # type-4 rows from the precise set. WY uses these as type-z-
-    # equivalents -- a single 0000-0999 row meaning "I cover this
-    # ZIP". Including them in precise locks out narrower city
-    # bindings for synthetic +4 values that fall inside the wide
-    # range (Casper 82601-0001 dropped Casper-city pre-fix).
-    # Coupled with a row-count-aware loose fallback below so cross-
-    # county ZIPs (GA Roswell 30075 spans Fulton + Cobb) keep the
-    # dominant county.
     precise_county_city_ids: set[int] = set()
     if zip4 is not None:
         precise_stmt = (
-            select(TaxAuthority, Boundary.zip4_low, Boundary.zip4_high)
+            select(TaxAuthority)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
                 *base_filter(),
@@ -109,20 +87,10 @@ async def lookup_jurisdictions_by_zip(
                 TaxAuthority.authority_type.in_(("county", "city")),
             )
             .options(*options)
+            .distinct()
         )
-        precise_rows = list((await session.execute(precise_stmt)).all())
-        precise_authorities = []
-        precise_seen: set[int] = set()
-        for auth, lo, hi in precise_rows:
-            if not lo or not hi:
-                continue
-            if int(hi) - int(lo) + 1 >= _WIDE_TYPE4_RANGE_THRESHOLD:
-                continue
-            if auth.id in precise_seen:
-                continue
-            precise_seen.add(auth.id)
-            precise_authorities.append(auth)
-        precise_county_city_ids = precise_seen
+        precise_authorities = list((await session.execute(precise_stmt)).scalars().all())
+        precise_county_city_ids = {a.id for a in precise_authorities}
     else:
         precise_authorities = []
 
@@ -173,24 +141,9 @@ async def lookup_jurisdictions_by_zip(
     # +4 avoids OK-style double-counting when a ZIP straddles two
     # cities (e.g. 73069 has Norman ranges starting at +4 1000 and
     # Moore ranges starting at +4 8061; for +4 6107 Norman wins).
-    #
-    # Decision 10 (iter-61 retry, part 2): the gate splits per-type
-    # so a missing-city z_authority can still trigger the closest-
-    # city pick (loose-lookup parity for Casper 82601-0001), and the
-    # county pick uses ROW COUNT instead of distance so cross-county
-    # ZIPs keep the dominant county (GA Roswell 30075 stays Fulton
-    # over Cobb -- distance picked Cobb in the iter-60 attempt because
-    # Cobb's narrow ranges sit closer to +4 0001 than Fulton's, even
-    # though Fulton is the rightful county per row count).
     if zip4 is not None and not precise_county_city_ids:
-        county_in_z = any(a.authority_type == "county" for a in z_authorities)
-        city_in_z = any(a.authority_type == "city" for a in z_authorities)
-        if not (county_in_z and city_in_z):
-            loose_types: list[str] = []
-            if not county_in_z:
-                loose_types.append("county")
-            if not city_in_z:
-                loose_types.append("city")
+        local_in_z = any(a.authority_type in ("county", "city") for a in z_authorities)
+        if not local_in_z:
             loose_stmt = (
                 select(
                     TaxAuthority,
@@ -201,12 +154,12 @@ async def lookup_jurisdictions_by_zip(
                 .where(
                     *base_filter(),
                     Boundary.zip4_low.isnot(None),
-                    TaxAuthority.authority_type.in_(loose_types),
+                    TaxAuthority.authority_type.in_(("county", "city")),
                 )
                 .options(*options)
             )
             loose_rows = list((await session.execute(loose_stmt)).all())
-            precise_authorities = _pick_loose_fallback(loose_rows, zip4)
+            precise_authorities = _pick_closest_per_type(loose_rows, zip4)
 
     # Merge: state always; districts always; county/city prefer
     # type-4 over type-z when both exist for the SAME ZIP+4.
@@ -546,36 +499,6 @@ def _stable_sort(authorities: list[TaxAuthority]) -> list[TaxAuthority]:
         authorities,
         key=lambda a: (_TYPE_ORDER.get(a.authority_type, 99), a.name),
     )
-
-
-def _pick_loose_fallback(rows, zip4: str) -> list[TaxAuthority]:
-    """Pick one county (by row count) and one city (by +4 distance).
-
-    Decision 10 retry: cross-county ZIPs need the dominant county
-    even when the +4 happens to sit closer to the neighboring
-    county's narrow ranges. GA Roswell 30075 has 107 Fulton type-4
-    rows + 18 Cobb -- Fulton is rightful, but Cobb's narrow rows
-    cluster near +4 0001 so distance picked Cobb. Row count is the
-    correct cross-county signal.
-
-    Cities still use distance: intra-county splits like OK
-    Norman/Moore at ZIP 73069 are resolved by which city's nearest
-    range is closer to the requested +4 (Norman wins for +4 6107).
-    """
-    counties: dict[int, list[TaxAuthority]] = {}
-    city_rows = []
-    for auth, low, high in rows:
-        if auth.authority_type == "county":
-            counties.setdefault(auth.id, []).append(auth)
-        elif auth.authority_type == "city":
-            city_rows.append((auth, low, high))
-    out: list[TaxAuthority] = []
-    if counties:
-        # Most-rows wins; tie-break by lowest id for determinism.
-        best_id = max(counties, key=lambda i: (len(counties[i]), -i))
-        out.append(counties[best_id][0])
-    out.extend(_pick_closest_per_type(city_rows, zip4))
-    return out
 
 
 def _pick_closest_per_type(rows, zip4: str) -> list[TaxAuthority]:
