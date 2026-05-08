@@ -271,28 +271,42 @@ async def _load_rates(
     data_version_id: int,
     authority_cache: dict[tuple[str, str], TaxAuthority],
 ) -> int:
-    """Insert rate rows yielded by the state module; return the count."""
+    """Insert rate rows yielded by the state module; return the count.
+
+    Mirrors the boundary loader's bulk-insert path (commit fa21b06):
+    rate rows accumulate into a buffer of plain dicts and flush in
+    batches via Core. Rates haven't OOMed in production yet (largest
+    state ships ~15k rate rows), but the consistent pattern keeps
+    the loader's memory profile flat as state coverage grows.
+    """
     rate_rows = list(state_module.parse_rates(rates_file, full_label))  # type: ignore[arg-type]
     rates_loaded = 0
+    buffer: list[dict[str, object]] = []
     for row in rate_rows:
         authority = await _get_or_create_authority(
             session, authority_cache, state_id, row.authority_name, row.authority_type
         )
-        session.add(
-            Rate(
-                authority_id=authority.id,
-                rate_pct=row.rate_pct,
-                effective_from=row.effective_from,
-                effective_to=row.effective_to,
-                applies_to_categories=(
+        buffer.append(
+            {
+                "authority_id": authority.id,
+                "rate_pct": row.rate_pct,
+                "effective_from": row.effective_from,
+                "effective_to": row.effective_to,
+                "applies_to_categories": (
                     list(row.applies_to_categories)
                     if row.applies_to_categories is not None
                     else None
                 ),
-                data_version_id=data_version_id,
-            )
+                "data_version_id": data_version_id,
+            }
         )
         rates_loaded += 1
+        if len(buffer) >= _BOUNDARY_INSERT_BATCH:
+            await session.execute(insert(Rate), buffer)
+            buffer.clear()
+    if buffer:
+        await session.execute(insert(Rate), buffer)
+        buffer.clear()
     return rates_loaded
 
 
