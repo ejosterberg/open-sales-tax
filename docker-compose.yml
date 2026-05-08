@@ -24,6 +24,12 @@ services:
       OPENSALESTAX_DATABASE_URL: ${OPENSALESTAX_DATABASE_URL:-postgresql+asyncpg://opensalestax:opensalestax@postgres:5432/opensalestax}
       OPENSALESTAX_LOG_LEVEL: ${OPENSALESTAX_LOG_LEVEL:-INFO}
       OPENSALESTAX_RATE_LIMIT_PER_MINUTE: ${OPENSALESTAX_RATE_LIMIT_PER_MINUTE:-60}
+      # Set to "true" only when this stack sits behind a trusted proxy
+      # (Cloudflare, internal LB) that always rewrites CF-Connecting-IP
+      # or X-Forwarded-For. Default false; trusting these headers
+      # without a proxy lets any caller spoof their IP and bypass the
+      # per-IP rate limit.
+      OPENSALESTAX_TRUST_FORWARDED_FOR: ${OPENSALESTAX_TRUST_FORWARDED_FOR:-false}
       OPENSALESTAX_DATA_DIR: ${OPENSALESTAX_DATA_DIR:-/var/lib/opensalestax/data}
     volumes:
       # Persist the SST quarterly cache + Census ZCTA crosswalk so
