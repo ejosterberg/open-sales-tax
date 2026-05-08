@@ -31,17 +31,6 @@ from opensalestax.db.models import Boundary, TaxAuthority
 # stray bindings ship 1-10.
 _MIN_LONE_DISTRICT_ROWS = 20
 
-# Decision 10 wide-range type-4 threshold. SST files for some states
-# encode "this authority covers the entire ZIP" as a single type-4
-# row spanning 0000-0999 instead of a proper type-z record. These
-# act as type-z-equivalent in semantics but get matched by the precise
-# type-4 query. Treating them as precise spuriously masks narrower
-# city/district matches for synthetic +4 values (e.g. WY Casper
-# 82601-0001 returning 5% instead of 6% pre-fix). Real per-block
-# ranges are < 100 +4s; 1000 is the empirical threshold from
-# specs/decisions/10-wide-range-type4-precise-match.md.
-_WIDE_TYPE4_RANGE_THRESHOLD = 1000
-
 
 async def lookup_jurisdictions_by_zip(
     session: AsyncSession,
@@ -84,21 +73,10 @@ async def lookup_jurisdictions_by_zip(
     # encoding ("this +4 is in city X" vs "this +4 is in
     # unincorporated county Y") the type-4 row is the precise
     # truth and the type-z fallback would double-count.
-    #
-    # Decision 10: drop wide-range type-4 records (>= 1000 +4s) from
-    # the precise set. Some SST files encode "this authority covers
-    # essentially the entire ZIP" as a single type-4 row spanning
-    # 0000-0999 instead of a type-z record (WY does this for state
-    # and most counties; KY / IN / NV / WA / NC / ND have similar
-    # but mostly affect flat or county-only states). Treating them
-    # as "precise" spuriously masks narrower city/district matches
-    # for synthetic +4 values that should fall through to the
-    # type-z + dedup fallback. Real per-block ranges are < 100 +4s;
-    # 1000 is the empirical threshold from the decision doc.
     precise_county_city_ids: set[int] = set()
     if zip4 is not None:
         precise_stmt = (
-            select(TaxAuthority, Boundary.zip4_low, Boundary.zip4_high)
+            select(TaxAuthority)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
                 *base_filter(),
@@ -109,20 +87,10 @@ async def lookup_jurisdictions_by_zip(
                 TaxAuthority.authority_type.in_(("county", "city")),
             )
             .options(*options)
+            .distinct()
         )
-        precise_rows = list((await session.execute(precise_stmt)).all())
-        precise_authorities = []
-        precise_seen: set[int] = set()
-        for auth, lo, hi in precise_rows:
-            if not lo or not hi:
-                continue
-            if int(hi) - int(lo) + 1 >= _WIDE_TYPE4_RANGE_THRESHOLD:
-                continue
-            if auth.id in precise_seen:
-                continue
-            precise_seen.add(auth.id)
-            precise_authorities.append(auth)
-        precise_county_city_ids = precise_seen
+        precise_authorities = list((await session.execute(precise_stmt)).scalars().all())
+        precise_county_city_ids = {a.id for a in precise_authorities}
     else:
         precise_authorities = []
 
