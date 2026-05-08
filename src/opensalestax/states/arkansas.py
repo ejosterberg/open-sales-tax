@@ -329,7 +329,7 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name=("Arkansas Back-to-School Sales Tax Holiday -- " "School Supplies (2026)"),
+                    name="Arkansas Back-to-School Sales Tax Holiday -- School Supplies (2026)",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_supplies",),
@@ -344,9 +344,7 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name=(
-                        "Arkansas Back-to-School Sales Tax Holiday -- " "School Art Supplies (2026)"
-                    ),
+                    name="Arkansas Back-to-School Sales Tax Holiday -- School Art Supplies (2026)",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_art_supplies",),
@@ -376,9 +374,7 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name=(
-                        "Arkansas Back-to-School Sales Tax Holiday -- " "Electronic Devices (2026)"
-                    ),
+                    name="Arkansas Back-to-School Sales Tax Holiday -- Electronic Devices (2026)",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("electronic_devices",),

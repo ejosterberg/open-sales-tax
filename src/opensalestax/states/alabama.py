@@ -710,9 +710,7 @@ class Alabama:
                     ),
                 ),
                 HolidayWindow(
-                    name=(
-                        "Alabama Back-to-School Sales Tax Holiday -- " "Computers / Software (2026)"
-                    ),
+                    name="Alabama Back-to-School Sales Tax Holiday -- Computers / Software (2026)",
                     starts_on=bts_starts,
                     ends_on=bts_ends,
                     applicable_categories=("computers",),
