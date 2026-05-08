@@ -15,7 +15,12 @@ Commission's "Tax Rate Charts" publication (2026-Q2).
 from __future__ import annotations
 
 UT_CITY_NAMES: dict[str, str] = {
+    "45860": "Logan",  # ZIP 84321 (verified by probe; FIPS Place 4945860)
+    "53230": "Murray",  # ZIP 84107 (verified by probe; FIPS Place 4953230)
+    "57300": "Orem",  # ZIP 84059 (verified by probe; FIPS Place 4957300)
+    "58070": "Park City",  # ZIP 84060 (verified by probe; FIPS Place 4958070)
     "62470": "Provo",
+    "65330": "St. George",  # ZIP 84771 (verified by probe; FIPS Place 4965330)
     "67000": "Salt Lake City",
 }
 
