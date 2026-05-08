@@ -115,6 +115,16 @@ shipped 3 agents in parallel (~1900 lines, 1 hour wall-clock).
   - **Lesson:** every time a state without an explicit per-state
     code-63 entry gets reloaded, audit a representative city
     afterwards. ND/AR were spot-clean here; KS was not.
+- **UT (and likely WA/large 'A'-record states) reloads OOM.**
+  iter-60 hit this trying to reload UT after adding placenames:
+  `data load --state UT` got SIGKILLed (exit 137) reading the type-'A'
+  boundary file. Workaround when you only need to push a name change:
+  rename the existing TaxAuthority rows directly via SQL --
+  boundaries reference authorities by id, not name, so renames are
+  safe. After running such a rename, run a cleanup that drops any
+  orphan authorities (those that ended up nameless from a partial
+  reload). A real fix needs the loader to stream-process large
+  boundary files instead of holding them in memory.
 
 ## Where the iter-loop is currently focused
 
