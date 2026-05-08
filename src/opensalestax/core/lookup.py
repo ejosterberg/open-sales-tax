@@ -173,25 +173,9 @@ async def lookup_jurisdictions_by_zip(
     # +4 avoids OK-style double-counting when a ZIP straddles two
     # cities (e.g. 73069 has Norman ranges starting at +4 1000 and
     # Moore ranges starting at +4 8061; for +4 6107 Norman wins).
-    #
-    # Decision 10 follow-up: WY's Casper has 616 narrow type-4 rows for
-    # 82601 and ZERO type-z records; the city's only ZIP-level claim
-    # is via type-4. For a synthetic +4 that doesn't fall in any narrow
-    # range, the wide-range filter above leaves precise empty AND the
-    # type-z lookup has no Casper to return. The loose fallback below
-    # used to gate on "no county OR city in z_authorities" which kept
-    # firing because Natrona County has type-z; now we gate per-type
-    # so a missing-city z_authority can still trigger the closest-city
-    # pick (loose-lookup parity).
     if zip4 is not None and not precise_county_city_ids:
-        county_in_z = any(a.authority_type == "county" for a in z_authorities)
-        city_in_z = any(a.authority_type == "city" for a in z_authorities)
-        if not (county_in_z and city_in_z):
-            loose_types: list[str] = []
-            if not county_in_z:
-                loose_types.append("county")
-            if not city_in_z:
-                loose_types.append("city")
+        local_in_z = any(a.authority_type in ("county", "city") for a in z_authorities)
+        if not local_in_z:
             loose_stmt = (
                 select(
                     TaxAuthority,
@@ -202,7 +186,7 @@ async def lookup_jurisdictions_by_zip(
                 .where(
                     *base_filter(),
                     Boundary.zip4_low.isnot(None),
-                    TaxAuthority.authority_type.in_(loose_types),
+                    TaxAuthority.authority_type.in_(("county", "city")),
                 )
                 .options(*options)
             )
