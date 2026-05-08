@@ -115,16 +115,14 @@ shipped 3 agents in parallel (~1900 lines, 1 hour wall-clock).
   - **Lesson:** every time a state without an explicit per-state
     code-63 entry gets reloaded, audit a representative city
     afterwards. ND/AR were spot-clean here; KS was not.
-- **UT (and likely WA/large 'A'-record states) reloads OOM.**
-  iter-60 hit this trying to reload UT after adding placenames:
-  `data load --state UT` got SIGKILLed (exit 137) reading the type-'A'
-  boundary file. Workaround when you only need to push a name change:
-  rename the existing TaxAuthority rows directly via SQL --
-  boundaries reference authorities by id, not name, so renames are
-  safe. After running such a rename, run a cleanup that drops any
-  orphan authorities (those that ended up nameless from a partial
-  reload). A real fix needs the loader to stream-process large
-  boundary files instead of holding them in memory.
+- ~~**UT (and likely WA/large 'A'-record states) reloads OOM.**~~
+  **Resolved 2026-05-08 (commit `fa21b06`).** The boundary loop now
+  bulk-inserts via Core in batches of 5,000 instead of `session.add()`
+  per row. UT reload (1.5M boundaries) and WA reload (1.2M boundaries)
+  both complete cleanly post-fix. The SQL-rename workaround is no
+  longer needed for placename pushes -- the natural reload path is
+  back. Keeping the rename script in `~/.claude/`-adjacent scratch in
+  case future scale exceeds the new headroom.
 
 ## Where the iter-loop is currently focused
 
