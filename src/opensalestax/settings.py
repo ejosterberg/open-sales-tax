@@ -66,6 +66,19 @@ class Settings(BaseSettings):
         ge=1,
         description="Per-IP (or per-API-key) requests per minute.",
     )
+    trust_forwarded_for: bool = Field(
+        default=False,
+        description=(
+            "If true, the rate-limit key_func reads the real client IP "
+            "from the CF-Connecting-IP header (or first hop of "
+            "X-Forwarded-For), rather than request.client.host. Only "
+            "enable when the API sits behind a trusted proxy (Cloudflare, "
+            "an internal LB) that always sets these headers -- otherwise "
+            "any caller can spoof their IP and bypass rate limiting. "
+            "Off by default; opensalestax.org's Cloudflare-fronted prod "
+            "sets this true."
+        ),
+    )
 
     # ----- CORS ---------------------------------------------------------
     cors_allowed_origins: str = Field(

@@ -24,6 +24,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
 
 # Import for side-effect: triggers state-module registration.
 import opensalestax.states  # noqa: F401
@@ -59,6 +60,31 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+def _client_ip_proxy_aware(request: StarletteRequest) -> str:
+    """Return the real client IP, preferring proxy-injected headers.
+
+    Cloudflare-fronted prod sees ``request.client.host`` as the CF
+    edge IP, which rotates across requests and would split each user's
+    quota across many edges. ``CF-Connecting-IP`` (Cloudflare-set,
+    unspoofable from outside CF) and the first hop of
+    ``X-Forwarded-For`` carry the real client IP.
+
+    Only invoked when ``OPENSALESTAX_TRUST_FORWARDED_FOR=true``.
+    Trusting these headers without a proxy in front lets any caller
+    pick their own rate-limit bucket, so the default is to use the
+    immediate peer (``get_remote_address``).
+    """
+    cf = request.headers.get("CF-Connecting-IP")
+    if cf:
+        return cf
+    xff = request.headers.get("X-Forwarded-For")
+    if xff:
+        first_hop = xff.split(",", 1)[0].strip()
+        if first_hop:
+            return first_hop
+    return get_remote_address(request)
+
+
 def create_app() -> FastAPI:
     """Construct and return the FastAPI app.
 
@@ -73,8 +99,9 @@ def create_app() -> FastAPI:
     by overriding settings before calling ``create_app``.
     """
     settings = get_settings()
+    key_func = _client_ip_proxy_aware if settings.trust_forwarded_for else get_remote_address
     limiter = Limiter(
-        key_func=get_remote_address,
+        key_func=key_func,
         default_limits=[f"{settings.rate_limit_per_minute}/minute"],
     )
 
