@@ -219,6 +219,31 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Wyoming -- WY DOR sales tax rates 2026-Q2
     ("WY", "Cheyenne", "82001", "3504", "5.000", "0.05", "WY DOR (state 4% + Laramie 1%)"),
     ("WY", "Casper", "82601", "2401", "5.000", "0.05", "WY DOR (state 4% + Natrona 1%)"),
+    # Decision 10: synthetic-+4 lookups should match the loose-lookup
+    # answer. Pre-fix the strict lookup returned 5% (state + Natrona)
+    # because Natrona's wide-range type-4 row (0000-0999) marked the
+    # +4 as 'in unincorporated county' and dropped Casper's type-z
+    # binding. The width filter excludes that wide-range type-4 row
+    # from the precise set, falling through to type-z which reports
+    # the same Casper-city stack the no-+4 query already returned.
+    (
+        "WY",
+        "Casper synthetic +4",
+        "82601",
+        "0001",
+        "6.000",
+        "0.05",
+        "WY DOR loose lookup parity (Decision 10)",
+    ),
+    (
+        "WY",
+        "Casper real city +4",
+        "82601",
+        "3504",
+        "6.000",
+        "0.05",
+        "WY DOR (state 4% + Natrona 1% + Casper 1%)",
+    ),
     # Arkansas -- AR DFA Sales and Use Tax Rates 2026-Q2
     (
         "AR",
