@@ -1,7 +1,14 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-08
-**Status:** **v0.54.2 shipped.** Per-real-IP rate limiting via
+**Status:** **v0.54.3 shipped.** Loader bulk-insert refactor unblocks
+the previously OOM-prone UT (1.5M boundaries) and WA (1.2M boundaries)
+reloads -- the natural reload path now scales for any state. Decision
+10 retried in iter-61 with row-count loose fallback; still regressed
+GA Roswell via a different path; reverted with deeper lessons. Live
+DOR grid 381/381 green.
+
+**v0.54.2 (2026-05-08)** shipped per-real-IP rate limiting via
 `CF-Connecting-IP` (closes the Cloudflare-edge-IP-rotation gap from
 v0.54.1; opt-in via `OPENSALESTAX_TRUST_FORWARDED_FOR`); +20 high-
 traffic friendly placenames across KS / UT / WA / AR (each verified
@@ -132,6 +139,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.54.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.0) | 2026-05-05 | AK coverage 42 → 50 cities (+8 ARSSTC long-tail entries). |
 | [v0.54.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.1) | 2026-05-06 | **Security fix.** `SlowAPIMiddleware` wired so per-IP rate limit actually enforces (it was inert pre-fix); `SecurityHeadersMiddleware` attaches HSTS / nosniff / X-Frame-Options DENY / Referrer-Policy / Permissions-Policy on every response. First formal security audit baseline at `specs/security/audit-2026-05-04.md`. |
 | [v0.54.2](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.2) | 2026-05-08 | Per-real-IP rate limiting via `CF-Connecting-IP` (opt-in `OPENSALESTAX_TRUST_FORWARDED_FOR`); +20 friendly placenames (KS Manhattan; UT Logan/Murray/Orem/Park City/St. George; WA Kennewick/Kent/Lakewood/Oak Harbor/Spokane Valley/Wenatchee/Yakima; AR Conway/Hot Springs/N Little Rock/Lowell/Rogers/Sherwood/Springdale); SonarQube code smells 308 → 28; Decision 10 attempted + reverted. |
+| [v0.54.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.3) | 2026-05-08 | **Loader OOM fix.** Boundary + rate loaders now bulk-insert via Core in 5K-row batches. UT (1.5M boundaries) + WA (1.2M boundaries) reloads no longer SIGKILL the prod container; the SQL-rename workaround for placename pushes is retired. Decision 10 retried with row-count loose fallback; still regressed via a different path; reverted with deeper lessons. |
 
 ## Coverage (after v0.5)
 
