@@ -30,7 +30,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.data.sst import SstFilename, default_data_dir, file_url
@@ -47,6 +47,13 @@ from opensalestax.states.protocol import StateModule
 from opensalestax.states.registry import get_state_module
 
 logger = logging.getLogger(__name__)
+
+# Boundary insertion is bulk-buffered to keep the loader's memory
+# footprint flat for large states (UT/WA ship 500K+ type-'A' rows
+# post-c512354). At 5,000 rows/batch a UT load peaks at ~10-15 MB
+# of pending boundary mappings instead of holding all 600K+ ORM
+# objects in the session.
+_BOUNDARY_INSERT_BATCH = 5000
 
 # The default categories the loader populates per state from the
 # state module's taxability_for() method. Categories not in this
@@ -321,21 +328,32 @@ async def _maybe_load_boundaries(
             return 0
 
     boundaries_loaded = 0
+    buffer: list[dict[str, object]] = []
     for brow in state_module.parse_boundaries(boundary_file, full_label):  # type: ignore[arg-type]
         authority = await _get_or_create_authority(
             session, authority_cache, state_id, brow.authority_name, brow.authority_type
         )
-        session.add(
-            Boundary(
-                authority_id=authority.id,
-                zip5=brow.zip5,
-                zip4_low=brow.zip4_low,
-                zip4_high=brow.zip4_high,
-                address_pattern=brow.address_pattern,
-                data_version_id=data_version_id,
-            )
+        # Bulk insert via Core so each row stays as a tiny dict instead
+        # of a tracked ORM object. 600K+ row UT/WA loads previously
+        # OOMed the prod container (SIGKILL exit 137) holding every
+        # Boundary instance in the session's identity map.
+        buffer.append(
+            {
+                "authority_id": authority.id,
+                "zip5": brow.zip5,
+                "zip4_low": brow.zip4_low,
+                "zip4_high": brow.zip4_high,
+                "address_pattern": brow.address_pattern,
+                "data_version_id": data_version_id,
+            }
         )
         boundaries_loaded += 1
+        if len(buffer) >= _BOUNDARY_INSERT_BATCH:
+            await session.execute(insert(Boundary), buffer)
+            buffer.clear()
+    if buffer:
+        await session.execute(insert(Boundary), buffer)
+        buffer.clear()
     return boundaries_loaded
 
 
