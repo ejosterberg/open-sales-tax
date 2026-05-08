@@ -150,3 +150,38 @@ encoding (GA Fulton) instead of as a type-z-equivalent (WY Natrona).
   "weak precise" so the merge filter prefers narrow precise over
   wide precise but still keeps wide as a signal that the authority
   claims the ZIP.
+
+## Iter-61 attempt (also reverted)
+
+Took the iter-60 lesson and added a row-count-aware loose fallback
+(`_pick_loose_fallback`): cities still pick by closest +4 distance
+(preserves OK Norman/Moore), counties pick by most type-4 rows
+on the ZIP (intends to fix GA Roswell). Reverted in commit `d19d974`.
+
+The fix worked for Casper 82601-0001 (5% -> 6%, with Casper city
+correctly surfaced via the city loose fallback) but **still didn't
+fix GA Roswell 30075-0001**. Trace:
+
+1. Width filter excludes Fulton's wide-range type-4 row.
+2. Cobb's narrow type-4 rows cover +4 0001 (border-spillover ranges).
+3. precise_county_city_ids = {Cobb} -- non-empty, so the loose
+   fallback gate (which requires `not precise_county_city_ids`)
+   never runs.
+4. Merge keeps Cobb (in precise) + drops Fulton-z (Fulton not in
+   precise). Result: state + Cobb + TSPLOST = 6.75%, wrong.
+
+**The actual blocker:** when Cobb's narrow type-4 rows cover the
+synthetic +4 (which they do, by spillover), those become precise
+matches. The width filter only addresses cases where Fulton's
+wide row is the ONLY match -- it doesn't help when narrow rows
+from a non-dominant county fire too. The pre-fix behavior worked
+because Fulton's wide row was ALSO precise and won by row-count
+dedup against Cobb's narrows, but excluding Fulton's wide leaves
+Cobb alone in precise.
+
+A correct fix probably needs to ALSO change the merge filter:
+when a wide-range type-4 row exists for some county, treat that
+county as a "z-equivalent claimant" that competes for the type-z
+fallback dedup -- even when narrow-range matches from another
+county are in precise. That's a meaningfully more invasive change
+than what's been tried so far.
