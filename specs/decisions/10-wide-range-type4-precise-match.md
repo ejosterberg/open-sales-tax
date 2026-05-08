@@ -108,3 +108,45 @@ resolves these cases).
    to the live DOR grid as regression tests.
 4. Audit WA/NC for any user-facing impact and add representative
    rows to the grid.
+
+## Iter-60 attempt (reverted)
+
+A first attempt landed in commits ``0fe69be`` + ``5f69a3f`` (then
+reverted in ``08c5d46`` + ``b44c5d6``):
+
+1. Width filter on the precise type-4 query: drop matching boundary
+   rows whose ``[zip4_low, zip4_high]`` span >= 1000 +4s.
+2. Per-type loose fallback: when precise was empty, run the closest-
+   match loose lookup separately for whichever of (county, city) was
+   missing from the type-z layer.
+
+The combination correctly fixed Casper 82601-0001 (5% -> 6%) but
+regressed GA Roswell 30075-0001 (7.75% -> 6.75% with the WRONG
+county). Root cause of the regression: pre-fix, Fulton County's
+wide-range (0000-9999) type-4 record was the precise match that
+covered 0001; the merge filter dropped Cobb's type-z. Post-fix,
+the wide-range filter excluded Fulton from precise, leaving precise
+empty; the closest-county loose fallback then picked Cobb because
+Cobb's narrow ranges sit closer to +4 0001 than Fulton's narrow
+ranges. The distance-based picker that protects OK Norman vs Moore
+does the wrong thing when a state uses wide ranges as the dominant
+encoding (GA Fulton) instead of as a type-z-equivalent (WY Natrona).
+
+**Lessons for the next attempt:**
+
+- A single global threshold is too coarse. WY's wide ranges ARE
+  type-z-equivalent; GA's wide ranges are the dominant signal that
+  the ZIP belongs to that county. Same shape, different semantics.
+- The closest-+4 loose fallback assumes both candidate counties
+  legitimately serve the ZIP. In the synthetic-+4 case for a
+  cross-border ZIP, the BORDER county's narrow ranges sit closer
+  to e.g. 0001 than the DOMINANT county's narrow ranges, so
+  distance picks the wrong county.
+- A correct fix probably needs to use **row count** (how many
+  boundaries that authority has for this ZIP) as the cross-county
+  tiebreaker, falling back to distance only for intra-county
+  city-vs-city (Norman/Moore) decisions.
+- OR: keep wide-range type-4 in the precise set BUT mark them as
+  "weak precise" so the merge filter prefers narrow precise over
+  wide precise but still keeps wide as a signal that the authority
+  claims the ZIP.
