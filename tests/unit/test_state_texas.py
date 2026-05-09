@@ -211,14 +211,13 @@ def test_texas_combined_rate_caps_at_8_25(city_name: str) -> None:
     ), f"{city_name} combined rate did not equal 8.250%"
 
 
-def test_texas_arlington_combined_is_8_00_not_8_25() -> None:
-    """Arlington is the famous DART/FWTA opt-out -- combined 8.0%, not 8.25%.
-
-    City stack: city 1.0 + crime control 0.5 + parks/street 0.25 = 1.75
-    local; no transit. Total: 6.25 + 0 + 0 + 1.75 = 8.00%.
+def test_texas_arlington_combined_is_at_cap() -> None:
+    """Arlington still opts out of DART/FWTA (no transit district), but
+    the city stack now reaches the 2.0% local cap per Comptroller Apr
+    2026 (was 1.75% pre-iter-62 -- under-collected by 0.25%).
     """
     rows = list(TEXAS.parse_rates(None, "v0.26-top-50"))
-    assert _combined_for("Arlington", rows) == Decimal("8.000")
+    assert _combined_for("Arlington", rows) == Decimal("8.250")
 
 
 def test_texas_no_combined_rate_exceeds_8_25_cap() -> None:

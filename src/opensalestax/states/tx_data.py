@@ -725,14 +725,15 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         ),
     ),
     "Arlington": (
-        # Arlington is the famous DART/FWTA opt-out -- no transit
-        # district. The city stack (city 1.0% + crime control 0.5% +
-        # parks/street maint 0.25%) sums to 1.75%, leaving 0.25% of
-        # the local cap unused. Combined: 6.25 + 0 + 0 + 1.75 = 8.00%.
-        # This is the only major Texas city in this seed below 8.25%.
+        # Arlington opted out of DART/FWTA (no transit district), but
+        # iter-62 audit against the Comptroller's Apr 2026 file shows
+        # Arlington has now maxed out the 2.0% local cap (city 1.0%
+        # + crime control 0.5% + parks/street maint 0.25% + a recent
+        # additional 0.25%, exact attribution per Tex. Tax Code Ch.
+        # 321 ordinances). Combined: 6.25 + 0 + 0 + 2.00 = 8.25%.
         "Tarrant County",
         None,
-        Decimal("1.750"),
+        Decimal("2.000"),
         (
             "76001",
             "76002",
