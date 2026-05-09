@@ -2118,6 +2118,65 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "CDTFA Q2 2026 (state 7.25% + LA County 2.25% + city 0%)",
     ),
+    # iter-62: pin the 35-county expansion landed via CDTFA Q2 2026.
+    # Each ZIP below previously fell back to state-only 7.25% because
+    # its county wasn't in CA_COUNTY_RATE_PCT. Now it gets state +
+    # county-district correctly. ZIPs picked from county seats /
+    # major mid-tier cities to keep the regression-pin meaningful.
+    (
+        "CA",
+        "San Mateo (Burlingame)",
+        "94010",
+        "0001",
+        "9.375",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + San Mateo 2.125%) -- iter-62 county expansion",
+    ),
+    (
+        "CA",
+        "Marin (Sausalito)",
+        "94965",
+        "0001",
+        "8.250",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + Marin 1.0%) -- iter-62 county expansion",
+    ),
+    (
+        "CA",
+        "Humboldt (Eureka)",
+        "95501",
+        "0001",
+        "9.500",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + Humboldt 2.25%) -- iter-62 county expansion",
+    ),
+    (
+        "CA",
+        "Santa Barbara",
+        "93101",
+        "0001",
+        "7.750",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + Santa Barbara 0.5%) -- iter-62 county expansion",
+    ),
+    (
+        "CA",
+        "San Luis Obispo",
+        "93401",
+        "0001",
+        "8.250",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + SLO 1.0%) -- iter-62 county expansion",
+    ),
+    (
+        "CA",
+        "Napa",
+        "94559",
+        "0001",
+        "7.750",
+        "0.05",
+        "CDTFA Q2 2026 (state 7.25% + Napa 0.5%) -- iter-62 county expansion",
+    ),
     (
         "CA",
         "San Diego",
