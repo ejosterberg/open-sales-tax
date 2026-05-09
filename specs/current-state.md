@@ -1,13 +1,14 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-08
-**Status:** **v0.54.5 shipped.** Three small UX/perf releases since
-v0.54.3: rate-limit response headers (`X-RateLimit-Limit/Remaining/
-Reset`) so clients can self-pace, CORS `expose_headers` so browser
-JS can read them, NM live grid expanded 1 → 7 entries, and
-`Cache-Control` on `/v1/states` (1h) + `/v1/rates` (5 min) so
-Cloudflare can shoulder popular-ZIP traffic. Live grid 387/387
-green.
+**Last updated:** 2026-05-09
+**Status:** **v0.55.1 shipped.** Two big landings since v0.54.5:
+**Decision 10 RESOLVED** (third attempt) -- synthetic ZIP+4 lookups
+now match loose-lookup for ZIPs where the city has type-4-only
+bindings (WY Casper 82601-0001: 5.0% → 6.0%); soft-add gated on
+no-narrow-precise so Roswell/Edmond stay correct. **CA county
+coverage 20 → 55** -- ingested CDTFA Q2 2026 Excel; 35 additional
+counties now return state+county-district instead of state-only
+7.25%. Live grid 395/395 green.
 
 **v0.54.3 (2026-05-08)** -- loader bulk-insert refactor unblocks
 the previously OOM-prone UT (1.5M boundaries) and WA (1.2M boundaries)
@@ -149,6 +150,8 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.54.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.3) | 2026-05-08 | **Loader OOM fix.** Boundary + rate loaders now bulk-insert via Core in 5K-row batches. UT (1.5M boundaries) + WA (1.2M boundaries) reloads no longer SIGKILL the prod container; the SQL-rename workaround for placename pushes is retired. Decision 10 retried with row-count loose fallback; still regressed via a different path; reverted with deeper lessons. |
 | [v0.54.4](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.4) | 2026-05-08 | `X-RateLimit-Limit/Remaining/Reset` response headers via `Limiter(headers_enabled=True)`; CORS `expose_headers` for the rate-limit trio + `Retry-After` so browser fetch() callers can read them; NM live grid expanded 1 → 7 entries (Albuquerque/Santa Fe/Las Cruces/Rio Rancho/Farmington/Gallup/Espanola). |
 | [v0.54.5](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.5) | 2026-05-08 | HTTP caching: `Cache-Control: public, max-age=3600` on `/v1/states`; `public, max-age=300` on `/v1/rates`. Cloudflare + browser caches dramatically cut origin load on popular ZIPs. POST `/v1/calculate` stays uncached. |
+| [v0.55.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.0) | 2026-05-08 | **Decision 10 RESOLVED.** Synthetic ZIP+4 lookups now match the loose-lookup answer for ZIPs where the city has type-4-only bindings (no type-z). WY Casper 82601-0001: 5.0% → 6.0%. Soft-add-dominant-city path gated on no-narrow-precise; preserves Roswell/Edmond cross-county correctness. Third attempt finally landed (iter-60 + iter-61 reverted). |
+| [v0.55.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.1) | 2026-05-09 | **CA county coverage 20 → 55.** Ingested CDTFA Q2 2026 Excel rate file; added 35 county entries (Marin / Humboldt / Santa Barbara / Napa / 31 more). CA ZIPs in those counties now return state + county-district instead of the previous state-only 7.25% fallback. 6 new live grid pinning entries. |
 
 ## Coverage (after v0.5)
 
