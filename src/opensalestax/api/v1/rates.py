@@ -8,7 +8,7 @@ import datetime as dt
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.api.v1.schemas import JurisdictionRate, RatesResponse
@@ -43,6 +43,7 @@ async def get_rates(
     zip5: Zip5Q,
     session: SessionDep,
     auth: AuthDep,
+    response: Response,
     zip4: Zip4Q = None,
 ) -> RatesResponse:
     """Return the active jurisdictional rate stack for ``zip5`` (+ optional ``zip4``).
@@ -69,6 +70,14 @@ async def get_rates(
     today = dt.date.today()
     resolved = await resolve_rates_for_authorities(session, authorities, today, "general")
     combined = combined_rate_pct(resolved)
+
+    # Rate data refreshes quarterly when SST publishes new files.
+    # 5 minutes is conservative -- mid-quarter changes that prompt a
+    # `data load` on prod will still propagate within 5 min through
+    # downstream caches. Cloudflare in front can cache by full URL
+    # (zip5 + zip4 are query params), so this dramatically cuts
+    # origin load for popular ZIPs.
+    response.headers["Cache-Control"] = "public, max-age=300"
 
     return RatesResponse(
         input={"zip5": zip5, "zip4": zip4},
