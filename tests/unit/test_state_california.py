@@ -114,8 +114,11 @@ def test_california_parse_rates_yields_state_county_city() -> None:
     assert state_rows[0].effective_from == dt.date(2017, 1, 1)
     assert state_rows[0].parent_authority_name is None
 
-    expected_counties = {county for county, _, _ in CA_CITIES.values()}
-    assert {r.authority_name for r in county_rows} == expected_counties
+    # parse_rates emits a RateRow for every county in CA_COUNTY_RATE_PCT,
+    # not just those touched by a covered city. The boundary loader
+    # binds every CA ZIP whose county is in the table to the county
+    # authority, so every county needs a queryable rate.
+    assert {r.authority_name for r in county_rows} == set(CA_COUNTY_RATE_PCT)
     for r in county_rows:
         assert r.parent_authority_name == "California"
         assert r.rate_pct == CA_COUNTY_RATE_PCT[r.authority_name]

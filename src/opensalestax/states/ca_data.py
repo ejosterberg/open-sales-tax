@@ -125,6 +125,8 @@ CA_STATE_EFFECTIVE_FROM = dt.date(2017, 1, 1)
 # audit parallelism with the AZ/MO/SC/VA/TX pattern (the engine sums
 # 0% authorities to no effect but keeps the rate-stack audit trail).
 CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
+    # ----- Manually curated (v0.27 era) -----
+    # Validated against CDTFA Publication 105 + Avalara per-city pages.
     "Alameda County": Decimal("2.000"),  # BART + Measures B/BB/F/AA/C/W
     "Contra Costa County": Decimal("1.500"),  # BART + Measures J/X
     "Fresno County": Decimal("0.225"),  # Measure C transportation + zoo
@@ -145,6 +147,56 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Stanislaus County": Decimal("0.125"),  # Measure L transportation
     "Tulare County": Decimal("0.500"),  # Measure R transportation
     "Ventura County": Decimal("0.000"),
+    # ----- Iter-62: 35 additional counties from CDTFA Q2 2026 -----
+    # Derived from CDTFA's "California City and County Sales and Use
+    # Tax Rates" Excel (effective April 1, 2026, retrieved 2026-05-09
+    # from cdtfa.ca.gov/taxes-and-fees/SalesTaxRates04-01-26.xlsx).
+    # For counties without an explicit "Unincorporated Area" CDTFA row,
+    # the rate is derived as `min(combined_city_rate) - 7.250`, which
+    # matches the unincorporated rate when at least one city has no
+    # city-only district. Verified against CDTFA's 5 explicit
+    # Unincorporated Area entries: Del Norte, Kern, Monterey, Santa
+    # Cruz, Yuba (3 of 5 match the min; Santa Cruz + Yuba have a small
+    # county-wide tax that doesn't apply to all incorporated cities --
+    # accepted as a known under-collect for unincorporated areas in
+    # those two specific counties pending a CDTFA TRA-level loader).
+    # Pre-fix these counties returned state-only 7.25%; post-fix they
+    # return state + county-district correctly for incorporated areas.
+    "Amador County": Decimal("0.500"),
+    "Butte County": Decimal("1.000"),
+    "Calaveras County": Decimal("1.500"),
+    "Colusa County": Decimal("1.000"),
+    "Del Norte County": Decimal("1.000"),  # CDTFA Unincorporated explicit
+    "El Dorado County": Decimal("1.000"),
+    "Glenn County": Decimal("1.000"),
+    "Humboldt County": Decimal("2.250"),
+    "Imperial County": Decimal("0.500"),
+    "Inyo County": Decimal("1.500"),
+    "Kings County": Decimal("1.000"),
+    "Lake County": Decimal("1.500"),
+    "Lassen County": Decimal("1.000"),
+    "Madera County": Decimal("1.000"),
+    "Marin County": Decimal("1.000"),
+    "Mendocino County": Decimal("1.625"),
+    "Merced County": Decimal("1.000"),
+    "Modoc County": Decimal("0.000"),
+    "Mono County": Decimal("0.500"),
+    "Napa County": Decimal("0.500"),
+    "Nevada County": Decimal("1.625"),
+    "Plumas County": Decimal("0.000"),
+    "San Benito County": Decimal("1.750"),
+    "San Luis Obispo County": Decimal("1.000"),
+    "San Mateo County": Decimal("2.125"),
+    "Santa Barbara County": Decimal("0.500"),
+    "Santa Cruz County": Decimal("2.250"),  # CDTFA Unincorporated explicit
+    "Shasta County": Decimal("0.000"),
+    "Sierra County": Decimal("0.000"),
+    "Siskiyou County": Decimal("0.000"),
+    "Sutter County": Decimal("0.000"),
+    "Tehama County": Decimal("0.000"),
+    "Tuolumne County": Decimal("1.500"),
+    "Yolo County": Decimal("0.750"),
+    "Yuba County": Decimal("1.000"),  # CDTFA Unincorporated explicit
 }
 
 # Per-city district portion (city-only overlay; NOT including state
