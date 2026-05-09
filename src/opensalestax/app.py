@@ -150,6 +150,16 @@ def create_app() -> FastAPI:
         allow_origins=allow_origins,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "X-API-Key"],
+        # Browsers hide non-CORS-safelisted response headers from
+        # fetch() unless explicitly exposed. Without this list a JS
+        # client can't read X-RateLimit-* to self-pace, can't see
+        # Retry-After on 429s, etc.
+        expose_headers=[
+            "Retry-After",
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset",
+        ],
         max_age=600,
     )
 
