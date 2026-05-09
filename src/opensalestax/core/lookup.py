@@ -161,6 +161,39 @@ async def lookup_jurisdictions_by_zip(
             loose_rows = list((await session.execute(loose_stmt)).all())
             precise_authorities = _pick_closest_per_type(loose_rows, zip4)
 
+    # Decision 10 (iter-62 third attempt): soft-add the ZIP's dominant
+    # city when precise + z + loose all missed one. WY Casper has 616
+    # narrow type-4 ranges for 82601 and ZERO type-z records; Natrona
+    # County's wide-range type-4 covers any synthetic +4, so precise
+    # picks Natrona, the merge filter drops every type-z (none of which
+    # are Casper anyway), the loose fallback gate fails because Natrona
+    # IS in z, and Casper never surfaces. The loose-lookup path picks
+    # Casper correctly (row count beats the no-city alternative); this
+    # mirrors that signal into the strict path. Roswell GA 30075 stays
+    # correct because 30075 has no city authority at all -- the soft-
+    # add no-ops.
+    if zip4 is not None:
+        precise_has_city = any(a.authority_type == "city" for a in precise_authorities)
+        z_has_city = any(a.authority_type == "city" for a in z_authorities)
+        if not precise_has_city and not z_has_city:
+            dominant_city_stmt = (
+                select(TaxAuthority)
+                .join(Boundary, Boundary.authority_id == TaxAuthority.id)
+                .where(
+                    *base_filter(),
+                    Boundary.zip4_low.isnot(None),
+                    TaxAuthority.authority_type == "city",
+                )
+                .group_by(TaxAuthority.id)
+                .order_by(func.count(Boundary.id).desc(), TaxAuthority.id.asc())
+                .limit(1)
+                .options(*options)
+            )
+            dominant = (await session.execute(dominant_city_stmt)).scalars().first()
+            if dominant is not None:
+                precise_authorities = [*precise_authorities, dominant]
+                precise_county_city_ids = precise_county_city_ids | {dominant.id}
+
     # Merge: state always; districts always; county/city prefer
     # type-4 over type-z when both exist for the SAME ZIP+4.
     seen_ids: set[int] = set()

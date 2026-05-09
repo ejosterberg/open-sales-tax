@@ -219,6 +219,33 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Wyoming -- WY DOR sales tax rates 2026-Q2
     ("WY", "Cheyenne", "82001", "3504", "5.000", "0.05", "WY DOR (state 4% + Laramie 1%)"),
     ("WY", "Casper", "82601", "2401", "5.000", "0.05", "WY DOR (state 4% + Natrona 1%)"),
+    # Decision 10 (resolved iter-62): synthetic +4 lookups now match
+    # the loose-lookup answer via the soft-add-dominant-city path. The
+    # third attempt finally got it right -- previous attempts (iter-60
+    # width filter, iter-61 row-count loose fallback) regressed GA
+    # Roswell. The soft-add only fires when precise + z + loose all
+    # missed a city; Roswell's 30075 has no city authority so the
+    # soft-add no-ops there.
+    (
+        "WY",
+        "Casper synthetic +4",
+        "82601",
+        "0001",
+        "6.000",
+        "0.05",
+        "Decision 10 fix: state 4% + Natrona 1% + Casper 1% (loose-lookup parity)",
+    ),
+    # GA Roswell synthetic +4 regression-pin: must NOT pick Cobb just
+    # because Cobb's narrow type-4 rows happen to sit nearer +4 0001.
+    (
+        "GA",
+        "Roswell synthetic +4 (cross-county pin)",
+        "30075",
+        "0001",
+        "7.750",
+        "0.05",
+        "GA DOR (state 4% + Fulton 3% + Fulton TSPLOST 0.75%)",
+    ),
     # Arkansas -- AR DFA Sales and Use Tax Rates 2026-Q2
     (
         "AR",
