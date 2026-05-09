@@ -295,11 +295,21 @@ def test_california_la_county_is_largest_district() -> None:
     assert CA_COUNTY_RATE_PCT["Los Angeles County"] == max_county
 
 
-def test_california_kern_and_ventura_have_zero_county_district() -> None:
-    """Kern and Ventura are the rare CA counties with NO county-wide district.
+def test_california_kern_county_has_unincorporated_district() -> None:
+    """Kern County levies a 1.0% county-wide district per CDTFA Q2 2026
+    Unincorporated row.
 
-    Bakersfield (Kern) and Thousand Oaks/Simi Valley (Ventura)
-    therefore have combined rates equal to state + city only.
+    Updated iter-62 from the prior 0.000% (which under-collected on
+    every Kern ZIP not in CA_CITIES). Bakersfield's combined rate
+    stays 8.250% -- the 1.0% was re-attributed from city to county.
     """
-    assert CA_COUNTY_RATE_PCT["Kern County"] == Decimal("0.000")
+    assert CA_COUNTY_RATE_PCT["Kern County"] == Decimal("1.000")
+
+
+def test_california_ventura_has_zero_county_district() -> None:
+    """Ventura is one of the rare CA counties with NO county-wide district.
+
+    Thousand Oaks and Simi Valley therefore have combined rates equal
+    to state + city only.
+    """
     assert CA_COUNTY_RATE_PCT["Ventura County"] == Decimal("0.000")

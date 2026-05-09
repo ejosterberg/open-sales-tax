@@ -130,9 +130,9 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Alameda County": Decimal("2.000"),  # BART + Measures B/BB/F/AA/C/W
     "Contra Costa County": Decimal("1.500"),  # BART + Measures J/X
     "Fresno County": Decimal("0.225"),  # Measure C transportation + zoo
-    "Kern County": Decimal("0.000"),
+    "Kern County": Decimal("1.000"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
     "Los Angeles County": Decimal("2.250"),  # LACMTA + Measure M/R + Measure H
-    "Monterey County": Decimal("0.500"),  # TAMC transportation
+    "Monterey County": Decimal("1.500"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
     "Orange County": Decimal("0.500"),  # OCTA Measure M2
     "Placer County": Decimal("0.500"),  # transit
     "Riverside County": Decimal("0.500"),  # Measure A transportation
@@ -564,7 +564,12 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Kern County -----
     "Bakersfield": (
         "Kern County",
-        Decimal("1.000"),  # combined 8.250 = 7.25 + 0 + 1.0 (Measure N)
+        # iter-62: re-attributed -- the 1% that was here is actually the
+        # county-wide Kern district tax (per CDTFA Unincorporated). The
+        # combined Bakersfield rate stays 8.250%; just split differently
+        # between county and city. Bakersfield itself has no city-only
+        # sales tax in CDTFA Q2 2026.
+        Decimal("0.000"),  # combined 8.250 = 7.25 + Kern 1.0 + 0
         (
             "93301",
             "93304",
@@ -701,7 +706,11 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Monterey County -----
     "Salinas": (
         "Monterey County",
-        Decimal("1.500"),  # combined 9.250 (Measures E + G)
+        # iter-62: re-attributed -- 1% of the 1.5% here was the Monterey
+        # county-wide TAMC + transportation tax (per CDTFA Unincorporated
+        # 1.500%). The remaining 0.5% is Salinas's actual Measure E /
+        # Measure G city portion. Combined unchanged at 9.250%.
+        Decimal("0.500"),  # combined 9.250 = 7.25 + Monterey 1.5 + Salinas 0.5
         ("93901", "93905", "93906", "93907"),
     ),
     # ----- Tulare County -----
