@@ -1,12 +1,19 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-08
-**Status:** **v0.54.3 shipped.** Loader bulk-insert refactor unblocks
+**Status:** **v0.54.5 shipped.** Three small UX/perf releases since
+v0.54.3: rate-limit response headers (`X-RateLimit-Limit/Remaining/
+Reset`) so clients can self-pace, CORS `expose_headers` so browser
+JS can read them, NM live grid expanded 1 → 7 entries, and
+`Cache-Control` on `/v1/states` (1h) + `/v1/rates` (5 min) so
+Cloudflare can shoulder popular-ZIP traffic. Live grid 387/387
+green.
+
+**v0.54.3 (2026-05-08)** -- loader bulk-insert refactor unblocks
 the previously OOM-prone UT (1.5M boundaries) and WA (1.2M boundaries)
 reloads -- the natural reload path now scales for any state. Decision
 10 retried in iter-61 with row-count loose fallback; still regressed
-GA Roswell via a different path; reverted with deeper lessons. Live
-DOR grid 381/381 green.
+GA Roswell via a different path; reverted with deeper lessons.
 
 **v0.54.2 (2026-05-08)** shipped per-real-IP rate limiting via
 `CF-Connecting-IP` (closes the Cloudflare-edge-IP-rotation gap from
@@ -140,6 +147,8 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.54.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.1) | 2026-05-06 | **Security fix.** `SlowAPIMiddleware` wired so per-IP rate limit actually enforces (it was inert pre-fix); `SecurityHeadersMiddleware` attaches HSTS / nosniff / X-Frame-Options DENY / Referrer-Policy / Permissions-Policy on every response. First formal security audit baseline at `specs/security/audit-2026-05-04.md`. |
 | [v0.54.2](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.2) | 2026-05-08 | Per-real-IP rate limiting via `CF-Connecting-IP` (opt-in `OPENSALESTAX_TRUST_FORWARDED_FOR`); +20 friendly placenames (KS Manhattan; UT Logan/Murray/Orem/Park City/St. George; WA Kennewick/Kent/Lakewood/Oak Harbor/Spokane Valley/Wenatchee/Yakima; AR Conway/Hot Springs/N Little Rock/Lowell/Rogers/Sherwood/Springdale); SonarQube code smells 308 → 28; Decision 10 attempted + reverted. |
 | [v0.54.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.3) | 2026-05-08 | **Loader OOM fix.** Boundary + rate loaders now bulk-insert via Core in 5K-row batches. UT (1.5M boundaries) + WA (1.2M boundaries) reloads no longer SIGKILL the prod container; the SQL-rename workaround for placename pushes is retired. Decision 10 retried with row-count loose fallback; still regressed via a different path; reverted with deeper lessons. |
+| [v0.54.4](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.4) | 2026-05-08 | `X-RateLimit-Limit/Remaining/Reset` response headers via `Limiter(headers_enabled=True)`; CORS `expose_headers` for the rate-limit trio + `Retry-After` so browser fetch() callers can read them; NM live grid expanded 1 → 7 entries (Albuquerque/Santa Fe/Las Cruces/Rio Rancho/Farmington/Gallup/Espanola). |
+| [v0.54.5](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.5) | 2026-05-08 | HTTP caching: `Cache-Control: public, max-age=3600` on `/v1/states`; `public, max-age=300` on `/v1/rates`. Cloudflare + browser caches dramatically cut origin load on popular ZIPs. POST `/v1/calculate` stays uncached. |
 
 ## Coverage (after v0.5)
 
