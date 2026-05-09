@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from opensalestax.api.v1.schemas import StateInfo, StatesResponse
 from opensalestax.states.catalog import STATE_CATALOG
@@ -14,7 +14,7 @@ router = APIRouter(tags=["states"])
 
 
 @router.get("/states")
-async def list_states() -> StatesResponse:
+async def list_states(response: Response) -> StatesResponse:
     """List every US tax jurisdiction with its coverage tier.
 
     Tier semantics (also in StateInfo schema):
@@ -46,4 +46,10 @@ async def list_states() -> StatesResponse:
                 notes=entry.notes,
             )
         )
+    # State coverage changes only when the codebase ships a new state
+    # module (rare). Allow Cloudflare + browser caches to hold this
+    # response for an hour so /v1/states isn't a hot path on the
+    # origin. Not "immutable" because we do ship new state modules
+    # (Phase 6/7); 1h matches the typical release cadence floor.
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return StatesResponse(states=items, total=len(items))
