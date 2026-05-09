@@ -3108,6 +3108,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "NM TRD (state 4.875% + Bernalillo locals)",
     ),
+    # NM has city-level GRT variation; expanding from 1 -> 7 to pin
+    # the engine's per-city rate against NM TRD's published GRT
+    # rate file (verified by ZIP probe 2026-05-08).
+    ("NM", "Santa Fe", "87501", "0001", "8.4375", "0.05", "NM TRD (state + Santa Fe city GRT)"),
+    ("NM", "Las Cruces", "88001", "0001", "8.000", "0.05", "NM TRD (state + Las Cruces city GRT)"),
+    ("NM", "Rio Rancho", "87144", "0001", "7.6875", "0.05", "NM TRD (state + Rio Rancho city GRT)"),
+    ("NM", "Farmington", "87401", "0001", "8.125", "0.05", "NM TRD (state + Farmington city GRT)"),
+    ("NM", "Gallup", "87301", "0001", "8.5625", "0.05", "NM TRD (state + Gallup city GRT)"),
+    ("NM", "Espanola", "87532", "0001", "8.875", "0.05", "NM TRD (state + Espanola city GRT)"),
     (
         "NV",
         "Las Vegas",
