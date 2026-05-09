@@ -31,6 +31,16 @@ from opensalestax.db.models import Boundary, TaxAuthority
 # stray bindings ship 1-10.
 _MIN_LONE_DISTRICT_ROWS = 20
 
+# Decision 10 (iter-62): a type-4 boundary row spanning >= 1000 +4s
+# is treated as a "wide-range" / type-z-equivalent record. Some SST
+# files encode "this authority covers the whole ZIP" as one such
+# row instead of a proper type-z (notably WY counties for synthetic
+# +4 lookups). The strict lookup uses this threshold to distinguish
+# narrow per-+4 precision (e.g. Natrona 2401-2402 = unincorporated)
+# from wide-range claims (Natrona 0000-0999 = whole-ZIP claim).
+# Real per-block ranges are < 100 +4s; 1000 is the empirical cutoff.
+_WIDE_TYPE4_RANGE_THRESHOLD = 1000
+
 
 async def lookup_jurisdictions_by_zip(
     session: AsyncSession,
@@ -74,9 +84,10 @@ async def lookup_jurisdictions_by_zip(
     # unincorporated county Y") the type-4 row is the precise
     # truth and the type-z fallback would double-count.
     precise_county_city_ids: set[int] = set()
+    has_narrow_precise = False
     if zip4 is not None:
         precise_stmt = (
-            select(TaxAuthority)
+            select(TaxAuthority, Boundary.zip4_low, Boundary.zip4_high)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
                 *base_filter(),
@@ -87,10 +98,26 @@ async def lookup_jurisdictions_by_zip(
                 TaxAuthority.authority_type.in_(("county", "city")),
             )
             .options(*options)
-            .distinct()
         )
-        precise_authorities = list((await session.execute(precise_stmt)).scalars().all())
-        precise_county_city_ids = {a.id for a in precise_authorities}
+        precise_rows = list((await session.execute(precise_stmt)).all())
+        precise_authorities = []
+        seen: set[int] = set()
+        for auth, lo, hi in precise_rows:
+            # Track whether any matching row is "narrow" (< 1000 +4s).
+            # Decision 10 (iter-62): a narrow type-4 is the SST file's
+            # signal that THIS specific +4 is precisely encoded -- e.g.
+            # WY Natrona 2401-2402 means "unincorporated, NOT in any
+            # city". A wide-range row (Natrona 0000-0999) is a ZIP-wide
+            # claim with no per-+4 information. The soft-add-dominant-
+            # city path below uses this flag to avoid spuriously adding
+            # a city to genuinely unincorporated addresses.
+            if lo and hi and (int(hi) - int(lo) + 1) < _WIDE_TYPE4_RANGE_THRESHOLD:
+                has_narrow_precise = True
+            if auth.id in seen:
+                continue
+            seen.add(auth.id)
+            precise_authorities.append(auth)
+        precise_county_city_ids = seen
     else:
         precise_authorities = []
 
@@ -162,17 +189,16 @@ async def lookup_jurisdictions_by_zip(
             precise_authorities = _pick_closest_per_type(loose_rows, zip4)
 
     # Decision 10 (iter-62 third attempt): soft-add the ZIP's dominant
-    # city when precise + z + loose all missed one. WY Casper has 616
-    # narrow type-4 ranges for 82601 and ZERO type-z records; Natrona
-    # County's wide-range type-4 covers any synthetic +4, so precise
-    # picks Natrona, the merge filter drops every type-z (none of which
-    # are Casper anyway), the loose fallback gate fails because Natrona
-    # IS in z, and Casper never surfaces. The loose-lookup path picks
-    # Casper correctly (row count beats the no-city alternative); this
-    # mirrors that signal into the strict path. Roswell GA 30075 stays
-    # correct because 30075 has no city authority at all -- the soft-
-    # add no-ops.
-    if zip4 is not None:
+    # city when precise + z + loose all missed one AND no narrow
+    # type-4 row covers this +4. WY Casper has 616 narrow type-4
+    # ranges for 82601 and zero type-z records; Natrona's wide-range
+    # type-4 (0000-0999) covers any synthetic +4 but encodes a
+    # ZIP-wide claim, not per-+4 info. The loose-lookup path picks
+    # Casper correctly via row-count; this mirrors that signal into
+    # the strict path -- but ONLY when no narrow row exists, so
+    # genuinely unincorporated +4s (Natrona 2401-2402) keep their
+    # state+county-only stack.
+    if zip4 is not None and not has_narrow_precise:
         precise_has_city = any(a.authority_type == "city" for a in precise_authorities)
         z_has_city = any(a.authority_type == "city" for a in z_authorities)
         if not precise_has_city and not z_has_city:
