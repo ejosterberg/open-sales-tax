@@ -1980,9 +1980,12 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Arlington",
         "76010",
         "0001",
-        "8.000",
+        # iter-62 audit: Arlington moved 1.75% -> 2.00% city local
+        # (now at the cap). Still no transit district -- DART opt-out
+        # remains. Combined: state 6.25 + city 2.00 = 8.250.
+        "8.250",
         "0.05",
-        "TX Comptroller (state 6.25% + city 1.75%; opted out of DART/FWTA -- only major TX city below 8.25%)",
+        "TX Comptroller Apr 2026 (state 6.25% + Arlington 2.0%; no transit, at local cap)",
     ),
     (
         "TX",
