@@ -1,6 +1,11 @@
 # Decision 10: Wide-range type-4 records and the precise-match assumption
 
-**Status:** Open (deferred) -- recorded 2026-05-05 during iter 43.
+**Status:** **RESOLVED 2026-05-08** in commits `0418403` + `d68c023`
+(iter-62 third attempt). The fix lives in `lookup.py`'s soft-add-
+dominant-city path, gated on `not has_narrow_precise`. See "Iter-62
+resolution" section at the end of this doc.
+
+**Original status:** Open (deferred) -- recorded 2026-05-05 during iter 43.
 
 ## Context
 
@@ -185,3 +190,67 @@ county as a "z-equivalent claimant" that competes for the type-z
 fallback dedup -- even when narrow-range matches from another
 county are in precise. That's a meaningfully more invasive change
 than what's been tried so far.
+
+## Iter-62 resolution
+
+The third attempt finally landed. The lessons from the two reverts
+were necessary -- they shaped the design that worked.
+
+**Empirical analysis (2026-05-08).** Inspecting the type-z vs type-4
+split for each canonical case revealed the actual structure:
+
+| ZIP | Authority | type-z rows | type-4 rows |
+|---|---|---:|---:|
+| 73034 (Edmond OK) | Oklahoma County | 0 | 533 |
+| 73034 | Edmond city | 0 | 475 |
+| 73034 | Logan County | 0 | 279 |
+| 30075 (Roswell GA) | Fulton County | 0 | 107 |
+| 30075 | Cobb County | **1** | 18 |
+| 82601 (Casper WY) | Natrona County | **1** | 1233 |
+| 82601 | Casper city | **0** | 616 |
+
+The pattern: **Casper has 616 narrow type-4 ranges and ZERO type-z
+records**, while Natrona has both. For a synthetic +4 like 0001:
+
+1. Precise picks Natrona via Natrona's wide-range type-4 (0000-0999).
+2. Merge filter drops every type-z that isn't in precise -- but
+   Casper has NO type-z to drop. Casper simply never enters the
+   pipeline.
+3. Loose-fallback gate fails (Natrona IS in z), so the loose path
+   that picks Casper by row-count never fires.
+
+The loose lookup (no +4) correctly picks Casper because it
+considers every type-4 row regardless of +4 coverage and uses
+row-count dominance. The strict lookup with +4 needs the same
+signal -- but only when no narrow type-4 row covered the +4.
+
+**The fix.** After precise + z + loose all resolve and BEFORE merge,
+check whether any city ended up in precise or z. If not AND no
+narrow (< 1000 +4s wide) type-4 row covered the +4, query the
+ZIP's dominant city by total type-4 row count and append it to
+precise. Three properties matter:
+
+- **Soft-add only when needed.** ZIPs where precise + z + loose
+  already provide a city skip the soft-add entirely.
+- **Gated on `not has_narrow_precise`.** Real unincorporated +4s
+  (Natrona 2401-2402 narrow rows) keep their state+county-only
+  stack. Only synthetic +4s (covered solely by wide-range rows)
+  reach the dominant-city lookup.
+- **Cross-county isolation.** GA Roswell 30075 has no city
+  authority at all; the soft-add no-ops; Cobb's narrow type-4
+  rows are still the wrong precise pick but that's a county
+  decision, separate from city dominance.
+
+**Verified across the canonical cases (commit `d68c023`):**
+
+| Case | Pre-fix | Post-fix | Matches |
+|---|---:|---:|---|
+| WY Casper 82601-0001 (synthetic) | 5.0% | **6.0%** | loose-lookup parity |
+| WY Casper 82601-2401 (real unincorporated) | 5.0% | 5.0% | unchanged |
+| WY Casper 82601-3504 (real in-Casper) | 6.0% | 6.0% | unchanged |
+| GA Roswell 30075-0001 (cross-county) | 7.75% | 7.75% | unchanged |
+| OK Edmond 73034-1234 (cross-county) | 9.0% | 9.0% | unchanged |
+| WY Cheyenne 82001-3504 | 5.0% | 5.0% | unchanged |
+
+Full live DOR grid: **389/389 green** (387 prior + Casper synthetic
++4 + Roswell synthetic +4 regression-pin).
