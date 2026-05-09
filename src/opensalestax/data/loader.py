@@ -707,6 +707,34 @@ async def _drop_existing_data_version(
     if boundaries_to_drop:
         await session.flush()
 
+    # iter-62: Also sweep up rates with data_version_id=NULL for
+    # this state's authorities. Rate.data_version_id is
+    # ``ondelete=SET NULL`` (rates can semantically outlive their
+    # data version), but a re-load of changed-rate data will then
+    # see BOTH the orphan and the freshly-inserted rate, and the
+    # lookup engine has no way to disambiguate -- it picks one,
+    # often the orphan, and the new rate is invisible. Surfaced
+    # when iter-62 changed the Kern + Monterey county rates and
+    # the prod query kept returning the old values until the
+    # NULL-data-version rates were manually deleted.
+    state_auth_ids_subq = select(TaxAuthority.id).where(TaxAuthority.state_id == state_id)
+    orphan_rates = list(
+        (
+            await session.execute(
+                select(Rate).where(
+                    Rate.data_version_id.is_(None),
+                    Rate.authority_id.in_(state_auth_ids_subq),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for rate in orphan_rates:
+        await session.delete(rate)
+    if orphan_rates:
+        await session.flush()
+
     rates_to_drop = list(
         (await session.execute(select(Rate).where(Rate.data_version_id.in_(same_source_ids))))
         .scalars()
