@@ -103,6 +103,12 @@ def create_app() -> FastAPI:
     limiter = Limiter(
         key_func=key_func,
         default_limits=[f"{settings.rate_limit_per_minute}/minute"],
+        # Surface X-RateLimit-Limit / X-RateLimit-Remaining /
+        # X-RateLimit-Reset on every response so clients can pace
+        # themselves without probing for 429s. Standard pattern across
+        # GitHub, Stripe, Twilio, etc. The 429 path already sets
+        # Retry-After in our custom handler below.
+        headers_enabled=True,
     )
 
     app = FastAPI(

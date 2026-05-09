@@ -72,6 +72,27 @@ def test_rate_limit_response_also_carries_security_headers(
     assert headers["x-frame-options"] == "DENY"
 
 
+def test_rate_limit_headers_present_on_success(client: TestClient) -> None:
+    """X-RateLimit-* headers should appear on every response so clients can self-pace."""
+    response = client.get("/")
+    assert response.status_code == 307
+    headers = {k.lower(): v for k, v in response.headers.items()}
+    assert headers["x-ratelimit-limit"] == "3"
+    # First request: 2 remaining out of 3.
+    assert headers["x-ratelimit-remaining"] == "2"
+    # Reset is a unix timestamp; just sanity-check it parses as a number.
+    float(headers["x-ratelimit-reset"])
+
+
+def test_rate_limit_headers_decrement_per_request(client: TestClient) -> None:
+    """X-RateLimit-Remaining should count down across requests."""
+    remaining = []
+    for _ in range(3):
+        r = client.get("/")
+        remaining.append(int(r.headers["x-ratelimit-remaining"]))
+    assert remaining == [2, 1, 0]
+
+
 def _mock_request(headers: dict[str, str], client_host: str = "127.0.0.1"):
     req = MagicMock()
     req.headers = headers
