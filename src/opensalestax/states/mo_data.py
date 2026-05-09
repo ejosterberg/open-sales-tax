@@ -77,7 +77,13 @@ MO_STATE_EFFECTIVE_FROM = dt.date(1984, 1, 1)
 # the v0.30 ratchet to eliminate the prior 0%-county under-collection.
 MO_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # ---- Counties touched by a covered MO_CITIES entry (existing seed) ----
-    "Jackson County": Decimal("1.375"),
+    # iter-62: bumped 1.375 -> 1.500 to fold in the 0.125% Kansas City
+    # Zoological District (a county-wide tax for Jackson + Clay + Platte
+    # per Mo. Rev. Stat. chapter 184). Verified via Avalara: KC 8.975%
+    # (was 8.85), Independence 8.600% (was 8.475), Lee's Summit 8.475%
+    # (was 8.35). The bump matches MO DOR jan2026 PDF base for Jackson,
+    # so this also closes the deferred-rebalance note below.
+    "Jackson County": Decimal("1.500"),
     "St. Louis city": Decimal("5.454"),  # Independent city; entire local goes here
     "Greene County": Decimal("1.750"),
     "Boone County": Decimal("1.750"),

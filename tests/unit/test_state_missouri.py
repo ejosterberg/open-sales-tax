@@ -99,7 +99,12 @@ def test_missouri_parse_rates_ignores_source_file() -> None:
 
 
 def test_missouri_parse_rates_yields_kansas_city_3_25_pct() -> None:
-    """Kansas City's city rate is 3.25% (Jackson County 1.375% under it)."""
+    """Kansas City's city rate is 3.25%; Jackson County is 1.500% post
+    iter-62 (was 1.375%; bumped to fold in the 0.125% Jackson County
+    Kansas City Zoological District per Mo. Rev. Stat. 184). Combined
+    KC: state 4.225 + Jackson 1.500 + KC 3.250 = 8.975%, matching
+    Avalara.
+    """
     rows = list(MISSOURI.parse_rates(None, "v0.25-state-county-city"))
     by_name = {r.authority_name: r for r in rows}
     kc = by_name["Kansas City"]
@@ -108,7 +113,7 @@ def test_missouri_parse_rates_yields_kansas_city_3_25_pct() -> None:
     assert kc.parent_authority_name == "Jackson County"
     jackson_co = by_name["Jackson County"]
     assert jackson_co.authority_type == "county"
-    assert jackson_co.rate_pct == Decimal("1.375")
+    assert jackson_co.rate_pct == Decimal("1.500")
 
 
 def test_missouri_parse_boundaries_yields_kansas_city_zips() -> None:

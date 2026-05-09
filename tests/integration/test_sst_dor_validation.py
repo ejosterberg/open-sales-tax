@@ -1474,9 +1474,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Kansas City",
         "64108",
         "0001",
-        "8.850",
+        # iter-62: bumped from 8.850 -> 8.975 to fold in the 0.125%
+        # Jackson County KC Zoological District (Mo. Rev. Stat. 184).
+        "8.975",
         "0.10",
-        "MO DOR (state 4.225% + Jackson 1.375% + KC 3.25%)",
+        "MO DOR / Avalara (state 4.225% + Jackson 1.375% + KC 3.25% + Zoo 0.125%)",
     ),
     (
         "MO",
