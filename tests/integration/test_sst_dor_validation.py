@@ -3188,6 +3188,36 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-64 audit pin: AR DOR (state 6.5 + Faulkner 1.625 + Conway 1.0)",
     ),
+    # iter-64 batch B: rate-stack-confirmed pins for cities where
+    # my initial DOR estimate was outdated. Live engine matches
+    # the actual current published rate after re-verification.
+    (
+        "TN",
+        "Nashville (Vanderbilt)",
+        "37203",
+        "0001",
+        "9.750",
+        "0.05",
+        "iter-64 audit pin: TN DOR + IMPROVE Act 0.5% transit (37203 mirror of 37201)",
+    ),
+    (
+        "OK",
+        "Broken Arrow",
+        "74012",
+        "0001",
+        "8.417",
+        "0.05",
+        "iter-64 audit pin: OK Tax Comm (state 4.5 + Tulsa 0.367 + Broken Arrow 3.55)",
+    ),
+    (
+        "GA",
+        "Columbus",
+        "31901",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-64 audit pin: GA DOR (state 4 + Muscogee 5.0 LOST/SPLOST/TSPLOST stack)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
