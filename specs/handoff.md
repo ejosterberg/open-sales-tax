@@ -2,13 +2,44 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.54.1 is the latest release (security fix).** Live at
+**v0.55.4 is the latest release (MO Jackson County KCZD fold-in).**
+Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **375 sampled
+every published DOR rate within 0.05% across **420 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
+
+**iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
+A CA combined-rate audit against the CDTFA published table found 18
+of 50 cities drifted; applied paired county+city corrections so all
+50 now match exactly. Examples: Lancaster/Palmdale 11.250%,
+Hayward 10.750%, LA 9.750%, Modesto 8.875%. Verified live on prod
+post-deploy.
+
+A separate CI fire was put out: the CA loader integration tests
+(`test_load_california_without_a_file` and
+`test_california_idempotent_load`) had been computing
+`expected_rates = 1 + len(city-touched-counties) + len(CA_CITIES)`,
+but the CA module's `parse_rates` actually emits one county RateRow
+per `CA_COUNTY_RATE_PCT` entry (currently 55), not just for those
+touched by cities (currently 20). CI was red for 7 commits straight
+between v0.55.2 and the 4-CDTFA-pin commit. Fix in
+`81a2488` switched the math to `1 + len(CA_COUNTY_RATE_PCT) +
+len(CA_CITIES)` (currently 1+55+50 = 106). CI green again.
+
+**iter-63 audit pin batches** added 11 new live-grid entries (407 →
+420): MN Rochester, GA Savannah/Macon/Athens, IN Fort Wayne/
+Evansville, MI Grand Rapids, NJ Jersey City, WV Morgantown/
+Parkersburg/Wheeling. All cross-checked against the state DOR
+publications before pinning. Other probes turned up real
+discrepancies needing follow-up: WI Milwaukee city missing the 2%
+Act 12 city tax, plus several WI counties (Eau Claire, Rock,
+Columbia) returning state-only despite having adopted the 0.5%
+county tax; SD Sioux Falls/Rapid City rate-finder discrepancy;
+ND Fargo/Bismarck rate drift; UT SLC and AR Little Rock both
+suspect.
 
 **v0.54.1 closed a real security hole**: slowapi was registered but
 `SlowAPIMiddleware` was never added, so the configured per-IP
