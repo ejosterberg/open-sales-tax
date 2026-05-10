@@ -3975,6 +3975,36 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-73 audit pin: MN DOR (state 6.875 + Hennepin 0.15 + Hennepin Transit 0.5 + Metro Transp 0.75 + Metro Housing 0.25)",
     ),
+    # iter-74 batch A: AL Madison Co Sp +1% special district fold-in
+    # verification (commit 851ca18). Pre-fix Madison city ZIPs
+    # returned 8.0%; post-fix they return ALDOR-correct 9.0%.
+    (
+        "AL",
+        "Madison",
+        "35758",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-74 audit pin: AL DOR (state 4 + Madison Co 0.5 + Madison city 4.5 inc Madison Co Sp fold)",
+    ),
+    (
+        "AL",
+        "Madison",
+        "35756",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-74 audit pin: AL DOR (state 4 + Madison Co 0.5 + Madison city 4.5 inc Madison Co Sp fold)",
+    ),
+    (
+        "AL",
+        "Madison",
+        "35757",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-74 audit pin: AL DOR (state 4 + Madison Co 0.5 + Madison city 4.5 inc Madison Co Sp fold)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
