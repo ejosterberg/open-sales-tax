@@ -48,18 +48,39 @@ from __future__ import annotations
 # Map of ZIP5 (string, zero-padded) -> state abbrev. Keep alphabetical
 # by ZIP for diff-friendly maintenance.
 USPS_PO_BOX_ZIPS: dict[str, str] = {
-    # Massachusetts -- Springfield PO-box ZIPs (USPS Bulletin / usps.com)
+    # Massachusetts -- Springfield + Boston + Worcester PO-box ZIPs
+    # (USPS Bulletin / usps.com look-up)
     "01101": "MA",
     "01102": "MA",
     "01115": "MA",
     "01199": "MA",
+    "01601": "MA",  # Worcester PO box
+    "01613": "MA",  # Worcester PO box
+    "01655": "MA",  # Worcester unique-ZIP business
+    "02101": "MA",  # Boston PO box
+    "02201": "MA",  # Boston Government Center
+    "02266": "MA",  # Boston PO box
     # Rhode Island -- Providence PO-box ZIPs
     "02901": "RI",
-    # Connecticut -- Hartford PO-box ZIPs
+    "02902": "RI",
+    # Connecticut -- Hartford + New Haven PO-box ZIPs
     "06101": "CT",
-    # New Jersey -- Newark / Trenton PO-box ZIPs
+    "06102": "CT",
+    "06141": "CT",
+    "06501": "CT",  # New Haven PO box
+    # New Jersey -- Newark / Jersey City / Paterson / Camden / Trenton
     "07101": "NJ",
-    "08601": "NJ",
+    "07188": "NJ",  # Newark unique-ZIP
+    "07303": "NJ",  # Jersey City PO box
+    "07399": "NJ",  # Jersey City unique-ZIP
+    "07509": "NJ",  # Paterson PO box
+    "07599": "NJ",  # Paterson unique-ZIP
+    "08101": "NJ",  # Camden PO box
+    "08163": "NJ",  # Camden unique-ZIP
+    "08601": "NJ",  # Trenton PO box
+    # Maryland -- Baltimore PO-box ZIPs
+    "21263": "MD",  # Baltimore PO box
+    "21275": "MD",  # Baltimore PO box
 }
 
 
