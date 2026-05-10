@@ -9,9 +9,15 @@ Verified by ZIP probe + rate cross-check against KS DOR's
 from __future__ import annotations
 
 KS_CITY_NAMES: dict[str, str] = {
+    # iter-83 additions (4): Dodge City / Emporia / Hays / Newton --
+    # all verified by ZIP probe + FIPS Place last-5-digit match.
+    "18250": "Dodge City",  # ZIP 67801 (Ford Co; FIPS Place 2018250)
+    "21275": "Emporia",  # ZIP 66801 (Lyon Co; FIPS Place 2021275)
+    "31100": "Hays",  # ZIP 67601 (Ellis Co; FIPS Place 2031100)
     "36000": "Kansas City",
     "38900": "Lawrence",  # ZIP 66044 (verified by probe; FIPS Place 2038900)
     "44250": "Manhattan",  # ZIP 66502 (verified by probe; FIPS Place 2044250)
+    "50475": "Newton",  # ZIP 67114 (Harvey Co; FIPS Place 2050475)
     "52575": "Olathe",
     "53775": "Overland Park",
     "62700": "Salina",  # ZIP 67401 (verified by probe; FIPS Place 2062700)

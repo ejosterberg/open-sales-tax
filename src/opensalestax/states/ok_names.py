@@ -17,9 +17,13 @@ OK_CITY_NAMES: dict[str, str] = {
     "04450": "Bartlesville",
     "05700": "Bethany",
     "09050": "Broken Arrow",
+    # iter-83 additions (3): Durant / Guthrie / Woodward via probe
+    # + FIPS Place last-5-digit match
+    "22050": "Durant",  # ZIP 74701 (Bryan Co; FIPS Place 4022050)
     "23200": "Edmond",
     "23950": "Enid",
     "29600": "Glenpool",
+    "31700": "Guthrie",  # ZIP 73044 (Logan Co; FIPS Place 4031700)
     "37800": "Bixby",
     "41850": "Lawton",
     "49200": "Moore",
@@ -32,6 +36,7 @@ OK_CITY_NAMES: dict[str, str] = {
     "66800": "Shawnee",
     "70300": "Stillwater",
     "75000": "Tulsa",
+    "82150": "Woodward",  # ZIP 73801 (Woodward Co; FIPS Place 4082150)
     "82950": "Yukon",
 }
 
