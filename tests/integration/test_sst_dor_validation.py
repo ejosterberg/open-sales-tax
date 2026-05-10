@@ -4005,6 +4005,27 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-74 audit pin: AL DOR (state 4 + Madison Co 0.5 + Madison city 4.5 inc Madison Co Sp fold)",
     ),
+    # iter-93 CA Burbank fill-in (commit b539ba8). SalesTaxHandbook +
+    # CDTFA cdtfa95.pdf both confirm 10.5% combined per Measure P
+    # (city sales tax 0.75% effective 2018-04-01).
+    (
+        "CA",
+        "Burbank",
+        "91501",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-93 audit pin: CDTFA (state 7.25 + LA 2.5 + Burbank city 0.75) per Measure P",
+    ),
+    (
+        "CA",
+        "Burbank",
+        "91505",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-93 audit pin: CDTFA (state 7.25 + LA 2.5 + Burbank city 0.75)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
