@@ -14,9 +14,9 @@ time (the data loader writes the friendly name into
 already carries human-readable names without any per-request
 mapping work.
 
-iter-63/64 set (20 entries) covers most of Wisconsin's largest
-incorporated cities and a handful of suburbs / county seats.
-Each code below was confirmed two ways:
+iter-63/64/79 set (31 entries) covers most of Wisconsin's
+largest incorporated cities and many suburbs / county seats /
+mid-size cities. Each code below was confirmed two ways:
 
 1. Probe live API for a ZIP known to lie in that city, e.g.
    ``GET /v1/rates?zip5=53202`` returns the city placeholder
@@ -46,14 +46,20 @@ from __future__ import annotations
 
 WI_CITY_NAMES: dict[str, str] = {
     "02375": "Appleton",
+    "05900": "Beaver Dam",
+    "19775": "De Pere",
     "22300": "Eau Claire",
     "23300": "Elkhorn",
     "25950": "Fitchburg",
+    "26275": "Fond du Lac",
+    "27300": "Franklin",
     "30075": "Grand Chute",
     "31000": "Green Bay",
+    "31125": "Greendale",
     "37825": "Janesville",
     "39225": "Kenosha",
     "48000": "Madison",
+    "51575": "Middleton",
     "53000": "Milwaukee",
     "55750": "Neenah",
     "56375": "New Berlin",
@@ -61,10 +67,15 @@ WI_CITY_NAMES: dict[str, str] = {
     "60500": "Oshkosh",
     "64100": "Portage",
     "66000": "Racine",
+    "67200": "Rhinelander",
+    "77200": "Stevens Point",
     "77675": "Stoughton",
     "77875": "Sturgeon Bay",
+    "78650": "Superior",
     "84250": "Waukesha",
+    "84475": "Wausau",
     "85300": "West Allis",
+    "87200": "Whitewater",
 }
 
 
