@@ -3218,6 +3218,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-64 audit pin: GA DOR (state 4 + Muscogee 5.0 LOST/SPLOST/TSPLOST stack)",
     ),
+    # iter-65 batch A: AL major-city coverage expansion.
+    (
+        "AL",
+        "Dothan",
+        "36301",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-65 audit pin: AL DOR (state 4 + Houston County 1.5 + Dothan 3.5)",
+    ),
+    (
+        "AL",
+        "Hoover",
+        "35216",
+        "0001",
+        "10.000",
+        "0.05",
+        "iter-65 audit pin: AL DOR (state 4 + Jefferson 1 + Hoover 5)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
