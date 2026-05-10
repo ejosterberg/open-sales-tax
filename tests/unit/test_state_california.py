@@ -267,8 +267,15 @@ def test_california_no_combined_rate_exceeds_known_max() -> None:
 # County / data integrity
 # ---------------------------------------------------------------------------
 def test_california_seeds_fifty_cities() -> None:
-    """Top-50 by population scope; no more, no less."""
-    assert len(CA_CITIES) == 50
+    """Top-50 by population + iter-93 Burbank (filled a real gap).
+
+    iter-93 added Burbank after probing surfaced 9.75% live vs the
+    CDTFA-confirmed 10.5% combined. Burbank itself is below the
+    top-50 threshold but the gap was material (0.75% under-collect)
+    so it joined the table. Future additions of similar materiality
+    will continue to grow this set.
+    """
+    assert len(CA_CITIES) == 51
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

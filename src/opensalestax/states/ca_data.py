@@ -307,8 +307,33 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # Glendale, CA -- distinct from Glendale, AZ (which is in
         # Maricopa County and modeled separately in az_data).
         "Los Angeles County",
-        Decimal("0.750"),  # combined 10.250
+        Decimal("0.750"),  # combined 10.500 (state 7.25 + LA 2.5 + city 0.75)
         ("91201", "91202", "91203", "91204", "91205", "91206", "91207", "91208"),
+    ),
+    "Burbank": (
+        # iter-93: added after probe surfaced 9.75% live vs CDTFA
+        # 10.5% combined. Burbank levies a 0.75% city sales tax
+        # (Measure P, eff 2018-04-01); state 7.25 + LA 2.5 + city
+        # 0.75 = 10.500 per SalesTaxHandbook + CDTFA cdtfa95.pdf.
+        # ZIP cluster covers downtown Burbank (91501-08) plus
+        # PO-box business unique-ZIPs (91510, 91521-27).
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        (
+            "91501",
+            "91502",
+            "91503",
+            "91504",
+            "91505",
+            "91506",
+            "91507",
+            "91508",
+            "91510",
+            "91521",
+            "91522",
+            "91523",
+            "91526",
+        ),
     ),
     "Santa Clarita": (
         "Los Angeles County",
