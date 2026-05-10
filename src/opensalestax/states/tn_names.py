@@ -26,12 +26,18 @@ from __future__ import annotations
 # Cities (key = SST jurisdiction_code from rate-file col3 for type-1 rows)
 # ---------------------------------------------------------------------------
 TN_CITY_NAMES: dict[str, str] = {
+    # iter-84 additions (4): Brentwood / Cleveland / Franklin /
+    # Winchester via probe + FIPS Place last-5-digit match
+    "08280": "Brentwood",  # ZIP 37027 (Williamson Co; FIPS 4708280)
     "14000": "Chattanooga",
     "15160": "Clarksville",
+    "15400": "Cleveland",  # ZIP 37311 (Bradley Co; FIPS 4715400)
+    "27740": "Franklin",  # ZIP 37064 (Williamson Co; FIPS 4727740)
     "40000": "Knoxville",
     "48000": "Memphis",
     "51560": "Murfreesboro",
     "52006": "Nashville (Metro)",
+    "81080": "Winchester",  # ZIP 37398 (Franklin Co; FIPS 4781080)
 }
 
 
