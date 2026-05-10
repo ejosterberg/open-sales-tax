@@ -8,15 +8,17 @@ Live at
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **540 sampled
+every published DOR rate within 0.05% across **550 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
-Untagged main is well ahead of v0.55.4 with **6 substantive bug
+Untagged main is well ahead of v0.55.4 with **7 substantive bug
 fixes** + **3 features** deployed since: CA reconciliation
 (50 cities), WI structural rewrite, AK borough-stacks-with-city,
 USPS PO-box ZCTA supplement (29 ZIPs), AL Madison Co Sp fold-in,
-plus wi_names.py (20 cities) and ID resort cities (12 cities) +
-a 133-entry pin growth -- next release should bump significantly
-for these.
+IA Johnson Co LOST friendly-name fix, plus wi_names.py
+(31 cities), ID resort cities (12 cities), and **10 names
+tables expanded** (WI / IA / WV / KS / OK / TN / SD / UT / WA /
+ND adding 86+ friendly names) + a 143-entry pin growth -- next
+release should bump significantly for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
 A CA combined-rate audit against the CDTFA published table found 18
@@ -197,6 +199,54 @@ Pattern matches alaska.py: per-city table + idaho.py emits state
 all 12 live on prod. Outstanding: Sun Valley 83353 lodging
 0.5% / by-the-drink 1% rates aren't modeled (only general
 sales); a future ratchet can split per-category.
+
+**iter-77 IA Johnson Co LOST friendly-name fix** (commit
+`1fe1b4e`, deployed). Initial assumption (iter-77) that the IA
+SST file omitted Johnson County's 1% LOST proved wrong: the SST
+data DOES include it as district code 98103, just unfriendly
+named. Adding 98103 -> "Johnson County Local Option Sales Tax"
+to ia_names resolved Iowa City 52240 from 6% -> 7%. Lesson:
+when a rate stack shows a placeholder authority name like
+`IA-district-NNNNN`, check the per-state names file before
+assuming the data is missing. iter-81 expanded ia_names from 4
+to 19 districts via the same ZIP probe + FIPS Place chain
+pattern (98XXX = county FIPS 19XXX last 3 digits).
+
+**iter-78 MN city attribution picker bug logged** (no fix yet).
+The `_pick_one_city_county_per_zip5` picker prefers
+higher-row-count cities, so Edina ZIPs return city='Bloomington'
+(both have 0.5% city tax). Combined RATE is correct because
+those cities share the same rate, but per-jurisdiction
+attribution is wrong. Fix would require either USPS PCITY-aware
+tiebreaker or per-state city-anchor tables (like CA's
+CA_CITIES city_county_for_zip).
+
+**iter-79..86 names-table expansions across 10 states** (8
+commits, all deployed). Pattern: probe city ZIPs against the
+live API, identify placeholder codes like `WI-city-53000`,
+cross-check against US Census FIPS Place codes (state-FIPS +
+place-FIPS scheme), add to per-state names file, reload state
+data on prod. Each entry verified two ways before pinning.
+
+  WI: 0  -> 31 cities (Appleton, Beaver Dam, ... Whitewater)
+  IA:  4 -> 19 districts (Adair Co LOST, ... Woodbury Co LOST)
+  WV: 3  -> 16 cities (Beckley, Bluefield, ... Wheeling)
+  KS: 8  -> 12 cities (+ Dodge City, Emporia, Hays, Newton)
+  OK: 20 -> 23 cities (+ Durant, Guthrie, Woodward)
+  TN: 6  -> 10 cities (+ Brentwood, Cleveland, Franklin, Winchester)
+  SD: 3  -> 8 cities (+ Brookings, Mitchell, Pierre, Watertown, Yankton)
+  UT: 7  -> 8 cities (+ Tooele)
+  WA: 17 -> 18 cities (+ Sedro-Woolley)
+  ND: 6  -> 7 cities (+ Valley City)
+
+Total: **86 new friendly authority names** across 10 states.
+Receipts and the per-jurisdiction breakdown in the API response
+no longer surface placeholder codes for any of those cities.
+
+NC and GA require no city-name table because their local sales
+tax is purely county-level (no city authorities). NE, OH, AR
+were probed clean (existing names tables already cover the
+major cities).
 
 **v0.54.1 closed a real security hole**: slowapi was registered but
 `SlowAPIMiddleware` was never added, so the configured per-IP
