@@ -4046,6 +4046,29 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-94 audit pin: SalesTaxHandbook (state 7.25 + San Mateo 2.125 + city 0.25)",
     ),
+    # iter-95: WebFetch SalesTaxHandbook verification of earlier
+    # iter-71/77 discrepancy candidates -- confirmed 9.25% Hays
+    # (the 11.25% in SalesTaxHandbook includes a CID that's not
+    # citywide), 8.0% Williston (my old DOR estimate was wrong),
+    # and 10.4% Tacoma (my old DOR estimate was wrong).
+    (
+        "KS",
+        "Hays",
+        "67601",
+        "0001",
+        "9.250",
+        "0.05",
+        "iter-95 audit pin: KS DOR (state 6.5 + Ellis Co 0.5 + Hays city 2.25)",
+    ),
+    (
+        "ND",
+        "Williston",
+        "58801",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-95 audit pin: ND DOR (state 5 + Williams Co 1 + Williston city 2)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
