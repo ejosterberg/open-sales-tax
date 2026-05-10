@@ -102,9 +102,10 @@ class Wisconsin(SstStateModule):
     """Wisconsin state module (tier 1, SST member).
 
     Subclass of :class:`SstStateModule` that overrides only the
-    metadata (state abbrev / name / FIPS) and the taxability
-    matrix. Rate parsing, boundary parsing, special cases, and
-    the empty-holidays default are all inherited.
+    metadata (state abbrev / name / FIPS), the taxability matrix,
+    and the city-friendly-name lookup. Rate parsing, boundary
+    parsing, special cases, and the empty-holidays default are
+    all inherited.
 
     See module docstring for the iter-63 audit that prompted the
     conversion from a hand-rolled parser.
@@ -118,6 +119,16 @@ class Wisconsin(SstStateModule):
     tier: StateTier = 1
 
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
+
+    def _authority_name(self, code: str, authority_type: str) -> str:
+        """Use the curated WI city-name table; fall back to placeholder."""
+        from opensalestax.states.wi_names import city_name as _wi_city
+
+        if authority_type == "city":
+            friendly = _wi_city(code)
+            if friendly is not None:
+                return friendly
+        return super()._authority_name(code, authority_type)
 
 
 _PROTOCOL_CHECK: StateModule = Wisconsin()
