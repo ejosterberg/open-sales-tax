@@ -12,6 +12,13 @@ Verified by ZIP probe against IA DOR's LOST adoption table
 from __future__ import annotations
 
 IA_DISTRICT_NAMES: dict[str, str] = {
+    # iter-80: 98103 = Johnson County LOST. Verified by probing
+    # Iowa City 52240 / Coralville 52241 -- the SST file DOES include
+    # the Johnson Co LOST as code 98103 at 1.0% (initial assumption
+    # that it was missing was wrong; the placeholder name was just
+    # masking it). Adding the friendly name resolves Iowa City's
+    # combined to 7.0% per IA DOR.
+    "98103": "Johnson County Local Option Sales Tax",
     "98113": "Linn County Local Option Sales Tax",
     "98153": "Polk County Local Option Sales Tax",
     "98163": "Scott County Local Option Sales Tax",
