@@ -4069,6 +4069,17 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-95 audit pin: ND DOR (state 5 + Williams Co 1 + Williston city 2)",
     ),
+    # iter-96: WebFetch SalesTaxHandbook verification confirms more
+    # iter-71/77 candidates were API-correct.
+    (
+        "WA",
+        "Spokane",
+        "99201",
+        "0001",
+        "9.100",
+        "0.05",
+        "iter-96 audit pin: WA DOR (state 6.5 + Spokane combined local 2.6)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
