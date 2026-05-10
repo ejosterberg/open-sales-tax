@@ -125,27 +125,33 @@ CA_STATE_EFFECTIVE_FROM = dt.date(2017, 1, 1)
 # audit parallelism with the AZ/MO/SC/VA/TX pattern (the engine sums
 # 0% authorities to no effect but keeps the rate-stack audit trail).
 CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
-    # ----- Manually curated (v0.27 era) -----
-    # Validated against CDTFA Publication 105 + Avalara per-city pages.
-    "Alameda County": Decimal("2.000"),  # BART + Measures B/BB/F/AA/C/W
+    # ----- Reconciled with CDTFA Q2 2026 (iter-62) -----
+    # All values audited 2026-05-09 against CDTFA's Apr 2026 Excel rate
+    # file. Counties with explicit "Unincorporated Area" CDTFA rows use
+    # those values; others use min(city_combined - state) which is
+    # correct when at least one incorporated city in the county has
+    # zero city-only district (verified for these counties via the
+    # CDTFA city table). Per-city rates in CA_CITIES were rebalanced
+    # in the same commit to keep all combined rates matching CDTFA.
+    "Alameda County": Decimal("3.000"),  # iter-62: was 2.000 (under-collected by 1%)
     "Contra Costa County": Decimal("1.500"),  # BART + Measures J/X
-    "Fresno County": Decimal("0.225"),  # Measure C transportation + zoo
+    "Fresno County": Decimal("0.725"),  # iter-62: was 0.225 (under by 0.5%)
     "Kern County": Decimal("1.000"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
-    "Los Angeles County": Decimal("2.250"),  # LACMTA + Measure M/R + Measure H
+    "Los Angeles County": Decimal("2.500"),  # iter-62: was 2.250 (under by 0.25%)
     "Monterey County": Decimal("1.500"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
     "Orange County": Decimal("0.500"),  # OCTA Measure M2
-    "Placer County": Decimal("0.500"),  # transit
+    "Placer County": Decimal("0.000"),  # iter-62: was 0.500 (over-collected by 0.5%)
     "Riverside County": Decimal("0.500"),  # Measure A transportation
     "Sacramento County": Decimal("0.500"),  # Measure A transportation
     "San Bernardino County": Decimal("0.500"),  # Measure I transportation
     "San Diego County": Decimal("0.500"),  # SANDAG TransNet
     "San Francisco (City and County)": Decimal("1.375"),  # consolidated; transit + child care
     "San Joaquin County": Decimal("0.500"),  # Measure K transportation
-    "Santa Clara County": Decimal("1.875"),  # VTA Measures A/B
-    "Solano County": Decimal("0.125"),  # Fairfield-Suisun school+road
-    "Sonoma County": Decimal("1.250"),  # Measures M/DD/O + SMART
-    "Stanislaus County": Decimal("0.125"),  # Measure L transportation
-    "Tulare County": Decimal("0.500"),  # Measure R transportation
+    "Santa Clara County": Decimal("2.500"),  # iter-62: was 1.875 (under by 0.625%)
+    "Solano County": Decimal("0.875"),  # iter-62: was 0.125 (under by 0.75%)
+    "Sonoma County": Decimal("2.000"),  # iter-62: was 1.250 (under by 0.75%)
+    "Stanislaus County": Decimal("0.625"),  # iter-62: was 0.125 (under by 0.5%)
+    "Tulare County": Decimal("1.000"),  # iter-62: was 0.500 (under by 0.5%)
     "Ventura County": Decimal("0.000"),
     # ----- Iter-62: 35 additional counties from CDTFA Q2 2026 -----
     # Derived from CDTFA's "California City and County Sales and Use
@@ -311,12 +317,12 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Lancaster": (
         "Los Angeles County",
-        Decimal("0.750"),  # combined 10.250 (Measure LR)
+        Decimal("1.500"),  # combined 10.250 (Measure LR)
         ("93534", "93535", "93536"),
     ),
     "Palmdale": (
         "Los Angeles County",
-        Decimal("0.750"),  # combined 10.250 (Measure AV)
+        Decimal("1.500"),  # combined 10.250 (Measure AV)
         ("93550", "93551", "93552"),
     ),
     "Pomona": (
@@ -390,7 +396,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Escondido": (
         "San Diego County",
-        Decimal("0.000"),  # combined 7.750
+        Decimal("1.000"),  # combined 7.750
         ("92025", "92026", "92027", "92029"),
     ),
     # ----- Santa Clara County -----
@@ -473,7 +479,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Fresno County -----
     "Fresno": (
         "Fresno County",
-        Decimal("0.875"),  # combined 8.350 = 7.25 + 0.225 + 0.875
+        Decimal("0.375"),  # combined 8.350 = 7.25 + 0.225 + 0.875
         (
             "93650",
             "93701",
@@ -532,7 +538,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Alameda County -----
     "Oakland": (
         "Alameda County",
-        Decimal("1.000"),  # combined 10.250 = 7.25 + 2.0 + 1.0
+        Decimal("0.500"),  # combined 10.250 = 7.25 + 2.0 + 1.0
         (
             "94601",
             "94602",
@@ -553,12 +559,12 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Fremont": (
         "Alameda County",
-        Decimal("1.000"),  # combined 10.250
+        Decimal("0.000"),  # combined 10.250
         ("94536", "94538", "94539", "94555"),
     ),
     "Hayward": (
         "Alameda County",
-        Decimal("1.500"),  # combined 10.750 -- one of the highest in the US
+        Decimal("0.500"),  # combined 10.750 -- one of the highest in the US
         ("94541", "94542", "94544", "94545"),
     ),
     # ----- Kern County -----
@@ -617,7 +623,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Fullerton": (
         "Orange County",
-        Decimal("1.000"),  # combined 8.750 (Measure S)
+        Decimal("0.000"),  # combined 8.750 (Measure S)
         ("92831", "92832", "92833", "92835"),
     ),
     # ----- Riverside County -----
@@ -662,7 +668,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Fontana": (
         "San Bernardino County",
-        Decimal("0.000"),  # combined 7.750
+        Decimal("1.000"),  # combined 7.750
         ("92335", "92336", "92337"),
     ),
     "Rancho Cucamonga": (
@@ -672,13 +678,13 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Ontario": (
         "San Bernardino County",
-        Decimal("0.000"),  # combined 7.750
+        Decimal("1.000"),  # combined 7.750
         ("91761", "91762", "91764"),
     ),
     # ----- Stanislaus County -----
     "Modesto": (
         "Stanislaus County",
-        Decimal("1.500"),  # combined 8.875 (Measures G/L)
+        Decimal("1.000"),  # combined 8.875 (Measures G/L)
         ("95350", "95351", "95354", "95355", "95356", "95357", "95358"),
     ),
     # ----- Ventura County (county district 0%) -----
@@ -716,13 +722,13 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Tulare County -----
     "Visalia": (
         "Tulare County",
-        Decimal("0.750"),  # combined 8.500 (Measure N)
+        Decimal("0.250"),  # combined 8.500 (Measure N)
         ("93277", "93291", "93292"),
     ),
     # ----- Placer County -----
     "Roseville": (
         "Placer County",
-        Decimal("0.000"),  # combined 7.750
+        Decimal("0.500"),  # combined 7.750
         ("95661", "95678", "95747"),
     ),
     # ----- Contra Costa County -----
@@ -734,7 +740,7 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # ----- Solano County -----
     "Vallejo": (
         "Solano County",
-        Decimal("1.875"),  # combined 9.250 (Measures B + V stacked)
+        Decimal("1.125"),  # combined 9.250 (Measures B + V stacked)
         ("94589", "94590", "94591", "94592"),
     ),
 }

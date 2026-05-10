@@ -196,28 +196,31 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
     "city_name,expected_combined",
     [
         # CDTFA-published combined rates (April 1, 2026 publication).
-        # Cross-checked Avalara 2026-05-04.
-        ("Los Angeles", Decimal("9.500")),  # state 7.25 + LA Co 2.25 + city 0
+        # iter-62 reconciliation pass: 9 county rates + 14 city rates
+        # updated 2026-05-09 against the CDTFA Excel; all 50 covered
+        # cities now match CDTFA combined exactly. Comments below show
+        # the post-reconciliation breakdown.
+        ("Los Angeles", Decimal("9.750")),  # state 7.25 + LA Co 2.5 + city 0
         ("San Diego", Decimal("7.750")),  # state 7.25 + SD Co 0.5 + city 0
-        ("San Jose", Decimal("9.375")),  # state 7.25 + SCl 1.875 + city 0.25
+        ("San Jose", Decimal("10.000")),  # state 7.25 + SCl 2.5 + city 0.25
         ("San Francisco", Decimal("8.625")),  # state 7.25 + SF 1.375 + city 0
-        ("Fresno", Decimal("8.350")),  # state 7.25 + Fresno 0.225 + city 0.875
+        ("Fresno", Decimal("8.350")),  # state 7.25 + Fresno 0.725 + city 0.375
         ("Sacramento", Decimal("8.750")),  # state 7.25 + Sac 0.5 + city 1.0
-        ("Long Beach", Decimal("10.250")),  # state 7.25 + LA 2.25 + city 0.75
-        ("Oakland", Decimal("10.250")),  # state 7.25 + Alameda 2.0 + city 1.0
-        ("Bakersfield", Decimal("8.250")),  # state 7.25 + Kern 0 + city 1.0
+        ("Long Beach", Decimal("10.500")),  # state 7.25 + LA 2.5 + city 0.75
+        ("Oakland", Decimal("10.750")),  # state 7.25 + Alameda 3.0 + city 0.5
+        ("Bakersfield", Decimal("8.250")),  # state 7.25 + Kern 1.0 + city 0
         ("Anaheim", Decimal("7.750")),  # state 7.25 + OC 0.5 + city 0
         ("Santa Ana", Decimal("9.250")),  # state 7.25 + OC 0.5 + city 1.5
-        ("Hayward", Decimal("10.750")),  # state 7.25 + Alameda 2.0 + city 1.5
+        ("Hayward", Decimal("10.750")),  # state 7.25 + Alameda 3.0 + city 0.5
         ("Oxnard", Decimal("9.250")),  # state 7.25 + Ventura 0 + city 2.0
         ("Thousand Oaks", Decimal("7.250")),  # state 7.25 only -- the floor
         ("Simi Valley", Decimal("7.250")),  # state 7.25 only
-        ("Vallejo", Decimal("9.250")),  # state 7.25 + Solano 0.125 + city 1.875
-        ("Modesto", Decimal("8.875")),  # state 7.25 + Stan 0.125 + city 1.5
+        ("Vallejo", Decimal("9.250")),  # state 7.25 + Solano 0.875 + city 1.125
+        ("Modesto", Decimal("8.875")),  # state 7.25 + Stan 0.625 + city 1.0
         ("Concord", Decimal("9.750")),  # state 7.25 + CC 1.5 + city 1.0
         ("Stockton", Decimal("9.000")),  # state 7.25 + SJ 0.5 + city 1.25
-        ("Sunnyvale", Decimal("9.125")),  # state 7.25 + SCl 1.875 + city 0
-        ("East Los Angeles", Decimal("9.500")),  # CDP -- LA County rate
+        ("Sunnyvale", Decimal("9.750")),  # state 7.25 + SCl 2.5 + city 0
+        ("East Los Angeles", Decimal("9.750")),  # CDP -- LA County rate
     ],
 )
 def test_california_combined_rate_matches_cdtfa(city_name: str, expected_combined: Decimal) -> None:
@@ -244,19 +247,20 @@ def test_california_no_combined_rate_below_state_floor() -> None:
 
 
 def test_california_no_combined_rate_exceeds_known_max() -> None:
-    """No covered city should exceed Hayward's 10.750% (the highest in this seed).
+    """No covered city should exceed 11.250% in this seed.
 
-    The absolute CA cap is 10.750% per Cal. Rev. & Tax Code section
-    7251.1 (combined city-and-county district overlay capped at
-    3.500% on top of the 7.25% state rate, with limited statutory
-    exceptions). Pico Rivera and Santa Fe Springs (also at 10.75%)
-    are not in the top-50 seed.
+    iter-62 reconciliation lifted the cap: Lancaster and Palmdale
+    (both LA County) sit at 11.250% per CDTFA Q2 2026. Cal. Rev. &
+    Tax Code section 7251.1 caps the combined city-and-county
+    district overlay at 3.500% on top of the 7.25% state rate, but
+    grandfathered measures and statutory exceptions allow some LA
+    County cities to exceed the nominal cap.
     """
     rows = list(CALIFORNIA.parse_rates(None, "v0.27-top-50"))
-    cap = Decimal("10.750")
+    cap = Decimal("11.250")
     for city_name in CA_CITIES:
         combined = _combined_for(city_name, rows)
-        assert combined <= cap, f"{city_name} combined rate {combined}% exceeds the 10.750% cap"
+        assert combined <= cap, f"{city_name} combined rate {combined}% exceeds the 11.250% cap"
 
 
 # ---------------------------------------------------------------------------
@@ -283,16 +287,17 @@ def test_california_every_city_has_at_least_one_zip() -> None:
         ), f"{city} references {county} which is missing from CA_COUNTY_RATE_PCT"
 
 
-def test_california_la_county_is_largest_district() -> None:
-    """LA County's 2.25% district stack is the largest in the seed.
+def test_california_alameda_county_is_largest_district() -> None:
+    """iter-62 reconciliation: Alameda County 3.000% is now the
+    largest district stack in the seed (previously LA at 2.250%).
 
     Knowledge regression guard -- if a future maintainer adds a
     county with a higher district rate, this assertion forces an
     intentional update to the test (and to the docstring claims).
     """
     max_county = max(CA_COUNTY_RATE_PCT.values())
-    assert max_county == Decimal("2.250")
-    assert CA_COUNTY_RATE_PCT["Los Angeles County"] == max_county
+    assert max_county == Decimal("3.000")
+    assert CA_COUNTY_RATE_PCT["Alameda County"] == max_county
 
 
 def test_california_kern_county_has_unincorporated_district() -> None:
