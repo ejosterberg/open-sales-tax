@@ -136,25 +136,32 @@ class Alaska:
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """Yield (state, [borough,] [city]) boundary rows for AK ZIPs.
+        """Yield (state, borough, [city]) boundary rows for AK ZIPs.
 
         Two passes:
 
         1. Cities (AK_CITIES): emit state + city BoundaryRows for each
            covered city ZIP. The city's rate wins per the TN/WA
            city-includes-county precedent in v0.36 (see
-           ``_pick_one_city_county_per_zip5``).
+           ``_pick_one_city_county_per_zip5``) -- but for Alaska
+           boroughs DO stack on top of city tax (per ARSSTC tax-rate
+           look-up + KPB / KGB ordinances; verified iter-67 against
+           live ARSSTC rate-finder), so the borough binding is also
+           emitted in pass 2 for city ZIPs that fall inside a
+           borough.
 
-        2. Borough-wide rates (AK_BOROUGHS): for each ZIP whose
+        2. Borough-wide rates (AK_BOROUGHS): for EVERY AK ZIP whose
            Census ZCTA places it in a borough that imposes a
-           borough-wide tax AND that ZIP is NOT in any AK_CITIES
-           coverage set, emit state + county (= borough) BoundaryRows.
-           The "not in city" check enforces per-borough city-exclusion
-           (KPB and KGB borough rates are NOT collected inside
-           incorporated city limits per ARSSTC).
+           borough-wide tax, emit state + county (= borough)
+           BoundaryRows. Pre-iter-67 this skipped ZIPs already in a
+           city, which under-collected by the borough rate (e.g.
+           Soldotna 99669 returned 3% city only when ARSSTC's own
+           look-up returns 6% combined = KPB 3 + Soldotna 3).
+           Affected: every KPB city (Homer / Kenai / Seldovia /
+           Seward / Soldotna) and KGB Ketchikan.
         """
         del source_file, version_label
-        # Pass 1: cities (already covered ZIPs)
+        # Pass 1: cities (state + city bindings for every city ZIP).
         city_zips: set[str] = set()
         for city_name, (_borough, _city_rate, zips) in sorted(AK_CITIES.items()):
             for zip5 in sorted(zips):
@@ -174,23 +181,30 @@ class Alaska:
                     zip4_high=None,
                 )
 
-        # Pass 2: unincorporated borough ZIPs.
+        # Pass 2: borough-wide bindings for every AK ZIP in an
+        # AK_BOROUGHS-listed borough -- including ZIPs that ALSO have
+        # a city binding from pass 1. Skipping city ZIPs here was the
+        # iter-67 bug; per ARSSTC and the KPB / KGB ordinances the
+        # borough sales tax is collected throughout the borough
+        # including inside city limits, and the city's tax is added
+        # on top.
+        emitted_state_for: set[str] = set(city_zips)
         for zip5, pairs in sorted(ZIP_COUNTY.items()):
-            if zip5 in city_zips:
-                continue  # city-only; borough rate suppressed
             for state_abbrev, county_fips in pairs:
                 if state_abbrev != "AK":
                     continue
                 borough_name = _county_name("AK", county_fips)
                 if borough_name is None or borough_name not in AK_BOROUGHS:
                     continue
-                yield BoundaryRow(
-                    authority_name="Alaska",
-                    authority_type="state",
-                    zip5=zip5,
-                    zip4_low=None,
-                    zip4_high=None,
-                )
+                if zip5 not in emitted_state_for:
+                    yield BoundaryRow(
+                        authority_name="Alaska",
+                        authority_type="state",
+                        zip5=zip5,
+                        zip4_low=None,
+                        zip4_high=None,
+                    )
+                    emitted_state_for.add(zip5)
                 yield BoundaryRow(
                     authority_name=borough_name,
                     authority_type="county",

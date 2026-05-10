@@ -105,9 +105,10 @@ def test_parse_boundaries_yields_state_with_city_or_county_per_zip() -> None:
 def test_parse_boundaries_covers_every_ak_city_zip() -> None:
     """Each ZIP in AK_CITIES gets both state + city BoundaryRows.
 
-    City-covered ZIPs do NOT get a county (borough) binding because
-    borough rates are suppressed inside city limits per ARSSTC and
-    borough practice.
+    Per iter-67: city-covered ZIPs that fall inside an AK_BOROUGHS
+    borough ALSO get the borough binding so the borough rate stacks
+    on top of the city rate per ARSSTC's tax-rate look-up + KPB /
+    KGB ordinances.
     """
     rows = list(ALASKA.parse_boundaries(None, "ignored"))
     city_zips = {r.zip5 for r in rows if r.authority_type == "city"}
@@ -119,7 +120,12 @@ def test_parse_boundaries_covers_every_ak_city_zip() -> None:
 
 
 def test_parse_boundaries_emits_borough_row_for_unincorporated_kpb_zip() -> None:
-    """KPB unincorporated ZIPs (e.g. 99556 Anchor Point) get borough binding."""
+    """KPB unincorporated ZIPs (e.g. 99556 Anchor Point) get borough binding.
+
+    Post iter-67 KPB cities ALSO get borough binding (the borough
+    tax stacks on top of city tax per the KPB ordinance and ARSSTC
+    rate look-up).
+    """
     rows = list(ALASKA.parse_boundaries(None, "ignored"))
     borough_zips_for_kpb = {
         r.zip5
@@ -128,20 +134,38 @@ def test_parse_boundaries_emits_borough_row_for_unincorporated_kpb_zip() -> None
     }
     # Anchor Point 99556 is in KPB and not in any AK_CITIES set.
     assert "99556" in borough_zips_for_kpb
-    # Kenai 99611 IS in AK_CITIES, must NOT be borough-bound.
-    assert "99611" not in borough_zips_for_kpb
+    # Kenai 99611 IS in AK_CITIES AND inside KPB -- gets BOTH city and
+    # borough bindings (per iter-67 fix).
+    assert "99611" in borough_zips_for_kpb
 
 
-def test_parse_boundaries_borough_row_only_for_unincorporated() -> None:
-    """City-covered ZIPs never get a borough (county) binding."""
+def test_parse_boundaries_borough_stacks_with_city_for_kpb_kgb() -> None:
+    """KPB/KGB city ZIPs get BOTH city and borough bindings (iter-67).
+
+    Pre iter-67 the parser dropped the borough binding for any ZIP
+    in a city, which under-collected by the borough rate. Per ARSSTC
+    tax-rate look-up + KPB / KGB ordinances, the borough sales tax
+    is collected throughout the borough including inside cities.
+    """
     rows = list(ALASKA.parse_boundaries(None, "ignored"))
-    city_zips = {z for _city, (_b, _r, zs) in AK_CITIES.items() for z in zs}
-    county_rows = [r for r in rows if r.authority_type == "county"]
-    for r in county_rows:
-        assert r.zip5 not in city_zips, (
-            f"ZIP {r.zip5} has both city ({_city_for_zip(r.zip5)}) and county "
-            f"({r.authority_name}) bindings -- borough should be suppressed inside city limits"
-        )
+    # KPB cities (Homer / Kenai / Seldovia / Seward / Soldotna) plus
+    # KGB Ketchikan all should appear with BOTH a city and a borough
+    # binding for their primary ZIP.
+    expected_pairs = [
+        ("99603", "Homer", "Kenai Peninsula Borough"),
+        ("99611", "Kenai", "Kenai Peninsula Borough"),
+        ("99663", "Seldovia", "Kenai Peninsula Borough"),
+        ("99664", "Seward", "Kenai Peninsula Borough"),
+        ("99669", "Soldotna", "Kenai Peninsula Borough"),
+        ("99901", "Ketchikan", "Ketchikan Gateway Borough"),
+    ]
+    for zip5, city, borough in expected_pairs:
+        bindings = {(r.authority_type, r.authority_name) for r in rows if r.zip5 == zip5}
+        assert ("city", city) in bindings, f"{zip5}: missing city binding {city}"
+        assert (
+            "county",
+            borough,
+        ) in bindings, f"{zip5}: missing borough binding {borough}"
 
 
 def _city_for_zip(zip5: str) -> str | None:
