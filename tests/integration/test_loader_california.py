@@ -47,7 +47,9 @@ async def test_load_california_without_a_file(async_session: AsyncSession) -> No
 
     Post-v0.27 the loader yields:
     - 1 state row (California, 7.250%)
-    - one county row per distinct county touched by a covered city
+    - one county row per CA_COUNTY_RATE_PCT entry (all CA counties
+      with a county-district overlay, regardless of whether a top-50
+      city sits in them)
     - one city row per CA_CITIES entry
     """
     summary = await load_state_data(
@@ -58,8 +60,8 @@ async def test_load_california_without_a_file(async_session: AsyncSession) -> No
     )
 
     assert summary.state_abbrev == "CA"
-    expected_counties = {county for county, _, _ in CA_CITIES.values()}
-    expected_rates = 1 + len(expected_counties) + len(CA_CITIES)
+    expected_county_names = set(CA_COUNTY_RATE_PCT)
+    expected_rates = 1 + len(CA_COUNTY_RATE_PCT) + len(CA_CITIES)
     assert summary.rates_loaded == expected_rates
 
     # v0.28+ pattern: parse_boundaries iterates ZIP_COUNTY for every CA
@@ -108,7 +110,7 @@ async def test_load_california_without_a_file(async_session: AsyncSession) -> No
         .scalars()
         .all()
     )
-    assert {a.name for a in county_auths} == expected_counties
+    assert {a.name for a in county_auths} == expected_county_names
     # Spot-check the two largest county district overlays.
     by_name = {a.name: a for a in county_auths}
     la_rate = (
@@ -156,7 +158,6 @@ async def test_california_idempotent_load(async_session: AsyncSession) -> None:
     await load_state_data(async_session, "CA", "v0.27-top-50")
 
     rates = (await async_session.execute(select(Rate))).scalars().all()
-    expected_counties = {county for county, _, _ in CA_CITIES.values()}
-    expected_rates = 1 + len(expected_counties) + len(CA_CITIES)
+    expected_rates = 1 + len(CA_COUNTY_RATE_PCT) + len(CA_CITIES)
     # Idempotent: not 2x the count.
     assert len(list(rates)) == expected_rates
