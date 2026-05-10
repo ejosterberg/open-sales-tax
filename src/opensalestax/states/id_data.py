@@ -18,12 +18,11 @@ Source: Idaho State Tax Commission "Resort Cities Sales Tax"
 publication and per-city rate verification via the cities'
 finance/treasurer publications. Captured 2026-05-10.
 
-The 3% resort cities below are the highest-population subset
-that consistently levy a 3% local-option SALES tax in
-addition to the 6% state rate (combined 9.0% in the resort
-city limits). The smaller resort cities (Salmon 0.5%,
-Sandpoint 1%, Driggs 1%, Riggins 1%, Lava Hot Springs 1%,
-etc.) can be added in a follow-up ratchet.
+iter-75 added the 6 highest-population 3% resort cities (Sun
+Valley / Ketchum / McCall / Stanley / Donnelly / Cascade ->
+combined 9.0%). iter-76 expanded with the 1% and 0.5% resort
+cities (Sandpoint / Salmon / Driggs / Riggins / Lava Hot
+Springs / Crouch -> combined 6.5-7.0%). Total: 12 cities.
 """
 
 from __future__ import annotations
@@ -34,12 +33,21 @@ from decimal import Decimal
 # Each entry levies a local-option SALES tax under Idaho Code
 # section 50-1044, in addition to Idaho's flat 6% state rate.
 ID_RESORT_CITIES: dict[str, tuple[Decimal, frozenset[str]]] = {
+    # 3% resort cities (combined 9.0%)
     "Sun Valley": (Decimal("3.000"), frozenset({"83353"})),
     "Ketchum": (Decimal("3.000"), frozenset({"83340"})),
     "McCall": (Decimal("3.000"), frozenset({"83638"})),
     "Stanley": (Decimal("3.000"), frozenset({"83278"})),
     "Donnelly": (Decimal("3.000"), frozenset({"83615"})),
     "Cascade": (Decimal("3.000"), frozenset({"83611"})),
+    # iter-76: 1% resort cities (combined 7.0%)
+    "Sandpoint": (Decimal("1.000"), frozenset({"83864"})),
+    "Driggs": (Decimal("1.000"), frozenset({"83422"})),
+    "Riggins": (Decimal("1.000"), frozenset({"83549"})),
+    "Lava Hot Springs": (Decimal("1.000"), frozenset({"83246"})),
+    "Crouch": (Decimal("1.000"), frozenset({"83622"})),
+    # iter-76: 0.5% resort city (combined 6.5%)
+    "Salmon": (Decimal("0.500"), frozenset({"83467"})),
 }
 
 

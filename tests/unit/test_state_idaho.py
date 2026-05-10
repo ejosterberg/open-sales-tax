@@ -77,7 +77,10 @@ def test_idaho_parse_rates_yields_6_pct_state_plus_resort_cities() -> None:
     assert len(city_rows) == len(ID_RESORT_CITIES)
     for r in city_rows:
         assert r.parent_authority_name == "Idaho"
-        assert r.rate_pct == Decimal("3.000")
+        # Each city's rate matches its ID_RESORT_CITIES entry exactly
+        # (3% / 1% / 0.5% per Idaho State Tax Comm resort-city schedule)
+        expected_rate = ID_RESORT_CITIES[r.authority_name][0]
+        assert r.rate_pct == expected_rate
 
 
 def test_idaho_parse_rates_ignores_source_file() -> None:
