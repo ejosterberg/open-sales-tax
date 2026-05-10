@@ -3887,6 +3887,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-71 audit pin: OK Tax Comm (state 4.5 + Washington Co 1 + Bartlesville 3.4)",
     ),
+    # iter-72 batch A: major commerce states FL/NY broader coverage
+    (
+        "FL",
+        "Pensacola",
+        "32501",
+        "0001",
+        "7.500",
+        "0.05",
+        "iter-72 audit pin: FL DOR (state 6 + Escambia 1.5)",
+    ),
+    (
+        "NY",
+        "Albany",
+        "12203",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-72 audit pin: NY DTF (state 4 + Albany County 4)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
