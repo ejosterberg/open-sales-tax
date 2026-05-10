@@ -26,6 +26,8 @@ WA_CITY_NAMES: dict[str, str] = {
     "51300": "Olympia (combined local)",
     "57745": "Renton (combined local)",
     "63000": "Seattle (combined local)",
+    # iter-86 addition: Sedro-Woolley via probe + FIPS Place
+    "63210": "Sedro-Woolley (combined local)",  # ZIP 98284 (Skagit Co; FIPS 5363210)
     "67000": "Spokane (combined local)",
     "67167": "Spokane Valley (combined local)",  # ZIP 99211 (verified by probe; FIPS 5367167)
     "70000": "Tacoma (combined local)",
