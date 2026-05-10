@@ -20,13 +20,13 @@ layers in this ratchet:
 
 NOT modeled in this ratchet (partial-coverage caveats):
 
-- **Special districts.** Madison City carries a 1.000% Madison Co Sp
-  district that bumps the combined Madison rate from 8.000% to
-  9.000%; Birmingham has a 1.000% special school district (BSD).
-  These are intentionally excluded; the engine will under-collect
-  by the special-district portion at those addresses. A future
-  ratchet can fold them in once the engine grows per-district
-  authority support.
+- **Birmingham special school district.** Birmingham has a 1.000%
+  Birmingham Special School District (BSD) that's intentionally
+  excluded; the engine will under-collect by 1.000% at Birmingham
+  general-retail addresses. A future ratchet can fold it into the
+  city portion the same way iter-74 handled the Madison Co Sp
+  district (city 4.000% -> 5.000%) once the BSD-vs-general-retail
+  applicability is verified.
 - **The other ~670 Alabama cities.** Alabama is the most fragmented
   local-tax landscape in the United States with roughly 700
   incorporated municipalities, MANY of which self-administer their
@@ -68,9 +68,9 @@ Cities seeded (top 30 by 2026 population):
   city 4)
 - **Decatur** (Morgan Co.) -- combined 9.000% (state 4 + county 1 +
   city 4)
-- **Madison** (Madison Co.) -- combined 8.000% via this loader
-  (state 4 + county 0.5 + city 3.5); ALDOR/Avalara show 9.000% with
-  the +1.000% Madison Co Sp district which is NOT modeled here
+- **Madison** (Madison Co.) -- combined 9.000% (state 4 + county
+  0.5 + city 4.5 with the +1.000% "Madison Co Sp" special district
+  folded into the city portion -- iter-74)
 - **Florence** (Lauderdale Co.) -- combined 9.500% (state 4 +
   county 1 + city 4.5)
 - **Vestavia Hills** (Jefferson Co.) -- combined 10.000%
@@ -119,10 +119,11 @@ it gives the exact components for the city centroid):
   actual county portion is 1.500%, which means non-Mobile-city
   Mobile County ZIPs will under-collect by 0.500% in this ratchet.
 - **Madison City** has a +1.000% Madison Co Sp special district
-  that brings the Avalara combined rate to 9.000%. We model only
-  state 4 + county 0.5 + city 3.5 = 8.000% (the 1.000% special
-  district is intentionally out of scope). Validation grid notes
-  the gap.
+  that brings the Avalara combined rate to 9.000%. iter-74 folded
+  this into the Madison city portion (3.500% -> 4.500%) using the
+  same trick iter-63 used for MO Jackson Co + KC Zoological
+  District (commit 4c99406). Combined now returns 9.000% matching
+  ALDOR / Avalara exactly.
 
 ZIP coverage notes (per the FL/AZ/CA/TX/NY/MO/IL/PA/SC/MS/VA
 pattern in v0.28-v0.31): :meth:`Alabama.parse_boundaries` iterates
@@ -219,7 +220,7 @@ AL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Macon County": Decimal("2.500"),  # ALDOR taxrates.csv flat county rate
     "Madison County": Decimal(
         "0.500"
-    ),  # Huntsville 4+0.5+4.5=9; Madison city 4+0.5+3.5=8 (no special district)
+    ),  # Huntsville 4+0.5+4.5=9; Madison city 4+0.5+4.5=9 (Madison Co Sp folded into city iter-74)
     "Marengo County": Decimal("3.000"),  # ALDOR taxrates.csv flat county rate
     "Marion County": Decimal("2.000"),  # ALDOR base rate; CL Winfield specifically = 1.0
     "Marshall County": Decimal("1.000"),  # ALDOR CL 4-cities rate; EXC = 2.0
@@ -373,11 +374,16 @@ AL_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Madison": (
         "Madison County",
-        Decimal("3.500"),
-        # NOTE: Madison City carries a +1.000% Madison Co Sp special
-        # district that bumps the Avalara combined rate to 9.000%; this
-        # loader returns 8.000% (state 4 + county 0.5 + city 3.5). The
-        # 1.000% gap is the documented under-collection.
+        # iter-74: folded the +1.000% "Madison Co Sp" special district
+        # into the Madison city portion (3.500% -> 4.500%) so combined
+        # for Madison city ZIPs returns 9.000% matching ALDOR / Avalara
+        # exactly (state 4 + county 0.5 + city 4.5). The Madison Co Sp
+        # district applies STRICTLY to Madison city addresses per ALDOR
+        # so folding into the city authority is the same encoding trick
+        # iter-63 used for the MO Jackson Co + Kansas City Zoological
+        # District fold-in (commit 4c99406). Future engine work to
+        # support per-district authorities can split it back out.
+        Decimal("4.500"),
         ("35756", "35757", "35758"),
     ),
     "Florence": (
