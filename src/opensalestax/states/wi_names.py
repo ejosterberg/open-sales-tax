@@ -14,8 +14,9 @@ time (the data loader writes the friendly name into
 already carries human-readable names without any per-request
 mapping work.
 
-iter-63 starter set (11 entries) covers Wisconsin's largest
-incorporated cities. Each code below was confirmed two ways:
+iter-63/64 set (20 entries) covers most of Wisconsin's largest
+incorporated cities and a handful of suburbs / county seats.
+Each code below was confirmed two ways:
 
 1. Probe live API for a ZIP known to lie in that city, e.g.
    ``GET /v1/rates?zip5=53202`` returns the city placeholder
@@ -46,15 +47,24 @@ from __future__ import annotations
 WI_CITY_NAMES: dict[str, str] = {
     "02375": "Appleton",
     "22300": "Eau Claire",
+    "23300": "Elkhorn",
+    "25950": "Fitchburg",
+    "30075": "Grand Chute",
     "31000": "Green Bay",
     "37825": "Janesville",
     "39225": "Kenosha",
     "48000": "Madison",
     "53000": "Milwaukee",
+    "55750": "Neenah",
+    "56375": "New Berlin",
+    "58800": "Oak Creek",
     "60500": "Oshkosh",
     "64100": "Portage",
     "66000": "Racine",
+    "77675": "Stoughton",
+    "77875": "Sturgeon Bay",
     "84250": "Waukesha",
+    "85300": "West Allis",
 }
 
 
