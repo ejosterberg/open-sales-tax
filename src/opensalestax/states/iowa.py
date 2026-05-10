@@ -257,6 +257,68 @@ class Iowa(SstStateModule):
                 return friendly
         return super()._authority_name(code, authority_type)
 
+    # iter-80 supplement: Johnson County's 1% LOST is genuinely
+    # missing from the IA SST quarterly file (verified against the
+    # latest IAR2025Q3MAY30.zip published per the SST listing). The
+    # tax has been collected since July 1, 2010 per the Johnson
+    # County ordinance approved Nov 2009. Without this supplement,
+    # Iowa City / Coralville / North Liberty / Solon / etc. all
+    # under-collect by 1.0%. Pattern matches the iter-68 USPS PO-box
+    # ZCTA supplement: hand-curated data layered on top of SST.
+    _SUPPLEMENT_DISTRICT_NAME = "Johnson County Local Option Sales Tax"
+    _SUPPLEMENT_DISTRICT_CODE = "19103-LOST"  # FIPS 19=IA, 103=Johnson Co
+    _JOHNSON_COUNTY_FIPS = "103"
+
+    def parse_rates(self, source_file, version_label):
+        """Yield SST rates plus the Johnson County LOST supplement.
+
+        See _SUPPLEMENT_DISTRICT_NAME comment above for context.
+        """
+        from decimal import Decimal
+
+        from opensalestax.states.protocol import RateRow
+
+        yield from super().parse_rates(source_file, version_label)
+        yield RateRow(
+            authority_name=self._SUPPLEMENT_DISTRICT_NAME,
+            authority_type="district",
+            rate_pct=Decimal("1.000"),
+            effective_from=dt.date(2010, 7, 1),
+            effective_to=None,
+            parent_authority_name=self.state_name,
+        )
+
+    def parse_boundaries(self, source_file, version_label):
+        """Yield SST boundaries plus Johnson County LOST bindings."""
+        from opensalestax.data.zip_county import ZIP_COUNTY
+        from opensalestax.states.protocol import BoundaryRow
+
+        yield from super().parse_boundaries(source_file, version_label)
+
+        # Bind Johnson County LOST to every IA ZIP whose Census ZCTA
+        # places it in Johnson County (FIPS 19103). The dedup is
+        # done by the loader's existing (authority, zip, zip4_low,
+        # zip4_high) seen-set so emitting these in addition to the
+        # SST records is safe.
+        seen_zips: set[str] = set()
+        for zip5, pairs in ZIP_COUNTY.items():
+            for state_abbrev, county_fips in pairs:
+                if state_abbrev != "IA":
+                    continue
+                if county_fips != self._JOHNSON_COUNTY_FIPS:
+                    continue
+                if zip5 in seen_zips:
+                    continue
+                seen_zips.add(zip5)
+                yield BoundaryRow(
+                    authority_name=self._SUPPLEMENT_DISTRICT_NAME,
+                    authority_type="district",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                break
+
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Iowa's annual sales-tax holiday under Iowa Code section 423.3(68).
 
