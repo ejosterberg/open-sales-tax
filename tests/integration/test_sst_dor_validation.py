@@ -4080,6 +4080,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-96 audit pin: WA DOR (state 6.5 + Spokane combined local 2.6)",
     ),
+    # iter-98: El Cerrito + Burlingame fill-ins after WebFetch verify.
+    (
+        "CA",
+        "El Cerrito",
+        "94530",
+        "0001",
+        "10.750",
+        "0.05",
+        "iter-98 audit pin: SalesTaxHandbook (state 7.25 + Contra Costa 1.5 + city 2.0 stack)",
+    ),
+    (
+        "CA",
+        "Burlingame",
+        "94010",
+        "0001",
+        "9.625",
+        "0.05",
+        "iter-98 audit pin: SalesTaxHandbook (state 7.25 + San Mateo 2.125 + city 0.25)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
