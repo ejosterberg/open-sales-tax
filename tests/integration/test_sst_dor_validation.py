@@ -4026,6 +4026,26 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-93 audit pin: CDTFA (state 7.25 + LA 2.5 + Burbank city 0.75)",
     ),
+    # iter-94: Walnut Creek + San Mateo fill-ins after WebFetch
+    # SalesTaxHandbook + CDTFA cdtfa95.pdf cross-check.
+    (
+        "CA",
+        "Walnut Creek",
+        "94596",
+        "0001",
+        "9.250",
+        "0.05",
+        "iter-94 audit pin: SalesTaxHandbook (state 7.25 + Contra Costa 1.5 + city 0.5)",
+    ),
+    (
+        "CA",
+        "San Mateo",
+        "94401",
+        "0001",
+        "9.625",
+        "0.05",
+        "iter-94 audit pin: SalesTaxHandbook (state 7.25 + San Mateo 2.125 + city 0.25)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
