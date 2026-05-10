@@ -4212,6 +4212,21 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-78 audit pin: MN DOR (Hennepin metro stack + Maple Grove city 0.5%)",
     ),
+    # iter-80 batch A: IA Iowa City Johnson Co LOST verification
+    # via the ia_names friendly-name resolution (commit 1fe1b4e).
+    # The SST file binds Johnson Co LOST (code 98103) to ~50% of
+    # Johnson Co ZIPs (52240/52242/52246/52340 work; 52241
+    # Coralville / 52317 N Liberty / etc still under-collect by 1%
+    # -- logged as a partial-coverage SST data gap).
+    (
+        "IA",
+        "Iowa City",
+        "52240",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-80 audit pin: IA DOR (state 6 + Johnson Co LOST 1) per chapter 423B",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
