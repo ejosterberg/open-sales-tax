@@ -2882,6 +2882,45 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # iter-62 audit-pass pins: confirm uniform 11.5% across additional PR municipalities
     ("PR", "Bayamon", "00956", "0001", "11.500", "0.05", "iter-62 audit pin: PR uniform 11.5%"),
     ("PR", "Carolina", "00979", "0001", "11.500", "0.05", "iter-62 audit pin: PR uniform 11.5%"),
+    # iter-63 audit-pass pins for SST states with sparse grid coverage.
+    # Each entry probed against the live engine and confirmed against
+    # the state DOR's published rate table.
+    (
+        "MN",
+        "Rochester",
+        "55901",
+        "0001",
+        "8.125",
+        "0.05",
+        "iter-63 audit pin: MN DOR (state 6.875 + Rochester city 0.75 + transit 0.5)",
+    ),
+    (
+        "GA",
+        "Savannah",
+        "31401",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-63 audit pin: GA DOR (state 4 + Chatham 3)",
+    ),
+    (
+        "GA",
+        "Macon",
+        "31201",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-63 audit pin: GA DOR (state 4 + Bibb 4)",
+    ),
+    (
+        "GA",
+        "Athens",
+        "30601",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-63 audit pin: GA DOR (state 4 + Athens-Clarke 4)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
