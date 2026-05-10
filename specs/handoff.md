@@ -8,12 +8,13 @@ Live at
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **444 sampled
+every published DOR rate within 0.05% across **516 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
-Untagged main is multiple commits ahead of v0.55.4 with the WI
-structural fix (Milwaukee 2%, Eau Claire/Rock/Columbia county
-overlays unlocked) plus the new wi_names.py with 20 friendly WI
-city names -- next release should bump for these.
+Untagged main is well ahead of v0.55.4 with multiple substantive
+fixes deployed (CA reconciliation, WI structural rewrite, AK
+borough-stacks-with-city, USPS PO-box ZCTA supplement) plus the
+new wi_names.py and a 109-entry pin growth -- next release should
+bump for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
 A CA combined-rate audit against the CDTFA published table found 18
@@ -86,6 +87,78 @@ Milwaukee / Neenah / New Berlin / Oak Creek / Oshkosh / Portage /
 Racine / Stoughton / Sturgeon Bay / Waukesha / West Allis. After
 the WI re-load on prod, all 20 cities surface with friendly names
 instead of `WI-city-NNNNN` placeholders.
+
+**iter-65/66 audit pin batches** (440 -> 463 entries): more
+AL/MS/SC/CT/VA/HI/NM/MD/MA/KY/OR/MT cities pinned after live
+probe verified each matched the published DOR rate. AL Auburn /
+Florence / Prattville rates that initially looked like
+discrepancies were confirmed as the AL-DOR-correct intentional
+values per al_data.py docstring.
+
+**iter-67 AK borough-stacks-with-city fix** (commit `01d7d65`,
+deployed + re-loaded). The AK module's parse_boundaries
+previously suppressed the borough binding for city ZIPs on the
+mistaken assumption that "borough rates are NOT collected inside
+city limits per ARSSTC." The actual KPB ordinance (KPB Code
+5.18.430-440) and ARSSTC's tax-rate look-up both confirm the
+borough sales tax IS collected throughout the borough including
+inside city limits. Fix emits the borough binding for city ZIPs
+too. Six AK ZIPs corrected on prod after the AK reload:
+
+- Homer 99603:    4.85% -> 7.85% (KPB 3 + Homer 4.85)
+- Kenai 99611:    3.00% -> 6.00% (KPB 3 + Kenai 3)
+- Seldovia 99663: 6.50% -> 9.50%
+- Seward 99664:   4.00% -> 7.00%
+- Soldotna 99669: 3.00% -> 6.00%
+- Ketchikan 99901: 5.50% -> 8.00% (KGB 2.5 + city 5.5)
+
+**iter-68/69 USPS PO-box ZCTA supplement** (commits `f270314` +
+`2416c1d`, deployed + ZCTA reloaded). Discovery: PO-box-only ZIPs
+aren't in Census ZCTA (no physical delivery boundary) so the
+ZCTA loader -- the sole source of state-level ZIP bindings for
+self-seeded flat-rate states (MA / MD / CT) and a fallback for
+SST flat-rate states -- silently dropped them. Result: any GET
+/v1/calculate for a PO-box-only ZIP returned
+combined_rate_pct=0. New `usps_po_box_zips.py` module supplies
+hand-curated ZIP -> state mappings appended by
+parse_zcta_state_rows. Currently 29 entries covering Springfield
+/ Boston / Worcester (MA), Newark / Jersey City / Paterson /
+Camden / Trenton (NJ), Providence (RI), Hartford / New Haven
+(CT), Baltimore (MD). Scope intentionally narrow: only
+flat-rate states -- PO-box ZIPs in states with locals
+(NY/CA/TX/etc.) need SubJurisdiction Protocol work since
+they could land in many counties. Easy to grow as new PO-box
+ZIPs are discovered via /loop probes.
+
+**iter-70/71 audit pin batches** (488 -> 516 entries): probed
+the lowest-coverage states (1-5 pin entries) and pinned the
+matches:
+
+- ID Twin Falls / Idaho Falls / Coeur d'Alene = 6%
+- IA Davenport / Sioux City / Waterloo = 7%
+- MI Lansing / Ann Arbor / Flint = 6%
+- ND Minot = 7.5%
+- IN Bloomington / South Bend / Carmel / Fishers = 7%
+- NV Sparks 8.265% / Carson City 7.6% / Elko 7.1%
+- UT St George 6.75%
+- WY Sheridan 6.0% / Gillette 5.0%
+- HI Pearl City / Kaneohe / Waipahu / Kailua-Kona = 4.5%
+- PR Ponce / Caguas / Arecibo = 11.5%
+- OK Bartlesville 8.9%
+
+Discrepancies surfaced for follow-up:
+- ID Sun Valley / Ketchum: resort city tax 3% not modeled
+- IA Iowa City Johnson Co LOST may be missing
+- ND Williston Williams Co 0.5% may be missing
+- WA Tacoma/Spokane/Vancouver: small 0.1-0.2% drift since last
+  WA quarterly load
+- KS Hays/Dodge City and OK Stillwater: county rates may have
+  shifted; need DOR confirmation
+- SD Brookings/Watertown/Mitchell 6.2%: correct general retail
+  per SD DOT (the 0.3% MGRT only applies to lodging/alcohol/
+  prepared food)
+- AL Madison +1% Madison Co Sp district: acknowledged gap in
+  al_data.py
 
 **v0.54.1 closed a real security hole**: slowapi was registered but
 `SlowAPIMiddleware` was never added, so the configured per-IP
