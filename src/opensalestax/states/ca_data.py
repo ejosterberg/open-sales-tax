@@ -372,6 +372,38 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.250"),  # combined 9.625
         ("94010", "94011"),
     ),
+    "Richmond": (
+        # iter-99: probed 8.75% live vs SalesTaxHandbook 9.75%.
+        # Richmond levies 1% city sales tax. State 7.25 + Contra
+        # Costa 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94801", "94802", "94803", "94804", "94805", "94806", "94807", "94808", "94850"),
+    ),
+    "Antioch": (
+        # iter-99: probed 8.75% live vs SalesTaxHandbook 9.75%.
+        # Antioch levies 1% city sales tax. State 7.25 + Contra
+        # Costa 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94509", "94531"),
+    ),
+    "Pittsburg": (
+        # iter-99: probed 8.75% live vs SalesTaxHandbook 9.75%.
+        # Pittsburg levies 1% city sales tax. State 7.25 + Contra
+        # Costa 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94565",),
+    ),
+    "Redwood City": (
+        # iter-99: probed 9.375% live vs SalesTaxHandbook 9.875%.
+        # Redwood City levies 0.5% city sales tax. State 7.25 +
+        # San Mateo Co 2.125 + city 0.5 = 9.875.
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94061", "94062", "94063", "94064", "94065"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
