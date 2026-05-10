@@ -8,8 +8,12 @@ Live at
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **420 sampled
+every published DOR rate within 0.05% across **444 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
+Untagged main is multiple commits ahead of v0.55.4 with the WI
+structural fix (Milwaukee 2%, Eau Claire/Rock/Columbia county
+overlays unlocked) plus the new wi_names.py with 20 friendly WI
+city names -- next release should bump for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
 A CA combined-rate audit against the CDTFA published table found 18
@@ -29,17 +33,59 @@ between v0.55.2 and the 4-CDTFA-pin commit. Fix in
 `81a2488` switched the math to `1 + len(CA_COUNTY_RATE_PCT) +
 len(CA_CITIES)` (currently 1+55+50 = 106). CI green again.
 
-**iter-63 audit pin batches** added 11 new live-grid entries (407 →
-420): MN Rochester, GA Savannah/Macon/Athens, IN Fort Wayne/
+**iter-63 audit pin batches** added 15 new live-grid entries (407 →
+424): MN Rochester, GA Savannah/Macon/Athens, IN Fort Wayne/
 Evansville, MI Grand Rapids, NJ Jersey City, WV Morgantown/
-Parkersburg/Wheeling. All cross-checked against the state DOR
+Parkersburg/Wheeling, then 4 WI verification pins after the
+structural fix landed. All cross-checked against the state DOR
 publications before pinning. Other probes turned up real
-discrepancies needing follow-up: WI Milwaukee city missing the 2%
-Act 12 city tax, plus several WI counties (Eau Claire, Rock,
-Columbia) returning state-only despite having adopted the 0.5%
-county tax; SD Sioux Falls/Rapid City rate-finder discrepancy;
-ND Fargo/Bismarck rate drift; UT SLC and AR Little Rock both
-suspect.
+discrepancies needing follow-up: SD Sioux Falls/Rapid City
+rate-finder discrepancy (ended up being my outdated DOR estimate;
+6.2% is correct); ND Fargo/Bismarck rate drift; UT SLC and AR
+Little Rock both still suspect.
+
+**iter-63 WI structural fix** -- WI module previously had a
+hand-rolled `parse_boundaries` that emitted only state + county
+bindings, dropped `4` (ZIP+4) records, did no ZIP5 range
+expansion, and skipped the cross-border filter. Switched to
+inheriting :class:`SstStateModule` (commit `133240c`). After
+re-load on prod (`docker compose exec api python -m
+opensalestax.cli.main data load --state WI --version
+2026Q2FEB18`), the WI engine now picks up:
+
+- Milwaukee City's 2% sales tax (WI Act 12, in the SST file
+  since 2024-01-01 but unreachable because the boundary parser
+  never linked ZIP -> city). Milwaukee 53202: 5.9% -> 7.9%.
+- County overlays carried by `4` records: Eau Claire / Rock /
+  Columbia / etc. previously returned state-only despite each
+  county having adopted the 0.5% county tax. Janesville 53545,
+  Eau Claire 54701, Portage 53901: 5.0% -> 5.5%.
+- Boundary count for WI: ~50K -> ~528K.
+
+Lesson: when a state module DOESN'T inherit `SstStateModule`,
+audit the standalone parser for missing capabilities --
+especially city / district binding emit. AL / FL / IL / etc. are
+the next candidates worth checking.
+
+**iter-64 audit pin batches** (424 -> 444 entries): TN Nashville
+37203 (with IMPROVE Act transit), OK Broken Arrow, GA Columbus
+(after rate-stack inspection corrected my outdated DOR estimates),
+plus KY Bowling Green / KY Owensboro / GA Albany / GA Marietta /
+AR Conway / NC Greensboro/Durham/Winston-Salem/Asheville /
+NV Henderson/North Las Vegas / UT Provo / RI Warwick/Cranston /
+SD Pierre / AR Hot Springs/Jonesboro.
+
+**iter-64 wi_names.py** (commits `d4805d5` + `b1f2022`) -- new
+20-entry friendly-name table for WI cities. Each code verified
+two ways: probe the live API for a known-city ZIP, then
+cross-check against the US Census FIPS Place code (state-FIPS +
+place-FIPS scheme: Milwaukee FIPS Place 5553000 -> SST code
+53000). Entries: Appleton / Eau Claire / Elkhorn / Fitchburg /
+Grand Chute / Green Bay / Janesville / Kenosha / Madison /
+Milwaukee / Neenah / New Berlin / Oak Creek / Oshkosh / Portage /
+Racine / Stoughton / Sturgeon Bay / Waukesha / West Allis. After
+the WI re-load on prod, all 20 cities surface with friendly names
+instead of `WI-city-NNNNN` placeholders.
 
 **v0.54.1 closed a real security hole**: slowapi was registered but
 `SlowAPIMiddleware` was never added, so the configured per-IP
