@@ -574,6 +574,34 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "AZ DOR May 2026 CSV (state 5.6% + Maricopa 0.7% + Phoenix 2.8%)",
     ),
     ("AZ", "Phoenix downtown", "85003", "0001", "9.100", "0.01", "AZ DOR (Phoenix downtown)"),
+    # iter-62 audit-pass pins for major AZ cities probed during the audit
+    (
+        "AZ",
+        "Chandler",
+        "85225",
+        "0001",
+        "7.800",
+        "0.05",
+        "iter-62 audit pin: Maricopa 0.7 + Chandler 1.5",
+    ),
+    (
+        "AZ",
+        "Gilbert",
+        "85234",
+        "0001",
+        "8.300",
+        "0.05",
+        "iter-62 audit pin: Maricopa 0.7 + Gilbert 2.0",
+    ),
+    (
+        "AZ",
+        "Peoria",
+        "85345",
+        "0001",
+        "8.100",
+        "0.05",
+        "iter-62 audit pin: Maricopa 0.7 + Peoria 1.8",
+    ),
     (
         "AZ",
         "Scottsdale",
@@ -1365,6 +1393,16 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ),
     ("VA", "Norfolk", "23510", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
     ("VA", "Chesapeake", "23320", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
+    # iter-62 audit-pass pin: Alexandria (NoVA region; combined matches state-default 6.0%)
+    (
+        "VA",
+        "Alexandria",
+        "22301",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-62 audit pin: VA NoVA region 6.0%",
+    ),
     ("VA", "Newport News", "23601", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
     ("VA", "Hampton", "23666", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
     ("VA", "Portsmouth", "23704", "0001", "6.000", "0.05", "VA Tax (Hampton Roads region)"),
@@ -1503,9 +1541,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Independence",
         "64055",
         "0001",
-        "8.475",
+        # iter-62: 8.475 -> 8.600 with Jackson County bumped to 1.500
+        # to fold in the 0.125% Kansas City Zoological District.
+        "8.600",
         "0.10",
-        "MO DOR (state 4.225% + Jackson 1.375% + Independence 2.875%)",
+        "MO DOR / Avalara (state 4.225% + Jackson 1.500% + Independence 2.875%)",
     ),
     (
         "MO",
@@ -1521,9 +1561,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Lee's Summit",
         "64063",
         "0001",
-        "8.350",
+        # iter-62: 8.350 -> 8.475 with Jackson County bumped to 1.500.
+        "8.475",
         "0.10",
-        "MO DOR (state 4.225% + Jackson 1.375% + Lee's Summit 2.75%)",
+        "MO DOR / Avalara (state 4.225% + Jackson 1.500% + Lee's Summit 2.75%)",
+    ),
+    # iter-62 audit-pass pin: alternate Independence ZIP (probed during audit)
+    (
+        "MO",
+        "Independence (alt ZIP)",
+        "64050",
+        "0001",
+        "8.600",
+        "0.10",
+        "iter-62 audit pin: Jackson 1.5 + Independence 2.875",
     ),
     (
         "MO",
@@ -1678,6 +1729,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "FL DOR DR-15DSS 2026 (state 6% + Miami-Dade 1%)",
     ),
     ("FL", "Hialeah", "33010", "0001", "7.000", "0.05", "FL DOR DR-15DSS (Miami-Dade 1%)"),
+    # iter-62 audit-pass pin: probed Avalara-clean during the FL audit
+    ("FL", "Miami downtown", "33101", "0001", "7.000", "0.05", "iter-62 audit pin: Miami-Dade 1%"),
+    ("FL", "Palm Bay (Brevard)", "32905", "0001", "7.000", "0.05", "iter-62 audit pin: Brevard 1%"),
     (
         "FL",
         "Orlando",
@@ -2420,6 +2474,34 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "IDOR Tax Rate Finder (state 6.25% + Cook 1.75% + Chicago HR 1.25% + RTA Cook 1.00%)",
     ),
+    # iter-62 audit-pass pins for IL major cities probed during the audit
+    (
+        "IL",
+        "Joliet",
+        "60432",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-62 audit pin: Will + RTA Collar 0.75 + Joliet 1.75",
+    ),
+    (
+        "IL",
+        "Elgin",
+        "60120",
+        "0001",
+        "8.500",
+        "0.05",
+        "iter-62 audit pin: Kane + RTA Collar 0.75 + Elgin 1.5",
+    ),
+    (
+        "IL",
+        "Champaign",
+        "61820",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-62 audit pin: Champaign 1.25 + city 1.5",
+    ),
     (
         "IL",
         "Cicero",
@@ -2797,6 +2879,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "PR Hacienda (state 10.5% + municipal SUT 1.0% = 11.5% combined; uniform across 78 municipalities) -- v0.32 split",
     ),
+    # iter-62 audit-pass pins: confirm uniform 11.5% across additional PR municipalities
+    ("PR", "Bayamon", "00956", "0001", "11.500", "0.05", "iter-62 audit pin: PR uniform 11.5%"),
+    ("PR", "Carolina", "00979", "0001", "11.500", "0.05", "iter-62 audit pin: PR uniform 11.5%"),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
