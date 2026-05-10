@@ -2986,6 +2986,49 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-63 audit pin: WV DOR (state 6 + Wheeling municipal 1)",
     ),
+    # iter-63 batch C: WI structural fix verification.
+    # WI was historically wired with a hand-rolled parse_boundaries
+    # that emitted only state + county and dropped 4-records and
+    # cities. Commit 133240c switched to inheriting SstStateModule
+    # which emits state + county + city + district. These four
+    # entries verify the corrections that the new parser unlocked,
+    # all confirmed live on prod after the WI re-load.
+    (
+        "WI",
+        "Milwaukee",
+        "53202",
+        "0001",
+        "7.900",
+        "0.05",
+        "iter-63 audit pin: WI Act 12 (state 5 + Milwaukee County 0.9 + Milwaukee City 2.0)",
+    ),
+    (
+        "WI",
+        "Janesville",
+        "53545",
+        "0001",
+        "5.500",
+        "0.05",
+        "iter-63 audit pin: WI DOR (state 5 + Rock County 0.5)",
+    ),
+    (
+        "WI",
+        "Eau Claire",
+        "54701",
+        "0001",
+        "5.500",
+        "0.05",
+        "iter-63 audit pin: WI DOR (state 5 + Eau Claire County 0.5)",
+    ),
+    (
+        "WI",
+        "Portage",
+        "53901",
+        "0001",
+        "5.500",
+        "0.05",
+        "iter-63 audit pin: WI DOR (state 5 + Columbia County 0.5)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
