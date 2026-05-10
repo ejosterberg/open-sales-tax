@@ -47,6 +47,8 @@ from __future__ import annotations
 WI_CITY_NAMES: dict[str, str] = {
     "02375": "Appleton",
     "05900": "Beaver Dam",
+    "06925": "Berlin",  # iter-90 (ZIP 54923; Green Lake Co; FIPS 5506925)
+    "10025": "Brookfield",  # iter-90 (ZIP 53005; Waukesha Co; FIPS 5510025)
     "19775": "De Pere",
     "22300": "Eau Claire",
     "23300": "Elkhorn",
@@ -58,19 +60,25 @@ WI_CITY_NAMES: dict[str, str] = {
     "31125": "Greendale",
     "37825": "Janesville",
     "39225": "Kenosha",
+    "46850": "McFarland",  # iter-90 (ZIP 53558; Dane Co; FIPS 5546850)
     "48000": "Madison",
+    "49300": "Marinette",  # iter-90 (ZIP 54143; Marinette Co; FIPS 5549300)
     "51575": "Middleton",
     "53000": "Milwaukee",
+    "54875": "Mount Pleasant",  # iter-90 (ZIP 53406; Racine Co; FIPS 5554875)
     "55750": "Neenah",
     "56375": "New Berlin",
     "58800": "Oak Creek",
+    "59875": "Omro",  # iter-90 (ZIP 54963; Winnebago Co; FIPS 5559875)
     "60500": "Oshkosh",
+    "63300": "Pleasant Prairie",  # iter-90 (ZIP 53158; Kenosha Co; FIPS 5563300)
     "64100": "Portage",
     "66000": "Racine",
     "67200": "Rhinelander",
     "77200": "Stevens Point",
     "77675": "Stoughton",
     "77875": "Sturgeon Bay",
+    "78600": "Sun Prairie",  # iter-90 (ZIP 53590; Dane Co; FIPS 5578600)
     "78650": "Superior",
     "84250": "Waukesha",
     "84475": "Wausau",
