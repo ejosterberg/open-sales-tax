@@ -3906,6 +3906,75 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-72 audit pin: NY DTF (state 4 + Albany County 4)",
     ),
+    # iter-73 batch A: NY Long Island, CA Bay Area, MN Twin Cities
+    # metro tax stack verification.
+    (
+        "NY",
+        "Huntington",
+        "11743",
+        "0001",
+        "8.625",
+        "0.05",
+        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.625)",
+    ),
+    (
+        "NY",
+        "Smithtown",
+        "11787",
+        "0001",
+        "8.625",
+        "0.05",
+        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.625)",
+    ),
+    (
+        "CA",
+        "Berkeley",
+        "94704",
+        "0001",
+        "10.250",
+        "0.05",
+        "iter-73 audit pin: CDTFA (state 7.25 + Alameda County 3.0)",
+    ),
+    # MN Twin Cities post-2023 metro-wide tax stack: state 6.875 +
+    # county base + transit + Metro Area Transportation Sales Tax
+    # 0.75% (eff Oct 1 2023) + Metro Area Housing 0.25% (eff Oct 1
+    # 2023) + city. Adds 1.0% to every 7-county metro retailer.
+    (
+        "MN",
+        "St Paul",
+        "55102",
+        "0001",
+        "9.875",
+        "0.05",
+        "iter-73 audit pin: MN DOR (state 6.875 + Ramsey 0.5 + Metro Transp 0.75 + Metro Housing 0.25 + St Paul 1.5)",
+    ),
+    (
+        "MN",
+        "Eden Prairie",
+        "55344",
+        "0001",
+        "9.025",
+        "0.05",
+        "iter-73 audit pin: MN DOR (state 6.875 + Hennepin 0.15 + Hennepin Transit 0.5 + Metro Transp 0.75 + Metro Housing 0.25 + city 0.5)",
+    ),
+    (
+        "MN",
+        "Minnetonka",
+        "55345",
+        "0001",
+        "8.525",
+        "0.05",
+        "iter-73 audit pin: MN DOR (state 6.875 + Hennepin 0.15 + Hennepin Transit 0.5 + Metro Transp 0.75 + Metro Housing 0.25)",
+    ),
+    (
+        "MN",
+        "Plymouth",
+        "55441",
+        "0001",
+        "8.525",
+        "0.05",
+        "iter-73 audit pin: MN DOR (state 6.875 + Hennepin 0.15 + Hennepin Transit 0.5 + Metro Transp 0.75 + Metro Housing 0.25)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
