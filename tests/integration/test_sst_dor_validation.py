@@ -3454,6 +3454,82 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-67 audit pin: ARSSTC (Ketchikan Gateway Borough 2.5 + Ketchikan 5.5)",
     ),
+    # iter-68 batch B: USPS PO-box-only ZIP supplement verification.
+    # Pre-fix these ZIPs returned combined_rate_pct=0 because they
+    # weren't in Census ZCTA. usps_po_box_zips.py now supplements
+    # the ZCTA loader so flat-rate states bind these ZIPs state-only.
+    (
+        "MA",
+        "Springfield (PO Box)",
+        "01101",
+        "0001",
+        "6.250",
+        "0.05",
+        "iter-68 audit pin: MA flat 6.25% via USPS PO-box supplement",
+    ),
+    (
+        "MA",
+        "Springfield (PO Box)",
+        "01102",
+        "0001",
+        "6.250",
+        "0.05",
+        "iter-68 audit pin: MA flat 6.25% via USPS PO-box supplement",
+    ),
+    (
+        "MA",
+        "Springfield (PO Box)",
+        "01115",
+        "0001",
+        "6.250",
+        "0.05",
+        "iter-68 audit pin: MA flat 6.25% via USPS PO-box supplement",
+    ),
+    (
+        "MA",
+        "Springfield (PO Box)",
+        "01199",
+        "0001",
+        "6.250",
+        "0.05",
+        "iter-68 audit pin: MA flat 6.25% via USPS PO-box supplement",
+    ),
+    (
+        "NJ",
+        "Newark (PO Box)",
+        "07101",
+        "0001",
+        "6.625",
+        "0.05",
+        "iter-68 audit pin: NJ flat 6.625% via USPS PO-box supplement",
+    ),
+    (
+        "NJ",
+        "Trenton (PO Box)",
+        "08601",
+        "0001",
+        "6.625",
+        "0.05",
+        "iter-68 audit pin: NJ flat 6.625% via USPS PO-box supplement",
+    ),
+    (
+        "RI",
+        "Providence (PO Box)",
+        "02901",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-68 audit pin: RI flat 7% via USPS PO-box supplement",
+    ),
+    (
+        "CT",
+        "Hartford (PO Box)",
+        "06101",
+        "0001",
+        "6.350",
+        "0.05",
+        "iter-68 audit pin: CT flat 6.35% via USPS PO-box supplement",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
