@@ -119,7 +119,16 @@ def parse_zcta_state_rows(
     ``abbrev_filter`` lets a caller restrict to a subset of states
     (e.g. just the self-seeded modules); when None, every state in
     ``FIPS_TO_ABBREV`` is emitted.
+
+    iter-68 supplement: yields rows from
+    :data:`opensalestax.data.usps_po_box_zips.USPS_PO_BOX_ZIPS` AFTER
+    the Census file. PO-box-only ZIPs (e.g. Springfield MA 01101) are
+    not in Census ZCTA because they have no physical delivery
+    boundary, so without this supplement the engine returned 0% on
+    those ZIPs in flat-rate states.
     """
+    from opensalestax.data.usps_po_box_zips import USPS_PO_BOX_ZIPS
+
     keep: set[str] | None = None
     if abbrev_filter is not None:
         keep = {a.upper() for a in abbrev_filter}
@@ -152,6 +161,16 @@ def parse_zcta_state_rows(
                 continue
             seen.add(key)
             yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
+
+    # Append USPS PO-box-only ZIPs the Census file doesn't cover.
+    for zip5, abbrev in USPS_PO_BOX_ZIPS.items():
+        if keep is not None and abbrev not in keep:
+            continue
+        key = (zip5, abbrev)
+        if key in seen:
+            continue
+        seen.add(key)
+        yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
 
 
 def parse_zcta_county_rows(
