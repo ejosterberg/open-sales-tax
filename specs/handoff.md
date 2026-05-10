@@ -8,13 +8,15 @@ Live at
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **516 sampled
+every published DOR rate within 0.05% across **540 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
-Untagged main is well ahead of v0.55.4 with multiple substantive
-fixes deployed (CA reconciliation, WI structural rewrite, AK
-borough-stacks-with-city, USPS PO-box ZCTA supplement) plus the
-new wi_names.py and a 109-entry pin growth -- next release should
-bump for these.
+Untagged main is well ahead of v0.55.4 with **6 substantive bug
+fixes** + **3 features** deployed since: CA reconciliation
+(50 cities), WI structural rewrite, AK borough-stacks-with-city,
+USPS PO-box ZCTA supplement (29 ZIPs), AL Madison Co Sp fold-in,
+plus wi_names.py (20 cities) and ID resort cities (12 cities) +
+a 133-entry pin growth -- next release should bump significantly
+for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
 A CA combined-rate audit against the CDTFA published table found 18
@@ -159,6 +161,42 @@ Discrepancies surfaced for follow-up:
   prepared food)
 - AL Madison +1% Madison Co Sp district: acknowledged gap in
   al_data.py
+
+**iter-72/73 audit pin batches** (516 -> 525 entries): FL
+Pensacola, NY Albany, NY Long Island (Huntington/Smithtown),
+CA Berkeley, MN Twin Cities suburbs (St Paul/Eden Prairie/
+Minnetonka/Plymouth). Notable MN finding: the Twin Cities pins
+capture 2 metro-wide taxes effective Oct 1 2023 -- Metro Area
+Transportation Sales Tax 0.75% + Metro Area Sales and Use Tax
+for Housing 0.25% -- adding 1.0% to every 7-county metro
+retailer. The live engine correctly stacks these per MN Sec
+297A.99; my mental DOR estimates were 1.5% low.
+
+**iter-74 AL Madison Co Sp fold-in** (commit `851ca18`,
+deployed). Closed the acknowledged 1.0% under-collection gap
+documented in al_data.py: Madison City had a +1.0% "Madison Co
+Sp" special district that wasn't modeled. Folded the +1% into
+the Madison city portion (3.5% -> 4.5%) using the same trick
+iter-63 used for the MO Jackson + KCZD fold-in. After AL
+reload, Madison ZIPs 35756 / 35757 / 35758 corrected from 8.0%
+-> 9.0%, matching ALDOR / Avalara exactly. Birmingham BSD
+examined and confirmed not applicable to general retail (BSD
+applies to specific categories like lodging/alcohol; Birmingham
+10.0% is correct as-is, no fold needed).
+
+**iter-75/76 ID resort cities feature** (commits `661aa88` +
+`a56bd9a`, deployed). Closed the deferred gap noted in idaho.py
+docstring since v0.6 (resort-city local-option taxes under
+Idaho Code section 50-1044). New `id_data.py` with 12 cities
+total: 6 highest-population at 3% (Sun Valley / Ketchum / McCall
+/ Stanley / Donnelly / Cascade -> combined 9.0%), 5 mid-tier at
+1% (Sandpoint / Driggs / Riggins / Lava Hot Springs / Crouch ->
+combined 7.0%), 1 low-tier at 0.5% (Salmon -> combined 6.5%).
+Pattern matches alaska.py: per-city table + idaho.py emits state
++ city RateRows + (state, city) BoundaryRows per ZIP. Verified
+all 12 live on prod. Outstanding: Sun Valley 83353 lodging
+0.5% / by-the-drink 1% rates aren't modeled (only general
+sales); a future ratchet can split per-category.
 
 **v0.54.1 closed a real security hole**: slowapi was registered but
 `SlowAPIMiddleware` was never added, so the configured per-IP
