@@ -54,21 +54,34 @@ def test_idaho_unknown_category_returns_none() -> None:
     assert IDAHO.taxability_for("alpaca-fur", dt.date(2026, 5, 3)) is None
 
 
-def test_idaho_parse_rates_yields_6_pct() -> None:
-    """Idaho's statewide rate is 6% effective 2006-10-01 (HB 82, 2006 1st Extra. Sess.)."""
+def test_idaho_parse_rates_yields_6_pct_state_plus_resort_cities() -> None:
+    """Idaho's statewide rate is 6% effective 2006-10-01 (HB 82, 2006 1st Extra. Sess.).
+
+    iter-75 added the 6 highest-population resort cities under
+    Idaho Code section 50-1044 (Sun Valley / Ketchum / McCall /
+    Stanley / Donnelly / Cascade), each at 3%.
+    """
+    from opensalestax.states.id_data import ID_RESORT_CITIES
+
     rows = list(IDAHO.parse_rates(None, "v0.7-statewide"))
-    assert len(rows) == 1
-    row = rows[0]
-    assert row.authority_name == "Idaho"
-    assert row.authority_type == "state"
-    assert row.rate_pct == Decimal("6.000")
-    assert row.effective_from == dt.date(2006, 10, 1)
-    assert row.effective_to is None
-    assert row.parent_authority_name is None  # state-level rate has no parent
+    state_rows = [r for r in rows if r.authority_type == "state"]
+    assert len(state_rows) == 1
+    state = state_rows[0]
+    assert state.authority_name == "Idaho"
+    assert state.rate_pct == Decimal("6.000")
+    assert state.effective_from == dt.date(2006, 10, 1)
+    assert state.effective_to is None
+    assert state.parent_authority_name is None
+
+    city_rows = [r for r in rows if r.authority_type == "city"]
+    assert len(city_rows) == len(ID_RESORT_CITIES)
+    for r in city_rows:
+        assert r.parent_authority_name == "Idaho"
+        assert r.rate_pct == Decimal("3.000")
 
 
 def test_idaho_parse_rates_ignores_source_file() -> None:
-    """parse_rates returns the same row whether given a path or None."""
+    """parse_rates returns the same rows whether given a path or None."""
     from pathlib import Path
 
     rows_with_none = list(IDAHO.parse_rates(None, "test"))
@@ -76,10 +89,20 @@ def test_idaho_parse_rates_ignores_source_file() -> None:
     assert rows_with_none == rows_with_path
 
 
-def test_idaho_parse_boundaries_returns_empty() -> None:
-    """v0.7 doesn't ship Idaho boundaries; resort-city loader is deferred."""
-    rows = list(IDAHO.parse_boundaries(None, "v0.7-statewide"))
-    assert rows == []
+def test_idaho_parse_boundaries_emits_resort_city_pairs() -> None:
+    """iter-75 added (state, city) BoundaryRows for ID resort-city ZIPs."""
+    from opensalestax.states.id_data import ID_RESORT_CITIES
+
+    rows = list(IDAHO.parse_boundaries(None, "v0.7-resort-cities"))
+    # state + city per ZIP, so total = 2 * sum(zips)
+    expected = sum(len(zips) for _, (_, zips) in ID_RESORT_CITIES.items()) * 2
+    assert len(rows) == expected
+    # Every resort-city ZIP appears exactly twice (state + city)
+    for _city, (_, zips) in ID_RESORT_CITIES.items():
+        for zip5 in zips:
+            zip_rows = [r for r in rows if r.zip5 == zip5]
+            types = {r.authority_type for r in zip_rows}
+            assert types == {"state", "city"}, f"{zip5}: {types}"
 
 
 def test_idaho_special_cases_empty() -> None:

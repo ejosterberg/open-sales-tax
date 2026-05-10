@@ -15,11 +15,16 @@ populations not exceeding 10,000 are authorized under
 **Idaho Code section 50-1044** (and the related municipal-finance
 statute section 50-1046) to impose, by 60% voter approval,
 local-option non-property taxes that may include a sales tax,
-typically 1-3%. Examples: Sun Valley, Ketchum, McCall, Stanley,
-Donnelly, Cascade. Per-resort-city rate loading is **deferred to
-v0.7**; v0.6 ships the statewide rate only. Once a per-resort-city
-loader lands, this module will start emitting city-level RateRows
-under ``parent_authority_name="Idaho"``.
+typically 1-3%.
+
+iter-75 ships the 6 highest-population 3% resort cities (Sun
+Valley, Ketchum, McCall, Stanley, Donnelly, Cascade) via
+:data:`opensalestax.states.id_data.ID_RESORT_CITIES`. Each emits
+a city RateRow with ``parent_authority_name='Idaho'`` and a city
+BoundaryRow per covered ZIP, so the engine returns combined 9.0%
+in those municipalities. Smaller resort cities (Salmon 0.5%,
+Sandpoint 1%, Driggs 1%, Riggins 1%, Lava Hot Springs 1%) can be
+added in a follow-up ratchet by extending ID_RESORT_CITIES.
 
 Taxability matrix (per Idaho Code Title 63, Chapter 36):
 
@@ -223,16 +228,16 @@ class Idaho:
     self_seeded: bool = True
 
     def parse_rates(self, source_file: Path | None, version_label: str) -> Iterable[RateRow]:
-        """Yield Idaho's statewide 6% rate.
+        """Yield Idaho's statewide 6% rate plus resort-city overlays.
 
         ``source_file`` is intentionally ignored -- ID is non-SST and
         has no upstream file. Pass ``None`` from the loader.
 
         Resort-city local-option sales taxes (Idaho Code section
-        50-1044 / 50-1046) are deferred to v0.7; once that loader
-        lands, additional ``RateRow`` instances with
-        ``authority_type='city'`` and ``parent_authority_name='Idaho'``
-        will be emitted here.
+        50-1044) are sourced from
+        :data:`opensalestax.states.id_data.ID_RESORT_CITIES`. Each
+        resort city emits a city RateRow with
+        ``parent_authority_name='Idaho'``.
         """
         del source_file, version_label
         yield RateRow(
@@ -243,20 +248,49 @@ class Idaho:
             effective_to=None,
             parent_authority_name=None,
         )
+        from opensalestax.states.id_data import ID_RESORT_CITIES
+
+        for city_name, (rate, _zips) in sorted(ID_RESORT_CITIES.items()):
+            yield RateRow(
+                authority_name=city_name,
+                authority_type="city",
+                rate_pct=rate,
+                effective_from=_RATE_EFFECTIVE_FROM,
+                effective_to=None,
+                parent_authority_name="Idaho",
+            )
 
     def parse_boundaries(
         self, source_file: Path | None, version_label: str
     ) -> Iterable[BoundaryRow]:
-        """No boundary rows shipped in v0.6.
+        """Yield (state, city) boundaries for ID resort-city ZIPs.
 
-        Idaho has no county-level sales tax. The small set of
-        resort-city local-option taxes (Sun Valley, Ketchum, McCall,
-        Stanley, Donnelly, Cascade, etc.) under Idaho Code section
-        50-1044 are deferred to v0.7 along with the per-resort-city
-        rate loader.
+        Idaho has no county-level sales tax. Resort cities under
+        Idaho Code section 50-1044 emit state + city BoundaryRows
+        for each covered ZIP. ZIPs not in any resort city get
+        state-only bindings via the ZCTA loader fallback (which
+        matches the user-facing rate of 6% statewide for
+        non-resort-city addresses).
         """
         del source_file, version_label
-        return iter(())
+        from opensalestax.states.id_data import ID_RESORT_CITIES
+
+        for city_name, (_rate, zips) in sorted(ID_RESORT_CITIES.items()):
+            for zip5 in sorted(zips):
+                yield BoundaryRow(
+                    authority_name="Idaho",
+                    authority_type="state",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
+                yield BoundaryRow(
+                    authority_name=city_name,
+                    authority_type="city",
+                    zip5=zip5,
+                    zip4_low=None,
+                    zip4_high=None,
+                )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return Idaho's taxability rule for ``item_category``."""
