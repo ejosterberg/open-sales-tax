@@ -4173,6 +4173,45 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-77 audit pin: IA DOR (state 6 + Polk/Dallas LOST 1)",
     ),
+    # iter-78 batch A: MN Twin Cities suburbs with city tax overlay.
+    # MN cities with 0.5% city sales tax: Bloomington (eff 2018),
+    # Brooklyn Center, Edina (eff Apr 2024), Maple Grove,
+    # St Louis Park (eff Apr 2024), St Paul (1.5% post-2024).
+    # NOTE re city attribution: live engine returns city="Bloomington"
+    # for Edina ZIP 55435 and city="Minneapolis" for St Louis Park
+    # 55416 due to MN SST file cross-binding + the "pick one city per
+    # ZIP" tiebreaker preferring the higher-row-count city. The
+    # combined RATE is still correct (9.025%) because the cross-bound
+    # cities share the same 0.5% rate, but the per-jurisdiction
+    # attribution shows the wrong city. Logged for follow-up;
+    # pinning the combined rate which is what users see.
+    (
+        "MN",
+        "Edina",
+        "55435",
+        "0001",
+        "9.025",
+        "0.05",
+        "iter-78 audit pin: MN DOR (Hennepin metro stack + Edina city 0.5%; attribution bug noted)",
+    ),
+    (
+        "MN",
+        "St Louis Park",
+        "55416",
+        "0001",
+        "9.025",
+        "0.05",
+        "iter-78 audit pin: MN DOR (Hennepin metro stack + St Louis Park city 0.5%; attribution bug noted)",
+    ),
+    (
+        "MN",
+        "Maple Grove",
+        "55369",
+        "0001",
+        "9.025",
+        "0.05",
+        "iter-78 audit pin: MN DOR (Hennepin metro stack + Maple Grove city 0.5%)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
