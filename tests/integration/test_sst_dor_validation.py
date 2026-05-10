@@ -3396,6 +3396,64 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-66 audit pin: MT has no general sales tax (resort tax not applicable to general retail)",
     ),
+    # iter-67 batch A: AK borough-stacks-with-city fix verification.
+    # Pre-fix the parser dropped borough binding inside city limits;
+    # post-fix the borough rate stacks with the city rate per the
+    # KPB / KGB ordinances + ARSSTC tax-rate look-up.
+    (
+        "AK",
+        "Homer",
+        "99603",
+        "0001",
+        "7.850",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Kenai Peninsula Borough 3 + Homer 4.85)",
+    ),
+    (
+        "AK",
+        "Kenai",
+        "99611",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Kenai Peninsula Borough 3 + Kenai 3)",
+    ),
+    (
+        "AK",
+        "Seldovia",
+        "99663",
+        "0001",
+        "9.500",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Kenai Peninsula Borough 3 + Seldovia 6.5 peak)",
+    ),
+    (
+        "AK",
+        "Seward",
+        "99664",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Kenai Peninsula Borough 3 + Seward 4)",
+    ),
+    (
+        "AK",
+        "Soldotna",
+        "99669",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Kenai Peninsula Borough 3 + Soldotna 3)",
+    ),
+    (
+        "AK",
+        "Ketchikan",
+        "99901",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-67 audit pin: ARSSTC (Ketchikan Gateway Borough 2.5 + Ketchikan 5.5)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
