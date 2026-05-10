@@ -3237,6 +3237,37 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-65 audit pin: AL DOR (state 4 + Jefferson 1 + Hoover 5)",
     ),
+    # iter-65 batch B: AL pins after consulting al_data.py docstring.
+    # Three "discrepancies" turned out to be my outdated DOR estimates;
+    # the al_data.py comments document exactly these combined rates
+    # as the intentional AL DOR-confirmed values.
+    (
+        "AL",
+        "Auburn",
+        "36830",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-65 audit pin: AL DOR (state 4 + Lee County 1 + Auburn 4) per al_data.py docstring",
+    ),
+    (
+        "AL",
+        "Florence",
+        "35630",
+        "0001",
+        "9.500",
+        "0.05",
+        "iter-65 audit pin: AL DOR (state 4 + Lauderdale 1 + Florence 4.5) per al_data.py docstring",
+    ),
+    (
+        "AL",
+        "Prattville",
+        "36066",
+        "0001",
+        "9.500",
+        "0.05",
+        "iter-65 audit pin: AL DOR (state 4 + Autauga 2 + Prattville 3.5) per al_data.py docstring",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
