@@ -355,6 +355,23 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.250"),  # combined 9.625
         ("94401", "94402", "94403", "94404"),
     ),
+    "El Cerrito": (
+        # iter-98: probed 8.75% live vs SalesTaxHandbook 10.75%.
+        # El Cerrito stacks Measure G (1%) + Measure E (0.5%) +
+        # Measure V (0.5%) = 2.0% city portion. State 7.25 +
+        # Contra Costa 1.5 + city 2.0 = 10.750.
+        "Contra Costa County",
+        Decimal("2.000"),  # combined 10.750
+        ("94530",),
+    ),
+    "Burlingame": (
+        # iter-98: probed 9.375% live vs SalesTaxHandbook 9.625%.
+        # Burlingame levies a 0.25% city sales tax. State 7.25 +
+        # San Mateo Co 2.125 + city 0.25 = 9.625.
+        "San Mateo County",
+        Decimal("0.250"),  # combined 9.625
+        ("94010", "94011"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500

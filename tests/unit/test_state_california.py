@@ -274,10 +274,12 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-93: Burbank (was 9.75%, CDTFA 10.5%, +0.75% gap)
     - iter-94: Walnut Creek (8.75% -> 9.25%) + San Mateo
       (9.375% -> 9.625%)
+    - iter-98: El Cerrito (8.75% -> 10.75%, +2.0%) + Burlingame
+      (9.375% -> 9.625%, +0.25%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 53
+    assert len(CA_CITIES) == 55
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
