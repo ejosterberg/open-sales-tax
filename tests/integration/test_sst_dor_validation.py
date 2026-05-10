@@ -4005,6 +4005,64 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-74 audit pin: AL DOR (state 4 + Madison Co 0.5 + Madison city 4.5 inc Madison Co Sp fold)",
     ),
+    # iter-75 batch A: ID resort cities verification (commit 661aa88).
+    # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
+    # resort cities return 9.0% (state 6 + city 3) per Idaho State
+    # Tax Commission resort-city local-option sales tax.
+    (
+        "ID",
+        "Sun Valley",
+        "83353",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + Sun Valley resort 3) per IC 50-1044",
+    ),
+    (
+        "ID",
+        "Ketchum",
+        "83340",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + Ketchum resort 3) per IC 50-1044",
+    ),
+    (
+        "ID",
+        "McCall",
+        "83638",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + McCall resort 3) per IC 50-1044",
+    ),
+    (
+        "ID",
+        "Stanley",
+        "83278",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + Stanley resort 3) per IC 50-1044",
+    ),
+    (
+        "ID",
+        "Donnelly",
+        "83615",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + Donnelly resort 3) per IC 50-1044",
+    ),
+    (
+        "ID",
+        "Cascade",
+        "83611",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-75 audit pin: Idaho State Tax Comm (state 6 + Cascade resort 3) per IC 50-1044",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
