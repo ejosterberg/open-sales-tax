@@ -335,6 +335,26 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "91526",
         ),
     ),
+    "Walnut Creek": (
+        # iter-94: added after probe surfaced 8.75% live vs
+        # SalesTaxHandbook 9.25% combined. Walnut Creek levies a
+        # 0.5% city sales tax; state 7.25 + Contra Costa 1.5 + city
+        # 0.5 = 9.250 per SalesTaxHandbook (CDTFA cdtfa95.pdf
+        # confirms 9.25% as the in-city rate).
+        "Contra Costa County",
+        Decimal("0.500"),  # combined 9.250
+        ("94595", "94596", "94597", "94598"),
+    ),
+    "San Mateo": (
+        # iter-94: added after probe surfaced 9.375% live vs
+        # SalesTaxHandbook 9.625% combined. San Mateo city levies
+        # a 0.25% city sales tax (TVCA / Measure W); state 7.25 +
+        # San Mateo Co 2.125 + city 0.25 = 9.625 per
+        # SalesTaxHandbook + CDTFA cdtfa95.pdf.
+        "San Mateo County",
+        Decimal("0.250"),  # combined 9.625
+        ("94401", "94402", "94403", "94404"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
