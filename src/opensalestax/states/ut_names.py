@@ -22,6 +22,8 @@ UT_CITY_NAMES: dict[str, str] = {
     "62470": "Provo",
     "65330": "St. George",  # ZIP 84771 (verified by probe; FIPS Place 4965330)
     "67000": "Salt Lake City",
+    # iter-85 addition: Tooele via probe + FIPS Place
+    "76680": "Tooele",  # ZIP 84074 (Tooele Co; FIPS Place 4976680)
 }
 
 

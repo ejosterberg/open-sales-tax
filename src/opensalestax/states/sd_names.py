@@ -10,8 +10,14 @@ from __future__ import annotations
 
 SD_CITY_NAMES: dict[str, str] = {
     "00100": "Aberdeen",
+    # iter-85 additions (5): probed + FIPS Place last-5-digit match
+    "07580": "Brookings",  # ZIP 57006 (Brookings Co; FIPS Place 4607580)
+    "43100": "Mitchell",  # ZIP 57301 (Davison Co; FIPS Place 4643100)
+    "49600": "Pierre",  # ZIP 57501 (Hughes Co; FIPS Place 4649600)
     "52980": "Rapid City",
     "59020": "Sioux Falls",
+    "69300": "Watertown",  # ZIP 57201 (Codington Co; FIPS Place 4669300)
+    "73060": "Yankton",  # ZIP 57078 (Yankton Co; FIPS Place 4673060)
 }
 
 
