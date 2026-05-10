@@ -3140,6 +3140,54 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-63 audit pin: AR DOR (state 6.5 + Craighead 1.0 + Jonesboro 1.0)",
     ),
+    # iter-64 batch A: KY/GA/AR coverage expansion.
+    # Each entry confirmed against the live engine and the
+    # respective state DOR's published rate table.
+    (
+        "KY",
+        "Bowling Green",
+        "42101",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-64 audit pin: KY flat 6% statewide",
+    ),
+    (
+        "KY",
+        "Owensboro",
+        "42301",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-64 audit pin: KY flat 6% statewide",
+    ),
+    (
+        "GA",
+        "Albany",
+        "31701",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-64 audit pin: GA DOR (state 4 + Dougherty 4)",
+    ),
+    (
+        "GA",
+        "Marietta",
+        "30060",
+        "0001",
+        "6.000",
+        "0.05",
+        "iter-64 audit pin: GA DOR (state 4 + Cobb 2)",
+    ),
+    (
+        "AR",
+        "Conway",
+        "72032",
+        "0001",
+        "9.125",
+        "0.05",
+        "iter-64 audit pin: AR DOR (state 6.5 + Faulkner 1.625 + Conway 1.0)",
+    ),
     # GA Fulton TSPLOST -- v0.47 lone-district fix verification.
     # Roswell 30075 picks up Fulton TSPLOST 0.75% via the new
     # county-wide-overlay heuristic (107 type-4 rows, well above
