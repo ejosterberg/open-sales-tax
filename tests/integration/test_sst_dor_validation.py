@@ -5592,6 +5592,54 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-128 audit pin: SalesTaxHandbook (state 6.25 + city 2.0 = TX local cap)",
     ),
+    # iter-129: 5 representative TX cities from the 15-city batch
+    # (San Marcos/Georgetown/Pflugerville/Boerne/Kerrville). Each
+    # at TX's 8.25% local cap. Verified live 2026-05-11.
+    (
+        "TX",
+        "San Marcos",
+        "78666",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Hays 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "Georgetown",
+        "78626",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Williamson + 2.0 stack)",
+    ),
+    (
+        "TX",
+        "Pflugerville",
+        "78660",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Travis + 2.0 stack)",
+    ),
+    (
+        "TX",
+        "Boerne",
+        "78006",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Kendall + 2.0 stack)",
+    ),
+    (
+        "TX",
+        "Kerrville",
+        "78028",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Kerr 0.5 + city 1.5)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
