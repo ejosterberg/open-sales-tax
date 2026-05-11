@@ -1397,6 +1397,87 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 8.750
         ("92320",),
     ),
+    # ----- San Joaquin County (iter-119) -----
+    # SJ Co rate 0.5% in our model (state+co = 7.75%). Each city
+    # adds its own portion. Vallejo (Solano) and Stockton (SJ) had
+    # been the only SJ-area cities in the seed.
+    "Tracy": (
+        # state 7.25 + SJ 0.5 + city 0.5 = 8.250.
+        "San Joaquin County",
+        Decimal("0.500"),  # combined 8.250
+        ("95376", "95377", "95378", "95391"),
+    ),
+    "Manteca": (
+        # state 7.25 + SJ 0.5 + city 1.25 = 9.000.
+        "San Joaquin County",
+        Decimal("1.250"),  # combined 9.000
+        ("95336", "95337"),
+    ),
+    "Lodi": (
+        # state 7.25 + SJ 0.5 + city 1.25 = 9.000.
+        # NOTE: 95240/95241 alt 8.25% in some areas with city 0.5%.
+        "San Joaquin County",
+        Decimal("1.250"),  # combined 9.000
+        ("95240", "95242"),
+    ),
+    # ----- Merced County (iter-119) -----
+    # Merced Co engine rate 1.0% (state+co = 8.25%). Atwater and Los
+    # Banos each layer 0.5% city tax.
+    "Atwater": (
+        # state 7.25 + Merced 1.0 + city 0.5 = 8.750.
+        "Merced County",
+        Decimal("0.500"),  # combined 8.750
+        ("95301",),
+    ),
+    "Los Banos": (
+        # state 7.25 + Merced 1.0 + city 0.5 = 8.750.
+        "Merced County",
+        Decimal("0.500"),  # combined 8.750
+        ("93635",),
+    ),
+    # ----- Fresno County (iter-119) -----
+    # Fresno Co engine rate 0.725% (state+co = 7.975%). Each Fresno-Co
+    # city below adds its own portion.
+    "Clovis": (
+        # state 7.25 + Fresno 0.725 + city 1.0 = 8.975.
+        "Fresno County",
+        Decimal("1.000"),  # combined 8.975
+        ("93611", "93612", "93613", "93619"),
+    ),
+    "Sanger": (
+        # state 7.25 + Fresno 0.725 + city 0.75 = 8.725.
+        "Fresno County",
+        Decimal("0.750"),  # combined 8.725
+        ("93657",),
+    ),
+    "Selma": (
+        # state 7.25 + Fresno 0.725 + city 1.0 = 8.975.
+        "Fresno County",
+        Decimal("1.000"),  # combined 8.975
+        ("93662",),
+    ),
+    "Reedley": (
+        # state 7.25 + Fresno 0.725 + city 1.25 = 9.225.
+        "Fresno County",
+        Decimal("1.250"),  # combined 9.225
+        ("93654",),
+    ),
+    "Kingsburg": (
+        # state 7.25 + Fresno 0.725 + city 1.0 = 8.975.
+        "Fresno County",
+        Decimal("1.000"),  # combined 8.975
+        ("93631",),
+    ),
+    # ----- Tulare County (iter-119) -----
+    # Dinuba 93618 was binding to Fresno Co (0.725%) via Census
+    # ZCTA misattribution -- Dinuba is in Tulare Co. Same pattern
+    # as Auburn/Davis/Petaluma/Sonoma. City anchor + 0.25 city =
+    # state 7.25 + Tulare 1.0 + 0.25 = 8.5 (matches SalesTaxHandbook).
+    "Dinuba": (
+        "Tulare County",
+        Decimal("0.250"),  # combined 8.500
+        ("93618",),
+    ),
 }
 
 

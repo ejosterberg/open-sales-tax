@@ -315,10 +315,13 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-118: Rancho Cordova + Galt (Sac Co) + Highland (SBd
       Co) + Norco + Calimesa (Riverside Co) -- all +1.0 or +1.5
       city
+    - iter-119: 11 Central Valley + SJ Co cities (Tracy/Manteca/
+      Lodi/Atwater/Los Banos/Clovis/Sanger/Selma/Reedley/
+      Kingsburg + Dinuba cross-county Tulare rebind from Fresno)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 132
+    assert len(CA_CITIES) == 143
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
