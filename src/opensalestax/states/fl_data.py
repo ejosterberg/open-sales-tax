@@ -146,7 +146,9 @@ FL_COUNTY_SURTAX_PCT: dict[str, Decimal] = {
     "Monroe County": Decimal("1.500"),  # 0.5% School + 1.0% Local Govt
     "Nassau County": Decimal("1.000"),  # Local Govt Infrastructure
     "Okaloosa County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt
-    "Okeechobee County": Decimal("1.000"),  # Small County Surtax
+    "Okeechobee County": Decimal(
+        "1.500"
+    ),  # iter-142: was 1.0; SalesTaxHandbook 2026 shows 1.5 (Small County Surtax + School Capital Outlay)
     "Orange County": Decimal("0.500"),  # School Capital Outlay
     "Osceola County": Decimal("1.500"),  # 1% Transportation + 0.5% School
     "Palm Beach County": Decimal("1.000"),  # 1% Infrastructure (school surtax expired)
