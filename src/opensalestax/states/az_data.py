@@ -256,13 +256,17 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ("85390",),
     ),
     "Tolleson": (
+        # iter-152: raised 2.500 → 2.800 per SalesTaxHandbook (Tolleson
+        # city tax 2.8% in 2026; under-collect 0.3% pre-fix).
         "Maricopa County",
-        Decimal("2.500"),
+        Decimal("2.800"),
         ("85353",),
     ),
     "Litchfield Park": (
+        # iter-152: raised 2.800 → 3.000 per SalesTaxHandbook (Litchfield
+        # Park city tax 3.0% in 2026; under-collect 0.2% pre-fix).
         "Maricopa County",
-        Decimal("2.800"),
+        Decimal("3.000"),
         ("85340",),
     ),
     "El Mirage": (
@@ -428,6 +432,45 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Cochise County",
         Decimal("3.500"),
         ("85603",),
+    ),
+    # --- iter-152: more Maricopa Co cities + Apache Co additions ---
+    "Cave Creek": (
+        # ZIP 85327 was returning 0% (missing-binding bug, 3rd this
+        # session after CA Mariposa 95338 + FL Paxton 32538).
+        # state 5.6 + Maricopa 0.7 + city 3.0 = 9.3.
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85327", "85331"),
+    ),
+    "Fountain Hills": (
+        # state 5.6 + Maricopa 0.7 + city 2.9 = 9.2.
+        "Maricopa County",
+        Decimal("2.900"),
+        ("85268", "85269"),
+    ),
+    "Paradise Valley": (
+        # state 5.6 + Maricopa 0.7 + city 2.8 = 9.1.
+        "Maricopa County",
+        Decimal("2.800"),
+        ("85253",),
+    ),
+    "Youngtown": (
+        # state 5.6 + Maricopa 0.7 + city 3.0 = 9.3.
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85363",),
+    ),
+    "Eagar": (
+        # state 5.6 + Apache 0.5 + city 3.0 = 9.1.
+        "Apache County",
+        Decimal("3.000"),
+        ("85925",),
+    ),
+    "Springerville": (
+        # state 5.6 + Apache 0.5 + city 3.0 = 9.1.
+        "Apache County",
+        Decimal("3.000"),
+        ("85938",),
     ),
 }
 
