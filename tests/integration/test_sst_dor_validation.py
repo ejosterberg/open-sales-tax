@@ -5688,6 +5688,54 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Walker 0.5 + city 1.5)",
     ),
+    # iter-131: 5 representative TX cities from the 25-city batch
+    # (Weatherford / Mansfield / Texas City / Lake Jackson / Plainview).
+    # Verified live 2026-05-11.
+    (
+        "TX",
+        "Weatherford",
+        "76086",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-131 audit pin: SalesTaxHandbook (state 6.25 + Parker 0.5 + 1.5 stack)",
+    ),
+    (
+        "TX",
+        "Mansfield",
+        "76063",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-131 audit pin: SalesTaxHandbook (state 6.25 + Tarrant + 2.0 stack)",
+    ),
+    (
+        "TX",
+        "Texas City",
+        "77590",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-131 audit pin: SalesTaxHandbook (state 6.25 + Galveston + city 2.0)",
+    ),
+    (
+        "TX",
+        "Lake Jackson",
+        "77566",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-131 audit pin: SalesTaxHandbook (state 6.25 + Brazoria 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "Plainview",
+        "79072",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-131 audit pin: SalesTaxHandbook (state 6.25 + Hale + 2.0 stack)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State

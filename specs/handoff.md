@@ -105,6 +105,60 @@ Cumulative impact since iter-93: **150 CA cities added** (CA_CITIES
 missing CA county (Mariposa) added, ~250 new live-grid pins.
 ~70% of historical CA under-collection closed.
 
+- **iter-126 LA Co beach + west + southeast**: 10 more LA Co cities
+  added (Manhattan/Hermosa/Redondo Beach + Malibu + La Verne +
+  Sierra Madre + La Cañada Flintridge + Maywood + Signal Hill +
+  Huntington Park). **CA_CITIES → 210**.
+- **iter-127 SC Myrtle Beach**: closed a docstring-acknowledged
+  gap (sc_data.py line 122-124 noted Myrtle Beach 1% Tourism
+  Development tax should be modeled, but the city was never added
+  to SC_CITIES). Myrtle Beach 8.0 → 9.0 across 6 ZIPs.
+- **iter-128..131 TX expansion (65 cities total this session)**:
+  - iter-128: Waco + Galveston (2 cities at 8.25% local cap)
+  - iter-129: 15 Austin satellites + Hill Country + San Antonio
+    edges (San Marcos / Georgetown / Pflugerville / Leander / Kyle
+    / Buda / Hutto / Dripping Springs / Wimberley / Schertz /
+    Cibolo / Boerne / Fredericksburg / Kerrville / Marble Falls)
+  - iter-130: 23 regional TX cities (East TX / Gulf Coast / Border /
+    West TX / Panhandle): Texarkana / Nacogdoches / Lufkin / Paris /
+    Sherman / Denison / Greenville / Athens / Palestine / Brenham /
+    Huntsville / Rockport / Port Arthur / Orange / Victoria /
+    Del Rio / Eagle Pass / Brownwood / Stephenville / San Angelo /
+    Big Spring / Andrews / Pampa
+  - iter-131: 25 more (DFW satellites / Brazoria-Galveston Co /
+    Panhandle / South Plains): Weatherford / Granbury / Burleson /
+    Cleburne / Mansfield / Crowley / Cleveland / Liberty / Texas
+    City / Friendswood / Dickinson / Alvin / Angleton / Lake
+    Jackson / Freeport / El Campo / Cuero / Yoakum / Hereford /
+    Borger / Dumas / Plainview / Levelland / Snyder / Sweetwater
+  All 65 hit TX's 8.25% local-cap max per SalesTaxHandbook +
+  Texas Comptroller. TX module was previously the next-most
+  under-modeled big state behind CA; this is a major closure.
+
+**Open follow-ups discovered (not fixed) during iter-117..131**:
+- **NM TRD over-collect 0.25%**: Albuquerque + Santa Fe city tax
+  is 0.25% high vs current TRD published rate. NM module data is
+  from Jan 2026 and needs a refresh against post-Jul-2025 state
+  rate adjustments.
+- **IL Naperville mixed-rate-per-ZIP**: 7.75% live vs 8.75%
+  SalesTaxHandbook main rate. Engine picks the Downtown F&B
+  district instead of the main Naperville rate.
+- **IA West Des Moines LOST dedup bug**: ZIP 50265 over-collects
+  2.0% (Polk Co LOST + Union Co LOST + IA-district-98199 all
+  emitted) and ZIP 50266 over 3.0% (adds IA-district-98049). Fix
+  requires per-state cross-county LOST dedup similar to TN's
+  IMPROVE Act fix in v0.44.
+- **CA El Dorado County over-collect 0.5%**: El Dorado Hills
+  95762 returns 8.25% vs SalesTaxHandbook 7.75%. Engine has El
+  Dorado Co at 1.0% but actual is 0% (the 1.5% special is baked
+  into CA's 7.25% baseline). Fix needs careful audit because
+  Placerville/Cameron Park/Pollock Pines also bind to El Dorado.
+- **CA San Pablo 94806 mixed-rate**: ZIP shared with Richmond;
+  engine picks Richmond's 1.0% city tax instead of San Pablo's
+  1.5%; 0.5% under-collect for ZIP 94806.
+- **CA 90201 cluster**: Bell + Bell Gardens + Cudahy all share
+  ZIP 90201; picker would pick one ambiguously. Not modeled.
+
 Next release should bump significantly for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
