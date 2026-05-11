@@ -113,8 +113,17 @@ def parse_zcta_state_rows(
 
     Census publishes one row per (ZCTA, county) intersection -- a
     single ZIP that crosses 3 counties shows up 3 times. We collapse
-    to one row per (ZIP, state) since the per-county detail isn't
-    consumed at this layer (waits on SubJurisdiction work).
+    to one row per ZIP, picking the **majority state** (most
+    county-row intersections within that state).
+
+    iter-165 fix: prior to this fix, ZIPs that straddled a state line
+    yielded TWO rows (one per state), causing the engine to bind
+    BOTH state authorities to the ZIP and *sum* their rates -- e.g.
+    Pipestone, MN ZIP 56164 returned 11.075% (MN 6.875 + SD 4.2)
+    instead of the correct MN-only 6.875%. The fix picks the state
+    with the most county-row intersections in the Census file. Ties
+    are broken alphabetically by state abbreviation (stable but
+    arbitrary; affects very few ZIPs).
 
     ``abbrev_filter`` lets a caller restrict to a subset of states
     (e.g. just the self-seeded modules); when None, every state in
@@ -133,7 +142,11 @@ def parse_zcta_state_rows(
     if abbrev_filter is not None:
         keep = {a.upper() for a in abbrev_filter}
 
-    seen: set[tuple[str, str]] = set()
+    # First pass: count (zip, state) -> county-row intersections so
+    # we can pick the majority state per ZIP. The Census file has
+    # one row per (ZCTA, county); a ZIP crossing 3 counties in MN
+    # plus 1 in SD will have counts MN=3, SD=1 -- MN wins.
+    counts: dict[tuple[str, str], int] = {}
     with source_file.open(encoding="utf-8-sig") as fp:
         header_skipped = False
         for raw in fp:
@@ -156,20 +169,31 @@ def parse_zcta_state_rows(
                 continue
             if keep is not None and abbrev not in keep:
                 continue
-            key = (zip5, abbrev)
-            if key in seen:
-                continue
-            seen.add(key)
-            yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
+            counts[(zip5, abbrev)] = counts.get((zip5, abbrev), 0) + 1
+
+    # Pick the majority state per ZIP. Sorting by abbrev first means
+    # the lexicographically-first state wins ties (e.g. a 1:1 ZIP
+    # spanning AK/AL would pick AK).
+    zip_to_state: dict[str, str] = {}
+    for (zip5, abbrev), count in sorted(counts.items()):
+        existing = zip_to_state.get(zip5)
+        if existing is None or count > counts[(zip5, existing)]:
+            zip_to_state[zip5] = abbrev
+
+    # Emit one row per ZIP, using the majority state. Sorted for
+    # deterministic load order.
+    seen: set[str] = set()
+    for zip5, abbrev in sorted(zip_to_state.items()):
+        seen.add(zip5)
+        yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
 
     # Append USPS PO-box-only ZIPs the Census file doesn't cover.
     for zip5, abbrev in USPS_PO_BOX_ZIPS.items():
         if keep is not None and abbrev not in keep:
             continue
-        key = (zip5, abbrev)
-        if key in seen:
+        if zip5 in seen:
             continue
-        seen.add(key)
+        seen.add(zip5)
         yield ZctaStateRow(zip5=zip5, state_abbrev=abbrev)
 
 
