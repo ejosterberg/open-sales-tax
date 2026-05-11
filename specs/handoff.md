@@ -169,20 +169,28 @@ missing CA county (Mariposa) added, ~250 new live-grid pins.
   49-city seed). Sampling ~5 cities per iter against
   SalesTaxHandbook (instead of all) caught no errors; the
   systemic "8.25% local cap" pattern is very reliable for TX.
-- **iter-138 + iter-139 FL cross-county fixes**: 3 cross-county
-  Census ZCTA misattribution fixes found in FL (similar pattern
-  to the 9 CA cross-county fixes earlier this session):
-  - Brooksville 34601 was binding to Citrus Co (0%) instead of
-    Hernando Co (0.5%); under-collect 0.5%
-  - Dade City 33523 was binding to Hernando Co (0.5%) instead
-    of Pasco Co (1.0%); under-collect 0.5%
-  - Winter Garden 34787 was binding to Lake Co (1.0%) instead of
-    Orange Co (0.5%); OVER-collect 0.5% (first FL over-collect
-    fix this session)
-  FL_CITIES grew 30 → 33; test_florida_seeds_top_30_cities bumped.
-  Cross-county fix total this session: **12** (Auburn, Davis,
+- **iter-138..145 FL probe sweep**: 8 distinct FL data bugs
+  surfaced and fixed across 6 iters, evenly split between cross-
+  county misattribution and county-rate/missing-binding issues:
+  - **Cross-county Census ZCTA fixes (5)**: Brooksville
+    Citrus→Hernando (iter-138); Dade City Hernando→Pasco +
+    Winter Garden Lake→Orange (iter-139); Chipley Bay→Washington
+    (iter-143); White Springs Columbia→Hamilton (iter-145).
+  - **County-rate updates (2)**: Okeechobee Co 1.0 → 1.5
+    (iter-142, +School Capital Outlay surtax); Hamilton Co
+    1.0 → 2.0 (iter-145, effective Jan 2025 per
+    SalesTaxHandbook -- pushed past historic 1.5% surtax cap,
+    test relaxed to 2.0% allowable in commit 19a3500).
+  - **Missing-binding (0%-jurisdictions) fix (1)**: Paxton 32538
+    was unbound -- Census ZCTA didn't ship that ZIP. Added
+    Walton Co city anchor (iter-144). Same bug pattern as CA
+    Mariposa 95338 from iter-120.
+  FL_CITIES grew 30 → 37 (Brooksville, Dade City, Winter Garden,
+  Chipley, Paxton, White Springs, Jasper).
+  **Cross-county fix total this session: 14** (Auburn, Davis,
   Petaluma, Sonoma, Dinuba, Turlock, Watsonville, Rio Vista,
-  Folsom + Brooksville, Dade City, Winter Garden).
+  Folsom + Brooksville, Dade City, Winter Garden, Chipley,
+  White Springs).
 - **iter-135 broad probe** (no fixes shipped): verified
   MN/WI/TN/GA/NC/VA/MO/CT/RI/MD/DE major + mid cities mostly
   correct. Marietta GA 6.0%, Charlottesville VA 5.3%, Topeka KS
