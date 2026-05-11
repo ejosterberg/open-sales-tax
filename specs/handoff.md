@@ -82,6 +82,21 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-169 follow-up MO KC multi-county under-collect** (logged
+  not fixed): Kansas City MO's city tax (3.25%) is bound only to
+  Jackson Co ZIPs in MO_CITIES. The KC city limits extend into
+  Clay Co (64117-64119), Platte Co (64150-64158), and Cass Co.
+  64117/64118/64119 return 5.475% (state + Clay only) instead of
+  ~8.725%. North Kansas City (64116) is also missing — separate
+  municipality with its own ~2.625% city rate. The MO module's
+  ``MO_CITIES`` comment block already flags this: "A future
+  ratchet should add Clay-side / Platte-side KCMO entries as
+  separate 'Kansas City (Clay)' rows." Adding two new
+  ``MO_CITIES`` entries (``Kansas City (Clay)`` and
+  ``North Kansas City``) and a Platte-side entry would fix it.
+  Each entry takes a county_name + city_rate + tuple of ZIPs;
+  the parser already supports cross-county anchors. Defer
+  pending bandwidth.
 - **iter-169 OH COTA transit under-collect — RESOLVED**:
   Probed OH cities, found that Dublin 43017 returned 7.0%
   instead of 8.0% — the 1% COTA transit was missing. Root cause:
