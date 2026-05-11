@@ -327,8 +327,11 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     # --- Pima County (additional, beyond Tucson + Marana) ---
     "Sahuarita": (
+        # iter-150: raised 2.000 → 5.000 in 2024 (city tax 2% became
+        # 5% special tax per SalesTaxHandbook). Engine had been
+        # under-collecting 3.0% for 85629.
         "Pima County",
-        Decimal("2.000"),
+        Decimal("5.000"),
         ("85629",),
     ),
     # --- Yuma County (additional, beyond Yuma) ---
