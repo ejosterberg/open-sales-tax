@@ -298,10 +298,14 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-110: Alhambra + Monterey Park (LA Co +0.75% each, SGV)
     - iter-111: National City + Vista + San Marcos (SD Co +1.0% each)
     - iter-112: Cupertino + Milpitas (Santa Clara Co +0.25% each)
+    - iter-113: Auburn (Placer Co cross-county fix; -1.0% over) +
+      Loomis (Placer +0.25%) + Davis (Yolo Co cross-county fix +
+      city +1.25%) + 5 SLO Co cities (San Luis Obispo / Atascadero
+      / Paso Robles / Arroyo Grande / Morro Bay, each +0.5%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 91
+    assert len(CA_CITIES) == 99
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
