@@ -4344,6 +4344,24 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-107 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75; Artesia area)",
     ),
+    (
+        "CA",
+        "Santa Monica",
+        "90401",
+        "0001",
+        "10.750",
+        "0.05",
+        "iter-108 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 1.0)",
+    ),
+    (
+        "CA",
+        "West Hollywood",
+        "90069",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-108 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
