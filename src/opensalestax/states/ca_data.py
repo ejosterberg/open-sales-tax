@@ -1737,6 +1737,88 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),  # combined 10.750
         ("94563",),
     ),
+    # ----- More Los Angeles County (iter-124) -----
+    # LA Co engine rate 2.5% (state+co = 9.75%). The 13 cities below
+    # each layer their own city portion. West Covina/Rosemead were
+    # probed and confirmed correct at 9.75% (no city tax).
+    "Beverly Hills": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90209", "90210", "90211", "90212"),
+    ),
+    "Downey": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90239", "90240", "90241", "90242"),
+    ),
+    "Norwalk": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90650", "90651", "90652"),
+    ),
+    "Bellflower": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90706", "90707"),
+    ),
+    "Carson": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90745", "90746", "90747", "90749"),
+    ),
+    "Inglewood": (
+        # state 7.25 + LA 2.5 + city 0.5 = 10.250.
+        "Los Angeles County",
+        Decimal("0.500"),  # combined 10.250
+        ("90301", "90302", "90305", "90306", "90307", "90308", "90309", "90310"),
+    ),
+    "Compton": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90220", "90222", "90223", "90224"),
+    ),
+    "Lynwood": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90262",),
+    ),
+    "Paramount": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90723",),
+    ),
+    "South Gate": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90280",),
+    ),
+    "Pico Rivera": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90660", "90661", "90662"),
+    ),
+    "Montebello": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90640",),
+    ),
+    "El Monte": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91731", "91732", "91733", "91734", "91735"),
+    ),
 }
 
 

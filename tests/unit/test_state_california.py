@@ -335,10 +335,14 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-123: 8 Contra Costa Co cities (Brentwood/Martinez/
       Pleasant Hill/Lafayette/Moraga each +1.0 city; Hercules/
       Pinole +1.5 each; Orinda +2.0)
+    - iter-124: 13 LA Co cities (Beverly Hills/Downey/Norwalk/
+      Bellflower/Carson/El Monte each +0.75; Inglewood +0.5;
+      Compton/Lynwood/Paramount/South Gate/Pico Rivera/Montebello
+      each +1.0)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 175
+    assert len(CA_CITIES) == 188
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
