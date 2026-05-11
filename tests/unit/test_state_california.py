@@ -351,10 +351,12 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-161: Trinity Co added + Weaverville + Hayfork city
       anchors (ZIPs 96041 + 96093 were unbound returning 0%; same
       missing-county bug as Mariposa from iter-120)
+    - iter-162: Alpine Co added + Markleeville city anchor (ZIP
+      96120 was unbound returning 0%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 216
+    assert len(CA_CITIES) == 217
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

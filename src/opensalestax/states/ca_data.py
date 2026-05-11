@@ -168,6 +168,9 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # those two specific counties pending a CDTFA TRA-level loader).
     # Pre-fix these counties returned state-only 7.25%; post-fix they
     # return state + county-district correctly for incorporated areas.
+    "Alpine County": Decimal(
+        "0.000"
+    ),  # iter-162: was missing; ZIP 96120 (Markleeville) returned 0%
     "Amador County": Decimal("0.500"),
     "Butte County": Decimal("1.000"),
     "Calaveras County": Decimal("1.500"),
@@ -2005,6 +2008,14 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Trinity County",
         Decimal("0.000"),  # combined 7.250
         ("96041",),
+    ),
+    # ----- Alpine County (iter-162) -----
+    # Alpine Co (the smallest CA county by population) was missing
+    # from CA_COUNTY_RATE_PCT. 5th missing-binding bug this session.
+    "Markleeville": (
+        "Alpine County",
+        Decimal("0.000"),  # combined 7.250
+        ("96120",),
     ),
 }
 
