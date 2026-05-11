@@ -6881,6 +6881,30 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "SD DOR (state 4.2% + Sioux Falls 2%) -- iter-168 ZCTA area-majority picks SD over MN",
     ),
+    # iter-169: OH COTA transit included when multiple competing
+    # type-4-only districts exist. Pre-fix: Dublin 43017 returned
+    # 7.0% (Franklin Co + state, COTA dropped). Post-fix: COTA
+    # survives because it's the dominant CURATED type-4-only
+    # district. Confirms _MIN_LONE_DISTRICT_ROWS + 2x-runner-up
+    # margin + curated-name filter all gate correctly.
+    (
+        "OH",
+        "Dublin",
+        "43017",
+        "0001",
+        "8.000",
+        "0.05",
+        "OH DOR (state 5.75% + Franklin 1.25% + COTA 1%) -- iter-169 multi-district loose path",
+    ),
+    (
+        "OH",
+        "Reynoldsburg",
+        "43004",
+        "0001",
+        "8.000",
+        "0.05",
+        "OH DOR (Franklin Co side; COTA included via iter-169 multi-district picker)",
+    ),
 ]
 
 

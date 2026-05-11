@@ -82,6 +82,31 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-169 OH COTA transit under-collect — RESOLVED**:
+  Probed OH cities, found that Dublin 43017 returned 7.0%
+  instead of 8.0% — the 1% COTA transit was missing. Root cause:
+  the engine's "lone type-4-only district" rule (iter-62 / v0.47)
+  only included a type-4-only district if it was THE ONLY one.
+  Dublin 43017 has 3 type-4-only districts (COTA 260 rows + 2
+  placeholder special districts at 71 and 28 rows), so the
+  picker dropped them all.
+
+  **Fix** (commit a44ae05 src/opensalestax/core/lookup.py): when
+  multiple type-4-only districts compete, pick the dominant
+  CURATED one (i.e. has a friendly name in the state's *_names.py
+  table) if it has >= _MIN_LONE_DISTRICT_ROWS (20) rows AND
+  dominates the runner-up by 2x+. The curated-name filter
+  naturally excludes the KS/OK/TN competing-CID case (placeholder
+  TIF/CID names) while letting OH transit authorities through.
+
+  Verified affected ZIPs: 43017 / 43215 / 43004 (Dublin /
+  Columbus / Reynoldsburg) all moved from 7.0/7.5/7.5 -> 8.0.
+  Verified unaffected: KS Wichita / OK OKC / OK Tulsa (all
+  multi-CID ZIPs with placeholder names; correctly drop all
+  type-4-only districts as before).
+
+  **Pin** (commit pending): tests/integration/test_sst_dor_validation.py
+  with Dublin 43017 + Reynoldsburg 43004 entries.
 - **iter-165..168 MN/SD cross-state ZIP bug — RESOLVED**
   (was iter-163/164 logged, iter-165 partial, iter-166 mis-fix,
   iter-167 right idea wrong filter, iter-168 ships):
