@@ -5815,6 +5815,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-139 audit pin: SalesTaxHandbook (Orange rebind from Lake; OVER-fix)",
     ),
+    (
+        "FL",
+        "Okeechobee",
+        "34972",
+        "0001",
+        "7.500",
+        "0.05",
+        "iter-142 audit pin: SalesTaxHandbook (state 6 + Okeechobee 1.5; was 1.0, +0.5 school added)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
