@@ -302,10 +302,13 @@ def test_california_seeds_fifty_cities() -> None:
       Loomis (Placer +0.25%) + Davis (Yolo Co cross-county fix +
       city +1.25%) + 5 SLO Co cities (San Luis Obispo / Atascadero
       / Paso Robles / Arroyo Grande / Morro Bay, each +0.5%)
+    - iter-114: 6 Sonoma Co cities (Petaluma + Sonoma both
+      cross-county rebinds, plus Sebastopol/Healdsburg/Rohnert Park/
+      Cotati) + 3 Napa Co cities (Napa/American Canyon/Calistoga)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 99
+    assert len(CA_CITIES) == 108
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

@@ -1155,6 +1155,78 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.125"),  # combined 9.250 (Measures B + V stacked)
         ("94589", "94590", "94591", "94592"),
     ),
+    # ----- Sonoma County -----
+    # iter-114: Sonoma Co rate in our model is 2.0% (combined baseline
+    # 9.25%). Cities below add their own city portion. Petaluma was
+    # binding to Marin Co (1.0%) via Census ZCTA misattribution -- the
+    # city anchor forces the correct Sonoma Co bind. Sonoma the city
+    # was binding to Napa Co for the same reason; same fix.
+    "Petaluma": (
+        # state 7.25 + Sonoma 2.0 + city 1.0 = 10.250.
+        "Sonoma County",
+        Decimal("1.000"),  # combined 10.250
+        ("94952", "94954", "94975"),
+    ),
+    "Sonoma": (
+        # state 7.25 + Sonoma 2.0 + city 1.0 = 10.250.
+        "Sonoma County",
+        Decimal("1.000"),  # combined 10.250
+        ("95476",),
+    ),
+    "Sebastopol": (
+        # SalesTaxHandbook 10.5%; state 6 + Sonoma 0.25 + city 1.25 + special 3.
+        # In our model: state 7.25 + Sonoma 2.0 + city 1.25 = 10.500.
+        "Sonoma County",
+        Decimal("1.250"),  # combined 10.500
+        ("95472",),
+    ),
+    "Healdsburg": (
+        # state 7.25 + Sonoma 2.0 + city 0.5 = 9.750.
+        "Sonoma County",
+        Decimal("0.500"),  # combined 9.750
+        ("95448",),
+    ),
+    "Rohnert Park": (
+        # state 7.25 + Sonoma 2.0 + city 0.5 = 9.750.
+        # NOTE: 94928 has alt 10.25% in Cotati tax region per
+        # SalesTaxHandbook; we use the Rohnert Park city rate here.
+        "Sonoma County",
+        Decimal("0.500"),  # combined 9.750
+        ("94928",),
+    ),
+    "Cotati": (
+        # state 7.25 + Sonoma 2.0 + city 1.0 = 10.250.
+        "Sonoma County",
+        Decimal("1.000"),  # combined 10.250
+        ("94931",),
+    ),
+    # ----- Napa County -----
+    # iter-114: Napa Co rate 0.5% in our model. Cities add their city
+    # portion; American Canyon + Calistoga's "extra" tax above the
+    # baseline rolls into the city portion in our model (SalesTaxHandbook
+    # splits it as Special Tax 3% vs Special Tax 1.5%, but the consumer-
+    # facing combined rate is what matters for the API).
+    "Napa": (
+        # state 7.25 + Napa 0.5 + city 1.0 = 8.750.
+        "Napa County",
+        Decimal("1.000"),  # combined 8.750
+        ("94558", "94559", "94581"),
+    ),
+    "American Canyon": (
+        # state 7.25 + Napa 0.5 + city 1.5 = 9.250.
+        "Napa County",
+        Decimal("1.500"),  # combined 9.250
+        ("94503",),
+    ),
+    "Calistoga": (
+        # state 7.25 + Napa 0.5 + city 1.5 = 9.250.
+        # In SalesTaxHandbook this 1.5% is "Special Tax 3%" minus the
+        # baseline 1.5% already in CA's statewide 7.25; we model it as
+        # a city overlay for arithmetic simplicity.
+        "Napa County",
+        Decimal("1.500"),  # combined 9.250
+        ("94515",),
+    ),
 }
 
 
