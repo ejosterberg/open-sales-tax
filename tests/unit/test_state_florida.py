@@ -108,8 +108,12 @@ def test_florida_seeds_top_30_cities() -> None:
     - Paxton iter-144 (ZIP 32538 was returning 0% jurisdictions --
       no Census ZCTA boundary record; fixed by adding Walton Co
       city anchor)
+    - White Springs iter-145 (ZIP 32096 was binding to Columbia Co
+      instead of Hamilton Co)
+    - Jasper iter-145 (city anchor for Hamilton Co; same county
+      where rate was raised 1.0 → 2.0 effective Jan 2025)
     """
-    assert len(FL_CITIES) == 35
+    assert len(FL_CITIES) == 37
 
 
 def test_florida_every_city_county_is_known() -> None:

@@ -118,7 +118,9 @@ FL_COUNTY_SURTAX_PCT: dict[str, Decimal] = {
     "Gilchrist County": Decimal("1.000"),  # Small County Surtax
     "Glades County": Decimal("1.000"),  # Small County Surtax
     "Gulf County": Decimal("1.000"),  # Small County Surtax
-    "Hamilton County": Decimal("1.000"),  # Small County Surtax
+    "Hamilton County": Decimal(
+        "2.000"
+    ),  # iter-145: raised 1.0 → 2.0 effective Jan 2025 (Small County Surtax + 1% increase per SalesTaxHandbook)
     "Hardee County": Decimal("1.000"),  # Small County Surtax
     "Hendry County": Decimal("1.500"),  # Small County + School
     "Hernando County": Decimal("0.500"),  # School Capital Outlay
@@ -538,6 +540,24 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
     "Paxton": (
         "Walton County",
         ("32538",),
+    ),
+    # 36. White Springs (Hamilton County) -- iter-145 cross-county
+    # rebind: ZIP 32096 was binding to Columbia Co (1.5% surtax)
+    # instead of Hamilton Co (now 2.0% after Jan 2025 raise),
+    # returning 7.5% instead of 8.0%. 14th cross-county fix this
+    # session.
+    "White Springs": (
+        "Hamilton County",
+        ("32096",),
+    ),
+    # 37. Jasper (Hamilton County) -- iter-145 county-rate fix
+    # (Hamilton went 1.0 → 2.0). Engine returned 7.0 (state 6 +
+    # Hamilton 1.0); now returns 8.0. Adding Jasper as city anchor
+    # makes the pin explicit; the rate fix is in
+    # FL_COUNTY_SURTAX_PCT above.
+    "Jasper": (
+        "Hamilton County",
+        ("32052", "32053"),
     ),
 }
 
