@@ -601,6 +601,17 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 8.750
         ("92069", "92078", "92079", "92096"),
     ),
+    # iter-112: Santa Clara Co cities (each +0.25% city tax)
+    "Cupertino": (
+        "Santa Clara County",
+        Decimal("0.250"),  # combined 10.000
+        ("95014",),
+    ),
+    "Milpitas": (
+        "Santa Clara County",
+        Decimal("0.250"),  # combined 10.000
+        ("95035",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
