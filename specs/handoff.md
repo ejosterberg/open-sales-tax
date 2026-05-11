@@ -82,6 +82,16 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-158/159 HI Maui Co surcharge uncertain** (logged not
+  fixed): SalesTaxHandbook reports 0.5% Maui County surcharge for
+  Kahului/Kihei/Lahaina/Wailuku ZIPs as of May 2026, but our
+  hi_data.py has Maui Co at 0.000% with comment "Maui Bill No. 30
+  (2023) authorized but did not enact a 0.5% surcharge." Engine
+  returns 4.0% for these ZIPs; SalesTaxHandbook says 4.5%. The
+  effective date of the Maui surcharge appears to be in dispute --
+  need authoritative cross-check against HI DOTAX Tax Facts 31-1
+  before updating. Conservative stance: leave at 0.0% pending
+  verification.
 - **iter-148 TN IMPROVE Act over-collect** (logged not fixed):
   multiple TN cities in Davidson + Williamson + Sumner Co
   over-collect by 0.5-1.0% due to multiple IMPROVE Act district
