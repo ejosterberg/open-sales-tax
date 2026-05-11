@@ -2029,6 +2029,171 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("76060",),
     ),
+    # iter-137: 27 more TX panhandle + west TX cities. All probed
+    # bare 6.25%; all hit 8.25% cap except Marfa (8.0% - city tax
+    # only 1.75% - logged as separate follow-up).
+    "Vernon": (
+        "Wilbarger County",
+        None,
+        Decimal("2.000"),
+        ("76384", "76385"),
+    ),
+    "Quanah": (
+        "Hardeman County",
+        None,
+        Decimal("2.000"),
+        ("79252",),
+    ),
+    "Childress": (
+        "Childress County",
+        None,
+        Decimal("2.000"),
+        ("79201",),
+    ),
+    "Memphis": (
+        "Hall County",
+        None,
+        Decimal("2.000"),
+        ("79245",),
+    ),
+    "Clarendon": (
+        "Donley County",
+        None,
+        Decimal("2.000"),
+        ("79226",),
+    ),
+    "Wellington": (
+        "Collingsworth County",
+        None,
+        Decimal("2.000"),
+        ("79095",),
+    ),
+    "Shamrock": (
+        "Wheeler County",
+        None,
+        Decimal("2.000"),
+        ("79079",),
+    ),
+    "Wheeler": (
+        "Wheeler County",
+        None,
+        Decimal("2.000"),
+        ("79096",),
+    ),
+    "Canadian": (
+        "Hemphill County",
+        None,
+        Decimal("2.000"),
+        ("79014",),
+    ),
+    "Spearman": (
+        "Hansford County",
+        None,
+        Decimal("2.000"),
+        ("79081",),
+    ),
+    "Perryton": (
+        "Ochiltree County",
+        None,
+        Decimal("2.000"),
+        ("79070",),
+    ),
+    "Stratford": (
+        "Sherman County",
+        None,
+        Decimal("2.000"),
+        ("79084",),
+    ),
+    "Dalhart": (
+        "Dallam County",
+        None,
+        Decimal("2.000"),
+        ("79022",),
+    ),
+    "Tulia": (
+        "Swisher County",
+        None,
+        Decimal("2.000"),
+        ("79088",),
+    ),
+    "Floydada": (
+        "Floyd County",
+        None,
+        Decimal("2.000"),
+        ("79235",),
+    ),
+    "Lockney": (
+        "Floyd County",
+        None,
+        Decimal("2.000"),
+        ("79241",),
+    ),
+    "Crosbyton": (
+        "Crosby County",
+        None,
+        Decimal("2.000"),
+        ("79322",),
+    ),
+    "Tahoka": (
+        "Lynn County",
+        None,
+        Decimal("2.000"),
+        ("79373",),
+    ),
+    "Lamesa": (
+        "Dawson County",
+        None,
+        Decimal("2.000"),
+        ("79331",),
+    ),
+    "Brownfield": (
+        "Terry County",
+        None,
+        Decimal("2.000"),
+        ("79316",),
+    ),
+    "Seminole": (
+        "Gaines County",
+        None,
+        Decimal("2.000"),
+        ("79360",),
+    ),
+    "Stanton": (
+        "Martin County",
+        None,
+        Decimal("2.000"),
+        ("79782",),
+    ),
+    "Monahans": (
+        "Ward County",
+        None,
+        Decimal("2.000"),
+        ("79756",),
+    ),
+    "Pecos": (
+        "Reeves County",
+        None,
+        Decimal("2.000"),
+        ("79772",),
+    ),
+    "Fort Stockton": (
+        "Pecos County",
+        None,
+        Decimal("2.000"),
+        ("79735",),
+    ),
+    "Alpine": (
+        "Brewster County",
+        None,
+        Decimal("2.000"),
+        ("79830",),
+    ),
+    "Presidio": (
+        "Presidio County",
+        None,
+        Decimal("2.000"),
+        ("79845",),
+    ),
 }
 
 
