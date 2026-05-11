@@ -930,9 +930,14 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ("92401", "92404", "92405", "92407", "92408", "92410", "92411"),
     ),
     "Fontana": (
+        # Fixed iter-109 stale comment: combined is 8.750, not 7.750
+        # (state 7.25 + San Bernardino 0.5 + city 1.0 = 8.750).
+        # Added ZIP 92376: per SalesTaxHandbook the 92376 ZIP is in
+        # the "Fontana tax region" (overlap with Rialto). Rialto
+        # proper has its own 92377 ZIP at 7.75%.
         "San Bernardino County",
-        Decimal("1.000"),  # combined 7.750
-        ("92335", "92336", "92337"),
+        Decimal("1.000"),  # combined 8.750
+        ("92335", "92336", "92337", "92376"),
     ),
     "Rancho Cucamonga": (
         "San Bernardino County",
