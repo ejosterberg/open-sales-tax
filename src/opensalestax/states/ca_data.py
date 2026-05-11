@@ -560,6 +560,19 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # Santa Fe Springs subarea not modeled at this scale)
         ("90703",),
     ),
+    # iter-108: high-profile LA cities
+    "Santa Monica": (
+        # 9.75% live vs SalesTaxHandbook 10.75% (city +1.0%)
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90401", "90402", "90403", "90404", "90405", "90406", "90407", "90408", "90409", "90410", "90411"),
+    ),
+    "West Hollywood": (
+        # 9.75% live vs SalesTaxHandbook 10.50% (city +0.75%)
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90069", "90046"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500

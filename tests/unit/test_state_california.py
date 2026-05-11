@@ -294,10 +294,11 @@ def test_california_seeds_fifty_cities() -> None:
       Whittier (+0.75%) + La Habra (OC anchor + 1.0%)
     - iter-107: Gardena + Lawndale + Hawthorne + Cerritos
       (each +0.75%, LA Co South Bay)
+    - iter-108: Santa Monica (+1.0%) + West Hollywood (+0.75%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 82
+    assert len(CA_CITIES) == 84
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
