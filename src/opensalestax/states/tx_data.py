@@ -1407,6 +1407,159 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("79065",),
     ),
+    # iter-131: 25 more TX cities probed bare at 6.25% pre-fix.
+    # DFW satellites + Gulf Coast + Brazoria/Galveston + Panhandle
+    # + South Plains. All hit TX 8.25% local cap.
+    "Weatherford": (
+        "Parker County",
+        None,
+        Decimal("2.000"),
+        ("76086", "76087", "76088"),
+    ),
+    "Granbury": (
+        "Hood County",
+        None,
+        Decimal("2.000"),
+        ("76048", "76049"),
+    ),
+    "Burleson": (
+        "Johnson County",
+        None,
+        Decimal("2.000"),
+        ("76028", "76097"),
+    ),
+    "Cleburne": (
+        "Johnson County",
+        None,
+        Decimal("2.000"),
+        ("76031", "76033"),
+    ),
+    "Mansfield": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76063",),
+    ),
+    "Crowley": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76036",),
+    ),
+    "Cleveland": (
+        "Liberty County",
+        None,
+        Decimal("2.000"),
+        ("77327", "77328"),
+    ),
+    "Liberty": (
+        "Liberty County",
+        None,
+        Decimal("2.000"),
+        ("77575",),
+    ),
+    "Texas City": (
+        "Galveston County",
+        None,
+        Decimal("2.000"),
+        ("77590", "77591", "77592"),
+    ),
+    "Friendswood": (
+        "Galveston County",
+        None,
+        Decimal("2.000"),
+        ("77546", "77549"),
+    ),
+    "Dickinson": (
+        "Galveston County",
+        None,
+        Decimal("2.000"),
+        ("77539",),
+    ),
+    "Alvin": (
+        "Brazoria County",
+        None,
+        Decimal("2.000"),
+        ("77511", "77512"),
+    ),
+    "Angleton": (
+        "Brazoria County",
+        None,
+        Decimal("2.000"),
+        ("77515", "77516"),
+    ),
+    "Lake Jackson": (
+        "Brazoria County",
+        None,
+        Decimal("2.000"),
+        ("77566",),
+    ),
+    "Freeport": (
+        "Brazoria County",
+        None,
+        Decimal("2.000"),
+        ("77541", "77542"),
+    ),
+    "El Campo": (
+        "Wharton County",
+        None,
+        Decimal("2.000"),
+        ("77437",),
+    ),
+    "Cuero": (
+        "DeWitt County",
+        None,
+        Decimal("2.000"),
+        ("77954",),
+    ),
+    "Yoakum": (
+        "DeWitt County",
+        None,
+        Decimal("2.000"),
+        ("77995",),
+    ),
+    "Hereford": (
+        "Deaf Smith County",
+        None,
+        Decimal("2.000"),
+        ("79045",),
+    ),
+    "Borger": (
+        "Hutchinson County",
+        None,
+        Decimal("2.000"),
+        ("79007", "79008"),
+    ),
+    "Dumas": (
+        "Moore County",
+        None,
+        Decimal("2.000"),
+        ("79029",),
+    ),
+    "Plainview": (
+        "Hale County",
+        None,
+        Decimal("2.000"),
+        ("79072", "79073"),
+    ),
+    "Levelland": (
+        "Hockley County",
+        None,
+        Decimal("2.000"),
+        ("79336",),
+    ),
+    "Snyder": (
+        "Scurry County",
+        None,
+        Decimal("2.000"),
+        ("79549", "79550"),
+    ),
+    "Sweetwater": (
+        "Nolan County",
+        None,
+        Decimal("2.000"),
+        ("79556",),
+    ),
 }
 
 
