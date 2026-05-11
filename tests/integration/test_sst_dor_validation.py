@@ -5842,6 +5842,24 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-144 audit pin: regression test for 0%-jurisdictions bug (was unbound; added Walton Co)",
     ),
+    (
+        "FL",
+        "Jasper",
+        "32052",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-145 audit pin: SalesTaxHandbook (Hamilton Co rate raised 1.0→2.0 Jan 2025)",
+    ),
+    (
+        "FL",
+        "White Springs",
+        "32096",
+        "0001",
+        "8.000",
+        "0.05",
+        "iter-145 audit pin: SalesTaxHandbook (Hamilton rebind from Columbia + 2.0 county rate)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
