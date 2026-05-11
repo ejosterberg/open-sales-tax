@@ -82,6 +82,25 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-165 partial fix for cross-state ZIP bug** (zcta_loader
+  now picks majority state per ZIP, but the bug persists because
+  SST quarterly files for adjacent states ALSO bind the ZIP):
+  After deploying the parse_zcta_state_rows majority-pick fix and
+  reloading ZCTA boundaries, ZIP 56164 still returns 11.075% in
+  prod. SQL inspection reveals 6 boundary rows for 56164: 1 from
+  MN-ZCTA-2020 (post-fix, correct), 2 from MN-SST-2026Q2FEB18,
+  and 3 from SD-SST-2024Q1DEC12. The MN AND SD SST files BOTH
+  ship 56164 as a binding for their respective state's
+  authorities. Lookup engine emits all authorities → both states'
+  rates sum.
+
+  ZCTA fix is committed as iter-165 (commit c3382de) and is the
+  right behavior regardless (no Census ZCTA boundary should bind
+  a ZIP to two states), but the remaining work is **lookup-engine
+  cross-state dedup**: pick one state per ZIP when multiple state
+  authorities have boundaries for the same ZIP. The picker should
+  use USPS PCITY (canonical state assignment) or a "majority of
+  authorities" tiebreaker.
 - **iter-163/164 MN/SD cross-state ZIP bug** (logged not fixed,
   scope confirmed):
   Pipestone-area ZIPs return 11-13% combined because the engine
