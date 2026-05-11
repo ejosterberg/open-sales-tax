@@ -305,10 +305,14 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-114: 6 Sonoma Co cities (Petaluma + Sonoma both
       cross-county rebinds, plus Sebastopol/Healdsburg/Rohnert Park/
       Cotati) + 3 Napa Co cities (Napa/American Canyon/Calistoga)
+    - iter-115: 11 Riverside Co cities (Hemet/Temecula/Murrieta/
+      Lake Elsinore/Menifee/Indio/Coachella/Palm Desert/La Quinta
+      each +1.0% city; Cathedral City + Palm Springs +1.5%) +
+      Porterville (Tulare Co +1.0% city)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 108
+    assert len(CA_CITIES) == 120
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

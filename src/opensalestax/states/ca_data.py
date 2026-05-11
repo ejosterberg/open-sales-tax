@@ -1227,6 +1227,89 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.500"),  # combined 9.250
         ("94515",),
     ),
+    # ----- Riverside County (iter-115) -----
+    # Riverside Co rate is 0.5% in our model (state+co = 7.75%). All
+    # 11 cities below were probing 7.75% before this iter -- a single
+    # systemic under-collect pattern. SalesTaxHandbook lists each
+    # with a 1.0% (or 1.5%) city tax on top, plus a 1.5% Special Tax
+    # district that's already baked into CA's 7.25% state baseline
+    # in our model. City portion below closes each gap exactly.
+    "Hemet": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92543", "92544", "92545", "92546"),
+    ),
+    "Temecula": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92590", "92591", "92592", "92593"),
+    ),
+    "Murrieta": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92562", "92563", "92564"),
+    ),
+    "Lake Elsinore": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92530", "92531", "92532"),
+    ),
+    "Menifee": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92584", "92586", "92587"),
+    ),
+    "Indio": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92201", "92202", "92203"),
+    ),
+    "Coachella": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92236",),
+    ),
+    "Palm Desert": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92255", "92260", "92261"),
+    ),
+    "La Quinta": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92247", "92248", "92253"),
+    ),
+    "Cathedral City": (
+        # state 7.25 + Riverside 0.5 + city 1.5 = 9.250.
+        "Riverside County",
+        Decimal("1.500"),  # combined 9.250
+        ("92234", "92235"),
+    ),
+    "Palm Springs": (
+        # state 7.25 + Riverside 0.5 + city 1.5 = 9.250.
+        "Riverside County",
+        Decimal("1.500"),  # combined 9.250
+        ("92262", "92263", "92264"),
+    ),
+    # ----- Tulare County (iter-115) -----
+    # Tulare Co rate is 1.0% in our model. Porterville layers a
+    # 1.0% city tax (most other Tulare Co cities ride the bare
+    # county rate at 8.25%).
+    "Porterville": (
+        # state 7.25 + Tulare 1.0 + city 1.0 = 9.250.
+        "Tulare County",
+        Decimal("1.000"),  # combined 9.250
+        ("93257", "93258"),
+    ),
 }
 
 
