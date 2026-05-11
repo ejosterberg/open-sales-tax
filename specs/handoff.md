@@ -82,6 +82,18 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-170 follow-up GA Dunwoody Fulton TSPLOST stray bind**
+  (logged not fixed): ZIP 30338 (Dunwoody, DeKalb Co) returns
+  8.75% but Avalara says 8.00%. Engine emits Fulton County
+  TSPLOST (0.75%) AND DeKalb MARTA (1.0%) districts. Dunwoody is
+  fully in DeKalb -- Fulton TSPLOST shouldn't apply. SQL shows
+  Fulton TSPLOST has 24 type-4 boundary rows + 1 stray typez row
+  at 30338, vs DeKalb MARTA's 29 type-4 + 0 typez. The typez row
+  triggers the engine's "typez district always applies"
+  classification. Fix requires linking districts to their parent
+  county and dropping districts whose county wasn't picked --
+  structural change. Likely affects similar metro-Atlanta /
+  metro-Macon / metro-Augusta ZIPs that straddle county lines.
 - **iter-169 follow-up MO KC multi-county under-collect** (logged
   not fixed): Kansas City MO's city tax (3.25%) is bound only to
   Jackson Co ZIPs in MO_CITIES. The KC city limits extend into
