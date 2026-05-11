@@ -1266,6 +1266,147 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("78654", "78657"),
     ),
+    # iter-130: 23 more regional TX cities probed bare at 6.25%
+    # state-only pre-fix. Each at 8.25% local-cap max. East TX +
+    # South TX + West TX + North TX coverage.
+    "Texarkana": (
+        "Bowie County",
+        None,
+        Decimal("2.000"),
+        ("75501", "75503"),
+    ),
+    "Nacogdoches": (
+        "Nacogdoches County",
+        None,
+        Decimal("2.000"),
+        ("75961", "75964", "75965"),
+    ),
+    "Lufkin": (
+        "Angelina County",
+        None,
+        Decimal("2.000"),
+        ("75901", "75904"),
+    ),
+    "Paris": (
+        "Lamar County",
+        None,
+        Decimal("2.000"),
+        ("75460", "75462"),
+    ),
+    "Sherman": (
+        "Grayson County",
+        None,
+        Decimal("2.000"),
+        ("75090", "75092"),
+    ),
+    "Denison": (
+        "Grayson County",
+        None,
+        Decimal("2.000"),
+        ("75020", "75021"),
+    ),
+    "Greenville": (
+        "Hunt County",
+        None,
+        Decimal("2.000"),
+        ("75401", "75402"),
+    ),
+    "Athens": (
+        "Henderson County",
+        None,
+        Decimal("2.000"),
+        ("75751", "75752"),
+    ),
+    "Palestine": (
+        "Anderson County",
+        None,
+        Decimal("2.000"),
+        ("75801", "75802", "75803"),
+    ),
+    "Brenham": (
+        "Washington County",
+        None,
+        Decimal("2.000"),
+        ("77833",),
+    ),
+    "Huntsville": (
+        "Walker County",
+        None,
+        Decimal("2.000"),
+        ("77320", "77340", "77341", "77342", "77343", "77344"),
+    ),
+    "Rockport": (
+        "Aransas County",
+        None,
+        Decimal("2.000"),
+        ("78382",),
+    ),
+    "Port Arthur": (
+        "Jefferson County",
+        None,
+        Decimal("2.000"),
+        ("77640", "77642", "77643"),
+    ),
+    "Orange": (
+        "Orange County",
+        None,
+        Decimal("2.000"),
+        ("77630", "77632"),
+    ),
+    "Victoria": (
+        "Victoria County",
+        None,
+        Decimal("2.000"),
+        ("77901", "77904", "77905"),
+    ),
+    "Del Rio": (
+        "Val Verde County",
+        None,
+        Decimal("2.000"),
+        ("78840",),
+    ),
+    "Eagle Pass": (
+        "Maverick County",
+        None,
+        Decimal("2.000"),
+        ("78852", "78853"),
+    ),
+    "Brownwood": (
+        "Brown County",
+        None,
+        Decimal("2.000"),
+        ("76801", "76804"),
+    ),
+    "Stephenville": (
+        "Erath County",
+        None,
+        Decimal("2.000"),
+        ("76401",),
+    ),
+    "San Angelo": (
+        "Tom Green County",
+        None,
+        Decimal("2.000"),
+        ("76901", "76903", "76904", "76905", "76909"),
+    ),
+    "Big Spring": (
+        "Howard County",
+        None,
+        Decimal("2.000"),
+        ("79720",),
+    ),
+    "Andrews": (
+        "Andrews County",
+        None,
+        Decimal("2.000"),
+        ("79714",),
+    ),
+    "Pampa": (
+        "Gray County",
+        None,
+        Decimal("2.000"),
+        ("79065",),
+    ),
 }
 
 
