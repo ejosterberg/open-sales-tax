@@ -253,6 +253,13 @@ async def lookup_jurisdictions_by_zip(
     if not precise_county_city_ids:
         merged = await _dedup_typez_fallback(session, merged, zip5)
 
+    # iter-166: cross-state ZIP dedup. Some ZIPs (e.g. Pipestone area
+    # 56164 + 56144 + 57068) straddle a state line and end up with
+    # boundary rows in both states' SST quarterly files. Pick the
+    # majority state and drop authorities from any other state to
+    # prevent cross-state rate summing.
+    merged = _filter_to_majority_state(merged)
+
     return _stable_sort(merged)
 
 
@@ -336,6 +343,14 @@ async def lookup_jurisdictions_by_zip5_loose(
         .options(selectinload(TaxAuthority.state))
     )
     rows = [(row[0], row[1]) for row in (await session.execute(stmt)).all()]
+
+    # iter-166: cross-state ZIP dedup. Filter rows down to the majority
+    # state's authorities so cross-state ZIPs (Pipestone-area MN/SD)
+    # don't return both states' rates.
+    if rows:
+        majority_authorities = _filter_to_majority_state([r[0] for r in rows])
+        majority_ids = {a.id for a in majority_authorities}
+        rows = [r for r in rows if r[0].id in majority_ids]
 
     # Total ZIP coverage per candidate authority -- used as a
     # tiebreaker so the more-specific authority wins (e.g. Winooski
@@ -558,6 +573,64 @@ def _stable_sort(authorities: list[TaxAuthority]) -> list[TaxAuthority]:
         authorities,
         key=lambda a: (_TYPE_ORDER.get(a.authority_type, 99), a.name),
     )
+
+
+def _filter_to_majority_state(
+    authorities: list[TaxAuthority],
+) -> list[TaxAuthority]:
+    """Filter authorities to those from the majority state for the ZIP.
+
+    Iter-166 fix for the cross-state ZIP bug (handoff iter-163..165).
+    Some ZIPs straddle a state line and end up with boundary rows in
+    BOTH states' SST quarterly files. The lookup engine previously
+    returned all authorities -- including TWO state authorities --
+    and the rate calculator summed both states' rates.
+
+    For example, ZIP 56164 (Pipestone, MN) had:
+      - 1 MN-ZCTA boundary (state-level)
+      - 2 MN-SST boundaries (state-level, from MN's quarterly file)
+      - 3 SD-SST boundaries (state-level, from SD's quarterly file)
+    The pre-fix engine emitted ``Minnesota`` AND ``South Dakota``
+    state authorities and summed 6.875% + 4.2% = 11.075%.
+
+    This filter picks the state with the most authorities for the
+    ZIP (the "majority state"), then drops authorities from any
+    other state. Ties broken alphabetically by state abbrev (rare
+    in practice; only ~4 ZIPs in the entire US dataset are affected
+    -- the Pipestone-area MN/SD border).
+
+    Authorities without a ``.state`` (shouldn't happen, but defensive)
+    pass through unchanged.
+    """
+    if not authorities:
+        return authorities
+
+    # Count authorities per state. Use abbrev so we don't have to
+    # hash full state objects.
+    counts_per_state: dict[str, int] = {}
+    for auth in authorities:
+        state = getattr(auth, "state", None)
+        if state is None:
+            continue
+        abbrev = getattr(state, "abbrev", None)
+        if not abbrev:
+            continue
+        counts_per_state[abbrev] = counts_per_state.get(abbrev, 0) + 1
+
+    if len(counts_per_state) <= 1:
+        # Single state (or no state info) -- no filtering needed.
+        return authorities
+
+    # Pick the majority state. Tiebreak alphabetically by abbrev
+    # (sort by (-count, abbrev) and pick first).
+    majority = min(counts_per_state.keys(), key=lambda a: (-counts_per_state[a], a))
+
+    return [
+        auth
+        for auth in authorities
+        if (state := getattr(auth, "state", None)) is None
+        or getattr(state, "abbrev", None) == majority
+    ]
 
 
 def _pick_closest_per_type(rows, zip4: str) -> list[TaxAuthority]:
