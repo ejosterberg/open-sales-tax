@@ -5551,6 +5551,26 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-126 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
     ),
+    # iter-127: SC Myrtle Beach Tourism Development tax closes a
+    # docstring-acknowledged gap. Verified live 2026-05-11.
+    (
+        "SC",
+        "Myrtle Beach",
+        "29577",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-127 audit pin: SalesTaxHandbook (state 6 + Horry 2 + city 1 TD)",
+    ),
+    (
+        "SC",
+        "Myrtle Beach",
+        "29572",
+        "0001",
+        "9.000",
+        "0.05",
+        "iter-127 audit pin: SalesTaxHandbook (state 6 + Horry 2 + city 1 TD)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
