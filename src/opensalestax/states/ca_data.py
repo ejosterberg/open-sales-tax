@@ -1359,6 +1359,44 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.500"),  # combined 9.250
         ("92683", "92684", "92685"),
     ),
+    # ----- More Sacramento County (iter-118) -----
+    # Sac Co rate 0.5% in our model. Citrus Heights / Galt are
+    # incorporated cities in the county; Rancho Cordova has its own
+    # TBID layer. Folsom (iter-103) already added.
+    "Rancho Cordova": (
+        # state 7.25 + Sac 0.5 + city 1.0 = 8.750.
+        "Sacramento County",
+        Decimal("1.000"),  # combined 8.750
+        ("95670", "95741", "95742"),
+    ),
+    "Galt": (
+        # state 7.25 + Sac 0.5 + city 1.5 = 9.250.
+        "Sacramento County",
+        Decimal("1.500"),  # combined 9.250
+        ("95632",),
+    ),
+    # ----- More San Bernardino County (iter-118) -----
+    # SBd Co rate 0.5% in our model. Highland adds 1.0% city tax.
+    "Highland": (
+        # state 7.25 + SBd 0.5 + city 1.0 = 8.750.
+        "San Bernardino County",
+        Decimal("1.000"),  # combined 8.750
+        ("92346",),
+    ),
+    # ----- More Riverside County (iter-118) -----
+    # Norco + Calimesa each add 1.0% city tax to the Riverside base.
+    "Norco": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92860",),
+    ),
+    "Calimesa": (
+        # state 7.25 + Riverside 0.5 + city 1.0 = 8.750.
+        "Riverside County",
+        Decimal("1.000"),  # combined 8.750
+        ("92320",),
+    ),
 }
 
 

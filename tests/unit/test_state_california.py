@@ -312,10 +312,13 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-116: 6 SD Co cities (El Cajon +0.5, La Mesa +0.75,
       Imperial Beach/Lemon Grove/Del Mar/Solana Beach each +1.0)
       + Westminster (OC Co +1.5)
+    - iter-118: Rancho Cordova + Galt (Sac Co) + Highland (SBd
+      Co) + Norco + Calimesa (Riverside Co) -- all +1.0 or +1.5
+      city
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 127
+    assert len(CA_CITIES) == 132
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
