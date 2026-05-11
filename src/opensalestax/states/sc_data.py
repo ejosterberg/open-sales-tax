@@ -207,6 +207,17 @@ SC_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.000"),
         ("29445",),
     ),
+    "Myrtle Beach": (
+        # iter-127: city's 1% Tourism Development tax was documented in
+        # the SC_CITIES docstring but never added to the dict. Engine
+        # was returning state 6 + Horry 2 = 8% (Horry Co base) and
+        # missing the +1% Myrtle Beach city portion. SalesTaxHandbook
+        # confirms 9% combined. Surfside Beach and other Horry-Co
+        # cities don't share the TD tax so they stay at 8%.
+        "Horry County",
+        Decimal("1.000"),  # combined 9% (state 6 + Horry 2 + city 1)
+        ("29572", "29575", "29577", "29578", "29579", "29588"),
+    ),
 }
 
 
