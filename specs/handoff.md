@@ -8,17 +8,30 @@ Live at
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **550 sampled
+every published DOR rate within 0.05% across **576 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
-Untagged main is well ahead of v0.55.4 with **7 substantive bug
-fixes** + **3 features** deployed since: CA reconciliation
-(50 cities), WI structural rewrite, AK borough-stacks-with-city,
-USPS PO-box ZCTA supplement (29 ZIPs), AL Madison Co Sp fold-in,
-IA Johnson Co LOST friendly-name fix, plus wi_names.py
-(31 cities), ID resort cities (12 cities), and **10 names
-tables expanded** (WI / IA / WV / KS / OK / TN / SD / UT / WA /
-ND adding 86+ friendly names) + a 143-entry pin growth -- next
-release should bump significantly for these.
+Untagged main is far ahead of v0.55.4 with **29 substantive bug
+fixes** + **3 features** deployed since.
+
+Headline highlights:
+- CA reconciliation (50 cities) iter-63
+- WI structural rewrite iter-63 (Milwaukee 2% etc)
+- AK borough-stacks-with-city iter-67
+- USPS PO-box ZCTA supplement iter-68/69 (29 ZIPs)
+- AL Madison Co Sp fold-in iter-74
+- IA Johnson Co LOST friendly-name fix iter-77/80
+- ID resort cities feature iter-75/76 (12 cities)
+- wi_names.py (39 cities), 11 names tables expanded with
+  99+ friendly names total
+- **iter-93..104 CA-cities expansion: 19 cities added**
+  (Burbank/Walnut Creek/San Mateo/El Cerrito/Burlingame/Richmond/
+  Antioch/Pittsburg/Redwood City/Mill Valley/Sausalito/Larkspur/
+  San Anselmo/San Bruno/Pacifica/Belmont/Rocklin/San Carlos/
+  San Ramon + Folsom + Palo Alto + East Palo Alto county
+  anchors). Total under-collection closed: ~16% across 19 CA
+  cities, 50+ ZIPs.
+
+Next release should bump significantly for these.
 
 **iter-63 (CA reconciliation + CI restored 2026-05-09 → 2026-05-10):**
 A CA combined-rate audit against the CDTFA published table found 18
