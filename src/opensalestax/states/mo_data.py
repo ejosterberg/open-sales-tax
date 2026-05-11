@@ -233,10 +233,10 @@ MO_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.250"),
         # Kansas City core ZIPs in Jackson County (KS-side ZIPs are
         # 660xx and excluded). Some KCMO ZIPs straddle into Clay,
-        # Platte, and Cass counties; we ship only the Jackson County
-        # core to keep the rate math clean. A future ratchet should
-        # add Clay-side / Platte-side KCMO entries as separate
-        # "Kansas City (Clay)" rows.
+        # Platte, and Cass counties; the Jackson core is here and the
+        # Clay-side / Platte-side KCMO portions live in separate
+        # ``"Kansas City (Clay)"`` / ``"Kansas City (Platte)"``
+        # entries below so the per-county county-rate math stays clean.
         (
             "64101",
             "64102",
@@ -263,6 +263,24 @@ MO_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "64139",
             "64141",
             "64147",
+        ),
+    ),
+    # iter-170: Kansas City extends into Clay County (the "Northland"
+    # area east of the Missouri River). Per MO DOR rate tables 2026,
+    # the Clay-side KCMO city rate is the same 3.25% as the Jackson
+    # side, but the underlying county rate (Clay 1.25% vs Jackson
+    # 1.5%) makes the combined rate 8.725% vs Jackson's 8.975%.
+    # Modeling as a separate city authority keeps the per-county
+    # rate math clean. ZIP 64116 is NOT included here -- that's
+    # North Kansas City, a separate municipality with its own
+    # different city rate.
+    "Kansas City (Clay)": (
+        "Clay County",
+        Decimal("3.250"),
+        (
+            "64117",
+            "64118",
+            "64119",
         ),
     ),
     "St. Louis": (
