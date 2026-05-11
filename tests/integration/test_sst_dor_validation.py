@@ -5089,6 +5089,72 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-121 audit pin: SalesTaxHandbook (state 7.25 + SB 0.5 + city 1.0)",
     ),
+    # iter-122: 7 Solano + Yolo Co cities. Verified live 2026-05-11.
+    # Includes Rio Vista (9th cross-county Census ZCTA fix this
+    # session, Sacramento→Solano).
+    (
+        "CA",
+        "Fairfield",
+        "94533",
+        "0001",
+        "9.125",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Solano 0.875 + city 1.0)",
+    ),
+    (
+        "CA",
+        "Benicia",
+        "94510",
+        "0001",
+        "9.625",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Solano 0.875 + city 1.5)",
+    ),
+    (
+        "CA",
+        "Suisun City",
+        "94585",
+        "0001",
+        "9.125",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Solano 0.875 + city 1.0)",
+    ),
+    (
+        "CA",
+        "Dixon",
+        "95620",
+        "0001",
+        "8.375",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Solano 0.875 + city 0.25)",
+    ),
+    (
+        "CA",
+        "Rio Vista",
+        "94571",
+        "0001",
+        "9.125",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (Solano rebind from Sacramento + city 1.0)",
+    ),
+    (
+        "CA",
+        "West Sacramento",
+        "95691",
+        "0001",
+        "9.250",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Yolo 0.75 + city 1.25)",
+    ),
+    (
+        "CA",
+        "Winters",
+        "95694",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-122 audit pin: SalesTaxHandbook (state 7.25 + Yolo 0.75 + city 0.25)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
