@@ -1170,6 +1170,102 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),  # combined 8.25
         ("77550", "77551", "77554"),
     ),
+    # iter-129: Austin satellites + Hill Country + San Antonio
+    # satellites. All 15 were returning bare state-only 6.25%
+    # pre-fix. Each layered 2.0% local to reach TX's 8.25% cap.
+    # SalesTaxHandbook breakdowns vary (some city-only, some county
+    # 0.5 + special 1.5, some county 0.5 + city 1.5) but the
+    # consumer-facing combined rate is what the API needs to return.
+    "San Marcos": (
+        "Hays County",
+        None,
+        Decimal("2.000"),
+        ("78666", "78667"),
+    ),
+    "Georgetown": (
+        "Williamson County",
+        None,
+        Decimal("2.000"),
+        ("78626", "78628", "78633"),
+    ),
+    "Pflugerville": (
+        "Travis County",
+        None,
+        Decimal("2.000"),
+        ("78660", "78691"),
+    ),
+    "Leander": (
+        "Williamson County",
+        None,
+        Decimal("2.000"),
+        ("78641", "78646"),
+    ),
+    "Kyle": (
+        "Hays County",
+        None,
+        Decimal("2.000"),
+        ("78640",),
+    ),
+    "Buda": (
+        "Hays County",
+        None,
+        Decimal("2.000"),
+        ("78610",),
+    ),
+    "Hutto": (
+        "Williamson County",
+        None,
+        Decimal("2.000"),
+        ("78634",),
+    ),
+    "Dripping Springs": (
+        "Hays County",
+        None,
+        Decimal("2.000"),
+        ("78620",),
+    ),
+    "Wimberley": (
+        "Hays County",
+        None,
+        Decimal("2.000"),
+        ("78676",),
+    ),
+    "Schertz": (
+        "Guadalupe County",
+        None,
+        Decimal("2.000"),
+        ("78154",),
+    ),
+    "Cibolo": (
+        "Guadalupe County",
+        None,
+        Decimal("2.000"),
+        ("78108",),
+    ),
+    "Boerne": (
+        "Kendall County",
+        None,
+        Decimal("2.000"),
+        ("78006",),
+    ),
+    "Fredericksburg": (
+        "Gillespie County",
+        None,
+        Decimal("2.000"),
+        ("78624",),
+    ),
+    "Kerrville": (
+        "Kerr County",
+        None,
+        Decimal("2.000"),
+        ("78028", "78029"),
+    ),
+    "Marble Falls": (
+        "Burnet County",
+        None,
+        Decimal("2.000"),
+        ("78654", "78657"),
+    ),
 }
 
 
