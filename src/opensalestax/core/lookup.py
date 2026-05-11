@@ -590,11 +590,12 @@ async def _canonical_state_for_zip(session: AsyncSession, zip5: str) -> str | No
     The Census ZCTA file binds every US ZIP to a single state (the
     state with the most county-row intersections per
     :func:`opensalestax.data.zcta_loader.parse_zcta_state_rows`).
-    That binding is loaded as a ``DataVersion`` with source
-    ``ZCTA`` and a state-level ``TaxAuthority`` boundary. This
-    boundary represents the geographic ground truth for "which
-    state does this ZIP physically sit in," independent of what
-    multiple states' SST quarterly files might claim.
+    That binding is loaded as a ``DataVersion`` whose ``source``
+    starts with ``zcta`` (e.g. ``zcta-census-2020``) and a state-
+    level ``TaxAuthority`` boundary. This boundary represents the
+    geographic ground truth for "which state does this ZIP
+    physically sit in," independent of what multiple states' SST
+    quarterly files might claim.
 
     Returns ``None`` when no ZCTA-sourced boundary exists for the
     ZIP (e.g. some PO-box-only ZIPs that even the USPS supplement
@@ -606,7 +607,7 @@ async def _canonical_state_for_zip(session: AsyncSession, zip5: str) -> str | No
         .join(Boundary, Boundary.data_version_id == DataVersion.id)
         .where(
             Boundary.zip5 == zip5,
-            DataVersion.source == "ZCTA",
+            DataVersion.source.like("zcta%"),
         )
         .limit(1)
     )
