@@ -5640,6 +5640,54 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-129 audit pin: SalesTaxHandbook (state 6.25 + Kerr 0.5 + city 1.5)",
     ),
+    # iter-130: 5 representative TX cities from the 23-city batch
+    # (Texarkana / San Angelo / Victoria / Port Arthur / Huntsville).
+    # All at TX's 8.25% local cap. Verified live 2026-05-11.
+    (
+        "TX",
+        "Texarkana",
+        "75501",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Bowie 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "San Angelo",
+        "76901",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Tom Green 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "Victoria",
+        "77901",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Victoria 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "Port Arthur",
+        "77640",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Jefferson 0.5 + city 1.5)",
+    ),
+    (
+        "TX",
+        "Huntsville",
+        "77340",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-130 audit pin: SalesTaxHandbook (state 6.25 + Walker 0.5 + city 1.5)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
