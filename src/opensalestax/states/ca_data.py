@@ -573,6 +573,17 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.750"),  # combined 10.500
         ("90069", "90046"),
     ),
+    # iter-110: Alhambra + Monterey Park (LA Co +0.75%)
+    "Alhambra": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91801", "91802", "91803", "91804", "91896", "91899"),
+    ),
+    "Monterey Park": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91754", "91756"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500

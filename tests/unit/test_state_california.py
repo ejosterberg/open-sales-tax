@@ -295,10 +295,11 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-107: Gardena + Lawndale + Hawthorne + Cerritos
       (each +0.75%, LA Co South Bay)
     - iter-108: Santa Monica (+1.0%) + West Hollywood (+0.75%)
+    - iter-110: Alhambra + Monterey Park (LA Co +0.75% each, SGV)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 84
+    assert len(CA_CITIES) == 86
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
