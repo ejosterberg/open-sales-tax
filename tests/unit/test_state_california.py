@@ -318,10 +318,15 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-119: 11 Central Valley + SJ Co cities (Tracy/Manteca/
       Lodi/Atwater/Los Banos/Clovis/Sanger/Selma/Reedley/
       Kingsburg + Dinuba cross-county Tulare rebind from Fresno)
+    - iter-120: 9 Northern + Central CA cities (Mariposa fixes
+      missing Mariposa Co + ZIP 95338's 0% bug; Turlock cross-
+      county rebind Merced→Stanislaus + city 0.75; Ceres + Eureka
+      + Arcata + Chico + Oroville + Paradise + Fort Bragg with
+      city overlays)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 143
+    assert len(CA_CITIES) == 152
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

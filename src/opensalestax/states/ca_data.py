@@ -183,6 +183,7 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Lassen County": Decimal("1.000"),
     "Madera County": Decimal("1.000"),
     "Marin County": Decimal("1.000"),
+    "Mariposa County": Decimal("1.000"),  # iter-120: was missing; ZIP 95338 returned 0%
     "Mendocino County": Decimal("1.625"),
     "Merced County": Decimal("1.000"),
     "Modoc County": Decimal("0.000"),
@@ -1477,6 +1478,79 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Tulare County",
         Decimal("0.250"),  # combined 8.500
         ("93618",),
+    ),
+    # ----- Mariposa County (iter-120) -----
+    # ZIP 95338 was returning 0% jurisdictions because Mariposa Co
+    # was absent from CA_COUNTY_RATE_PCT (now added at 1.0%).
+    # Mariposa town has no city tax of its own (state 7.25 +
+    # Mariposa 1.0 + 0 = 8.25, matches SalesTaxHandbook).
+    "Mariposa": (
+        "Mariposa County",
+        Decimal("0.000"),  # combined 8.250
+        ("95338", "95345"),
+    ),
+    # ----- Stanislaus County (iter-120) -----
+    # Stanislaus Co engine rate 0.625% (state+co = 7.875%). Modesto
+    # already added; Turlock + Ceres need their own entries.
+    # Turlock 95380 was binding to Merced Co (1.0%) via Census ZCTA
+    # misattribution -- 7th cross-county case this session. City
+    # anchor + 0.75% city = 7.25 + Stanislaus 0.625 + 0.75 = 8.625
+    # (matches SalesTaxHandbook).
+    "Turlock": (
+        "Stanislaus County",
+        Decimal("0.750"),  # combined 8.625
+        ("95380", "95381", "95382"),
+    ),
+    "Ceres": (
+        # state 7.25 + Stanislaus 0.625 + city 1.0 = 8.875.
+        "Stanislaus County",
+        Decimal("1.000"),  # combined 8.875
+        ("95307",),
+    ),
+    # ----- Humboldt County (iter-120) -----
+    # Humboldt Co engine rate 2.25% (state+co = 9.50%). Eureka and
+    # Arcata each layer 0.75% city tax (raised April 2025).
+    "Eureka": (
+        # state 7.25 + Humboldt 2.25 + city 0.75 = 10.250.
+        "Humboldt County",
+        Decimal("0.750"),  # combined 10.250
+        ("95501", "95502", "95503"),
+    ),
+    "Arcata": (
+        # state 7.25 + Humboldt 2.25 + city 0.75 = 10.250.
+        "Humboldt County",
+        Decimal("0.750"),  # combined 10.250
+        ("95521",),
+    ),
+    # ----- Butte County (iter-120) -----
+    # Butte Co engine rate 1.0% (state+co = 8.25%). Chico/Oroville/
+    # Paradise each layer their own city tax.
+    "Chico": (
+        # state 7.25 + Butte 1.0 + city 1.0 = 9.250.
+        "Butte County",
+        Decimal("1.000"),  # combined 9.250
+        ("95926", "95927", "95928", "95929", "95973", "95976"),
+    ),
+    "Oroville": (
+        # state 7.25 + Butte 1.0 + city 1.0 = 9.250.
+        "Butte County",
+        Decimal("1.000"),  # combined 9.250
+        ("95965", "95966"),
+    ),
+    "Paradise": (
+        # state 7.25 + Butte 1.0 + city 0.5 = 8.750.
+        "Butte County",
+        Decimal("0.500"),  # combined 8.750
+        ("95967", "95969"),
+    ),
+    # ----- Mendocino County (iter-120) -----
+    # Mendocino Co engine rate 1.625% (state+co = 8.875%). Ukiah
+    # already correct at 8.875%; Fort Bragg adds 0.375% city.
+    "Fort Bragg": (
+        # state 7.25 + Mendocino 1.625 + city 0.375 = 9.250.
+        "Mendocino County",
+        Decimal("0.375"),  # combined 9.250
+        ("95437",),
     ),
 }
 
