@@ -5860,6 +5860,34 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-145 audit pin: SalesTaxHandbook (Hamilton rebind from Columbia + 2.0 county rate)",
     ),
+    # iter-147: 4 CA Imperial + Kern Co fixes
+    (
+        "CA",
+        "El Centro",
+        "92243",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-147 audit pin: SalesTaxHandbook (state 7.25 + Imperial 0.5 + city 0.5)",
+    ),
+    (
+        "CA",
+        "Brawley",
+        "92227",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-147 audit pin: SalesTaxHandbook (state 7.25 + Imperial 0.5 + city 1.0)",
+    ),
+    (
+        "CA",
+        "Ridgecrest",
+        "93555",
+        "0001",
+        "9.250",
+        "0.05",
+        "iter-147 audit pin: SalesTaxHandbook (state 7.25 + Kern 1.0 + city 1.0)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
