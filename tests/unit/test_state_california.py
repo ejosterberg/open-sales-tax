@@ -342,10 +342,14 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-125: 12 more LA Co cities (Arcadia/Covina/San Gabriel/
       Temple City/Monrovia/Duarte/San Dimas/Diamond Bar/Claremont
       each +0.75; Baldwin Park/Glendora/Azusa each +1.0)
+    - iter-126: 10 LA Co beach + west + southeast cities
+      (Manhattan/Hermosa/Redondo Beach + Malibu each +0.5;
+      La Verne/Sierra Madre/La Cañada Flintridge/Maywood/Signal
+      Hill each +0.75; Huntington Park +1.0)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 200
+    assert len(CA_CITIES) == 210
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

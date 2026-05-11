@@ -1895,6 +1895,71 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.750"),  # combined 10.500
         ("91711",),
     ),
+    # ----- More Los Angeles County (iter-126) -----
+    # Beach Cities + west / southeast LA Co. The 90201-cluster cities
+    # (Bell / Bell Gardens / Cudahy) all share ZIP 90201 -- the
+    # picker would pick one ambiguously, so they're not modeled here
+    # as a known mixed-rate-per-ZIP follow-up.
+    "Manhattan Beach": (
+        # state 7.25 + LA 2.5 + city 0.5 = 10.250.
+        "Los Angeles County",
+        Decimal("0.500"),  # combined 10.250
+        ("90266", "90267"),
+    ),
+    "Hermosa Beach": (
+        # state 7.25 + LA 2.5 + city 0.5 = 10.250.
+        "Los Angeles County",
+        Decimal("0.500"),  # combined 10.250
+        ("90254",),
+    ),
+    "Redondo Beach": (
+        # state 7.25 + LA 2.5 + city 0.5 = 10.250.
+        "Los Angeles County",
+        Decimal("0.500"),  # combined 10.250
+        ("90277", "90278"),
+    ),
+    "Malibu": (
+        # state 7.25 + LA 2.5 + city 0.5 = 10.250.
+        "Los Angeles County",
+        Decimal("0.500"),  # combined 10.250
+        ("90265",),
+    ),
+    "La Verne": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91750",),
+    ),
+    "Sierra Madre": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91024", "91025"),
+    ),
+    "La Canada Flintridge": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91011", "91012"),
+    ),
+    "Huntington Park": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90255",),
+    ),
+    "Maywood": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90270",),
+    ),
+    "Signal Hill": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90755",),
+    ),
 }
 
 
