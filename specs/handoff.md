@@ -30,6 +30,49 @@ Headline highlights:
   San Ramon + Folsom + Palo Alto + East Palo Alto county
   anchors). Total under-collection closed: ~16% across 19 CA
   cities, 50+ ZIPs.
+- **iter-105..116 CA-cities continued expansion: 58 more cities
+  added (CA_CITIES grew 50 → 127)**, batched per region:
+  - iter-105/106/107/108/110: LA Co cluster (Novato + Corte Madera
+    + Culver City + El Segundo + Whittier + La Habra OC anchor +
+    Gardena + Lawndale + Hawthorne + Cerritos + Santa Monica +
+    West Hollywood + Alhambra + Monterey Park) — 14 cities
+  - iter-111/112: SD Co + Santa Clara Co (National City + Vista +
+    San Marcos + Cupertino + Milpitas) — 5 cities
+  - iter-113: Auburn (Placer Co cross-county fix from El Dorado)
+    + Loomis + Davis (Yolo Co cross-county fix from Solano) +
+    5 SLO Co cities (San Luis Obispo / Atascadero / Paso Robles /
+    Arroyo Grande / Morro Bay) — 8 cities
+  - iter-114: Sonoma Co (Petaluma cross-county from Marin + Sonoma
+    cross-county from Napa + Sebastopol + Healdsburg + Rohnert
+    Park + Cotati) + Napa Co (Napa + American Canyon + Calistoga)
+    — 9 cities
+  - iter-115: Riverside Co single-iter sweep (Hemet + Temecula +
+    Murrieta + Lake Elsinore + Menifee + Indio + Coachella +
+    Palm Desert + La Quinta + Cathedral City + Palm Springs) +
+    Porterville (Tulare Co) — 12 cities
+  - iter-116: SD Co (El Cajon + La Mesa + Imperial Beach + Lemon
+    Grove + Del Mar + Solana Beach) + Westminster (OC Co) — 7 cities
+  Cross-county misattribution pattern (Census ZCTA-vs-USPS) hit
+  five times in this stretch (Folsom iter-103, Auburn iter-113,
+  Davis iter-113, Petaluma iter-114, Sonoma iter-114). Each fix
+  uses the city anchor in CA_CITIES to force the correct county
+  bind. Verified live + pinned to test_sst_dor_validation grid
+  for every iter (~75 new pins added 596 → 671). Total combined
+  CA under-collection closed across iter-93..116: ~50% across
+  ~75 cities.
+- **iter-117 cross-state probe**: validated MN, WI, OH, MI, IN,
+  TN, NV, UT, WV, NE, NJ, NM, NC, FL, TX, IL, PA, MA, VA, MD
+  major cities against SalesTaxHandbook. Most match exactly --
+  the engine is well-calibrated for non-CA states. **Two open
+  bugs**: NM Albuquerque + Santa Fe over-collect by 0.25% each
+  (city tax 0.25% high vs current TRD published rate). NM module
+  data is from Jan 2026; needs refresh. Other one-off finding:
+  IL Naperville under by 1.0% (mixed-rate-per-ZIP boundary --
+  engine picks the Downtown F&B district 7.75% rather than the
+  main Naperville rate 8.75%). TN Nashville may have +0.5% over
+  due to IMPROVE Act transit district that voters approved Nov
+  2024 but SalesTaxHandbook hasn't updated -- engine likely
+  correct, SalesTaxHandbook stale.
 
 Next release should bump significantly for these.
 
