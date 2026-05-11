@@ -5571,6 +5571,27 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-127 audit pin: SalesTaxHandbook (state 6 + Horry 2 + city 1 TD)",
     ),
+    # iter-128: TX Waco + Galveston each at 8.25% local-cap max.
+    # Both probed at bare state-only 6.25% pre-fix. Verified live
+    # 2026-05-11.
+    (
+        "TX",
+        "Waco",
+        "76701",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-128 audit pin: SalesTaxHandbook (state 6.25 + city 2.0 = TX local cap)",
+    ),
+    (
+        "TX",
+        "Galveston",
+        "77550",
+        "0001",
+        "8.250",
+        "0.05",
+        "iter-128 audit pin: SalesTaxHandbook (state 6.25 + city 2.0 = TX local cap)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
