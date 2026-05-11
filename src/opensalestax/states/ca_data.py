@@ -1310,6 +1310,55 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 9.250
         ("93257", "93258"),
     ),
+    # ----- More San Diego County (iter-116) -----
+    # SD Co rate 0.5% in our model. These 6 add city portions on top.
+    # Carlsbad / Encinitas / Santee / Coronado / Poway / Chula Vista
+    # were probed and confirmed correct at 7.75% bare-county.
+    "El Cajon": (
+        # state 7.25 + SD 0.5 + city 0.5 = 8.250.
+        "San Diego County",
+        Decimal("0.500"),  # combined 8.250
+        ("92019", "92020", "92021", "92022"),
+    ),
+    "La Mesa": (
+        # state 7.25 + SD 0.5 + city 0.75 = 8.500.
+        "San Diego County",
+        Decimal("0.750"),  # combined 8.500
+        ("91941", "91942", "91943", "91944"),
+    ),
+    "Imperial Beach": (
+        # state 7.25 + SD 0.5 + city 1.0 = 8.750.
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("91932", "91933"),
+    ),
+    "Lemon Grove": (
+        # state 7.25 + SD 0.5 + city 1.0 = 8.750.
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("91945", "91946"),
+    ),
+    "Del Mar": (
+        # state 7.25 + SD 0.5 + city 1.0 = 8.750.
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("92014",),
+    ),
+    "Solana Beach": (
+        # state 7.25 + SD 0.5 + city 1.0 = 8.750.
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("92075",),
+    ),
+    # ----- More Orange County (iter-116) -----
+    # OC Co rate 0.5% in our model. Most OC suburbs are state+co only;
+    # Westminster levies a 1.5% city tax (raised from 1.0% in 2024).
+    "Westminster": (
+        # state 7.25 + OC 0.5 + city 1.5 = 9.250.
+        "Orange County",
+        Decimal("1.500"),  # combined 9.250
+        ("92683", "92684", "92685"),
+    ),
 }
 
 

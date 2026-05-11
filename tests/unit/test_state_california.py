@@ -309,10 +309,13 @@ def test_california_seeds_fifty_cities() -> None:
       Lake Elsinore/Menifee/Indio/Coachella/Palm Desert/La Quinta
       each +1.0% city; Cathedral City + Palm Springs +1.5%) +
       Porterville (Tulare Co +1.0% city)
+    - iter-116: 6 SD Co cities (El Cajon +0.5, La Mesa +0.75,
+      Imperial Beach/Lemon Grove/Del Mar/Solana Beach each +1.0)
+      + Westminster (OC Co +1.5)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 120
+    assert len(CA_CITIES) == 127
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
