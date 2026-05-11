@@ -136,16 +136,22 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Alameda County": Decimal("3.000"),  # iter-62: was 2.000 (under-collected by 1%)
     "Contra Costa County": Decimal("1.500"),  # BART + Measures J/X
     "Fresno County": Decimal("0.725"),  # iter-62: was 0.225 (under by 0.5%)
-    "Kern County": Decimal("1.000"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
+    "Kern County": Decimal(
+        "1.000"
+    ),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
     "Los Angeles County": Decimal("2.500"),  # iter-62: was 2.250 (under by 0.25%)
-    "Monterey County": Decimal("1.500"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
+    "Monterey County": Decimal(
+        "1.500"
+    ),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
     "Orange County": Decimal("0.500"),  # OCTA Measure M2
     "Placer County": Decimal("0.000"),  # iter-62: was 0.500 (over-collected by 0.5%)
     "Riverside County": Decimal("0.500"),  # Measure A transportation
     "Sacramento County": Decimal("0.500"),  # Measure A transportation
     "San Bernardino County": Decimal("0.500"),  # Measure I transportation
     "San Diego County": Decimal("0.500"),  # SANDAG TransNet
-    "San Francisco (City and County)": Decimal("1.375"),  # consolidated; transit + child care
+    "San Francisco (City and County)": Decimal(
+        "1.375"
+    ),  # consolidated; transit + child care
     "San Joaquin County": Decimal("0.500"),  # Measure K transportation
     "Santa Clara County": Decimal("2.500"),  # iter-62: was 1.875 (under by 0.625%)
     "Solano County": Decimal("0.875"),  # iter-62: was 0.125 (under by 0.75%)
@@ -378,7 +384,17 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # Costa 1.5 + city 1.0 = 9.750.
         "Contra Costa County",
         Decimal("1.000"),  # combined 9.750
-        ("94801", "94802", "94803", "94804", "94805", "94806", "94807", "94808", "94850"),
+        (
+            "94801",
+            "94802",
+            "94803",
+            "94804",
+            "94805",
+            "94806",
+            "94807",
+            "94808",
+            "94850",
+        ),
     ),
     "Antioch": (
         # iter-99: probed 8.75% live vs SalesTaxHandbook 9.75%.
@@ -565,7 +581,19 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         # 9.75% live vs SalesTaxHandbook 10.75% (city +1.0%)
         "Los Angeles County",
         Decimal("1.000"),  # combined 10.750
-        ("90401", "90402", "90403", "90404", "90405", "90406", "90407", "90408", "90409", "90410", "90411"),
+        (
+            "90401",
+            "90402",
+            "90403",
+            "90404",
+            "90405",
+            "90406",
+            "90407",
+            "90408",
+            "90409",
+            "90410",
+            "90411",
+        ),
     ),
     "West Hollywood": (
         # 9.75% live vs SalesTaxHandbook 10.50% (city +0.75%)
@@ -906,7 +934,17 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Irvine": (
         "Orange County",
         Decimal("0.000"),  # combined 7.750
-        ("92602", "92603", "92604", "92606", "92612", "92614", "92617", "92618", "92620"),
+        (
+            "92602",
+            "92603",
+            "92604",
+            "92606",
+            "92612",
+            "92614",
+            "92617",
+            "92618",
+            "92620",
+        ),
     ),
     "Huntington Beach": (
         "Orange County",
