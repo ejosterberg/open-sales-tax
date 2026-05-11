@@ -530,6 +530,15 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Washington County",
         ("32428", "32464"),
     ),
+    # 35. Paxton (Walton County) -- iter-144 missing-binding fix:
+    # ZIP 32538 returned 0% jurisdictions (no boundary record at
+    # all). Same bug pattern as CA Mariposa 95338 (iter-120) -- the
+    # Census ZCTA didn't ship 32538 in our load. Adding Paxton with
+    # Walton County binding fixes ZIP 32538 to 7.0% combined.
+    "Paxton": (
+        "Walton County",
+        ("32538",),
+    ),
 }
 
 

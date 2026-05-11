@@ -105,8 +105,11 @@ def test_florida_seeds_top_30_cities() -> None:
       instead of Orange Co)
     - Chipley iter-143 (ZIP 32428 was binding to Bay Co instead
       of Washington Co)
+    - Paxton iter-144 (ZIP 32538 was returning 0% jurisdictions --
+      no Census ZCTA boundary record; fixed by adding Walton Co
+      city anchor)
     """
-    assert len(FL_CITIES) == 34
+    assert len(FL_CITIES) == 35
 
 
 def test_florida_every_city_county_is_known() -> None:
