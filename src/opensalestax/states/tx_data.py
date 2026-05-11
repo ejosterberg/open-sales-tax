@@ -1560,6 +1560,171 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("79556",),
     ),
+    # iter-132: 27 more TX small/mid cities. North TX + East TX +
+    # Brazos Valley + Central TX + South TX. All probed bare at
+    # 6.25% pre-fix; all hit TX 8.25% local cap per SalesTaxHandbook.
+    "Mineral Wells": (
+        "Palo Pinto County",
+        None,
+        Decimal("2.000"),
+        ("76067", "76068"),
+    ),
+    "Decatur": (
+        "Wise County",
+        None,
+        Decimal("2.000"),
+        ("76234",),
+    ),
+    "Gainesville": (
+        "Cooke County",
+        None,
+        Decimal("2.000"),
+        ("76240", "76241"),
+    ),
+    "Bonham": (
+        "Fannin County",
+        None,
+        Decimal("2.000"),
+        ("75418",),
+    ),
+    "Mount Pleasant": (
+        "Titus County",
+        None,
+        Decimal("2.000"),
+        ("75455", "75456"),
+    ),
+    "Henderson": (
+        "Rusk County",
+        None,
+        Decimal("2.000"),
+        ("75652", "75653", "75654"),
+    ),
+    "Marshall": (
+        "Harrison County",
+        None,
+        Decimal("2.000"),
+        ("75670", "75671", "75672"),
+    ),
+    "Carthage": (
+        "Panola County",
+        None,
+        Decimal("2.000"),
+        ("75633",),
+    ),
+    "Center": (
+        "Shelby County",
+        None,
+        Decimal("2.000"),
+        ("75935",),
+    ),
+    "Crockett": (
+        "Houston County",
+        None,
+        Decimal("2.000"),
+        ("75835",),
+    ),
+    "Livingston": (
+        "Polk County",
+        None,
+        Decimal("2.000"),
+        ("77351",),
+    ),
+    "Madisonville": (
+        "Madison County",
+        None,
+        Decimal("2.000"),
+        ("77864",),
+    ),
+    "Navasota": (
+        "Grimes County",
+        None,
+        Decimal("2.000"),
+        ("77868",),
+    ),
+    "Caldwell": (
+        "Burleson County",
+        None,
+        Decimal("2.000"),
+        ("77836",),
+    ),
+    "Giddings": (
+        "Lee County",
+        None,
+        Decimal("2.000"),
+        ("78942",),
+    ),
+    "La Grange": (
+        "Fayette County",
+        None,
+        Decimal("2.000"),
+        ("78945",),
+    ),
+    "Bastrop": (
+        "Bastrop County",
+        None,
+        Decimal("2.000"),
+        ("78602",),
+    ),
+    "Smithville": (
+        "Bastrop County",
+        None,
+        Decimal("2.000"),
+        ("78957",),
+    ),
+    "Lockhart": (
+        "Caldwell County",
+        None,
+        Decimal("2.000"),
+        ("78644",),
+    ),
+    "Luling": (
+        "Caldwell County",
+        None,
+        Decimal("2.000"),
+        ("78648",),
+    ),
+    "Seguin": (
+        "Guadalupe County",
+        None,
+        Decimal("2.000"),
+        ("78155", "78156"),
+    ),
+    "Gonzales": (
+        "Gonzales County",
+        None,
+        Decimal("2.000"),
+        ("78629",),
+    ),
+    "Beeville": (
+        "Bee County",
+        None,
+        Decimal("2.000"),
+        ("78102", "78104"),
+    ),
+    "Alice": (
+        "Jim Wells County",
+        None,
+        Decimal("2.000"),
+        ("78332",),
+    ),
+    "Kingsville": (
+        "Kleberg County",
+        None,
+        Decimal("2.000"),
+        ("78363", "78364"),
+    ),
+    "Sinton": (
+        "San Patricio County",
+        None,
+        Decimal("2.000"),
+        ("78387",),
+    ),
+    "Mathis": (
+        "San Patricio County",
+        None,
+        Decimal("2.000"),
+        ("78368",),
+    ),
 }
 
 
