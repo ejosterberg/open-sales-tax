@@ -522,6 +522,14 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Orange County",
         ("34787",),
     ),
+    # 34. Chipley (Washington County) -- iter-143 cross-county
+    # rebind: ZIP 32428 was binding to Bay Co (1.0% surtax) instead
+    # of Washington Co (1.5% surtax), returning 7.0% instead of 7.5%.
+    # 13th cross-county Census ZCTA misattribution fix this session.
+    "Chipley": (
+        "Washington County",
+        ("32428", "32464"),
+    ),
 }
 
 

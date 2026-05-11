@@ -95,7 +95,7 @@ def test_florida_county_names_match_census_keys() -> None:
 # City coverage (ZIP-binding anchors only; no city-level rate)
 # ---------------------------------------------------------------------------
 def test_florida_seeds_top_30_cities() -> None:
-    """Brief specifies the top 30 cities by population, plus 3
+    """Brief specifies the top 30 cities by population, plus 4
     additional cross-county-rebind anchors:
     - Brooksville iter-138 (ZIP 34601 was binding to Citrus Co
       instead of Hernando Co)
@@ -103,8 +103,10 @@ def test_florida_seeds_top_30_cities() -> None:
       instead of Pasco Co)
     - Winter Garden iter-139 (ZIP 34787 was binding to Lake Co
       instead of Orange Co)
+    - Chipley iter-143 (ZIP 32428 was binding to Bay Co instead
+      of Washington Co)
     """
-    assert len(FL_CITIES) == 33
+    assert len(FL_CITIES) == 34
 
 
 def test_florida_every_city_county_is_known() -> None:
