@@ -1960,6 +1960,36 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.750"),  # combined 10.500
         ("90755",),
     ),
+    # ----- Imperial County (iter-147) -----
+    # Imperial Co engine rate 0.5% (state+co = 7.75%). El Centro and
+    # Calexico add 0.5 city; Brawley adds 1.0.
+    "El Centro": (
+        # state 7.25 + Imperial 0.5 + city 0.5 = 8.250.
+        "Imperial County",
+        Decimal("0.500"),  # combined 8.250
+        ("92243", "92244"),
+    ),
+    "Calexico": (
+        # state 7.25 + Imperial 0.5 + city 0.5 = 8.250.
+        "Imperial County",
+        Decimal("0.500"),  # combined 8.250
+        ("92231", "92232"),
+    ),
+    "Brawley": (
+        # state 7.25 + Imperial 0.5 + city 1.0 = 8.750.
+        "Imperial County",
+        Decimal("1.000"),  # combined 8.750
+        ("92227",),
+    ),
+    # ----- More Kern County (iter-147) -----
+    # Kern Co engine rate 1.0% (state+co = 8.25%). Bakersfield/Delano
+    # baked into Kern Co rate. Ridgecrest layers 1.0% city tax.
+    "Ridgecrest": (
+        # state 7.25 + Kern 1.0 + city 1.0 = 9.250.
+        "Kern County",
+        Decimal("1.000"),  # combined 9.250
+        ("93555", "93556"),
+    ),
 }
 
 
