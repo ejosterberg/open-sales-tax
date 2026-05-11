@@ -201,6 +201,7 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Siskiyou County": Decimal("0.000"),
     "Sutter County": Decimal("0.000"),
     "Tehama County": Decimal("0.000"),
+    "Trinity County": Decimal("0.000"),  # iter-161: was missing; ZIPs 96041 + 96093 returned 0%
     "Tuolumne County": Decimal("1.500"),
     "Yolo County": Decimal("0.750"),
     "Yuba County": Decimal("1.000"),  # CDTFA Unincorporated explicit
@@ -1989,6 +1990,21 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         "Kern County",
         Decimal("1.000"),  # combined 9.250
         ("93555", "93556"),
+    ),
+    # ----- Trinity County (iter-161) -----
+    # Trinity Co was missing from CA_COUNTY_RATE_PCT, so ZIPs 96041
+    # (Hayfork) and 96093 (Weaverville) returned 0% jurisdictions.
+    # Same bug pattern as CA Mariposa 95338 (iter-120). Adding
+    # Trinity Co at 0.0% + Weaverville + Hayfork city anchors.
+    "Weaverville": (
+        "Trinity County",
+        Decimal("0.000"),  # combined 7.250
+        ("96093",),
+    ),
+    "Hayfork": (
+        "Trinity County",
+        Decimal("0.000"),  # combined 7.250
+        ("96041",),
     ),
 }
 

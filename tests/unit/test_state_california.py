@@ -348,10 +348,13 @@ def test_california_seeds_fifty_cities() -> None:
       Hill each +0.75; Huntington Park +1.0)
     - iter-147: 4 cities (Imperial Co: El Centro/Calexico +0.5
       city; Brawley +1.0 city; Kern Co: Ridgecrest +1.0 city)
+    - iter-161: Trinity Co added + Weaverville + Hayfork city
+      anchors (ZIPs 96041 + 96093 were unbound returning 0%; same
+      missing-county bug as Mariposa from iter-120)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 214
+    assert len(CA_CITIES) == 216
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
