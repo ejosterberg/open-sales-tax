@@ -60,6 +60,18 @@ Headline highlights:
   for every iter (~75 new pins added 596 → 671). Total combined
   CA under-collection closed across iter-93..116: ~50% across
   ~75 cities.
+- **iter-148 TN IMPROVE Act over-collect** (logged not fixed):
+  multiple TN cities in Davidson + Williamson + Sumner Co
+  over-collect by 0.5-1.0% due to multiple IMPROVE Act district
+  codes (91950/91955/91958) emitting for the same ZIP when only
+  one should apply per the v0.44 dedup logic. Examples found:
+  Goodlettsville 37072 returns 10.75% (3 districts stacked) vs
+  9.75% expected; Brentwood 37027 returns 10.25% (Davidson IMPROVE
+  Act 91950 wrongly applies to Williamson Co ZIP) vs 9.25%
+  expected. The v0.44 fix solved a different cross-county pattern;
+  this is a same-ZIP stacking issue. Same family as iter-128 IA
+  West Des Moines LOST dedup bug -- both need per-state dedup
+  logic that filters non-applicable district codes.
 - **iter-117 cross-state probe**: validated MN, WI, OH, MI, IN,
   TN, NV, UT, WV, NE, NJ, NM, NC, FL, TX, IL, PA, MA, VA, MD
   major cities against SalesTaxHandbook. Most match exactly --
