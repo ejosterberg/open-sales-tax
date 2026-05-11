@@ -524,6 +524,36 @@ def _pick_one_city_county_per_zip5(
                 and counts.get(type4_only_aids[0], 0) >= _MIN_LONE_DISTRICT_ROWS
             ):
                 out.append(seen_authorities[type4_only_aids[0]])
+            # iter-169 OH COTA bug: when MULTIPLE type-4-only districts
+            # exist (e.g. OH Dublin 43017 = COTA 260 rows + OH-district-
+            # 96000 71 rows + OH-district-98000 28 rows), the original
+            # lone-district rule dropped ALL of them. But COTA is the
+            # right answer; the other two are unmodeled special districts
+            # with placeholder names. Include the dominant CURATED
+            # type-4-only district when it has >= _MIN_LONE_DISTRICT_ROWS
+            # AND dominates the runner-up by 2x. The "curated name"
+            # filter naturally excludes the KS/OK/TN competing-CID case
+            # (placeholder TIF/CID names) while letting OH transit
+            # authorities through.
+            elif len(type4_only_aids) > 1:
+                curated_with_counts = sorted(
+                    (
+                        (aid, counts.get(aid, 0))
+                        for aid in type4_only_aids
+                        if not _is_placeholder_name(seen_authorities[aid])
+                    ),
+                    key=lambda x: -x[1],
+                )
+                if curated_with_counts:
+                    top_aid, top_count = curated_with_counts[0]
+                    runner_up_count = max(
+                        (counts.get(aid, 0) for aid in type4_only_aids if aid != top_aid),
+                        default=0,
+                    )
+                    if top_count >= _MIN_LONE_DISTRICT_ROWS and top_count >= 2 * max(
+                        runner_up_count, 1
+                    ):
+                        out.append(seen_authorities[top_aid])
         else:
             # state: pass through.
             out.extend(seen_authorities[aid] for aid in aids)
