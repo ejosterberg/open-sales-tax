@@ -145,15 +145,48 @@ missing CA county (Mariposa) added, ~250 new live-grid pins.
     Goliad / Refugio / Karnes City / Pleasanton / Floresville /
     Jourdanton / Pearsall / Cotulla / Carrizo Springs / Crystal
     City / Hondo
-  **Cumulative TX session total: 118 cities** added across
-  iter-128..134. All hit TX's 8.25% local-cap max per
+  - iter-136: 24 more (NE TX + East TX + Brazos Valley + Central
+    TX): Sulphur Springs/Mount Vernon/Pittsburg/Linden/Daingerfield/
+    Atlanta/Jefferson/Diboll/Trinity/Groveton/Mexia/Teague/Fairfield/
+    Buffalo/Hearne/Franklin/Cameron/Rockdale/Taylor/Elgin/Bartlett/
+    Salado/Belton/Kennedale
+  - iter-137: 27 panhandle + west TX (Vernon/Quanah/Childress/
+    Memphis/Clarendon/Wellington/Shamrock/Wheeler/Canadian/Spearman/
+    Perryton/Stratford/Dalhart/Tulia + South Plains + Permian Basin
+    + Trans-Pecos). Marfa 79843 logged as 8.0% (city tax 1.75%
+    unique, not modeled in this batch).
+  - iter-140: 21 Rio Grande Valley + Coastal Bend (Donna/Mercedes/
+    Weslaco/Alamo/San Juan/San Benito/Harlingen/La Feria/
+    Raymondville/Roma/Rio Grande City/Zapata/Falfurrias/Hebbronville/
+    Freer/Three Rivers/George West/Aransas Pass/Portland/Robstown/
+    Ingleside)
+  **Cumulative TX session total: 190 cities** added across
+  iter-128..140. All hit TX's 8.25% local-cap max per
   SalesTaxHandbook + Texas Comptroller. TX module was previously
   the next-most under-modeled big state behind CA; this is a
   major closure (engine now properly returns city rates for the
-  118 most-populous TX incorporated places beyond the original
+  190 most-populous TX incorporated places beyond the original
   49-city seed). Sampling ~5 cities per iter against
   SalesTaxHandbook (instead of all) caught no errors; the
   systemic "8.25% local cap" pattern is very reliable for TX.
+- **iter-138 + iter-139 FL cross-county fixes**: 3 cross-county
+  Census ZCTA misattribution fixes found in FL (similar pattern
+  to the 9 CA cross-county fixes earlier this session):
+  - Brooksville 34601 was binding to Citrus Co (0%) instead of
+    Hernando Co (0.5%); under-collect 0.5%
+  - Dade City 33523 was binding to Hernando Co (0.5%) instead
+    of Pasco Co (1.0%); under-collect 0.5%
+  - Winter Garden 34787 was binding to Lake Co (1.0%) instead of
+    Orange Co (0.5%); OVER-collect 0.5% (first FL over-collect
+    fix this session)
+  FL_CITIES grew 30 → 33; test_florida_seeds_top_30_cities bumped.
+  Cross-county fix total this session: **12** (Auburn, Davis,
+  Petaluma, Sonoma, Dinuba, Turlock, Watsonville, Rio Vista,
+  Folsom + Brooksville, Dade City, Winter Garden).
+- **iter-135 broad probe** (no fixes shipped): verified
+  MN/WI/TN/GA/NC/VA/MO/CT/RI/MD/DE major + mid cities mostly
+  correct. Marietta GA 6.0%, Charlottesville VA 5.3%, Topeka KS
+  9.35%, Kansas City KS 9.125% all match SalesTaxHandbook exactly.
 
 **Open follow-ups discovered (not fixed) during iter-117..131**:
 - **NM TRD over-collect 0.25%**: Albuquerque + Santa Fe city tax
