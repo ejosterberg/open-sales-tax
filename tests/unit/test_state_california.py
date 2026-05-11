@@ -323,10 +323,15 @@ def test_california_seeds_fifty_cities() -> None:
       county rebind Merced→Stanislaus + city 0.75; Ceres + Eureka
       + Arcata + Chico + Oroville + Paradise + Fort Bragg with
       city overlays)
+    - iter-121: 8 Central Coast + Sierra cities (Truckee +0.125
+      Nevada Co TBID; Hollister +0.25 San Benito; Watsonville
+      cross-county rebind Monterey→Santa Cruz; Scotts Valley
+      +0.25 Santa Cruz; Marina/Seaside/Pacific Grove +0.5 each
+      Monterey; Santa Maria +1.0 Santa Barbara)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 152
+    assert len(CA_CITIES) == 160
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

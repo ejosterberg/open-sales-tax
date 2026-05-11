@@ -1552,6 +1552,77 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.375"),  # combined 9.250
         ("95437",),
     ),
+    # ----- Nevada County (iter-121) -----
+    # Nevada Co engine rate 1.625% (state+co = 8.875%). Truckee's
+    # Tourism Business Improvement District adds 0.125% above the
+    # baseline (Truckee city 1.5% has 1.375% already absorbed in
+    # Nevada Co rate which incorporates Grass Valley's 1.375% city).
+    "Truckee": (
+        # state 7.25 + Nevada 1.625 + city 0.125 = 9.000.
+        "Nevada County",
+        Decimal("0.125"),  # combined 9.000
+        ("96160", "96161", "96162"),
+    ),
+    # ----- San Benito County (iter-121) -----
+    # San Benito Co engine rate 1.75% (state+co = 9.000%). Hollister
+    # is the county seat; adds 0.25% city.
+    "Hollister": (
+        # state 7.25 + SB 1.75 + city 0.25 = 9.250.
+        "San Benito County",
+        Decimal("0.250"),  # combined 9.250
+        ("95023", "95024"),
+    ),
+    # ----- Santa Cruz County (iter-121) -----
+    # Santa Cruz Co engine rate 2.25% (state+co = 9.500%). Watsonville
+    # binds to Monterey Co via Census ZCTA misattribution -- 8th
+    # cross-county case this session. City anchor + 0.25 city.
+    # Scotts Valley is a same-county city-tax overlay.
+    "Watsonville": (
+        # state 7.25 + Santa Cruz 2.25 + city 0.25 = 9.750.
+        "Santa Cruz County",
+        Decimal("0.250"),  # combined 9.750
+        ("95076", "95077"),
+    ),
+    "Scotts Valley": (
+        # state 7.25 + Santa Cruz 2.25 + city 0.25 = 9.750.
+        "Santa Cruz County",
+        Decimal("0.250"),  # combined 9.750
+        ("95066", "95067"),
+    ),
+    # ----- More Monterey County (iter-121) -----
+    # Monterey Co engine rate 1.5% (state+co = 8.750%). Marina/Seaside/
+    # Pacific Grove each layer 0.5% city tax.
+    "Marina": (
+        # state 7.25 + Monterey 1.5 + city 0.5 = 9.250.
+        "Monterey County",
+        Decimal("0.500"),  # combined 9.250
+        ("93933",),
+    ),
+    "Seaside": (
+        # state 7.25 + Monterey 1.5 + city 0.5 = 9.250.
+        "Monterey County",
+        Decimal("0.500"),  # combined 9.250
+        ("93955",),
+    ),
+    "Pacific Grove": (
+        # state 7.25 + Monterey 1.5 + city 0.5 = 9.250.
+        "Monterey County",
+        Decimal("0.500"),  # combined 9.250
+        ("93950",),
+    ),
+    # ----- Santa Barbara County (iter-121) -----
+    # Santa Barbara Co engine rate 0.5% (state+co = 7.750%). Santa
+    # Maria layers 0.5% city tax (SalesTaxHandbook shows city 1.0
+    # but 0.5 reaches 8.75% combined which matches).
+    "Santa Maria": (
+        # state 7.25 + SB Co 0.5 + city 0.5 = 8.250 (live engine).
+        # Wait -- engine returned 8.25 pre-iter-121 but SalesTaxHandbook
+        # says 8.75. To reach 8.75 from 7.75 baseline (engine SB Co at
+        # 0.5%) we need city 1.0. State 7.25 + 0.5 + 1.0 = 8.75.
+        "Santa Barbara County",
+        Decimal("1.000"),  # combined 8.750
+        ("93454", "93455", "93456", "93458"),
+    ),
 }
 
 
