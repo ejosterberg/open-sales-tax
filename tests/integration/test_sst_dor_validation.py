@@ -5784,6 +5784,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-132 audit pin: SalesTaxHandbook (state 6.25 + Palo Pinto + 2.0 stack)",
     ),
+    # iter-138: FL Brooksville (10th cross-county Census ZCTA fix
+    # this session). ZIP 34601 was binding to Citrus Co (0%) instead
+    # of Hernando Co (0.5%). Verified live 2026-05-11.
+    (
+        "FL",
+        "Brooksville",
+        "34601",
+        "0001",
+        "6.500",
+        "0.05",
+        "iter-138 audit pin: SalesTaxHandbook (Hernando rebind from Citrus)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
