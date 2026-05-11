@@ -82,6 +82,18 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-163 MN/SD cross-state ZIP bug** (logged not fixed):
+  Pipestone, MN ZIP 56164 returns 11.075% combined because the
+  engine emits BOTH Minnesota (6.875%) AND South Dakota (4.2%)
+  state jurisdictions for that ZIP -- and sums them. Per
+  SalesTaxHandbook, 56164 is in MN and should return MN-only at
+  6.875%. The boundary loader is binding 56164 to both state's
+  Census ZCTA records (probably because the ZIP centroid is near
+  the state line). Engine needs cross-state ZIP dedup (pick one
+  state per ZIP, probably based on USPS PCITY or majority of
+  delivery points). This is a 4.2% MASSIVE over-collection for
+  affected ZIPs. Probably affects other state-line ZIPs too
+  (KS/MO Kansas City, OH/KY Cincinnati, TX/AR Texarkana...).
 - **iter-160 WI Premier Resort Area Tax** (logged not fixed):
   Wisconsin's "Premier Resort Area Tax" (Wis. Stat. 77.994) is a
   special tax of 0.5-1.25% that certain resort municipalities can
