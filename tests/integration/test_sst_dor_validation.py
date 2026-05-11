@@ -5924,6 +5924,53 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-151 audit pin: SalesTaxHandbook (state 5.6 + Cochise 0.5 + city 3.5)",
     ),
+    # iter-152: 8 AZ fixes (2 rate updates + 6 new cities incl
+    # Cave Creek 0%-jurisdictions regression test).
+    (
+        "AZ",
+        "Cave Creek",
+        "85327",
+        "0001",
+        "9.300",
+        "0.05",
+        "iter-152 audit pin: regression test for 0%-jurisdictions (was unbound; added Maricopa Co)",
+    ),
+    (
+        "AZ",
+        "Fountain Hills",
+        "85268",
+        "0001",
+        "9.200",
+        "0.05",
+        "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Maricopa 0.7 + city 2.9)",
+    ),
+    (
+        "AZ",
+        "Paradise Valley",
+        "85253",
+        "0001",
+        "9.100",
+        "0.05",
+        "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Maricopa 0.7 + city 2.8)",
+    ),
+    (
+        "AZ",
+        "Eagar",
+        "85925",
+        "0001",
+        "9.100",
+        "0.05",
+        "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Apache 0.5 + city 3.0)",
+    ),
+    (
+        "AZ",
+        "Tolleson",
+        "85353",
+        "0001",
+        "9.100",
+        "0.05",
+        "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Maricopa 0.7 + city 2.8 raised from 2.5)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
