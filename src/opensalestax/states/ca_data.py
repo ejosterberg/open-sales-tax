@@ -497,6 +497,17 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.500"),  # combined 9.875
         ("94303",),
     ),
+    # iter-105: more Marin Co cities (1% city tax pattern)
+    "Novato": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94945", "94947", "94948", "94949"),
+    ),
+    "Corte Madera": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94925",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
