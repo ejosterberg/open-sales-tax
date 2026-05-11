@@ -5833,6 +5833,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-143 audit pin: SalesTaxHandbook (Washington rebind from Bay; 13th cross-county)",
     ),
+    (
+        "FL",
+        "Paxton",
+        "32538",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-144 audit pin: regression test for 0%-jurisdictions bug (was unbound; added Walton Co)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
