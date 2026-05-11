@@ -4371,6 +4371,24 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-109 audit pin: 92376 added to Fontana ZIP coverage (was 7.75%, now 8.75%)",
     ),
+    (
+        "CA",
+        "Alhambra",
+        "91801",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-110 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
+    (
+        "CA",
+        "Monterey Park",
+        "91754",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-110 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
