@@ -5989,6 +5989,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-153 audit pin: SalesTaxHandbook (state 5.6 + La Paz 1.0 + city 2.5)",
     ),
+    # iter-161: CA Trinity Co was missing (4th missing-binding fix)
+    (
+        "CA",
+        "Weaverville",
+        "96093",
+        "0001",
+        "7.250",
+        "0.05",
+        "iter-161 audit pin: regression test for 0%-jurisdictions bug (Trinity Co was missing)",
+    ),
+    (
+        "CA",
+        "Hayfork",
+        "96041",
+        "0001",
+        "7.250",
+        "0.05",
+        "iter-161 audit pin: regression test for 0%-jurisdictions bug (Trinity Co was missing)",
+    ),
     (
         "TX",
         "Webster",
