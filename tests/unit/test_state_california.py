@@ -285,10 +285,12 @@ def test_california_seeds_fifty_cities() -> None:
       +0.5%)
     - iter-102: San Carlos (San Mateo Co +0.5%) + San Ramon
       (Contra Costa Co +1.0%, 94582 only)
+    - iter-103: Folsom (Sacramento Co; fixed county-misattribution
+      bug -- 8.25% over via El Dorado pick -> 7.75% correct)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 69
+    assert len(CA_CITIES) == 70
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

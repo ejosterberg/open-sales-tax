@@ -468,6 +468,16 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 9.750
         ("94582",),
     ),
+    "Folsom": (
+        # iter-103: 8.25% live (engine picks El Dorado Co 1.0% for
+        # ZIP 95630) vs SalesTaxHandbook 7.75% (Sacramento Co
+        # 0.5%, no city tax). Folsom is in Sacramento Co per USPS;
+        # adding the city anchor forces the correct county pick.
+        # state 7.25 + Sacramento 0.5 + city 0.0 = 7.750.
+        "Sacramento County",
+        Decimal("0.000"),  # combined 7.750
+        ("95630", "95763"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
