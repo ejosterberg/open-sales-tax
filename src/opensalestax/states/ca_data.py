@@ -1819,6 +1819,82 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.750"),  # combined 10.500
         ("91731", "91732", "91733", "91734", "91735"),
     ),
+    # ----- More Los Angeles County (iter-125) -----
+    # San Gabriel Valley + east-LA-Co suburbs. All 12 below were
+    # returning bare 9.75% pre-fix. Walnut + La Mirada were also
+    # probed and confirmed correct at 9.75% (no city tax).
+    "Arcadia": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91006", "91007", "91066", "91077"),
+    ),
+    "Baldwin Park": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("91706",),
+    ),
+    "Covina": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91722", "91723", "91724"),
+    ),
+    "Glendora": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("91740", "91741", "91740"),
+    ),
+    "San Gabriel": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91775", "91776", "91778"),
+    ),
+    "Temple City": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91780",),
+    ),
+    "Monrovia": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91016", "91017"),
+    ),
+    "Azusa": (
+        # state 7.25 + LA 2.5 + city 1.0 = 10.750. Raised Apr 2025.
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("91702",),
+    ),
+    "Duarte": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91010",),
+    ),
+    "San Dimas": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91773",),
+    ),
+    "Diamond Bar": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91765",),
+    ),
+    "Claremont": (
+        # state 7.25 + LA 2.5 + city 0.75 = 10.500.
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("91711",),
+    ),
 }
 
 

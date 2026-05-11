@@ -339,10 +339,13 @@ def test_california_seeds_fifty_cities() -> None:
       Bellflower/Carson/El Monte each +0.75; Inglewood +0.5;
       Compton/Lynwood/Paramount/South Gate/Pico Rivera/Montebello
       each +1.0)
+    - iter-125: 12 more LA Co cities (Arcadia/Covina/San Gabriel/
+      Temple City/Monrovia/Duarte/San Dimas/Diamond Bar/Claremont
+      each +0.75; Baldwin Park/Glendora/Azusa each +1.0)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 188
+    assert len(CA_CITIES) == 200
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
