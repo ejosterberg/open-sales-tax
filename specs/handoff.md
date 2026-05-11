@@ -60,6 +60,28 @@ Headline highlights:
   for every iter (~75 new pins added 596 → 671). Total combined
   CA under-collection closed across iter-93..116: ~50% across
   ~75 cities.
+- **iter-147..153 CA + AZ probe sweep**: 17 more fixes across 7
+  iters, mixing new-city adds with existing-rate updates:
+  - **iter-147 CA Imperial+Kern**: 4 cities (El Centro/Calexico
+    +0.5; Brawley +1.0; Ridgecrest +1.0). CA_CITIES 210 → 214.
+  - **iter-150 AZ Sahuarita rate**: city tax 2.0 → 5.0 (raised
+    2024 per SalesTaxHandbook).
+  - **iter-151 AZ Sun City + Vail + Bisbee**: 3 city additions.
+  - **iter-152 AZ 8 fixes**: 6 new (Cave Creek which was 0%-
+    unbound, Fountain Hills, Paradise Valley, Youngtown, Eagar,
+    Springerville) + 2 rate updates (Tolleson 2.5 → 2.8,
+    Litchfield Park 2.8 → 3.0). **3rd missing-binding bug**
+    fixed (CA Mariposa → FL Paxton → AZ Cave Creek).
+  - **iter-153 AZ Parker + Quartzsite**: La Paz Co cities; Parker
+    includes Oct-2025 special tax (+4.0 city brings to 10.6%).
+  Notable: this stretch survived a ~7-minute GitHub Internal
+  Server Error outage on 2026-05-11 14:01-14:09 UTC; iter-153
+  push retried via a Monitor until GitHub recovered. One CI
+  rerun was needed (the pin CI run hit the same checkout
+  failure mid-build and was re-triggered cleanly).
+
+  **AZ session total: 14 city/rate fixes** (Sahuarita rate
+  update + 13 new/updated city anchors).
 - **iter-148 TN IMPROVE Act over-collect** (logged not fixed):
   multiple TN cities in Davidson + Williamson + Sumner Co
   over-collect by 0.5-1.0% due to multiple IMPROVE Act district
