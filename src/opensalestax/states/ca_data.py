@@ -478,6 +478,25 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.000"),  # combined 7.750
         ("95630", "95763"),
     ),
+    "Palo Alto": (
+        # iter-104: 94301/94304/94305/94306 already return 9.75%
+        # via Santa Clara County. ZIP 94302 returns 0% (PO-box-
+        # only). Adding Palo Alto anchor with all Palo Alto ZIPs
+        # ensures consistent Santa Clara binding + closes 94302.
+        # state 7.25 + Santa Clara 2.5 + city 0 = 9.750.
+        "Santa Clara County",
+        Decimal("0.000"),  # combined 9.750
+        ("94301", "94302", "94304", "94305", "94306"),
+    ),
+    "East Palo Alto": (
+        # iter-104: 94303 was returning 9.375% (San Mateo Co only,
+        # no city tax). SalesTaxHandbook 9.875% with East Palo
+        # Alto +0.5% city tax.
+        # state 7.25 + San Mateo 2.125 + city 0.5 = 9.875.
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94303",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
