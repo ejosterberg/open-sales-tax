@@ -508,6 +508,36 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 9.250
         ("94925",),
     ),
+    # iter-106: more LA Co + La Habra (OC) county-misattribution
+    "Culver City": (
+        # 9.75% live vs SalesTaxHandbook 10.75% (city +1.0% via Measure CC).
+        "Los Angeles County",
+        Decimal("1.000"),  # combined 10.750
+        ("90230", "90231", "90232", "90233"),
+    ),
+    "El Segundo": (
+        # 9.75% live vs SalesTaxHandbook 10.50% (city +0.75%).
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90245",),
+    ),
+    "Whittier": (
+        # 9.75% live vs SalesTaxHandbook 10.50% (city +0.75%).
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90601", "90602", "90603", "90604", "90605", "90606", "90607", "90608"),
+    ),
+    "La Habra": (
+        # iter-106: 90631 was returning 9.75% with LA County
+        # binding -- ZIP 90631 spans OC + LA counties per Census
+        # ZCTA, our engine picks LA. La Habra IS in OC per USPS.
+        # Anchoring La Habra to Orange County fixes the
+        # misattribution + adds 1% city tax.
+        # state 7.25 + OC 0.5 + city 1.0 = 8.750.
+        "Orange County",
+        Decimal("1.000"),  # combined 8.750
+        ("90631", "90632", "90633"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
