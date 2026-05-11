@@ -51,11 +51,20 @@ def test_florida_seeds_all_67_counties() -> None:
 
 
 def test_florida_county_surtax_rates_within_legal_range() -> None:
-    """Discretionary surtax (Fla. Stat. 212.054) caps at 1.5% in 2026."""
+    """Discretionary surtax caps at 2.0% in 2026.
+
+    The Fla. Stat. 212.054 "Local Government Infrastructure" subsection
+    caps at 1.5%, but small counties can stack multiple subsections
+    (212.055 series: Small County Surtax + School Capital + Charter-
+    County Transit + Indigent Care etc.). The combined cap is **2.0%**
+    when a county uses the stacking maximum. Hamilton County raised
+    to 2.0% effective Jan 2025 (verified iter-145 against
+    SalesTaxHandbook). Test catches obviously-wrong rates only.
+    """
     for county, rate in FL_COUNTY_SURTAX_PCT.items():
         assert (
-            Decimal("0.000") <= rate <= Decimal("1.500")
-        ), f"{county} surtax {rate} out of legal 0.0%-1.5% range"
+            Decimal("0.000") <= rate <= Decimal("2.000")
+        ), f"{county} surtax {rate} out of legal 0.0%-2.0% range"
 
 
 @pytest.mark.parametrize(
