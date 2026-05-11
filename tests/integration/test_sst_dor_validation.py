@@ -6848,6 +6848,39 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "NE DOR (state 5.5% + Papillion 2.0%) -- post-v0.46 tiebreaker reorder",
     ),
+    # iter-165..168 cross-state ZIP dedup: ZIPs that straddle the
+    # MN/SD border previously summed both states' rates (11.075%).
+    # iter-168 ZCTA loader now picks the area-majority state per ZIP
+    # (AREALAND_PART), and iter-167 lookup engine filters authorities
+    # to that canonical state. Pin the three border ZIPs that were
+    # affected in production.
+    (
+        "MN",
+        "Lake Wilson (Murray Co)",
+        "56144",
+        "0001",
+        "6.875",
+        "0.05",
+        "MN DOR (state 6.875%) -- iter-168 ZCTA area-majority picks MN over SD",
+    ),
+    (
+        "MN",
+        "Pipestone",
+        "56164",
+        "0001",
+        "6.875",
+        "0.05",
+        "MN DOR (state 6.875%) -- iter-165..167 cross-state ZIP dedup",
+    ),
+    (
+        "SD",
+        "Sioux Falls (Renner)",
+        "57068",
+        "0001",
+        "6.200",
+        "0.05",
+        "SD DOR (state 4.2% + Sioux Falls 2%) -- iter-168 ZCTA area-majority picks SD over MN",
+    ),
 ]
 
 

@@ -123,3 +123,49 @@ def test_parse_supplement_respects_abbrev_filter(tmp_path) -> None:
     # Only MN row from Census; no supplement entries since MN isn't in
     # the PO-box ZIP table.
     assert pairs == {("55401", "MN")}
+
+
+def test_parse_cross_state_zip_picks_area_majority(tmp_path) -> None:
+    """iter-168: cross-state ZIPs pick the area-majority state, not row-count.
+
+    ZIP 57068 (Sioux Falls, SD area) crosses Rock County MN
+    (FIPS 27133, intersected land area ~8 sq km) and Minnehaha
+    County SD (FIPS 46099, intersected land area ~111 sq km). Row
+    count is 1:1, tied. The pre-iter-168 row-count majority broke
+    the tie alphabetically -> MN (wrong; the ZIP is overwhelmingly
+    SD). The new area-majority logic correctly picks SD.
+    """
+    rows = [
+        # ZCTA 57068 in Rock County MN -- small intersection
+        "|57068|||||||" + "|27133|||||||8140812|0",
+        # ZCTA 57068 in Minnehaha County SD -- much larger
+        "|57068|||||||" + "|46099|||||||111351152|74629",
+    ]
+    fixture = _write_fixture(tmp_path, rows)
+    parsed = list(parse_zcta_state_rows(fixture, abbrev_filter={"MN", "SD"}))
+    pairs = [(p.zip5, p.state_abbrev) for p in parsed]
+    # Area-majority picks SD (~111M sqm > 8M sqm).
+    assert pairs == [("57068", "SD")]
+
+
+def test_parse_cross_state_zip_minor_overlap_picks_majority_side(tmp_path) -> None:
+    """iter-168: area-majority works when row counts disagree too.
+
+    ZIP 56164 (Pipestone, MN) has multiple county intersections on
+    the MN side and a single small intersection on the SD side.
+    The MN side wins both by row count AND by area. This pin
+    confirms the new logic preserves the iter-165 fix when row
+    counts are also a majority signal.
+    """
+    rows = [
+        # 56164: 3 MN counties (FIPS 27...), 1 SD county
+        "|56164|||||||" + "|27053|||||||50000000|0",
+        "|56164|||||||" + "|27117|||||||40000000|0",
+        "|56164|||||||" + "|27081|||||||30000000|0",
+        "|56164|||||||" + "|46011|||||||5000000|0",
+    ]
+    fixture = _write_fixture(tmp_path, rows)
+    parsed = list(parse_zcta_state_rows(fixture, abbrev_filter={"MN", "SD"}))
+    pairs = [(p.zip5, p.state_abbrev) for p in parsed]
+    # MN wins decisively: 3 rows + 120M sqm vs SD's 1 row + 5M sqm.
+    assert pairs == [("56164", "MN")]
