@@ -409,6 +409,26 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.500"),
         ("86336", "86351"),
     ),
+    # --- iter-151: more AZ city additions ---
+    "Sun City": (
+        # CDP in Maricopa Co; state 5.6 + Maricopa 0.7 + city 3.0 = 9.3
+        # per SalesTaxHandbook.
+        "Maricopa County",
+        Decimal("3.000"),
+        ("85351", "85372", "85373", "85375"),
+    ),
+    "Vail": (
+        # ZIP 85641 in Pima Co; state 5.6 + Pima 0.5 + city 2.6 = 8.7.
+        "Pima County",
+        Decimal("2.600"),
+        ("85641",),
+    ),
+    "Bisbee": (
+        # state 5.6 + Cochise 0.5 + city 3.5 = 9.6.
+        "Cochise County",
+        Decimal("3.500"),
+        ("85603",),
+    ),
 }
 
 
