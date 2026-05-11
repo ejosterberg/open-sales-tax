@@ -20,7 +20,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from opensalestax.db.models import Boundary, TaxAuthority
+from opensalestax.db.models import Boundary, DataVersion, State, TaxAuthority
 
 # Threshold for the v0.47 "lone type-4-only district" heuristic.
 # A solitary type-4-only district is included as a county-wide overlay
@@ -253,12 +253,16 @@ async def lookup_jurisdictions_by_zip(
     if not precise_county_city_ids:
         merged = await _dedup_typez_fallback(session, merged, zip5)
 
-    # iter-166: cross-state ZIP dedup. Some ZIPs (e.g. Pipestone area
-    # 56164 + 56144 + 57068) straddle a state line and end up with
-    # boundary rows in both states' SST quarterly files. Pick the
-    # majority state and drop authorities from any other state to
-    # prevent cross-state rate summing.
-    merged = _filter_to_majority_state(merged)
+    # iter-167: cross-state ZIP dedup. Some ZIPs (Pipestone area
+    # 56144 / 56164, Sioux Falls 57068) straddle a state line and
+    # end up with boundary rows in both states' SST quarterly
+    # files. The ZCTA-sourced boundary tells us which state
+    # physically owns the ZIP per the Census file; drop
+    # authorities from any other state to prevent cross-state
+    # rate summing. (Replaces iter-166's count-majority heuristic
+    # which mis-picked SD for MN-side ZIP 56144.)
+    canonical = await _canonical_state_for_zip(session, zip5)
+    merged = _filter_to_canonical_state(merged, canonical)
 
     return _stable_sort(merged)
 
@@ -344,13 +348,16 @@ async def lookup_jurisdictions_by_zip5_loose(
     )
     rows = [(row[0], row[1]) for row in (await session.execute(stmt)).all()]
 
-    # iter-166: cross-state ZIP dedup. Filter rows down to the majority
-    # state's authorities so cross-state ZIPs (Pipestone-area MN/SD)
-    # don't return both states' rates.
+    # iter-167: cross-state ZIP dedup. Filter rows down to the
+    # canonical state's authorities so cross-state ZIPs
+    # (Pipestone-area MN/SD) don't return both states' rates.
+    # The canonical state comes from the ZCTA-sourced boundary
+    # (geographic ground truth), not from authority counts.
     if rows:
-        majority_authorities = _filter_to_majority_state([r[0] for r in rows])
-        majority_ids = {a.id for a in majority_authorities}
-        rows = [r for r in rows if r[0].id in majority_ids]
+        canonical = await _canonical_state_for_zip(session, zip5)
+        canonical_authorities = _filter_to_canonical_state([r[0] for r in rows], canonical)
+        canonical_ids = {a.id for a in canonical_authorities}
+        rows = [r for r in rows if r[0].id in canonical_ids]
 
     # Total ZIP coverage per candidate authority -- used as a
     # tiebreaker so the more-specific authority wins (e.g. Winooski
@@ -575,61 +582,106 @@ def _stable_sort(authorities: list[TaxAuthority]) -> list[TaxAuthority]:
     )
 
 
-def _filter_to_majority_state(
+async def _canonical_state_for_zip(session: AsyncSession, zip5: str) -> str | None:
+    """Return the state abbrev that canonically owns ``zip5`` per the ZCTA loader.
+
+    Iter-167: cross-state ZIP dedup truth-source.
+
+    The Census ZCTA file binds every US ZIP to a single state (the
+    state with the most county-row intersections per
+    :func:`opensalestax.data.zcta_loader.parse_zcta_state_rows`).
+    That binding is loaded as a ``DataVersion`` with source
+    ``ZCTA`` and a state-level ``TaxAuthority`` boundary. This
+    boundary represents the geographic ground truth for "which
+    state does this ZIP physically sit in," independent of what
+    multiple states' SST quarterly files might claim.
+
+    Returns ``None`` when no ZCTA-sourced boundary exists for the
+    ZIP (e.g. some PO-box-only ZIPs that even the USPS supplement
+    didn't fill, or a state whose ZCTA load was skipped).
+    """
+    stmt = (
+        select(State.abbrev)
+        .join(DataVersion, DataVersion.state_id == State.id)
+        .join(Boundary, Boundary.data_version_id == DataVersion.id)
+        .where(
+            Boundary.zip5 == zip5,
+            DataVersion.source == "ZCTA",
+        )
+        .limit(1)
+    )
+    return (await session.execute(stmt)).scalar_one_or_none()
+
+
+def _filter_to_canonical_state(
     authorities: list[TaxAuthority],
+    canonical_abbrev: str | None,
 ) -> list[TaxAuthority]:
-    """Filter authorities to those from the majority state for the ZIP.
+    """Filter authorities to those whose state matches ``canonical_abbrev``.
 
-    Iter-166 fix for the cross-state ZIP bug (handoff iter-163..165).
-    Some ZIPs straddle a state line and end up with boundary rows in
-    BOTH states' SST quarterly files. The lookup engine previously
-    returned all authorities -- including TWO state authorities --
-    and the rate calculator summed both states' rates.
+    Iter-167 fix for the cross-state ZIP bug (handoff iter-163..166).
+    Some ZIPs straddle a state line and end up with boundary rows
+    in BOTH states' SST quarterly files. The lookup engine
+    previously returned all authorities -- including TWO state
+    authorities -- and the rate calculator summed both states'
+    rates.
 
-    For example, ZIP 56164 (Pipestone, MN) had:
-      - 1 MN-ZCTA boundary (state-level)
-      - 2 MN-SST boundaries (state-level, from MN's quarterly file)
-      - 3 SD-SST boundaries (state-level, from SD's quarterly file)
-    The pre-fix engine emitted ``Minnesota`` AND ``South Dakota``
-    state authorities and summed 6.875% + 4.2% = 11.075%.
+    For ZIP 56164 (Pipestone, MN) the pre-fix engine emitted
+    Minnesota AND South Dakota state authorities and summed
+    6.875% + 4.2% = 11.075%.
 
-    This filter picks the state with the most authorities for the
-    ZIP (the "majority state"), then drops authorities from any
-    other state. Ties broken alphabetically by state abbrev (rare
-    in practice; only ~4 ZIPs in the entire US dataset are affected
-    -- the Pipestone-area MN/SD border).
+    Iter-166 picked the state with the most authorities, but that
+    backfired on ZIPs like 56144 where SD's SST file bound more
+    rows than MN's, even though the ZIP is physically in MN per
+    the Census ZCTA file.
 
-    Authorities without a ``.state`` (shouldn't happen, but defensive)
-    pass through unchanged.
+    Iter-167 instead defers to :func:`_canonical_state_for_zip`,
+    which queries the ZCTA-sourced boundary -- the geographic
+    ground truth. If no canonical state can be determined
+    (no ZCTA boundary loaded for this ZIP), this function
+    falls back to authority-count majority for compatibility.
+
+    Authorities without a ``.state`` (shouldn't happen but
+    defensive) pass through unchanged.
     """
     if not authorities:
         return authorities
 
-    # Count authorities per state. Use abbrev so we don't have to
-    # hash full state objects.
-    counts_per_state: dict[str, int] = {}
+    # Find every state present in the candidate authorities.
+    present_states: set[str] = set()
     for auth in authorities:
         state = getattr(auth, "state", None)
         if state is None:
             continue
         abbrev = getattr(state, "abbrev", None)
-        if not abbrev:
-            continue
-        counts_per_state[abbrev] = counts_per_state.get(abbrev, 0) + 1
+        if abbrev:
+            present_states.add(abbrev)
 
-    if len(counts_per_state) <= 1:
+    if len(present_states) <= 1:
         # Single state (or no state info) -- no filtering needed.
         return authorities
 
-    # Pick the majority state. Tiebreak alphabetically by abbrev
-    # (sort by (-count, abbrev) and pick first).
-    majority = min(counts_per_state.keys(), key=lambda a: (-counts_per_state[a], a))
+    target = canonical_abbrev
+    if target is None or target not in present_states:
+        # Fall back to majority-by-count when we have no ZCTA truth
+        # OR the canonical state has no authorities in the candidate
+        # pool (e.g. ZCTA says MN but only SD authorities loaded).
+        counts: dict[str, int] = {}
+        for auth in authorities:
+            state = getattr(auth, "state", None)
+            abbrev = getattr(state, "abbrev", None) if state is not None else None
+            if abbrev:
+                counts[abbrev] = counts.get(abbrev, 0) + 1
+        if not counts:
+            return authorities
+        # Sort by (-count, abbrev): most authorities wins, alphabetical tiebreak.
+        target = min(counts.keys(), key=lambda a: (-counts[a], a))
 
     return [
         auth
         for auth in authorities
         if (state := getattr(auth, "state", None)) is None
-        or getattr(state, "abbrev", None) == majority
+        or getattr(state, "abbrev", None) == target
     ]
 
 
