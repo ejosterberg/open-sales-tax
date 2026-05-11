@@ -73,6 +73,37 @@ Headline highlights:
   due to IMPROVE Act transit district that voters approved Nov
   2024 but SalesTaxHandbook hasn't updated -- engine likely
   correct, SalesTaxHandbook stale.
+- **iter-118..125 CA-cities continued (CA_CITIES → 200 milestone)**:
+  73 more cities added across 8 iters, with 5 more cross-county
+  Census ZCTA misattribution fixes (Davis/Turlock/Dinuba/Watsonville
+  /Rio Vista) + 1 missing CA county (Mariposa).
+  - iter-118: Rancho Cordova + Galt + Highland + Norco + Calimesa
+    (5 cities, Sac/SBd/Riverside Co)
+  - iter-119: 11 Central Valley + SJ Co cities (Tracy/Manteca/Lodi
+    + 5 Fresno Co + Dinuba cross-county rebind from Fresno→Tulare)
+  - iter-120: 9 Northern + Central CA (Mariposa fixes missing
+    county + 0%-jurisdictions bug; Turlock cross-county Merced→
+    Stanislaus; Ceres + Eureka + Arcata + Chico + Oroville +
+    Paradise + Fort Bragg)
+  - iter-121: 8 Central Coast + Sierra (Truckee TBID +0.125;
+    Hollister; Watsonville cross-county Monterey→Santa Cruz +
+    4 more Monterey + Santa Maria)
+  - iter-122: 7 Solano + Yolo Co cities (Fairfield/Benicia/Suisun
+    City/Dixon + Rio Vista cross-county Sacramento→Solano +
+    West Sacramento + Winters)
+  - iter-123: 8 Contra Costa Co cities (Brentwood/Martinez/
+    Pleasant Hill/Lafayette/Moraga/Hercules/Pinole/Orinda)
+  - iter-124: 13 LA Co cities (Beverly Hills/Downey/Norwalk/
+    Bellflower/Carson/El Monte + Inglewood + Compton/Lynwood/
+    Paramount/South Gate/Pico Rivera/Montebello) -- biggest
+    single-iter LA Co batch this session
+  - iter-125: 12 more LA Co cities (SGV + east-LA suburbs).
+    CA_CITIES hits **200** -- 4x the original 50-city seed.
+
+Cumulative impact since iter-93: **150 CA cities added** (CA_CITIES
+50 → 200), 9 cross-county Census ZCTA misattribution fixes, 1
+missing CA county (Mariposa) added, ~250 new live-grid pins.
+~70% of historical CA under-collection closed.
 
 Next release should bump significantly for these.
 
