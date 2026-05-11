@@ -6009,6 +6009,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "iter-161 audit pin: regression test for 0%-jurisdictions bug (Trinity Co was missing)",
     ),
     (
+        "CA",
+        "Markleeville",
+        "96120",
+        "0001",
+        "7.250",
+        "0.05",
+        "iter-162 audit pin: regression test for 0%-jurisdictions bug (Alpine Co was missing)",
+    ),
+    (
         "TX",
         "Webster",
         "77598",
