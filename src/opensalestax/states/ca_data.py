@@ -437,6 +437,21 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.500"),  # combined 9.875
         ("94044",),
     ),
+    # iter-101: more Bay Area + Placer Co
+    "Belmont": (
+        # 9.375% live vs SalesTaxHandbook 9.875%. Belmont 0.5% city tax.
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94002",),
+    ),
+    "Rocklin": (
+        # 7.25% live vs SalesTaxHandbook 7.75%. Rocklin 0.5% city tax;
+        # Placer Co is 0% in our model (per iter-63 reconciliation).
+        # state 7.25 + Placer 0 + city 0.5 = 7.75.
+        "Placer County",
+        Decimal("0.500"),  # combined 7.750
+        ("95677", "95765"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500

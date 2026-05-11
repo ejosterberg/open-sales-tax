@@ -281,10 +281,12 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-100: Mill Valley + Sausalito + Larkspur + San Anselmo
       (Marin Co, each +1.0%) + San Bruno + Pacifica (San Mateo Co,
       each +0.5%)
+    - iter-101: Belmont (San Mateo Co +0.5%) + Rocklin (Placer Co
+      +0.5%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 65
+    assert len(CA_CITIES) == 67
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
