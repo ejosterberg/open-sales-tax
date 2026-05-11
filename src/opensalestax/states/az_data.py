@@ -472,6 +472,20 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.000"),
         ("85938",),
     ),
+    # --- iter-153: La Paz Co (Parker + Quartzsite) ---
+    "Parker": (
+        # state 5.6 + La Paz 1.0 + city 4.0 = 10.6.
+        # Includes 2% city tax + 2% special added Oct 2025.
+        "La Paz County",
+        Decimal("4.000"),
+        ("85344",),
+    ),
+    "Quartzsite": (
+        # state 5.6 + La Paz 1.0 + city 2.5 = 9.1.
+        "La Paz County",
+        Decimal("2.500"),
+        ("85346",),
+    ),
 }
 
 
