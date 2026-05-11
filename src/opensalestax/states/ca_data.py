@@ -1623,6 +1623,61 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 8.750
         ("93454", "93455", "93456", "93458"),
     ),
+    # ----- More Solano County (iter-122) -----
+    # Solano Co engine rate 0.875% (state+co = 8.125%). Each city
+    # below adds its own portion. Rio Vista was binding to Sacramento
+    # Co via Census ZCTA misattribution -- 9th cross-county case
+    # this session.
+    "Fairfield": (
+        # state 7.25 + Solano 0.875 + city 1.0 = 9.125.
+        "Solano County",
+        Decimal("1.000"),  # combined 9.125
+        ("94533", "94534", "94535"),
+    ),
+    "Benicia": (
+        # state 7.25 + Solano 0.875 + city 1.5 = 9.625.
+        "Solano County",
+        Decimal("1.500"),  # combined 9.625
+        ("94510",),
+    ),
+    "Suisun City": (
+        # state 7.25 + Solano 0.875 + city 1.0 = 9.125.
+        "Solano County",
+        Decimal("1.000"),  # combined 9.125
+        ("94585",),
+    ),
+    "Dixon": (
+        # state 7.25 + Solano 0.875 + city 0.25 = 8.375.
+        "Solano County",
+        Decimal("0.250"),  # combined 8.375
+        ("95620",),
+    ),
+    "Rio Vista": (
+        # state 7.25 + Solano 0.875 + city 1.0 = 9.125. Census ZCTA
+        # had bound 94571 to Sacramento Co; city anchor fixes the
+        # county pick (9th cross-county case this session).
+        "Solano County",
+        Decimal("1.000"),  # combined 9.125
+        ("94571",),
+    ),
+    # ----- More Yolo County (iter-122) -----
+    # Yolo Co engine rate 0.75% (state+co = 8.000%). West Sacramento
+    # adds 1.25 city; Winters 0.25.
+    "West Sacramento": (
+        # state 7.25 + Yolo 0.75 + city 1.25 = 9.250.
+        "Yolo County",
+        Decimal("1.250"),  # combined 9.250
+        (
+            "95605",
+            "95691",
+        ),
+    ),
+    "Winters": (
+        # state 7.25 + Yolo 0.75 + city 0.25 = 8.250.
+        "Yolo County",
+        Decimal("0.250"),  # combined 8.250
+        ("95694",),
+    ),
 }
 
 

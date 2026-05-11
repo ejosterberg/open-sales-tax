@@ -328,10 +328,14 @@ def test_california_seeds_fifty_cities() -> None:
       cross-county rebind Monterey→Santa Cruz; Scotts Valley
       +0.25 Santa Cruz; Marina/Seaside/Pacific Grove +0.5 each
       Monterey; Santa Maria +1.0 Santa Barbara)
+    - iter-122: 7 Solano + Yolo Co cities (Fairfield/Benicia/
+      Suisun City/Dixon city overlays; Rio Vista cross-county
+      rebind Sacramento→Solano; West Sacramento +1.25 Yolo;
+      Winters +0.25 Yolo)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 160
+    assert len(CA_CITIES) == 167
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
