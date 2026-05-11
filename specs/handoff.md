@@ -131,9 +131,29 @@ missing CA county (Mariposa) added, ~250 new live-grid pins.
     City / Friendswood / Dickinson / Alvin / Angleton / Lake
     Jackson / Freeport / El Campo / Cuero / Yoakum / Hereford /
     Borger / Dumas / Plainview / Levelland / Snyder / Sweetwater
-  All 65 hit TX's 8.25% local-cap max per SalesTaxHandbook +
-  Texas Comptroller. TX module was previously the next-most
-  under-modeled big state behind CA; this is a major closure.
+  - iter-132: 27 more (North TX small-mid + East TX + Brazos
+    Valley + Central TX + South TX): Mineral Wells / Decatur /
+    Gainesville / Bonham / Mount Pleasant / Henderson / Marshall /
+    Carthage / Center / Crockett / Livingston / Madisonville /
+    Navasota / Caldwell / Giddings / La Grange / Bastrop /
+    Smithville / Lockhart / Luling / Seguin / Gonzales / Beeville
+    / Alice / Kingsville / Sinton / Mathis
+  - iter-134: 26 more (SE TX Hardin/Jefferson + Brazos Valley
+    west + South TX): Vidor / Groves / Nederland / Port Neches /
+    Silsbee / Jasper / Newton / Kountze / Hempstead / Sealy /
+    Bellville / Columbus / Schulenburg / Hallettsville / Edna /
+    Goliad / Refugio / Karnes City / Pleasanton / Floresville /
+    Jourdanton / Pearsall / Cotulla / Carrizo Springs / Crystal
+    City / Hondo
+  **Cumulative TX session total: 118 cities** added across
+  iter-128..134. All hit TX's 8.25% local-cap max per
+  SalesTaxHandbook + Texas Comptroller. TX module was previously
+  the next-most under-modeled big state behind CA; this is a
+  major closure (engine now properly returns city rates for the
+  118 most-populous TX incorporated places beyond the original
+  49-city seed). Sampling ~5 cities per iter against
+  SalesTaxHandbook (instead of all) caught no errors; the
+  systemic "8.25% local cap" pattern is very reliable for TX.
 
 **Open follow-ups discovered (not fixed) during iter-117..131**:
 - **NM TRD over-collect 0.25%**: Albuquerque + Santa Fe city tax
