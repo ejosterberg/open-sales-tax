@@ -4227,6 +4227,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-102 audit pin: SalesTaxHandbook (state 7.25 + Contra Costa 1.5 + city 1.0)",
     ),
+    (
+        "CA",
+        "Folsom",
+        "95630",
+        "0001",
+        "7.750",
+        "0.05",
+        "iter-103 audit pin: county-misattribution fix (was 8.25% via El Dorado, now 7.75% Sac Co)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
