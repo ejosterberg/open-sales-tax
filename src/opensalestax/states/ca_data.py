@@ -538,6 +538,28 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.000"),  # combined 8.750
         ("90631", "90632", "90633"),
     ),
+    # iter-107: more LA Co cities (South Bay)
+    "Gardena": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90247", "90248", "90249"),
+    ),
+    "Lawndale": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90260", "90261"),
+    ),
+    "Hawthorne": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500
+        ("90250", "90251"),
+    ),
+    "Cerritos": (
+        "Los Angeles County",
+        Decimal("0.750"),  # combined 10.500 (Artesia area; 11.0% in
+        # Santa Fe Springs subarea not modeled at this scale)
+        ("90703",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500

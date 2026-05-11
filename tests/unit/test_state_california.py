@@ -292,10 +292,12 @@ def test_california_seeds_fifty_cities() -> None:
     - iter-105: Novato + Corte Madera (Marin Co, both +1.0%)
     - iter-106: Culver City (+1.0%) + El Segundo (+0.75%) +
       Whittier (+0.75%) + La Habra (OC anchor + 1.0%)
+    - iter-107: Gardena + Lawndale + Hawthorne + Cerritos
+      (each +0.75%, LA Co South Bay)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 78
+    assert len(CA_CITIES) == 82
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
