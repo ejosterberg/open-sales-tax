@@ -5796,6 +5796,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-138 audit pin: SalesTaxHandbook (Hernando rebind from Citrus)",
     ),
+    # iter-139: 2 more FL cross-county fixes (11th + 12th this session)
+    (
+        "FL",
+        "Dade City",
+        "33523",
+        "0001",
+        "7.000",
+        "0.05",
+        "iter-139 audit pin: SalesTaxHandbook (Pasco rebind from Hernando)",
+    ),
+    (
+        "FL",
+        "Winter Garden",
+        "34787",
+        "0001",
+        "6.500",
+        "0.05",
+        "iter-139 audit pin: SalesTaxHandbook (Orange rebind from Lake; OVER-fix)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
