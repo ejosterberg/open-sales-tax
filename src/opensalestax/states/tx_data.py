@@ -2194,6 +2194,25 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("79845",),
     ),
+    # iter-156: 3 more Houston-area Harris Co cities
+    "Webster": (
+        "Harris County",
+        None,
+        Decimal("2.000"),
+        ("77598",),
+    ),
+    "Deer Park": (
+        "Harris County",
+        None,
+        Decimal("2.000"),
+        ("77536",),
+    ),
+    "Crosby": (
+        "Harris County",
+        None,
+        Decimal("2.000"),
+        ("77532",),
+    ),
     # iter-140: 21 more TX Rio Grande Valley + Coastal Bend cities.
     # All probed bare 6.25%; all hit TX 8.25% local cap.
     "Donna": (
