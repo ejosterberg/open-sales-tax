@@ -505,6 +505,21 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Hernando County",
         ("34601", "34602", "34603", "34604", "34605"),
     ),
+    # 32. Dade City (Pasco County) -- iter-139 cross-county rebind:
+    # ZIP 33523 was binding to Hernando Co (0.5% surtax) instead of
+    # Pasco Co (1.0% surtax), returning 6.5% instead of 7.0%.
+    "Dade City": (
+        "Pasco County",
+        ("33523", "33525", "33526"),
+    ),
+    # 33. Winter Garden (Orange County) -- iter-139 cross-county
+    # rebind: ZIP 34787 was binding to Lake Co (1.0% surtax)
+    # instead of Orange Co (0.5% surtax), returning 7.0% instead
+    # of 6.5%. This is the 12th cross-county Census ZCTA fix.
+    "Winter Garden": (
+        "Orange County",
+        ("34787",),
+    ),
 }
 
 
