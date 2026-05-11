@@ -6905,6 +6905,27 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "OH DOR (Franklin Co side; COTA included via iter-169 multi-district picker)",
     ),
+    # iter-170: KCMO Clay Co side (Northland). Pre-fix returned
+    # 5.475% (state + Clay only). Post-fix returns 8.725% with the
+    # new "Kansas City (Clay)" city entry parented to Clay County.
+    (
+        "MO",
+        "Kansas City (Clay) - Northland",
+        "64118",
+        "0001",
+        "8.725",
+        "0.10",
+        "MO DOR (state 4.225% + Clay 1.25% + KCMO 3.25%) -- iter-170 Clay-side KCMO",
+    ),
+    (
+        "MO",
+        "Kansas City (Clay) - Northland",
+        "64119",
+        "0001",
+        "8.725",
+        "0.10",
+        "MO DOR (state 4.225% + Clay 1.25% + KCMO 3.25%) -- iter-170 Clay-side KCMO",
+    ),
 ]
 
 
