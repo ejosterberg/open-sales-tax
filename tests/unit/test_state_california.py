@@ -296,10 +296,11 @@ def test_california_seeds_fifty_cities() -> None:
       (each +0.75%, LA Co South Bay)
     - iter-108: Santa Monica (+1.0%) + West Hollywood (+0.75%)
     - iter-110: Alhambra + Monterey Park (LA Co +0.75% each, SGV)
+    - iter-111: National City + Vista + San Marcos (SD Co +1.0% each)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 86
+    assert len(CA_CITIES) == 89
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

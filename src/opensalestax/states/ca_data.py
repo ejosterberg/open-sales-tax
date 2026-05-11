@@ -584,6 +584,23 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.750"),  # combined 10.500
         ("91754", "91756"),
     ),
+    # iter-111: San Diego Co cities (each +1.0% city tax)
+    "National City": (
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("91950", "91951"),
+    ),
+    "Vista": (
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750 (92081/92085 have lower 0.5% rate
+        # in some sub-areas not modeled at this scale)
+        ("92083", "92084"),
+    ),
+    "San Marcos": (
+        "San Diego County",
+        Decimal("1.000"),  # combined 8.750
+        ("92069", "92078", "92079", "92096"),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
