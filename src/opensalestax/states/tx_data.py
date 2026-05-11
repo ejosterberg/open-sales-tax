@@ -1883,6 +1883,152 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("78861",),
     ),
+    # iter-136: 24 more TX small-town additions. NE TX + Central +
+    # Brazos Valley. All probed bare 6.25%; all hit TX 8.25% local cap.
+    "Sulphur Springs": (
+        "Hopkins County",
+        None,
+        Decimal("2.000"),
+        ("75482", "75483"),
+    ),
+    "Mount Vernon": (
+        "Franklin County",
+        None,
+        Decimal("2.000"),
+        ("75457",),
+    ),
+    "Pittsburg": (
+        "Camp County",
+        None,
+        Decimal("2.000"),
+        ("75686",),
+    ),
+    "Linden": (
+        "Cass County",
+        None,
+        Decimal("2.000"),
+        ("75563",),
+    ),
+    "Daingerfield": (
+        "Morris County",
+        None,
+        Decimal("2.000"),
+        ("75638",),
+    ),
+    "Atlanta": (
+        "Cass County",
+        None,
+        Decimal("2.000"),
+        ("75551",),
+    ),
+    "Jefferson": (
+        "Marion County",
+        None,
+        Decimal("2.000"),
+        ("75657",),
+    ),
+    "Diboll": (
+        "Angelina County",
+        None,
+        Decimal("2.000"),
+        ("75941",),
+    ),
+    "Trinity": (
+        "Trinity County",
+        None,
+        Decimal("2.000"),
+        ("75862",),
+    ),
+    "Groveton": (
+        "Trinity County",
+        None,
+        Decimal("2.000"),
+        ("75845",),
+    ),
+    "Mexia": (
+        "Limestone County",
+        None,
+        Decimal("2.000"),
+        ("76667",),
+    ),
+    "Teague": (
+        "Freestone County",
+        None,
+        Decimal("2.000"),
+        ("75860",),
+    ),
+    "Fairfield": (
+        "Freestone County",
+        None,
+        Decimal("2.000"),
+        ("75840",),
+    ),
+    "Buffalo": (
+        "Leon County",
+        None,
+        Decimal("2.000"),
+        ("75831",),
+    ),
+    "Hearne": (
+        "Robertson County",
+        None,
+        Decimal("2.000"),
+        ("77859",),
+    ),
+    "Franklin": (
+        "Robertson County",
+        None,
+        Decimal("2.000"),
+        ("77856",),
+    ),
+    "Cameron": (
+        "Milam County",
+        None,
+        Decimal("2.000"),
+        ("76520",),
+    ),
+    "Rockdale": (
+        "Milam County",
+        None,
+        Decimal("2.000"),
+        ("76567",),
+    ),
+    "Taylor": (
+        "Williamson County",
+        None,
+        Decimal("2.000"),
+        ("76574",),
+    ),
+    "Elgin": (
+        "Bastrop County",
+        None,
+        Decimal("2.000"),
+        ("78621",),
+    ),
+    "Bartlett": (
+        "Bell County",
+        None,
+        Decimal("2.000"),
+        ("76511",),
+    ),
+    "Salado": (
+        "Bell County",
+        None,
+        Decimal("2.000"),
+        ("76571",),
+    ),
+    "Belton": (
+        "Bell County",
+        None,
+        Decimal("2.000"),
+        ("76513",),
+    ),
+    "Kennedale": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76060",),
+    ),
 }
 
 
