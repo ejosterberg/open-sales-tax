@@ -82,6 +82,18 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
+- **iter-160 WI Premier Resort Area Tax** (logged not fixed):
+  Wisconsin's "Premier Resort Area Tax" (Wis. Stat. 77.994) is a
+  special tax of 0.5-1.25% that certain resort municipalities can
+  adopt on top of the standard state + county rates. Engine
+  currently returns 5.5% for Wisconsin Dells 53965 (should be
+  6.75% per SalesTaxHandbook: +1.25% PRAT) and 5.5% for
+  Rhinelander 54501 (should be 6.0%: +0.5% PRAT). Other PRAT-
+  enabled cities: Bayfield, Lake Delton, Eagle River, Sister Bay,
+  Stockholm. SST file provides the city authority slot at 0%; the
+  PRAT must be modeled as a special district or city overlay.
+  Fix requires WI-specific code-79 district handling similar to
+  TN/IL.
 - **iter-158/159 HI Maui Co surcharge uncertain** (logged not
   fixed): SalesTaxHandbook reports 0.5% Maui County surcharge for
   Kahului/Kihei/Lahaina/Wailuku ZIPs as of May 2026, but our
