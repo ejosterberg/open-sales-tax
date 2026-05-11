@@ -497,6 +497,14 @@ FL_CITIES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Hernando County",
         ("34606", "34607", "34608", "34609"),
     ),
+    # 31. Brooksville (Hernando County) -- iter-138 cross-county
+    # rebind: ZIP 34601 was binding to Citrus County (0% surtax)
+    # via Census ZCTA misattribution, returning 6.0% instead of
+    # 6.5% (state 6 + Hernando 0.5).
+    "Brooksville": (
+        "Hernando County",
+        ("34601", "34602", "34603", "34604", "34605"),
+    ),
 }
 
 
