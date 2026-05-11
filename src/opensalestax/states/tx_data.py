@@ -2194,6 +2194,134 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("79845",),
     ),
+    # iter-140: 21 more TX Rio Grande Valley + Coastal Bend cities.
+    # All probed bare 6.25%; all hit TX 8.25% local cap.
+    "Donna": (
+        "Hidalgo County",
+        None,
+        Decimal("2.000"),
+        ("78537",),
+    ),
+    "Mercedes": (
+        "Hidalgo County",
+        None,
+        Decimal("2.000"),
+        ("78570",),
+    ),
+    "Weslaco": (
+        "Hidalgo County",
+        None,
+        Decimal("2.000"),
+        ("78596", "78599"),
+    ),
+    "Alamo": (
+        "Hidalgo County",
+        None,
+        Decimal("2.000"),
+        ("78516",),
+    ),
+    "San Juan": (
+        "Hidalgo County",
+        None,
+        Decimal("2.000"),
+        ("78589",),
+    ),
+    "San Benito": (
+        "Cameron County",
+        None,
+        Decimal("2.000"),
+        ("78586",),
+    ),
+    "Harlingen": (
+        "Cameron County",
+        None,
+        Decimal("2.000"),
+        ("78550", "78551", "78552"),
+    ),
+    "La Feria": (
+        "Cameron County",
+        None,
+        Decimal("2.000"),
+        ("78559",),
+    ),
+    "Raymondville": (
+        "Willacy County",
+        None,
+        Decimal("2.000"),
+        ("78580",),
+    ),
+    "Roma": (
+        "Starr County",
+        None,
+        Decimal("2.000"),
+        ("78584",),
+    ),
+    "Rio Grande City": (
+        "Starr County",
+        None,
+        Decimal("2.000"),
+        ("78582",),
+    ),
+    "Zapata": (
+        "Zapata County",
+        None,
+        Decimal("2.000"),
+        ("78076",),
+    ),
+    "Falfurrias": (
+        "Brooks County",
+        None,
+        Decimal("2.000"),
+        ("78355",),
+    ),
+    "Hebbronville": (
+        "Jim Hogg County",
+        None,
+        Decimal("2.000"),
+        ("78361",),
+    ),
+    "Freer": (
+        "Duval County",
+        None,
+        Decimal("2.000"),
+        ("78357",),
+    ),
+    "Three Rivers": (
+        "Live Oak County",
+        None,
+        Decimal("2.000"),
+        ("78071",),
+    ),
+    "George West": (
+        "Live Oak County",
+        None,
+        Decimal("2.000"),
+        ("78022",),
+    ),
+    "Aransas Pass": (
+        "San Patricio County",
+        None,
+        Decimal("2.000"),
+        ("78336",),
+    ),
+    "Portland": (
+        "San Patricio County",
+        None,
+        Decimal("2.000"),
+        ("78374",),
+    ),
+    "Robstown": (
+        "Nueces County",
+        None,
+        Decimal("2.000"),
+        ("78380",),
+    ),
+    "Ingleside": (
+        "San Patricio County",
+        None,
+        Decimal("2.000"),
+        ("78362",),
+    ),
 }
 
 
