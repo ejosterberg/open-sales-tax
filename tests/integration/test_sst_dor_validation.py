@@ -4781,6 +4781,53 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-116 audit pin: SalesTaxHandbook (state 7.25 + OC 0.5 + city 1.5)",
     ),
+    # iter-118: 5 cities across Sac/SBd/Riverside Co. Verified live
+    # 2026-05-11 against SalesTaxHandbook.
+    (
+        "CA",
+        "Rancho Cordova",
+        "95670",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-118 audit pin: SalesTaxHandbook (state 7.25 + Sac 0.5 + city 1.0 TBID)",
+    ),
+    (
+        "CA",
+        "Galt",
+        "95632",
+        "0001",
+        "9.250",
+        "0.05",
+        "iter-118 audit pin: SalesTaxHandbook (state 7.25 + Sac 0.5 + city 1.5)",
+    ),
+    (
+        "CA",
+        "Highland",
+        "92346",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-118 audit pin: SalesTaxHandbook (state 7.25 + SBd 0.5 + city 1.0)",
+    ),
+    (
+        "CA",
+        "Norco",
+        "92860",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-118 audit pin: SalesTaxHandbook (state 7.25 + Riverside 0.5 + city 1.0)",
+    ),
+    (
+        "CA",
+        "Calimesa",
+        "92320",
+        "0001",
+        "8.750",
+        "0.05",
+        "iter-118 audit pin: SalesTaxHandbook (state 7.25 + Riverside 0.5 + city 1.0)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
