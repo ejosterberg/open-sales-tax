@@ -1139,6 +1139,37 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("77701", "77702", "77703", "77705", "77706", "77707", "77708"),
     ),
+    # iter-128: 2 more cities probed at bare state-only 6.25%.
+    "Waco": (
+        # state 6.25 + McLennan 0 + city 2.0 (per SalesTaxHandbook
+        # which splits the 2% city/county overlay as McLennan Co 0.5
+        # + Waco city 1.5; we model the combined 2.0 in city_rate to
+        # match TX's MAX_LOCAL_RATE 2% cap and keep arithmetic clean).
+        "McLennan County",
+        None,
+        Decimal("2.000"),  # combined 8.25
+        (
+            "76701",
+            "76702",
+            "76703",
+            "76704",
+            "76705",
+            "76706",
+            "76707",
+            "76708",
+            "76710",
+            "76711",
+            "76712",
+        ),
+    ),
+    "Galveston": (
+        # state 6.25 + Galveston Co 0 + city 2.0 = 8.25 (per SalesTaxHandbook
+        # which lists Galveston as city 2.0% with no county tax).
+        "Galveston County",
+        None,
+        Decimal("2.000"),  # combined 8.25
+        ("77550", "77551", "77554"),
+    ),
 }
 
 
