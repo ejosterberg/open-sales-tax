@@ -278,10 +278,13 @@ def test_california_seeds_fifty_cities() -> None:
       (9.375% -> 9.625%, +0.25%)
     - iter-99: Richmond + Antioch + Pittsburg (each +1.0%) +
       Redwood City (+0.5%)
+    - iter-100: Mill Valley + Sausalito + Larkspur + San Anselmo
+      (Marin Co, each +1.0%) + San Bruno + Pacifica (San Mateo Co,
+      each +0.5%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 59
+    assert len(CA_CITIES) == 65
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

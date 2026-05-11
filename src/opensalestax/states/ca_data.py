@@ -404,6 +404,39 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.500"),  # combined 9.875
         ("94061", "94062", "94063", "94064", "94065"),
     ),
+    # iter-100: Marin County (4 cities @ 1% city tax) + San Mateo Co
+    # (San Bruno + Pacifica @ 0.5%). All verified via SalesTaxHandbook
+    # WebFetch.
+    "Mill Valley": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94941", "94942"),
+    ),
+    "Sausalito": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94965", "94966"),
+    ),
+    "Larkspur": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94939",),
+    ),
+    "San Anselmo": (
+        "Marin County",
+        Decimal("1.000"),  # combined 9.250
+        ("94960", "94979"),
+    ),
+    "San Bruno": (
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94066",),
+    ),
+    "Pacifica": (
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94044",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
