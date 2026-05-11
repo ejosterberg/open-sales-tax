@@ -82,18 +82,27 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
-- **iter-163 MN/SD cross-state ZIP bug** (logged not fixed):
-  Pipestone, MN ZIP 56164 returns 11.075% combined because the
-  engine emits BOTH Minnesota (6.875%) AND South Dakota (4.2%)
-  state jurisdictions for that ZIP -- and sums them. Per
-  SalesTaxHandbook, 56164 is in MN and should return MN-only at
-  6.875%. The boundary loader is binding 56164 to both state's
-  Census ZCTA records (probably because the ZIP centroid is near
-  the state line). Engine needs cross-state ZIP dedup (pick one
-  state per ZIP, probably based on USPS PCITY or majority of
-  delivery points). This is a 4.2% MASSIVE over-collection for
-  affected ZIPs. Probably affects other state-line ZIPs too
-  (KS/MO Kansas City, OH/KY Cincinnati, TX/AR Texarkana...).
+- **iter-163/164 MN/SD cross-state ZIP bug** (logged not fixed,
+  scope confirmed):
+  Pipestone-area ZIPs return 11-13% combined because the engine
+  emits AND SUMS jurisdictions from BOTH states for ZIPs
+  straddling the MN/SD border:
+  - 56144 (MN side) = 11.075% (MN 6.875 + SD 4.2)
+  - 56164 (Pipestone) = 11.075%
+  - 57068 (SD side) = 13.075% (SD 6.2 + MN 6.875)
+  Confirmed scope in iter-164: probed 18 ZIPs near various
+  state lines (KC/Texarkana/Cincinnati/Memphis/etc.) -- only
+  the MN/SD border ZIPs are affected. Most state-line ZIPs
+  correctly bind to ONE state. So the bug is specific to ZIPs
+  the Census ZCTA file maps to >1 state via its county GEOID
+  rows (Pipestone-area ZIPs span Pipestone Co MN + adjacent SD
+  county). The zcta_loader.py emits one row per (ZIP, state)
+  intersection -- both rows get loaded, and the engine sums
+  both states' rates. Fix: pick ONE state per ZIP in the
+  parse_zcta_state_rows logic (probably "most county rows
+  within this state" tiebreaker, similar to v0.46's city
+  picker). Until fixed: 4.2% MASSIVE over-collection for the
+  ~4 affected ZIPs.
 - **iter-160 WI Premier Resort Area Tax** (logged not fixed):
   Wisconsin's "Premier Resort Area Tax" (Wis. Stat. 77.994) is a
   special tax of 0.5-1.25% that certain resort municipalities can
