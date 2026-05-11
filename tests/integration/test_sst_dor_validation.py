@@ -4308,6 +4308,42 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-106 audit pin: county-misattribution fix (was 9.75% LA, now 8.75% OC + city 1.0)",
     ),
+    (
+        "CA",
+        "Gardena",
+        "90248",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-107 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
+    (
+        "CA",
+        "Lawndale",
+        "90260",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-107 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
+    (
+        "CA",
+        "Hawthorne",
+        "90250",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-107 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75)",
+    ),
+    (
+        "CA",
+        "Cerritos",
+        "90703",
+        "0001",
+        "10.500",
+        "0.05",
+        "iter-107 audit pin: SalesTaxHandbook (state 7.25 + LA 2.5 + city 0.75; Artesia area)",
+    ),
     # iter-75 batch A: ID resort cities verification (commit 661aa88).
     # Pre-fix all ID ZIPs returned state-only 6.0%; post-fix the 6
     # resort cities return 9.0% (state 6 + city 3) per Idaho State
