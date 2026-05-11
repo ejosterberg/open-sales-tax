@@ -58,6 +58,7 @@ ZCTA_COUNTY_FILENAME = "tab20_zcta520_county20_natl.txt"
 # verification). Columns 1-indexed for readability; we 0-index in code.
 _COL_GEOID_ZCTA = 1  # the 5-digit ZCTA / ZIP code
 _COL_GEOID_COUNTY = 9  # full 5-digit county GEOID (state FIPS + 3 digits)
+_COL_AREALAND_PART = 16  # land area (sq m) of the ZCTA intersected with this county
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,17 +114,26 @@ def parse_zcta_state_rows(
 
     Census publishes one row per (ZCTA, county) intersection -- a
     single ZIP that crosses 3 counties shows up 3 times. We collapse
-    to one row per ZIP, picking the **majority state** (most
-    county-row intersections within that state).
+    to one row per ZIP, picking the **area-majority state** (the
+    state whose intersecting counties contain the most ZCTA land
+    area combined, in square meters per ``AREALAND_PART``).
 
     iter-165 fix: prior to this fix, ZIPs that straddled a state line
     yielded TWO rows (one per state), causing the engine to bind
     BOTH state authorities to the ZIP and *sum* their rates -- e.g.
     Pipestone, MN ZIP 56164 returned 11.075% (MN 6.875 + SD 4.2)
-    instead of the correct MN-only 6.875%. The fix picks the state
-    with the most county-row intersections in the Census file. Ties
-    are broken alphabetically by state abbreviation (stable but
-    arbitrary; affects very few ZIPs).
+    instead of the correct MN-only 6.875%.
+
+    iter-168 refinement: switched from county-row-count majority
+    to **land-area majority** (``AREALAND_PART`` summed per state).
+    Some cross-state ZIPs have exactly one county intersection in
+    each state -- ZIP 57068 (Sioux Falls, SD area) has 1 row for
+    Minnehaha County (SD, 111 sq km) and 1 row for Rock County (MN,
+    8 sq km). Count-majority tied 1:1 and the alphabetical tiebreak
+    picked MN -- wrong, the ZIP is overwhelmingly SD by area.
+    Area-majority correctly picks SD (111 sq km > 8 sq km).
+    Ties are broken alphabetically (stable but extremely rare in
+    practice).
 
     ``abbrev_filter`` lets a caller restrict to a subset of states
     (e.g. just the self-seeded modules); when None, every state in
@@ -142,11 +152,16 @@ def parse_zcta_state_rows(
     if abbrev_filter is not None:
         keep = {a.upper() for a in abbrev_filter}
 
-    # First pass: count (zip, state) -> county-row intersections so
-    # we can pick the majority state per ZIP. The Census file has
-    # one row per (ZCTA, county); a ZIP crossing 3 counties in MN
-    # plus 1 in SD will have counts MN=3, SD=1 -- MN wins.
-    counts: dict[tuple[str, str], int] = {}
+    # First pass: sum (zip, state) -> land area so we can pick the
+    # area-majority state per ZIP. The Census file has one row per
+    # (ZCTA, county) intersection with AREALAND_PART in sq m. A ZIP
+    # crossing 3 counties in MN totaling 200 sqkm plus 1 in SD
+    # totaling 50 sqkm has area MN=200M, SD=50M -- MN wins.
+    #
+    # ZIP 57068 example: 1 row Minnehaha SD (111 sqkm) + 1 row Rock
+    # MN (8 sqkm). Row-count tied 1:1 (alphabetical -> MN, wrong);
+    # area-weighted picks SD correctly.
+    area: dict[tuple[str, str], int] = {}
     with source_file.open(encoding="utf-8-sig") as fp:
         header_skipped = False
         for raw in fp:
@@ -157,7 +172,7 @@ def parse_zcta_state_rows(
                 header_skipped = True
                 continue
             cols = line.split("|")
-            if len(cols) <= _COL_GEOID_COUNTY:
+            if len(cols) <= _COL_AREALAND_PART:
                 continue
             zip5 = cols[_COL_GEOID_ZCTA].strip()
             county_geoid = cols[_COL_GEOID_COUNTY].strip()
@@ -169,15 +184,21 @@ def parse_zcta_state_rows(
                 continue
             if keep is not None and abbrev not in keep:
                 continue
-            counts[(zip5, abbrev)] = counts.get((zip5, abbrev), 0) + 1
+            try:
+                area_part = int(cols[_COL_AREALAND_PART].strip() or "0")
+            except ValueError:
+                area_part = 0
+            # +1 ensures a zero-area intersection (water-only ZIP edge)
+            # still counts as presence in case BOTH states are zero.
+            area[(zip5, abbrev)] = area.get((zip5, abbrev), 0) + area_part + 1
 
-    # Pick the majority state per ZIP. Sorting by abbrev first means
-    # the lexicographically-first state wins ties (e.g. a 1:1 ZIP
-    # spanning AK/AL would pick AK).
+    # Pick the area-majority state per ZIP. Sorting by abbrev first
+    # means the lexicographically-first state wins ties (e.g. a
+    # zero-area-each ZIP spanning AK/AL would pick AK).
     zip_to_state: dict[str, str] = {}
-    for (zip5, abbrev), count in sorted(counts.items()):
+    for (zip5, abbrev), area_sum in sorted(area.items()):
         existing = zip_to_state.get(zip5)
-        if existing is None or count > counts[(zip5, existing)]:
+        if existing is None or area_sum > area[(zip5, existing)]:
             zip_to_state[zip5] = abbrev
 
     # Emit one row per ZIP, using the majority state. Sorted for
