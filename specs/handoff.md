@@ -82,46 +82,59 @@ Headline highlights:
 
   **AZ session total: 14 city/rate fixes** (Sahuarita rate
   update + 13 new/updated city anchors).
-- **iter-165 partial fix for cross-state ZIP bug** (zcta_loader
-  now picks majority state per ZIP, but the bug persists because
-  SST quarterly files for adjacent states ALSO bind the ZIP):
-  After deploying the parse_zcta_state_rows majority-pick fix and
-  reloading ZCTA boundaries, ZIP 56164 still returns 11.075% in
-  prod. SQL inspection reveals 6 boundary rows for 56164: 1 from
-  MN-ZCTA-2020 (post-fix, correct), 2 from MN-SST-2026Q2FEB18,
-  and 3 from SD-SST-2024Q1DEC12. The MN AND SD SST files BOTH
-  ship 56164 as a binding for their respective state's
-  authorities. Lookup engine emits all authorities → both states'
-  rates sum.
+- **iter-165..168 MN/SD cross-state ZIP bug — RESOLVED**
+  (was iter-163/164 logged, iter-165 partial, iter-166 mis-fix,
+  iter-167 right idea wrong filter, iter-168 ships):
 
-  ZCTA fix is committed as iter-165 (commit c3382de) and is the
-  right behavior regardless (no Census ZCTA boundary should bind
-  a ZIP to two states), but the remaining work is **lookup-engine
-  cross-state dedup**: pick one state per ZIP when multiple state
-  authorities have boundaries for the same ZIP. The picker should
-  use USPS PCITY (canonical state assignment) or a "majority of
-  authorities" tiebreaker.
-- **iter-163/164 MN/SD cross-state ZIP bug** (logged not fixed,
-  scope confirmed):
-  Pipestone-area ZIPs return 11-13% combined because the engine
-  emits AND SUMS jurisdictions from BOTH states for ZIPs
-  straddling the MN/SD border:
+  **Symptom**: Pipestone-area ZIPs returned 11-13% combined
+  because the engine emitted AND SUMMED jurisdictions from BOTH
+  states for ZIPs straddling the MN/SD border:
   - 56144 (MN side) = 11.075% (MN 6.875 + SD 4.2)
   - 56164 (Pipestone) = 11.075%
   - 57068 (SD side) = 13.075% (SD 6.2 + MN 6.875)
-  Confirmed scope in iter-164: probed 18 ZIPs near various
-  state lines (KC/Texarkana/Cincinnati/Memphis/etc.) -- only
-  the MN/SD border ZIPs are affected. Most state-line ZIPs
-  correctly bind to ONE state. So the bug is specific to ZIPs
-  the Census ZCTA file maps to >1 state via its county GEOID
-  rows (Pipestone-area ZIPs span Pipestone Co MN + adjacent SD
-  county). The zcta_loader.py emits one row per (ZIP, state)
-  intersection -- both rows get loaded, and the engine sums
-  both states' rates. Fix: pick ONE state per ZIP in the
-  parse_zcta_state_rows logic (probably "most county rows
-  within this state" tiebreaker, similar to v0.46's city
-  picker). Until fixed: 4.2% MASSIVE over-collection for the
-  ~4 affected ZIPs.
+
+  **Root cause**: Both states' SST quarterly files independently
+  bound the same border ZIPs to their own state authorities. The
+  Census ZCTA loader (iter-165 pre-fix) ALSO emitted one row per
+  (ZIP, state) intersection, doubling the binding. Lookup engine
+  returned both states' authorities and rate calculator summed.
+
+  **Fix lineage**:
+  - **iter-165** (commit c3382de): ZCTA loader collapsed multi-
+    state ZIPs to one row by row-count majority. Right shape,
+    but didn't fix the bug alone — the SST files still bound
+    both sides.
+  - **iter-166** (commit b2f89f0): Added engine-level dedup
+    using authority-count majority. Helped 56164, broke 56144
+    (SD's SST file bound more rows than MN's, count picked SD
+    wrongly).
+  - **iter-167** (commits 6e31889, a980f43): Refactored engine
+    to defer to the ZCTA-sourced boundary as canonical-state
+    truth (DataVersion.source LIKE 'zcta%'). Right idea — but
+    the underlying ZCTA loader's row-count majority STILL
+    picked the wrong state for 57068 (one MN county + one SD
+    county = 1:1 row tie, alphabetical picked MN despite SD
+    having 13.5x more land area).
+  - **iter-168** (commit 378290f): ZCTA loader now picks the
+    **area-majority state** per ZIP using AREALAND_PART (sq m
+    summed per state). Reloaded the 33,801 ZCTA boundaries.
+    All three cross-state ZIPs now resolve correctly:
+    56144 → MN 6.875%, 56164 → MN 6.875%, 57068 → SD 6.200%.
+
+  **Tests pinned** (commit 1c560dc):
+  - tests/integration/test_sst_dor_validation.py: 3 live-grid
+    entries for 56144 / 56164 / 57068.
+  - tests/unit/test_zcta_loader.py: 2 pins (tied-row-count area
+    decides + majority-on-both-signals).
+
+  **Architectural note**: The engine-level filter
+  (`_filter_to_canonical_state` in lookup.py) remains a
+  defense-in-depth layer. If a future Census refresh has a
+  malformed AREALAND_PART or the ZCTA load is skipped for a
+  state, the engine falls back to authority-count majority. The
+  combo of "ZCTA loader picks one state per ZIP" + "engine
+  defers to ZCTA's pick when available" cleanly handles both
+  ZCTA-tracked and ZCTA-missing ZIPs.
 - **iter-160 WI Premier Resort Area Tax** (logged not fixed):
   Wisconsin's "Premier Resort Area Tax" (Wis. Stat. 77.994) is a
   special tax of 0.5-1.25% that certain resort municipalities can
