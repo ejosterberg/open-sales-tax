@@ -452,6 +452,22 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.500"),  # combined 7.750
         ("95677", "95765"),
     ),
+    # iter-102: more SF Bay Area + Contra Costa
+    "San Carlos": (
+        # 9.375% live vs SalesTaxHandbook 9.875%. 0.5% city tax.
+        "San Mateo County",
+        Decimal("0.500"),  # combined 9.875
+        ("94070",),
+    ),
+    "San Ramon": (
+        # 8.75% live (94583) vs SalesTaxHandbook 9.75% (94582 main).
+        # San Ramon city 1.0% tax. ZIP 94582 (main); 94583 has Dublin
+        # overlay (10.25%) per SalesTaxHandbook -- not modeled at the
+        # ZIP level here.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94582",),
+    ),
     "Santa Clarita": (
         "Los Angeles County",
         Decimal("0.000"),  # combined 9.500
