@@ -136,22 +136,16 @@ CA_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Alameda County": Decimal("3.000"),  # iter-62: was 2.000 (under-collected by 1%)
     "Contra Costa County": Decimal("1.500"),  # BART + Measures J/X
     "Fresno County": Decimal("0.725"),  # iter-62: was 0.225 (under by 0.5%)
-    "Kern County": Decimal(
-        "1.000"
-    ),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
+    "Kern County": Decimal("1.000"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.000)
     "Los Angeles County": Decimal("2.500"),  # iter-62: was 2.250 (under by 0.25%)
-    "Monterey County": Decimal(
-        "1.500"
-    ),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
+    "Monterey County": Decimal("1.500"),  # iter-62: CDTFA Unincorporated Q2 2026 (was 0.500)
     "Orange County": Decimal("0.500"),  # OCTA Measure M2
     "Placer County": Decimal("0.000"),  # iter-62: was 0.500 (over-collected by 0.5%)
     "Riverside County": Decimal("0.500"),  # Measure A transportation
     "Sacramento County": Decimal("0.500"),  # Measure A transportation
     "San Bernardino County": Decimal("0.500"),  # Measure I transportation
     "San Diego County": Decimal("0.500"),  # SANDAG TransNet
-    "San Francisco (City and County)": Decimal(
-        "1.375"
-    ),  # consolidated; transit + child care
+    "San Francisco (City and County)": Decimal("1.375"),  # consolidated; transit + child care
     "San Joaquin County": Decimal("0.500"),  # Measure K transportation
     "Santa Clara County": Decimal("2.500"),  # iter-62: was 1.875 (under by 0.625%)
     "Solano County": Decimal("0.875"),  # iter-62: was 0.125 (under by 0.75%)
