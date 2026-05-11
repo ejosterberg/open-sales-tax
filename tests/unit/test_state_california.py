@@ -332,10 +332,13 @@ def test_california_seeds_fifty_cities() -> None:
       Suisun City/Dixon city overlays; Rio Vista cross-county
       rebind Sacramento→Solano; West Sacramento +1.25 Yolo;
       Winters +0.25 Yolo)
+    - iter-123: 8 Contra Costa Co cities (Brentwood/Martinez/
+      Pleasant Hill/Lafayette/Moraga each +1.0 city; Hercules/
+      Pinole +1.5 each; Orinda +2.0)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 167
+    assert len(CA_CITIES) == 175
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:

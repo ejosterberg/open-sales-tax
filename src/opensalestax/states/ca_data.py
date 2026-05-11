@@ -1678,6 +1678,65 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.250"),  # combined 8.250
         ("95694",),
     ),
+    # ----- More Contra Costa County (iter-123) -----
+    # Contra Costa Co engine rate 1.5% (state+co = 8.75%). Each city
+    # below adds its own portion. Concord/Walnut Creek/Antioch/
+    # Pittsburg/Richmond/San Ramon already in earlier iters.
+    # NOT modeled: San Pablo 94806 -- shares the ZIP with Richmond
+    # which already takes the bind; engine picks Richmond's 1.0%
+    # city tax instead of San Pablo's 1.5% -> 0.5% under-collection
+    # for that ZIP. Mixed-rate-per-ZIP follow-up needed.
+    "Brentwood": (
+        # state 7.25 + CC 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94513",),
+    ),
+    "Martinez": (
+        # state 7.25 + CC 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94553",),
+    ),
+    "Pleasant Hill": (
+        # state 7.25 + CC 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94523",),
+    ),
+    "Lafayette": (
+        # state 7.25 + CC 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94549",),
+    ),
+    "Moraga": (
+        # state 7.25 + CC 1.5 + city 1.0 = 9.750.
+        "Contra Costa County",
+        Decimal("1.000"),  # combined 9.750
+        ("94556",),
+    ),
+    "Hercules": (
+        # state 7.25 + CC 1.5 + city 1.5 = 10.250.
+        "Contra Costa County",
+        Decimal("1.500"),  # combined 10.250
+        ("94547",),
+    ),
+    "Pinole": (
+        # state 7.25 + CC 1.5 + city 1.5 = 10.250.
+        "Contra Costa County",
+        Decimal("1.500"),  # combined 10.250
+        ("94564",),
+    ),
+    "Orinda": (
+        # state 7.25 + CC 1.5 + city 2.0 = 10.750.
+        # SalesTaxHandbook breaks this as city 0.5 + special 4.0 but
+        # CA's 7.25 baseline + CC 1.5 already absorbs most of the
+        # special; engine city 2.0 reaches the same combined rate.
+        "Contra Costa County",
+        Decimal("2.000"),  # combined 10.750
+        ("94563",),
+    ),
 }
 
 
