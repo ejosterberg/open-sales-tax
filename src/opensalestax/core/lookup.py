@@ -393,7 +393,7 @@ def _is_placeholder_name(auth: TaxAuthority) -> bool:
     the one with a curated name as a proxy for "vetted by a state
     module maintainer".
     """
-    state_abbrev = getattr(getattr(auth, "state", None), "abbrev", None)
+    state_abbrev = _state_abbrev(auth)
     if not state_abbrev:
         return False
     return auth.name.startswith(f"{state_abbrev}-{auth.authority_type}-")
@@ -570,7 +570,7 @@ def _pick_one_city_county_per_zip5(
     if (
         picked_city is not None
         and picked_county is not None
-        and getattr(getattr(picked_city, "state", None), "abbrev", None) in {"TN", "WA"}
+        and _state_abbrev(picked_city) in {"TN", "WA"}
     ):
         out = [a for a in out if a is not picked_county]
 
@@ -582,9 +582,7 @@ def _pick_one_city_county_per_zip5(
     # which would stack 4x at 0.5% each (= 2% extra) on top of the
     # already-correct city local rate. Pick the dominant one (most
     # rows for THIS ZIP, then most total ZIPs as a regional-fit signal).
-    state_abbrev = (
-        getattr(getattr(picked_city, "state", None), "abbrev", None) if picked_city else None
-    )
+    state_abbrev = _state_abbrev(picked_city)
     if state_abbrev == "TN":
         district_authorities = [a for a in out if a.authority_type == "district"]
         if len(district_authorities) > 1:
@@ -610,6 +608,22 @@ def _stable_sort(authorities: list[TaxAuthority]) -> list[TaxAuthority]:
         authorities,
         key=lambda a: (_TYPE_ORDER.get(a.authority_type, 99), a.name),
     )
+
+
+def _state_abbrev(auth: TaxAuthority | None) -> str | None:
+    """Safely extract ``auth.state.abbrev``.
+
+    The :class:`TaxAuthority` ORM model has ``state`` as an eager-loaded
+    relationship; in some unit-test fixtures the attribute may be
+    missing entirely. Using ``getattr`` with defaults keeps the lookup
+    engine resilient to either shape.
+    """
+    if auth is None:
+        return None
+    state = getattr(auth, "state", None)
+    if state is None:
+        return None
+    return getattr(state, "abbrev", None)
 
 
 async def _canonical_state_for_zip(session: AsyncSession, zip5: str) -> str | None:
@@ -679,14 +693,9 @@ def _filter_to_canonical_state(
         return authorities
 
     # Find every state present in the candidate authorities.
-    present_states: set[str] = set()
-    for auth in authorities:
-        state = getattr(auth, "state", None)
-        if state is None:
-            continue
-        abbrev = getattr(state, "abbrev", None)
-        if abbrev:
-            present_states.add(abbrev)
+    present_states: set[str] = {
+        abbrev for auth in authorities if (abbrev := _state_abbrev(auth)) is not None
+    }
 
     if len(present_states) <= 1:
         # Single state (or no state info) -- no filtering needed.
@@ -699,8 +708,7 @@ def _filter_to_canonical_state(
         # pool (e.g. ZCTA says MN but only SD authorities loaded).
         counts: dict[str, int] = {}
         for auth in authorities:
-            state = getattr(auth, "state", None)
-            abbrev = getattr(state, "abbrev", None) if state is not None else None
+            abbrev = _state_abbrev(auth)
             if abbrev:
                 counts[abbrev] = counts.get(abbrev, 0) + 1
         if not counts:
@@ -708,12 +716,7 @@ def _filter_to_canonical_state(
         # Sort by (-count, abbrev): most authorities wins, alphabetical tiebreak.
         target = min(counts.keys(), key=lambda a: (-counts[a], a))
 
-    return [
-        auth
-        for auth in authorities
-        if (state := getattr(auth, "state", None)) is None
-        or getattr(state, "abbrev", None) == target
-    ]
+    return [auth for auth in authorities if _state_abbrev(auth) in (None, target)]
 
 
 def _pick_closest_per_type(rows, zip4: str) -> list[TaxAuthority]:

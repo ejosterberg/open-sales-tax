@@ -125,6 +125,93 @@ To be added once Eric picks a stack. Until then:
 - **Reproducible builds.** Pin every dependency; pin every
   upstream data version.
 
+## Operational shortcuts (production + dev tooling)
+
+Things future sessions repeatedly rediscover; pin them here.
+
+### Format / lint locally (don't bounce off the prod container)
+
+The production container ships without ruff (intentionally — minimal
+runtime image). Don't burn 30s per check via
+`docker exec ... pip install ruff` round-trips. Install ruff on the
+host once:
+
+```bash
+pip install ruff==0.6.9
+```
+
+Then format-check against the project's pinned settings:
+
+```bash
+ruff format --line-length 100 --check src/opensalestax/core/lookup.py
+ruff check src/opensalestax/core/lookup.py
+```
+
+The project's `pyproject.toml` pins `line-length = 100` (NOT ruff's
+default 88). CI fails on the difference, so always pass
+`--line-length 100` when format-checking from outside the project's
+own ruff config.
+
+### Production VM (`opensalestax-01`)
+
+- SSH alias: `opensalestax-01` (Proxmox VMID 906, 10.32.161.126)
+- Project dir: `/home/ejosterberg/open-sales-tax`
+- Containers (docker compose): `open-sales-tax-api-1`,
+  `open-sales-tax-postgres-1`
+- Postgres user: `opensalestax` (not `postgres`); DB:
+  `opensalestax`. Sample query:
+  ```bash
+  ssh opensalestax-01 "docker exec open-sales-tax-postgres-1 \
+    psql -U opensalestax opensalestax -c \"SELECT ...\""
+  ```
+
+### CLI commands
+
+The data-loader CLI uses `-s STATE -v VERSION` (NOT `--only`):
+
+```bash
+docker exec open-sales-tax-api-1 python -m opensalestax data load -s MO -v v0.55.4
+docker exec open-sales-tax-api-1 python -m opensalestax data load-zcta \
+  --cache-dir /var/lib/opensalestax/data
+```
+
+`load-zcta` reloads ALL Census ZCTA boundaries (~33,801 rows). Run
+this whenever `src/opensalestax/data/zcta_loader.py` changes shape.
+
+### Deploy loop (after a fix is committed and pushed)
+
+```bash
+ssh opensalestax-01 "cd /home/ejosterberg/open-sales-tax && \
+  git pull --ff-only origin main && \
+  docker compose build api && \
+  docker compose up -d --force-recreate api"
+```
+
+The api image is a dev build with src bind-mounted from the repo;
+build is fast (<60s once layers cache). If only the lookup logic
+changed (no data shape change), no `data load` is needed.
+
+### Cross-state ZIP dedup (iter-165..168, RESOLVED)
+
+The ZCTA loader picks each ZIP's canonical state by **summed
+`AREALAND_PART` area majority** (not row count). The lookup engine
+defers to the ZCTA-sourced DataVersion (source LIKE `zcta%`) for
+the canonical state and filters out authorities from any other
+state. If a future bug returns rates from a wrong state, check:
+
+1. `_canonical_state_for_zip` returns the right abbrev for the ZIP
+2. The ZCTA boundary's parent DataVersion source is still `zcta%`
+3. The ZCTA loader's `_COL_AREALAND_PART = 16` still matches the
+   Census file column layout
+
+### MO multi-county cities pattern (iter-170)
+
+KCMO straddles 4 counties. Each county-side of the same city is a
+separate `MO_CITIES` entry (`"Kansas City"` for Jackson side,
+`"Kansas City (Clay)"` for Clay side). The MO parser uses the
+entry's county_name to anchor the city binding to that county only.
+Apply the same pattern for any future multi-county city in MO/elsewhere.
+
 ## Quality pipeline (mandatory before "done")
 
 Per Eric's global standards:
