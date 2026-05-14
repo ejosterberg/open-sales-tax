@@ -1,14 +1,54 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-09
-**Status:** **v0.55.1 shipped.** Two big landings since v0.54.5:
-**Decision 10 RESOLVED** (third attempt) -- synthetic ZIP+4 lookups
-now match loose-lookup for ZIPs where the city has type-4-only
-bindings (WY Casper 82601-0001: 5.0% → 6.0%); soft-add gated on
-no-narrow-precise so Roswell/Edmond stay correct. **CA county
-coverage 20 → 55** -- ingested CDTFA Q2 2026 Excel; 35 additional
-counties now return state+county-district instead of state-only
-7.25%. Live grid 395/395 green.
+**Last updated:** 2026-05-13
+**Status:** **v0.55.4 is the latest tag, with ~188 substantive
+commits since on `main`** (iter-117 through iter-170). The post-
+v0.55.4 work covers six broad ratchets:
+
+- **MN/SD cross-state ZIP bug RESOLVED** (iter-165..168 lineage).
+  ZIPs straddling state lines (e.g. Pipestone 56164) previously
+  returned the SUM of both states' rates (11.075%). Fixed in three
+  layers: (1) ZCTA loader now picks each ZIP's canonical state by
+  AREALAND_PART area majority; (2) loader writes the result as a
+  ``zcta-census-2020`` DataVersion; (3) lookup engine defers to
+  that DataVersion to drop authorities from any other state.
+- **OH COTA multi-district under-collect RESOLVED** (iter-169).
+  The "lone type-4-only district" rule was extended to pick the
+  dominant CURATED type-4-only district when multiple compete;
+  Dublin/Columbus/Reynoldsburg moved from 7.0/7.5/7.5 → 8.0/8.0/8.0.
+- **MO KC (Clay) fix shipped** (iter-170). KCMO straddles
+  Jackson/Clay/Platte/Cass counties; Clay-side ZIPs 64117-64119
+  now correctly return 8.725% (was 5.475%, missing the city
+  binding). New ``"Kansas City (Clay)"`` MO_CITIES entry. Platte/
+  Cass/NKC entries remain deferred.
+- **CA city expansion** (iter-93..126). CA_CITIES grew from ~50
+  to 217 cities across LA / SF Bay / Marin / SLO / Sonoma / Napa /
+  Riverside / SD / Santa Clara / Imperial / Kern Co batches.
+  Closed ~25% combined under-collect across hundreds of CA ZIPs.
+- **TX city expansion** (iter-128..156). TX_CITIES grew from ~49
+  to 193 cities (8 batches: Houston/Dallas metro, Hill Country,
+  RGV/Coastal Bend, panhandle, etc.). All sit at the 8.25% local
+  cap.
+- **AZ + FL + SC fix sweeps**. AZ_CITIES expanded ~14 entries
+  (iter-150..153); FL_CITIES grew ~30 → 37 with cross-county
+  anchors (iter-138..145); SC Myrtle Beach Tourism Development tax
+  added (iter-127).
+
+**DOR live grid: 774 entries** (was 395 at the last spec
+refresh), all matching DOR-published rates within tolerance.
+
+Bug-tracker style follow-ups in ``specs/handoff.md``: MO KC
+Platte/Cass/NKC under-collect, GA Dunwoody Fulton TSPLOST stray
+bind, NM TRD 0.25% over-collect refresh, IL Naperville mixed-rate,
+TN IMPROVE Act stacking, IA West Des Moines cross-county LOST,
+CA El Dorado over-collect, WI Premier Resort Area Tax (4
+municipalities), HI Maui Co surcharge dispute.
+
+**v0.55.1 (2026-05-09)** -- CA county coverage 20 → 55 via CDTFA
+Q2 2026 Excel ingestion. **Decision 10 RESOLVED** in v0.55.0
+(third attempt): synthetic ZIP+4 lookups match loose-lookup for
+ZIPs where the city has type-4-only bindings (WY Casper 82601-
+0001: 5.0% → 6.0%).
 
 **v0.54.3 (2026-05-08)** -- loader bulk-insert refactor unblocks
 the previously OOM-prone UT (1.5M boundaries) and WA (1.2M boundaries)
@@ -54,7 +94,9 @@ remain deferred.
 
 VT Local Option Sales Tax (Burlington + ~17 other LOST
 municipalities at 7%) now collected via SST 'A' (address-level)
-record support added in v0.40. 1495 unit tests pass, mypy clean,
+record support added in v0.40. 71 test files / 1066 `def test_*`
+functions (plus the 774-entry parametrized DOR live grid that runs
+under `pytest -m liveapi`). Test suite passes, mypy clean,
 ruff clean, full live DOR grid green on every release.
 
 The CO/LA-flagged `SubJurisdiction` Protocol extension is now
@@ -152,6 +194,10 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.54.5](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.54.5) | 2026-05-08 | HTTP caching: `Cache-Control: public, max-age=3600` on `/v1/states`; `public, max-age=300` on `/v1/rates`. Cloudflare + browser caches dramatically cut origin load on popular ZIPs. POST `/v1/calculate` stays uncached. |
 | [v0.55.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.0) | 2026-05-08 | **Decision 10 RESOLVED.** Synthetic ZIP+4 lookups now match the loose-lookup answer for ZIPs where the city has type-4-only bindings (no type-z). WY Casper 82601-0001: 5.0% → 6.0%. Soft-add-dominant-city path gated on no-narrow-precise; preserves Roswell/Edmond cross-county correctness. Third attempt finally landed (iter-60 + iter-61 reverted). |
 | [v0.55.1](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.1) | 2026-05-09 | **CA county coverage 20 → 55.** Ingested CDTFA Q2 2026 Excel rate file; added 35 county entries (Marin / Humboldt / Santa Barbara / Napa / 31 more). CA ZIPs in those counties now return state + county-district instead of the previous state-only 7.25% fallback. 6 new live grid pinning entries. |
+| [v0.55.2](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.2) | 2026-05-08 | CA Kern + Monterey county-rate corrections per CDTFA audit. Loader orphan-rate sweep -- rates whose `data_version_id` was NULLed by an earlier partial reload get cleaned up on next load. |
+| [v0.55.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.3) | 2026-05-08 | TX Arlington corrected 8.0% → 8.25% per Comptroller Apr 2026 audit (cross-state audit pass). |
+| [v0.55.4](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.4) | 2026-05-08 | MO Jackson County bumped 1.375% → 1.500% to fold in the KC Zoological District (Mo. Rev. Stat. 184). KCMO combined: 8.850% → 8.975%. |
+| **untagged main** | 2026-05-09..05-13 | **~188 commits, iter-117..170**: MN/SD cross-state ZIP RESOLVED (iter-165..168); OH COTA multi-district fix (iter-169); MO KC (Clay) for 64117-64119 (iter-170); CA city expansion 50 → 217 cities; TX city expansion 49 → 193 cities; AZ +14 cities/rates; FL +7 cross-county anchors; SC Myrtle Beach Tourism Development tax. DOR grid 395 → 774. Significant version bump warranted (~v0.56 candidate). |
 
 ## Coverage (after v0.5)
 

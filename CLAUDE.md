@@ -134,23 +134,24 @@ Things future sessions repeatedly rediscover; pin them here.
 The production container ships without ruff (intentionally — minimal
 runtime image). Don't burn 30s per check via
 `docker exec ... pip install ruff` round-trips. Install ruff on the
-host once:
+host once — version pinned to match `pyproject.toml` (`ruff = "^0.7"`):
 
 ```bash
-pip install ruff==0.6.9
+pip install 'ruff>=0.7,<0.8'
 ```
 
-Then format-check against the project's pinned settings:
+Then format-check from the project root. Ruff auto-discovers
+`pyproject.toml`'s `line-length = 100` setting, so no `--line-length`
+flag needed:
 
 ```bash
-ruff format --line-length 100 --check src/opensalestax/core/lookup.py
+ruff format --check src/opensalestax/core/lookup.py
 ruff check src/opensalestax/core/lookup.py
 ```
 
-The project's `pyproject.toml` pins `line-length = 100` (NOT ruff's
-default 88). CI fails on the difference, so always pass
-`--line-length 100` when format-checking from outside the project's
-own ruff config.
+`.pre-commit-config.yaml` already wires ruff + ruff-format. Run
+`pre-commit install` once to auto-format every commit and skip the
+manual check entirely.
 
 ### Production VM (`opensalestax-01`)
 
