@@ -29,6 +29,18 @@ AR_CITY_NAMES: dict[str, str] = {
     "63800": "Sherwood",  # ZIP 72120 (verified by probe; FIPS Place 0563800)
     "66080": "Springdale",  # ZIP 72765 (verified by probe; FIPS Place 0566080)
     "67490": "Stuttgart",  # ZIP 72160 (Arkansas Co; FIPS Place 0567490)
+    # iter-178 additions (9, 2026-05-15): probed common AR ZIPs and
+    # picked up the curated names for 9 more cities verified by
+    # ZIP probe + FIPS Place last-5-digit match.
+    "01870": "Arkadelphia",  # ZIP 71923 (Clark Co; FIPS Place 0501870)
+    "04840": "Bella Vista",  # ZIPs 72714/72715 (Benton Co; FIPS Place 0504840)
+    "05290": "Benton",  # ZIP 72015 (Saline Co; FIPS Place 0505290)
+    "12340": "Cave Springs",  # ZIP 72718 (Benton Co; FIPS Place 0512340)
+    "33190": "Hope",  # ZIP 71801 (Hempstead Co; FIPS Place 0533190)
+    "63020": "Searcy",  # ZIP 72143 (White Co; FIPS Place 0563020)
+    "68810": "Texarkana",  # ZIP 71854 (Miller Co; FIPS Place 0568810)
+    "71480": "Van Buren",  # ZIP 72956 (Crawford Co; FIPS Place 0571480)
+    "74540": "West Memphis",  # ZIP 72301 (Crittenden Co; FIPS Place 0574540)
 }
 
 
