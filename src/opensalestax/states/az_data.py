@@ -107,6 +107,9 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "85085",
             "85086",
             "85087",
+            # iter-192: Laveen (USPS place name) is inside Phoenix
+            # city limits; was returning state-only 6.30% pre-fix.
+            "85339",
         ),
     ),
     "Tucson": (
