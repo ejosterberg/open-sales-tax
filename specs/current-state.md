@@ -1,10 +1,12 @@
 # OpenSalesTax — Current State
 
 **Last updated:** 2026-05-15
-**Status:** **v0.57.0 shipped** -- an overnight quality ratchet
-folding 16 substantive iters (iter-172 through iter-187) since
-v0.56.0. NM TRD rate refresh, 130 city friendly names across 10
-states, 6 TX DFW cities, and CA Santa Paula city tax. The post-v0.55.4 work covers six broad ratchets:
+**Status:** **v0.58.0 shipped** -- API enhancement + TX expansion
+(3 iters, iter-188..190 since v0.57.0). New ``coverage_warning``
+field on /v1/rates + /v1/calculate surfaces known local-tax gaps
+for CO/LA/AL/HI. Plus 7 more TX cities (NE Tarrant Co + Houston
+suburbs). Prior v0.57.0 captured the overnight quality ratchet
+(NM TRD refresh + 130 city friendly names). The post-v0.55.4 work covers six broad ratchets:
 
 - **MN/SD cross-state ZIP bug RESOLVED** (iter-165..168 lineage).
   ZIPs straddling state lines (e.g. Pipestone 56164) previously
@@ -201,6 +203,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.55.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.3) | 2026-05-08 | TX Arlington corrected 8.0% → 8.25% per Comptroller Apr 2026 audit (cross-state audit pass). |
 | [v0.55.4](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.4) | 2026-05-08 | MO Jackson County bumped 1.375% → 1.500% to fold in the KC Zoological District (Mo. Rev. Stat. 184). KCMO combined: 8.850% → 8.975%. |
 | [v0.57.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.57.0) | 2026-05-15 | **Overnight quality ratchet (16 iters, iter-172..187).** NM TRD rate refresh: 17 NM cities re-verified (Roswell +0.71% under-collect closed; Las Cruces +0.39% under; Lovington -0.56% over closed; Bernalillo -0.50% over closed). **130 city friendly names added across 10 states** (WA +15, TN +14, AR +9, KS +16, SD +8, UT +12, ND +9, OK +21, WI +20, WV +6). **6 TX DFW satellites added** (Southlake, Grapevine, Colleyville, Trophy Club, Coppell, Richardson) — each closed ~2.0% under-collect. **CA Santa Paula** added (2.0% city tax, Apr 2025). Pure quality/data release; no engine-logic changes. DOR grid unchanged at 777 entries. |
+| [v0.58.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.58.0) | 2026-05-15 | **API enhancement + TX expansion (3 iters, iter-188..190).** New ``coverage_warning`` field on ``/v1/rates`` and ``/v1/calculate`` responses — populated for CO/LA/AL/HI to surface known local-tax gaps (CO home-rule cities, LA parishes, AL ~700 home-rule cities, HI Maui dispute). Addresses the silent "Denver returns 2.9%" demo-page UX issue. **7 more TX cities added**: NE Tarrant Co (Hurst, Euless, North Richland Hills, Keller) + Houston-area incorporated (Humble, Tomball, La Porte) — all ~2.0% under-collect closed. |
 | [v0.56.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.56.0) | 2026-05-14 | **Major correctness ratchet (191 commits, iter-117..171).** MN/SD cross-state ZIP RESOLVED (iter-165..168): ZCTA loader now picks each ZIP's canonical state by AREALAND_PART area majority; lookup engine defers to the ZCTA-sourced DataVersion to drop authorities from any other state. OH COTA multi-district under-collect fixed (iter-169): dominant CURATED type-4-only district now survives when multiple compete. MO KCMO multi-county fix (iter-170/171): Clay-side (64117-64119, 64155-64158) and Platte-side (64153-64154) ZIPs now correctly return 8.725% with new ``Kansas City (Clay)`` / ``Kansas City (Platte)`` entries. State data ratchets: CA 50→217 cities, TX 49→193 cities, AZ +14 cities/rates, FL +7 cross-county anchors, SC Myrtle Beach. ``_state_abbrev`` helper refactor. DOR grid: 395 → 777 entries. |
 
 ## Coverage (after v0.5)
