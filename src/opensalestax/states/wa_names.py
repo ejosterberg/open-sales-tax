@@ -34,6 +34,26 @@ WA_CITY_NAMES: dict[str, str] = {
     "74060": "Vancouver (combined local)",
     "77105": "Wenatchee (combined local)",  # ZIP 98801 (verified by probe; FIPS 5377105)
     "80010": "Yakima (combined local)",  # ZIP 98907 (verified by probe; FIPS 5380010)
+    # iter-176 additions (2026-05-14): 15 more WA cities verified
+    # by ZIP probe + FIPS Place cross-check. King / Snohomish /
+    # Pierce / Clark / Kittitas / Benton / Jefferson / Clallam
+    # coverage expanded so common WA suburbs no longer show as
+    # ``WA-city-NNNNN`` placeholders on receipts.
+    "08850": "Burien (combined local)",  # ZIP 98166 (King Co; FIPS 5308850)
+    "21240": "Ellensburg (combined local)",  # ZIP 98926 (Kittitas Co; FIPS 5321240)
+    "33805": "Issaquah (combined local)",  # ZIPs 98027/98029 (King Co; FIPS 5333805)
+    "35170": "Kenmore (combined local)",  # ZIP 98028 (King Co; FIPS 5335170)
+    "35940": "Kirkland (combined local)",  # ZIP 98033 (King Co; FIPS 5335940)
+    "43150": "Maple Valley (combined local)",  # ZIP 98038 (King Co; FIPS 5343150)
+    "43955": "Marysville (combined local)",  # ZIP 98270 (Snohomish Co; FIPS 5343955)
+    "55855": "Port Townsend (combined local)",  # ZIP 98368 (Jefferson Co; FIPS 5355855)
+    "57535": "Redmond (combined local)",  # ZIP 98052 (King Co; FIPS 5357535)
+    "58235": "Richland (combined local)",  # ZIP 99352 (Benton Co; FIPS 5358235)
+    "61115": "Sammamish (combined local)",  # ZIP 98075 (King Co; FIPS 5361115)
+    "63385": "Sequim (combined local)",  # ZIP 98382 (Clallam Co; FIPS 5363385)
+    "65170": "Snohomish (combined local)",  # ZIP 98290 (Snohomish Co; FIPS 5365170)
+    "76405": "Washougal (combined local)",  # ZIP 98671 (Clark Co; FIPS 5376405)
+    "79590": "Woodinville (combined local)",  # ZIP 98072 (King Co; FIPS 5379590)
 }
 
 
