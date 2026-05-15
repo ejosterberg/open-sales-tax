@@ -453,13 +453,16 @@ missing CA county (Mariposa) added, ~250 new live-grid pins.
   9.35%, Kansas City KS 9.125% all match SalesTaxHandbook exactly.
 
 **Open follow-ups discovered (not fixed) during iter-117..131**:
-- **NM TRD over-collect 0.25%**: Albuquerque + Santa Fe city tax
-  is 0.25% high vs current TRD published rate. NM module data is
-  from Jan 2026 and needs a refresh against post-Jul-2025 state
-  rate adjustments.
-- **IL Naperville mixed-rate-per-ZIP**: 7.75% live vs 8.75%
-  SalesTaxHandbook main rate. Engine picks the Downtown F&B
-  district instead of the main Naperville rate.
+- ~~**NM TRD over-collect 0.25%**~~ **RESOLVED** in iter-172..175
+  (overnight 2026-05-14..05-15) — all 17 tier-1+tier-2 NM cities
+  re-verified against TRD. See overnight summary at top of file.
+- ~~**IL Naperville mixed-rate-per-ZIP**~~ **RETRACTED 2026-05-15**:
+  Avalara confirms 60540 combined is 7.75% (state 6.25 + RTA 0.75
+  + Naperville city 0.75 + DuPage 0) — matching our engine
+  exactly. SalesTaxHandbook's reported 8.75% was wrong. Same
+  pattern as the iter-186 OK rate audit retraction. **Lesson**:
+  cross-check Avalara before trusting SalesTaxHandbook for IL
+  city rates too.
 - **IA West Des Moines LOST dedup bug**: ZIP 50265 over-collects
   2.0% (Polk Co LOST + Union Co LOST + IA-district-98199 all
   emitted) and ZIP 50266 over 3.0% (adds IA-district-98049). Fix
