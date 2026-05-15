@@ -735,6 +735,41 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("76262",),
     ),
+    # iter-188 additions (4 NE Tarrant Co cities, 2026-05-15): each
+    # had voter-rejected Trinity Metro membership, so they collect a
+    # 2.0% city tax (city 1.0% + Crime Control 0.5% + Park/Street
+    # Maint 0.5%) on top of state 6.25% with no transit overlay.
+    # All return state-only 6.25% pre-fix (city authority missing).
+    "Hurst": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76053", "76054"),
+    ),
+    "Euless": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76039", "76040"),
+    ),
+    "North Richland Hills": (
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76180", "76182"),
+    ),
+    "Keller": (
+        # Keller is in Tarrant Co (with a small Denton overlap). 76244
+        # is shared between Keller and Fort Worth in our boundary
+        # table; pre-iter-188 it bound to Fort Worth (correct combined
+        # rate of 8.25% but wrong city attribution). Leaving 76244
+        # with Fort Worth for now to avoid a Fort Worth ZIP removal;
+        # 76248 is Keller's primary residential ZIP and is added here.
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76248",),
+    ),
     "Fort Worth": (
         # Fort Worth is the anchor of FWTA / Trinity Metro (0.5%
         # transit). City rate fills remaining cap with crime control
