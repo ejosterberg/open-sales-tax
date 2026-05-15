@@ -292,7 +292,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Sunland Park": (
         "Doña Ana County",
-        Decimal("3.5000"),  # combined ~8.375% (TRD loc code 07-417)
+        # iter-175: refreshed 3.5000 -> 3.315 (combined 8.375% ->
+        # 8.19%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.185% over.
+        Decimal("3.315"),  # combined 8.19% (TRD loc code 07-417)
         ("88063",),
     ),
     "Las Vegas": (
@@ -306,27 +309,43 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Deming": (
         "Luna County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 19-114)
+        # iter-175: refreshed 3.250 -> 3.375 (combined 8.125% ->
+        # 8.25%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.125% under.
+        Decimal("3.375"),  # combined 8.25% (TRD loc code 19-114)
         ("88030",),
     ),
     "Lovington": (
         "Lea County",
-        Decimal("2.6875"),  # combined ~7.5625% (TRD loc code 06-220)
+        # iter-175: refreshed 2.6875 -> 2.125 (combined 7.5625% ->
+        # 7.000%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.5625% OVER -- Lovington dropped its city tax rate
+        # significantly since our last verification.
+        Decimal("2.125"),  # combined 7.000% (TRD loc code 06-220)
         ("88260",),
     ),
     "Artesia": (
         "Eddy County",
-        Decimal("2.6458"),  # combined ~7.5208% (TRD loc code 03-117)
+        # iter-175: refreshed 2.6458 -> 2.7708 (combined 7.5208% ->
+        # 7.6458%) per NM TRD via SalesTaxHandbook May 2026. Small
+        # +0.125% city raise picked up.
+        Decimal("2.7708"),  # combined 7.6458% (TRD loc code 03-117)
         ("88210",),
     ),
     "Portales": (
         "Roosevelt County",
-        Decimal("3.1875"),  # combined ~8.0625% (TRD loc code 11-119)
+        # iter-175: refreshed 3.1875 -> 3.675 (combined 8.0625% ->
+        # 8.55%) per NM TRD via SalesTaxHandbook May 2026. Portales
+        # raised +0.6125% effective Jul 2025; was 0.4875% UNDER.
+        Decimal("3.675"),  # combined 8.55% (TRD loc code 11-119)
         ("88130",),
     ),
     "Silver City": (
         "Grant County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 08-127)
+        # iter-175: verified essentially clean. SalesTaxHandbook says
+        # 3.2375 (combined 8.1125%) but the engine's 3.250 (combined
+        # 8.125%) is within 0.0125% -- rounding noise; left unchanged.
+        Decimal("3.250"),  # combined 8.125% (TRD loc code 08-127)
         (
             "88061",
             "88062",
@@ -335,24 +354,37 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Espanola": (
         # Crosses Rio Arriba and Santa Fe counties; primary is Rio Arriba
         "Rio Arriba County",
-        Decimal("4.000"),  # combined ~8.875% (TRD loc code 17-123)
+        # iter-175: refreshed 4.000 -> 3.9375 (combined 8.875% ->
+        # 8.8125%) per NM TRD via SalesTaxHandbook May 2026.
+        # Was 0.0625% over.
+        Decimal("3.9375"),  # combined 8.8125% (TRD loc code 17-123)
         ("87532",),
     ),
     "Grants": (
         "Cibola County",
-        Decimal("3.1875"),  # combined ~8.0625% (TRD loc code 33-124)
+        # iter-175: refreshed 3.1875 -> 3.125 (combined 8.0625% ->
+        # 8.000%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.0625% over.
+        Decimal("3.125"),  # combined 8.000% (TRD loc code 33-124)
         ("87020",),
     ),
     "Anthony": (
         "Doña Ana County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 07-902)
+        # iter-175: refreshed 3.250 -> 3.5025 (combined 8.125% ->
+        # 8.3775%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.2525% under.
+        Decimal("3.5025"),  # combined 8.3775% (TRD loc code 07-902)
         ("88021",),
     ),
     "Bernalillo": (
         # Town of Bernalillo (in Sandoval County, NOT Bernalillo County
         # despite the name -- common NM-trivia foot-gun)
         "Sandoval County",
-        Decimal("3.0625"),  # combined ~7.9375% (TRD loc code 29-119)
+        # iter-175: refreshed 3.0625 -> 2.5625 (combined 7.9375% ->
+        # 7.4375%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.5% OVER -- Bernalillo dropped its city tax rate since
+        # our last verification.
+        Decimal("2.5625"),  # combined 7.4375% (TRD loc code 29-119)
         ("87004",),
     ),
     "Aztec": (
