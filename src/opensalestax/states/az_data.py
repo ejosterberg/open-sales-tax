@@ -112,6 +112,11 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Tucson": (
         "Pima County",
         Decimal("2.600"),
+        # iter-191: removed 85737 (Oro Valley primary) and 85742
+        # (Marana primary) -- both are separate Pima Co cities with
+        # their own city tax rates; binding them to Tucson was a
+        # mis-attribution. They now bind to Oro Valley / Marana
+        # below.
         (
             "85701",
             "85705",
@@ -127,9 +132,7 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "85719",
             "85730",
             "85735",
-            "85737",
             "85741",
-            "85742",
             "85745",
             "85746",
             "85747",
@@ -231,8 +234,19 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Marana": (
         "Pima County",
+        # iter-191: expanded ZIPs (added 85742, 85743) -- both were
+        # previously mis-bound to Tucson / no-city respectively.
         Decimal("2.500"),
-        ("85653", "85658"),
+        ("85653", "85658", "85742", "85743"),
+    ),
+    "Oro Valley": (
+        # iter-191 added: Oro Valley is a separate Pima Co town with
+        # 2.5% city tax. ZIPs 85737/85755 were mis-bound to Tucson
+        # (85737) or no-city (85755) pre-fix. Combined post-fix:
+        # state 5.6 + Pima 0.5 + Oro Valley 2.5 = 8.6%.
+        "Pima County",
+        Decimal("2.500"),
+        ("85737", "85755"),
     ),
     "Prescott": (
         "Yavapai County",
