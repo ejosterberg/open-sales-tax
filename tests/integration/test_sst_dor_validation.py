@@ -6926,6 +6926,37 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.10",
         "MO DOR (state 4.225% + Clay 1.25% + KCMO 3.25%) -- iter-170 Clay-side KCMO",
     ),
+    # iter-171: extend KCMO Northland coverage. Clay 64155-64158
+    # (residential Northland neighborhoods that iter-170 left
+    # uncovered) + Platte 64153-64154 (KCI airport / north
+    # residential). All at 8.725% (state + county + KCMO 3.25%).
+    (
+        "MO",
+        "Kansas City (Clay) - Northland 64156",
+        "64156",
+        "0001",
+        "8.725",
+        "0.10",
+        "MO DOR (state 4.225% + Clay 1.25% + KCMO 3.25%) -- iter-171 Clay-side extension",
+    ),
+    (
+        "MO",
+        "Kansas City (Platte) - KCI area",
+        "64153",
+        "0001",
+        "8.725",
+        "0.10",
+        "MO DOR (state 4.225% + Platte 1.25% + KCMO 3.25%) -- iter-171 Platte-side KCMO",
+    ),
+    (
+        "MO",
+        "Kansas City (Platte) - residential",
+        "64154",
+        "0001",
+        "8.725",
+        "0.10",
+        "MO DOR (state 4.225% + Platte 1.25% + KCMO 3.25%) -- iter-171 Platte-side KCMO",
+    ),
 ]
 
 
