@@ -274,6 +274,11 @@ MO_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # rate math clean. ZIP 64116 is NOT included here -- that's
     # North Kansas City, a separate municipality with its own
     # different city rate.
+    #
+    # iter-171: extended to cover the rest of the Clay-side KCMO
+    # ZIPs (64155 / 64156 / 64157 / 64158 -- residential Northland
+    # neighborhoods that the iter-170 batch left as state+Clay only,
+    # under-collecting 3.25%).
     "Kansas City (Clay)": (
         "Clay County",
         Decimal("3.250"),
@@ -281,6 +286,25 @@ MO_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "64117",
             "64118",
             "64119",
+            "64155",
+            "64156",
+            "64157",
+            "64158",
+        ),
+    ),
+    # iter-171: Kansas City also extends into Platte County (the
+    # Missouri River north / west side -- KCI airport area).
+    # Combined: state 4.225% + Platte 1.25% + KCMO 3.25% = 8.725%
+    # (Platte county rate matches Clay, so same combined as the
+    # Clay-side rows above). ZIPs 64150 / 64151 (Riverside MO) and
+    # 64152 (Houston Lake / Northmoor) are NOT included -- those
+    # are separate municipalities with their own city rates.
+    "Kansas City (Platte)": (
+        "Platte County",
+        Decimal("3.250"),
+        (
+            "64153",
+            "64154",
         ),
     ),
     "St. Louis": (
