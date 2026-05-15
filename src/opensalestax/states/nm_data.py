@@ -116,7 +116,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # the maintainer-verified test grid for the calculation engine) ----
     "Albuquerque": (
         "Bernalillo County",
-        Decimal("3.000"),  # combined ~7.875% (TRD loc code 02-100)
+        # iter-172: refreshed 3.000 -> 2.750 (combined 7.875% -> 7.625%)
+        # per NM TRD schedule via SalesTaxHandbook May 2026. The pre-
+        # refresh value was 0.25% over the published rate.
+        Decimal("2.750"),  # combined 7.625% (TRD loc code 02-100)
         # ABQ city limits in Bernalillo County. ZIPs that straddle
         # Sandoval (87114, 87120, 87124) are excluded because the
         # local rate differs across the county line.
@@ -140,7 +143,12 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Santa Fe": (
         "Santa Fe County",
-        Decimal("3.5625"),  # combined ~8.4375% (TRD loc code 01-123)
+        # iter-172: refreshed 3.5625 -> 3.3125 (combined 8.4375% ->
+        # 8.1875%) per NM TRD schedule via SalesTaxHandbook May 2026.
+        # The pre-refresh value was 0.25% over the published rate
+        # (matches the Albuquerque drift -- both city rates likely
+        # had a 0.25% phased reduction applied without our update).
+        Decimal("3.3125"),  # combined 8.1875% (TRD loc code 01-123)
         # Santa Fe city limits in Santa Fe County.
         (
             "87501",
@@ -152,7 +160,12 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Las Cruces": (
         "Doña Ana County",
-        Decimal("3.125"),  # combined ~8.000% (TRD loc code 07-105)
+        # iter-172: refreshed 3.125 -> 3.515 (combined 8.000% -> 8.390%)
+        # per NM TRD schedule via SalesTaxHandbook May 2026. Las
+        # Cruces raised its city portion +0.39% effective July 2025
+        # (8.065% -> 8.390% combined); we were 0.39% UNDER the post-
+        # July-2025 rate.
+        Decimal("3.515"),  # combined 8.390% (TRD loc code 07-105)
         # Las Cruces city limits in Doña Ana County.
         (
             "88001",
@@ -164,7 +177,15 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Rio Rancho": (
         "Sandoval County",
-        Decimal("2.8125"),  # combined ~7.6875% (TRD loc code 29-524)
+        # iter-172: refreshed 2.8125 -> 3.000 (combined 7.6875% ->
+        # 7.875%) per NM TRD schedule via SalesTaxHandbook May 2026.
+        # Was 0.1875% under-collecting on Rio Rancho proper (87124).
+        # NOTE: ZIP 87144 also binds here but per SalesTaxHandbook
+        # falls in the Albuquerque tax region (7.625%); post-refresh
+        # 87144 over-collects 0.25% pending a future ZIP rebind to
+        # ABQ. Trade-off: 87124 (Rio Rancho proper, higher volume)
+        # is now correct; 87144 (cross-county edge) is 0.25% over.
+        Decimal("3.000"),  # combined 7.875% (TRD loc code 29-524)
         # Rio Rancho city limits in Sandoval County. 87124 is shared
         # with Bernalillo County but predominantly Rio Rancho.
         (
