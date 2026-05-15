@@ -346,6 +346,24 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("1.950"),
         ("85635", "85650"),
     ),
+    # iter-193: 3 more Cochise Co cities -- all incorporated towns
+    # missing from AZ_CITIES. Each had been returning state-only 6.10%
+    # pre-fix. Verified rates against Avalara per-city pages.
+    "Tombstone": (
+        "Cochise County",
+        Decimal("3.500"),  # combined 9.6% (state 5.6 + Cochise 0.5 + city 3.5)
+        ("85638",),
+    ),
+    "Willcox": (
+        "Cochise County",
+        Decimal("3.000"),  # combined 9.1% (state 5.6 + Cochise 0.5 + city 3.0)
+        ("85643",),
+    ),
+    "Huachuca City": (
+        "Cochise County",
+        Decimal("1.900"),  # combined 8.0% (state 5.6 + Cochise 0.5 + city 1.9)
+        ("85616",),
+    ),
     # --- Pima County (additional, beyond Tucson + Marana) ---
     "Sahuarita": (
         # iter-150: raised 2.000 → 5.000 in 2024 (city tax 2% became
