@@ -446,10 +446,16 @@ def test_new_mexico_parse_rates_emits_state_county_city_layers() -> None:
 @pytest.mark.parametrize(
     "city,county,expected_combined_pct",
     [
-        ("Albuquerque", "Bernalillo County", Decimal("7.875")),
-        ("Santa Fe", "Santa Fe County", Decimal("8.4375")),
-        ("Las Cruces", "Doña Ana County", Decimal("8.000")),
-        ("Rio Rancho", "Sandoval County", Decimal("7.6875")),
+        # iter-172 NM TRD refresh (2026-05-14): rates verified against
+        # SalesTaxHandbook May 2026. ABQ / Santa Fe drifted -0.25%
+        # off the post-2024 phased reduction; Las Cruces gained
+        # +0.39% Jul 2025; Rio Rancho was -0.1875% under-collecting.
+        # Roswell / Farmington / Hobbs / Carlsbad not yet re-verified
+        # (held at pre-refresh values; deferred to iter-173+).
+        ("Albuquerque", "Bernalillo County", Decimal("7.625")),
+        ("Santa Fe", "Santa Fe County", Decimal("8.1875")),
+        ("Las Cruces", "Doña Ana County", Decimal("8.390")),
+        ("Rio Rancho", "Sandoval County", Decimal("7.875")),
         ("Roswell", "Chaves County", Decimal("7.5625")),
         ("Farmington", "San Juan County", Decimal("8.125")),
         ("Hobbs", "Lea County", Decimal("6.5625")),
