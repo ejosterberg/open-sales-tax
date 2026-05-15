@@ -682,6 +682,59 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("76201", "76205", "76207", "76208", "76209", "76210"),
     ),
+    # iter-184 additions (6 DFW satellites, 2026-05-15): probed and
+    # found these were returning state-only 6.25% (city authority
+    # missing entirely). All hit the standard TX 8.25% local cap.
+    "Coppell": (
+        # Coppell is a DART member. In Dallas County (with a small
+        # Denton/Tarrant overlap).
+        "Dallas County",
+        "Dallas MTA (DART)",
+        Decimal("1.000"),
+        ("75019",),
+    ),
+    "Richardson": (
+        # Richardson is a DART member. In Dallas County (bulk) with
+        # a Collin County overlap.
+        "Dallas County",
+        "Dallas MTA (DART)",
+        Decimal("1.000"),
+        ("75080", "75081", "75082", "75083", "75085"),
+    ),
+    "Southlake": (
+        # Southlake is NOT in any MTA (opted out). In Tarrant Co
+        # (with a small Denton overlap). 1.0% city + 0.5% Crime
+        # Control + 0.5% Park Development = 2.0% local.
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76092",),
+    ),
+    "Grapevine": (
+        # Grapevine is NOT in any MTA. In Tarrant Co (with small
+        # Dallas/Denton overlaps). 1.0% city + 0.25% Crime District
+        # + 0.5% Park Dev + 0.25% Street Maint = 2.0% local.
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76051",),
+    ),
+    "Colleyville": (
+        # Colleyville is NOT in any MTA. In Tarrant Co. 1.0% city
+        # + 0.5% Crime District + 0.5% Park Dev = 2.0% local.
+        "Tarrant County",
+        None,
+        Decimal("2.000"),
+        ("76034",),
+    ),
+    "Trophy Club": (
+        # Trophy Club is NOT in any MTA / DCTA. In Denton Co. 1.0%
+        # city + 0.5% EDC + 0.5% Street Maint = 2.0% local.
+        "Denton County",
+        None,
+        Decimal("2.000"),
+        ("76262",),
+    ),
     "Fort Worth": (
         # Fort Worth is the anchor of FWTA / Trinity Metro (0.5%
         # transit). City rate fills remaining cap with crime control
