@@ -6655,16 +6655,41 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Albuquerque",
         "87102",
         "0001",
-        "7.875",
+        "7.625",
         "0.05",
-        "NM TRD (state 4.875% + Bernalillo locals)",
+        "NM TRD (state 4.875% + ABQ city 2.75%) -- iter-172 refresh from 7.875",
     ),
     # NM has city-level GRT variation; expanding from 1 -> 7 to pin
     # the engine's per-city rate against NM TRD's published GRT
-    # rate file (verified by ZIP probe 2026-05-08).
-    ("NM", "Santa Fe", "87501", "0001", "8.4375", "0.05", "NM TRD (state + Santa Fe city GRT)"),
-    ("NM", "Las Cruces", "88001", "0001", "8.000", "0.05", "NM TRD (state + Las Cruces city GRT)"),
-    ("NM", "Rio Rancho", "87144", "0001", "7.6875", "0.05", "NM TRD (state + Rio Rancho city GRT)"),
+    # rate file (verified by ZIP probe 2026-05-08; refreshed against
+    # SalesTaxHandbook in iter-172 2026-05-14).
+    (
+        "NM",
+        "Santa Fe",
+        "87501",
+        "0001",
+        "8.1875",
+        "0.05",
+        "NM TRD (state + Santa Fe city 3.3125%) -- iter-172 refresh from 8.4375",
+    ),
+    (
+        "NM",
+        "Las Cruces",
+        "88001",
+        "0001",
+        "8.390",
+        "0.05",
+        "NM TRD (state + Las Cruces city 3.515%) -- iter-172 refresh +0.39 (Jul 2025)",
+    ),
+    (
+        "NM",
+        "Rio Rancho",
+        "87124",
+        "0001",
+        "7.875",
+        "0.05",
+        "NM TRD (state + Rio Rancho city 3.000%) -- iter-172 refresh from 7.6875",
+    ),
     ("NM", "Farmington", "87401", "0001", "8.125", "0.05", "NM TRD (state + Farmington city GRT)"),
     ("NM", "Gallup", "87301", "0001", "8.5625", "0.05", "NM TRD (state + Gallup city GRT)"),
     ("NM", "Espanola", "87532", "0001", "8.875", "0.05", "NM TRD (state + Espanola city GRT)"),
