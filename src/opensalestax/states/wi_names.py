@@ -84,6 +84,29 @@ WI_CITY_NAMES: dict[str, str] = {
     "84475": "Wausau",
     "85300": "West Allis",
     "87200": "Whitewater",
+    # iter-183 additions (20, 2026-05-15): probed common WI ZIPs and
+    # picked up the curated names for 20 more cities verified by
+    # ZIP probe + FIPS Place last-5-digit match (55-NNNNN pattern).
+    "01550": "Altoona",  # ZIP 54720 (Eau Claire Co; FIPS Place 5501550)
+    "02250": "Antigo",  # ZIP 54409 (Langlade Co; FIPS Place 5502250)
+    "04625": "Baraboo",  # ZIP 53913 (Sauk Co; FIPS Place 5504625)
+    "16450": "Columbus",  # ZIP 53925 (Columbia Co; FIPS Place 5516450)
+    "29400": "Glendale",  # ZIP 53217 (Milwaukee Co; FIPS Place 5529400)
+    "31175": "Greenfield",  # ZIPs 53220/53228 (Milwaukee Co; FIPS Place 5531175)
+    "36525": "Hurley",  # ZIP 54534 (Iron Co; FIPS Place 5536525)
+    "40775": "La Crosse",  # ZIP 54601 (La Crosse Co; FIPS Place 5540775)
+    "48500": "Manitowoc",  # ZIP 54220 (Manitowoc Co; FIPS Place 5548500)
+    "50425": "Medford",  # ZIP 54451 (Taylor Co; FIPS Place 5550425)
+    "51025": "Menomonie",  # ZIP 54751 (Dunn Co; FIPS Place 5551025)
+    "57100": "New Richmond",  # ZIP 54017 (St. Croix Co; FIPS Place 5557100)
+    "63525": "Plover",  # ZIP 54467 (Portage Co; FIPS Place 5563525)
+    "68175": "Ripon",  # ZIP 54971 (Fond du Lac Co; FIPS Place 5568175)
+    "70125": "Waupaca",  # ZIP 54980 (Waupaca Co; FIPS Place 5570125)
+    "72925": "Shawano",  # ZIP 54166 (Shawano Co; FIPS Place 5572925)
+    "75625": "Spooner",  # ZIP 54801 (Washburn Co; FIPS Place 5575625)
+    "83175": "Wales",  # ZIP 53183 (Waukesha Co; FIPS Place 5583175)
+    "84675": "Wauwatosa",  # ZIP 53226 (Milwaukee Co; FIPS Place 5584675)
+    "88150": "Wisconsin Dells",  # ZIP 53965 (Columbia/Sauk Co; FIPS Place 5588150)
 }
 
 
