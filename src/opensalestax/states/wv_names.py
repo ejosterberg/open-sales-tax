@@ -33,6 +33,17 @@ WV_CITY_NAMES: dict[str, str] = {
     "65692": "Princeton",
     "75292": "South Charleston",
     "86452": "Wheeling",
+    # iter-187 additions (6, 2026-05-15): each verified by ZIP probe
+    # against the live engine + zip-codes.com city lookup. Per the
+    # docstring above, WV ZIP -> primary-city is 1:1 so the
+    # placeholder code -> city inference is safe when the ZIP itself
+    # binds to a unique non-shared authority code.
+    "04876": "Berkeley Springs",  # ZIP 25411 (Morgan Co)
+    "14610": "Charles Town",  # ZIP 25414 (Jefferson Co)
+    "27028": "Fayetteville",  # ZIP 25840 (Fayette Co)
+    "35284": "Harpers Ferry",  # ZIP 25425 (Jefferson Co)
+    "54484": "Milton",  # ZIP 25541 (Cabell Co)
+    "73468": "Shepherdstown",  # ZIP 25443 (Jefferson Co)
 }
 
 
