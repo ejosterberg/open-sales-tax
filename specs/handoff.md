@@ -70,6 +70,39 @@ Every entry verified via the standard two-way protocol: probe live
 engine for a ZIP known to lie in that city + cross-check the SST
 jurisdiction code against the FIPS Place 5-digit suffix.
 
+## Overnight 2026-05-15 rate-audit findings (open)
+
+**OK SST file has stale city rates** (iter-186 probe, logged not
+fixed): Probed 19 OK cities; 3 with verifiable drift vs
+SalesTaxHandbook May 2026:
+
+| City | Engine | Truth | Under |
+|---|---:|---:|---:|
+| Bethany (73008)  | 8.500%  | 8.625%  | 0.125% |
+| Guthrie (73044)  | 9.000%  | 9.250%  | 0.250% |
+| Catoosa (74015)  | 9.250%  | 10.050% | 0.800% |
+
+The OK SST file we load (``OKR2026Q2FEB17.zip``) carries city
+``rate_pct`` values that haven't been updated to reflect post-
+2022 city tax raises. Bethany has been at 4.0% city since 2000
+in our SST data, but SalesTaxHandbook says it raised to 4.125%
+in Feb 2022; Catoosa 3.25% since 1995 vs SalesTaxHandbook 4.05%
+current.
+
+Either:
+1. The OK SST quarterly file we have is missing recent rate
+   changes (unlikely for an SST member that publishes quarterly)
+2. SalesTaxHandbook is including sub-city overlays (EDC / crime
+   / street maint) in their "city tax" line that the SST file
+   encodes as separate jurisdiction codes our loader is dropping
+3. There's an OK-specific encoding we're not picking up
+
+Option 2 seems most likely. Investigation needed: probe the OK
+SST file directly for Catoosa's jurisdiction codes (4 OK cities
+have separate Crime Control / Park / Street District overlays
+per OK Tax Commission's "Sales and Use Tax Rates" PDF). Deferred
+pending SST file inspection.
+
 States probed clean (no placeholder city names surfaced):
 - IN / GA / NC / KY: state or county-only tax models, no city
   layer in our schema
