@@ -2,16 +2,88 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.55.4 is the latest release (MO Jackson County KCZD fold-in).**
+**v0.56.0 is the latest release (2026-05-14, major correctness
+ratchet folding 191 commits of iter-117..171).** Untagged main has
+shipped **12 more iters (172..183)** overnight 2026-05-14..05-15:
+17 NM city rates re-verified against TRD + **124 city friendly
+names added** across 9 states (WA +15, TN +14, AR +9, KS +16,
+SD +8, UT +12, ND +9, OK +21, WI +20). Receipt-quality across
+the curated tables substantially improved.
+
 Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **576 sampled
+every published DOR rate within 0.05% across **777 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
-Untagged main is far ahead of v0.55.4 with **29 substantive bug
-fixes** + **3 features** deployed since.
+
+## Overnight 2026-05-14..05-15 (iter-172..183, since v0.56.0)
+
+**NM TRD rate refresh — 17 cities re-verified (iter-172..175):**
+
+| City | Drift | New combined |
+|---|---|---|
+| Albuquerque | -0.25% over | 7.625% |
+| Santa Fe | -0.25% over | 8.1875% |
+| Las Cruces | **+0.39% under** (Jul 2025) | 8.390% |
+| Rio Rancho | +0.1875% under | 7.875% |
+| Roswell | **+0.71% under** (Jul 2025) | 8.2708% |
+| Farmington | +0.0625% under | 8.1875% |
+| Hobbs | clean | 6.5625% |
+| Carlsbad | -0.4375% over | 7.3958% |
+| Clovis | -0.125% over | 7.9375% |
+| Alamogordo | +0.0625% under | 8.1875% |
+| Los Lunas | +0.30% under | 8.425% |
+| Las Vegas NM | -0.3334% over | 8.1458% |
+| Sunland Park | -0.185% over | 8.19% |
+| Deming | +0.125% under | 8.25% |
+| Lovington | **-0.5625% over** (rate cut) | 7.000% |
+| Artesia | +0.125% under | 7.6458% |
+| Portales | **+0.4875% under** (Jul 2025) | 8.55% |
+| Espanola | -0.0625% over | 8.8125% |
+| Grants | -0.0625% over | 8.000% |
+| Anthony | +0.2525% under | 8.3775% |
+| Bernalillo | **-0.5% over** (rate cut) | 7.4375% |
+| Silver City | -0.0125% (noise) | 8.125% (unchanged) |
+
+Only Gallup (87301) remains unverified — Navajo Nation Reservation
+overlay needs sub-ZIP precision modeling.
+
+**Receipt-quality: 124 city friendly names added across 9 states
+(iter-176..183):**
+
+| State | Module | Was | Now | Added |
+|---|---|---:|---:|---:|
+| WA | wa_names.py | 18 | 33 | +15 |
+| TN | tn_names.py | 10 | 24 | +14 |
+| AR | ar_names.py | 18 | 27 | +9 |
+| KS | ks_names.py | 12 | 28 | +16 |
+| SD | sd_names.py | 8 | 16 | +8 |
+| UT | ut_names.py | 8 | 20 | +12 |
+| ND | nd_names.py | 7 | 16 | +9 |
+| OK | ok_names.py | 23 | 44 | +21 |
+| WI | wi_names.py | 39 | 59 | +20 |
+| **Total** | | **143** | **267** | **+124** |
+
+Every entry verified via the standard two-way protocol: probe live
+engine for a ZIP known to lie in that city + cross-check the SST
+jurisdiction code against the FIPS Place 5-digit suffix.
+
+States probed clean (no placeholder city names surfaced):
+- IN / GA / NC / KY: state or county-only tax models, no city
+  layer in our schema
+- NV: no city sales tax (state + county only)
+- MO / IL / MS / AZ / AL: all curated names already populated
+
+States deferred:
+- MN, VT, WV: module docstrings explicitly warn FIPS-pattern
+  guessing is unreliable — codes don't follow Census FIPS Place
+  scheme. Hand-curation only.
+- NE: probed several placeholders but FIPS Place mappings
+  uncertain; hand-curation recommended.
+
+## Pre-overnight highlights (iter-117..171, in v0.56.0)
 
 Headline highlights:
 - CA reconciliation (50 cities) iter-63
