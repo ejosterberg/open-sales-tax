@@ -192,6 +192,25 @@ The api image is a dev build with src bind-mounted from the repo;
 build is fast (<60s once layers cache). If only the lookup logic
 changed (no data shape change), no `data load` is needed.
 
+### Brittle test-count pins (bumps required when adding cities)
+
+Several state test files pin the exact count of city / rate dicts
+(``assert len(CA_CITIES) == 218``, ``assert len(FL_CITIES) == 37``,
+``assert len(NY_CITIES) == 30``). The intent is to force a
+maintainer to update the docstring narrative explaining each new
+addition. The cost: any iter that adds even one city must also
+bump the pin, or CI fails.
+
+When adding to a state's CITIES dict, ALSO update the
+corresponding ``assert len(...) == N`` pin in the matching
+``tests/unit/test_state_<state>.py`` file. The pins live in tests
+named like ``test_<state>_seeds_<count>_cities`` and follow a
+``[docstring with iter history] + [assertion]`` structure.
+
+If iter-172 + iter-185 are any indication, this is the #1 cause of
+CI failures from autonomous batches. Always grep for
+``assert len(<NAME>)`` after editing a CITIES / RATE_PCT dict.
+
 ### Cross-state ZIP dedup (iter-165..168, RESOLVED)
 
 The ZCTA loader picks each ZIP's canonical state by **summed
