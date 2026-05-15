@@ -260,12 +260,18 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # for under-collection risk).
     "Clovis": (
         "Curry County",
-        Decimal("3.1875"),  # combined ~8.0625% (TRD loc code 05-127)
+        # iter-174: refreshed 3.1875 -> 3.0625 (combined 8.0625% ->
+        # 7.9375%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.125% over the published rate.
+        Decimal("3.0625"),  # combined 7.9375% (TRD loc code 05-127)
         ("88101",),
     ),
     "Alamogordo": (
         "Otero County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 15-118)
+        # iter-174: refreshed 3.250 -> 3.3125 (combined 8.125% ->
+        # 8.1875%) per NM TRD via SalesTaxHandbook May 2026. Small
+        # +0.0625% city raise picked up.
+        Decimal("3.3125"),  # combined 8.1875% (TRD loc code 15-118)
         (
             "88310",
             "88311",
@@ -278,7 +284,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Los Lunas": (
         "Valencia County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 14-220)
+        # iter-174: refreshed 3.250 -> 3.550 (combined 8.125% ->
+        # 8.425%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.3% under the published rate.
+        Decimal("3.550"),  # combined 8.425% (TRD loc code 14-220)
         ("87031",),
     ),
     "Sunland Park": (
@@ -289,7 +298,10 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     "Las Vegas": (
         # NM Las Vegas, San Miguel County (NOT NV)
         "San Miguel County",
-        Decimal("3.6042"),  # combined ~8.4792% (TRD loc code 12-122)
+        # iter-174: refreshed 3.6042 -> 3.2708 (combined 8.4792% ->
+        # 8.1458%) per NM TRD via SalesTaxHandbook May 2026. Was
+        # 0.3334% OVER the published rate.
+        Decimal("3.2708"),  # combined 8.1458% (TRD loc code 12-122)
         ("87701",),
     ),
     "Deming": (
