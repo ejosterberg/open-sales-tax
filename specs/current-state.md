@@ -1,9 +1,9 @@
 # OpenSalesTax — Current State
 
-**Last updated:** 2026-05-13
-**Status:** **v0.55.4 is the latest tag, with ~188 substantive
-commits since on `main`** (iter-117 through iter-170). The post-
-v0.55.4 work covers six broad ratchets:
+**Last updated:** 2026-05-14
+**Status:** **v0.56.0 shipped** -- a major correctness ratchet
+folding 191 commits (iter-117 through iter-171) since v0.55.4 into
+a single release. The post-v0.55.4 work covers six broad ratchets:
 
 - **MN/SD cross-state ZIP bug RESOLVED** (iter-165..168 lineage).
   ZIPs straddling state lines (e.g. Pipestone 56164) previously
@@ -16,11 +16,13 @@ v0.55.4 work covers six broad ratchets:
   The "lone type-4-only district" rule was extended to pick the
   dominant CURATED type-4-only district when multiple compete;
   Dublin/Columbus/Reynoldsburg moved from 7.0/7.5/7.5 → 8.0/8.0/8.0.
-- **MO KC (Clay) fix shipped** (iter-170). KCMO straddles
-  Jackson/Clay/Platte/Cass counties; Clay-side ZIPs 64117-64119
-  now correctly return 8.725% (was 5.475%, missing the city
-  binding). New ``"Kansas City (Clay)"`` MO_CITIES entry. Platte/
-  Cass/NKC entries remain deferred.
+- **MO KCMO multi-county fix shipped** (iter-170/171). KCMO
+  straddles Jackson/Clay/Platte/Cass counties. Clay-side ZIPs
+  64117-64119 + 64155-64158 and Platte-side 64153-64154 now
+  correctly return 8.725% (was 5.475%, missing the city
+  binding). New ``"Kansas City (Clay)"`` + ``"Kansas City
+  (Platte)"`` MO_CITIES entries with explicit county parents.
+  Cass-side + North Kansas City remain deferred.
 - **CA city expansion** (iter-93..126). CA_CITIES grew from ~50
   to 217 cities across LA / SF Bay / Marin / SLO / Sonoma / Napa /
   Riverside / SD / Santa Clara / Imperial / Kern Co batches.
@@ -34,8 +36,8 @@ v0.55.4 work covers six broad ratchets:
   anchors (iter-138..145); SC Myrtle Beach Tourism Development tax
   added (iter-127).
 
-**DOR live grid: 774 entries** (was 395 at the last spec
-refresh), all matching DOR-published rates within tolerance.
+**DOR live grid: 777 entries** (was 395 at v0.55.1 / 774 at
+v0.55.4-untagged), all matching DOR-published rates within tolerance.
 
 Bug-tracker style follow-ups in ``specs/handoff.md``: MO KC
 Platte/Cass/NKC under-collect, GA Dunwoody Fulton TSPLOST stray
@@ -197,7 +199,7 @@ Dockerfile patched in commit `a8712c7` to fix `PYTHONPATH` so alembic + the CLI 
 | [v0.55.2](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.2) | 2026-05-08 | CA Kern + Monterey county-rate corrections per CDTFA audit. Loader orphan-rate sweep -- rates whose `data_version_id` was NULLed by an earlier partial reload get cleaned up on next load. |
 | [v0.55.3](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.3) | 2026-05-08 | TX Arlington corrected 8.0% → 8.25% per Comptroller Apr 2026 audit (cross-state audit pass). |
 | [v0.55.4](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.55.4) | 2026-05-08 | MO Jackson County bumped 1.375% → 1.500% to fold in the KC Zoological District (Mo. Rev. Stat. 184). KCMO combined: 8.850% → 8.975%. |
-| **untagged main** | 2026-05-09..05-13 | **~188 commits, iter-117..170**: MN/SD cross-state ZIP RESOLVED (iter-165..168); OH COTA multi-district fix (iter-169); MO KC (Clay) for 64117-64119 (iter-170); CA city expansion 50 → 217 cities; TX city expansion 49 → 193 cities; AZ +14 cities/rates; FL +7 cross-county anchors; SC Myrtle Beach Tourism Development tax. DOR grid 395 → 774. Significant version bump warranted (~v0.56 candidate). |
+| [v0.56.0](https://github.com/ejosterberg/open-sales-tax/releases/tag/v0.56.0) | 2026-05-14 | **Major correctness ratchet (191 commits, iter-117..171).** MN/SD cross-state ZIP RESOLVED (iter-165..168): ZCTA loader now picks each ZIP's canonical state by AREALAND_PART area majority; lookup engine defers to the ZCTA-sourced DataVersion to drop authorities from any other state. OH COTA multi-district under-collect fixed (iter-169): dominant CURATED type-4-only district now survives when multiple compete. MO KCMO multi-county fix (iter-170/171): Clay-side (64117-64119, 64155-64158) and Platte-side (64153-64154) ZIPs now correctly return 8.725% with new ``Kansas City (Clay)`` / ``Kansas City (Platte)`` entries. State data ratchets: CA 50→217 cities, TX 49→193 cities, AZ +14 cities/rates, FL +7 cross-county anchors, SC Myrtle Beach. ``_state_abbrev`` helper refactor. DOR grid: 395 → 777 entries. |
 
 ## Coverage (after v0.5)
 
