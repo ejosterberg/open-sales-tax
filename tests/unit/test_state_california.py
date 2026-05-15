@@ -353,10 +353,13 @@ def test_california_seeds_fifty_cities() -> None:
       missing-county bug as Mariposa from iter-120)
     - iter-162: Alpine Co added + Markleeville city anchor (ZIP
       96120 was unbound returning 0%)
+    - iter-185: Santa Paula (Ventura Co) added at 2.0% city tax
+      (Measure T + Measure ZZ effective Apr 2025; was returning
+      state+county-only 7.25% instead of 9.25%)
     Future additions of similar materiality will continue to grow
     this set.
     """
-    assert len(CA_CITIES) == 217
+    assert len(CA_CITIES) == 218
 
 
 def test_california_every_referenced_county_is_in_county_dict() -> None:
