@@ -446,20 +446,21 @@ def test_new_mexico_parse_rates_emits_state_county_city_layers() -> None:
 @pytest.mark.parametrize(
     "city,county,expected_combined_pct",
     [
-        # iter-172 NM TRD refresh (2026-05-14): rates verified against
-        # SalesTaxHandbook May 2026. ABQ / Santa Fe drifted -0.25%
-        # off the post-2024 phased reduction; Las Cruces gained
-        # +0.39% Jul 2025; Rio Rancho was -0.1875% under-collecting.
-        # Roswell / Farmington / Hobbs / Carlsbad not yet re-verified
-        # (held at pre-refresh values; deferred to iter-173+).
+        # iter-172 + iter-173 NM TRD refresh (2026-05-14): all eight
+        # tier-1 NM cities re-verified against SalesTaxHandbook May
+        # 2026. ABQ / Santa Fe drifted -0.25%; Las Cruces +0.39% Jul
+        # 2025; Rio Rancho -0.1875%; Roswell -0.7083% Jul 2025;
+        # Farmington -0.0625%; Carlsbad +0.4375%; Hobbs verified
+        # clean. NM_LOCATION_RATES now matches SalesTaxHandbook for
+        # every tier-1 city.
         ("Albuquerque", "Bernalillo County", Decimal("7.625")),
         ("Santa Fe", "Santa Fe County", Decimal("8.1875")),
         ("Las Cruces", "Doña Ana County", Decimal("8.390")),
         ("Rio Rancho", "Sandoval County", Decimal("7.875")),
-        ("Roswell", "Chaves County", Decimal("7.5625")),
-        ("Farmington", "San Juan County", Decimal("8.125")),
+        ("Roswell", "Chaves County", Decimal("8.2708")),
+        ("Farmington", "San Juan County", Decimal("8.1875")),
         ("Hobbs", "Lea County", Decimal("6.5625")),
-        ("Carlsbad", "Eddy County", Decimal("7.8333")),
+        ("Carlsbad", "Eddy County", Decimal("7.3958")),
     ],
 )
 def test_new_mexico_dor_verified_combined_rates(

@@ -195,7 +195,11 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Roswell": (
         "Chaves County",
-        Decimal("2.6875"),  # combined ~7.5625% (TRD loc code 04-101)
+        # iter-173: refreshed 2.6875 -> 3.3958 (combined 7.5625% ->
+        # 8.2708%) per NM TRD via SalesTaxHandbook May 2026. Roswell
+        # raised +0.375% effective Jul 2025 -- we were 0.7083% under
+        # the post-July-2025 rate.
+        Decimal("3.3958"),  # combined 8.2708% (TRD loc code 04-101)
         # Roswell city limits in Chaves County.
         (
             "88201",
@@ -205,8 +209,14 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Farmington": (
         "San Juan County",
-        Decimal("3.250"),  # combined ~8.125% (TRD loc code 16-121)
+        # iter-173: refreshed 3.250 -> 3.3125 (combined 8.125% ->
+        # 8.1875%) per NM TRD via SalesTaxHandbook May 2026.
+        # Small +0.0625% city raise picked up.
+        Decimal("3.3125"),  # combined 8.1875% (TRD loc code 16-121)
         # Farmington city limits in San Juan County.
+        # NOTE: ZIP 87401 also includes part of the Navajo Nation
+        # Reservation with a much higher combined rate (10.875%);
+        # not modeled here (would require sub-ZIP precision).
         (
             "87401",
             "87402",
@@ -214,7 +224,9 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Hobbs": (
         "Lea County",
-        Decimal("1.6875"),  # combined ~6.5625% (TRD loc code 06-114)
+        # iter-173: rate verified clean (6.5625% matches SalesTaxHandbook
+        # May 2026); no change.
+        Decimal("1.6875"),  # combined 6.5625% (TRD loc code 06-114)
         # Hobbs city limits in Lea County.
         (
             "88240",
@@ -223,7 +235,11 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     ),
     "Carlsbad": (
         "Eddy County",
-        Decimal("2.9583"),  # combined ~7.8333% (TRD loc code 03-205)
+        # iter-173: refreshed 2.9583 -> 2.5208 (combined 7.8333% ->
+        # 7.3958%) per NM TRD via SalesTaxHandbook May 2026. We
+        # were 0.4375% OVER the published rate -- the prior value
+        # likely included a sub-county overlay that was rolled back.
+        Decimal("2.5208"),  # combined 7.3958% (TRD loc code 03-205)
         # Carlsbad city limits in Eddy County.
         (
             "88220",

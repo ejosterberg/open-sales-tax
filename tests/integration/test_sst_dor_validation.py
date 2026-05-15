@@ -6690,7 +6690,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "NM TRD (state + Rio Rancho city 3.000%) -- iter-172 refresh from 7.6875",
     ),
-    ("NM", "Farmington", "87401", "0001", "8.125", "0.05", "NM TRD (state + Farmington city GRT)"),
+    (
+        "NM",
+        "Farmington",
+        "87401",
+        "0001",
+        "8.1875",
+        "0.05",
+        "NM TRD (state + Farmington city 3.3125%) -- iter-173 refresh from 8.125",
+    ),
     ("NM", "Gallup", "87301", "0001", "8.5625", "0.05", "NM TRD (state + Gallup city GRT)"),
     ("NM", "Espanola", "87532", "0001", "8.875", "0.05", "NM TRD (state + Espanola city GRT)"),
     (
