@@ -1047,6 +1047,14 @@ CA_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.000"),  # combined 7.250
         ("93063", "93064", "93065"),
     ),
+    # iter-185: Santa Paula has a 2% city tax (Measure T 1% + Measure
+    # ZZ 1%, effective Apr 2025) on top of CA's 7.25% baseline ->
+    # combined 9.25%. Was returning state+county-only 7.25% pre-fix.
+    "Santa Paula": (
+        "Ventura County",
+        Decimal("2.000"),  # combined 9.250 (CA state 7.25 + 2.0)
+        ("93060", "93061"),
+    ),
     # ----- Sonoma County -----
     "Santa Rosa": (
         "Sonoma County",
