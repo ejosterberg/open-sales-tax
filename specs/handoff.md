@@ -70,38 +70,28 @@ Every entry verified via the standard two-way protocol: probe live
 engine for a ZIP known to lie in that city + cross-check the SST
 jurisdiction code against the FIPS Place 5-digit suffix.
 
-## Overnight 2026-05-15 rate-audit findings (open)
+## Overnight 2026-05-15 rate-audit findings (RETRACTED — false alarm)
 
-**OK SST file has stale city rates** (iter-186 probe, logged not
-fixed): Probed 19 OK cities; 3 with verifiable drift vs
-SalesTaxHandbook May 2026:
+**iter-186 OK city rate audit, RETRACTED**: Initial probe vs
+SalesTaxHandbook surfaced 3 OK cities looking like they had drift
+(Catoosa under 0.80%, Guthrie under 0.25%, Bethany under
+0.125%). Cross-verified by inspecting the OK SST quarterly file
+directly (``OKR2026Q2FEB17.zip``) AND Avalara's per-city
+breakdown:
 
-| City | Engine | Truth | Under |
-|---|---:|---:|---:|
-| Bethany (73008)  | 8.500%  | 8.625%  | 0.125% |
-| Guthrie (73044)  | 9.000%  | 9.250%  | 0.250% |
-| Catoosa (74015)  | 9.250%  | 10.050% | 0.800% |
+- OK SST file rates: Catoosa 3.25% city, Bethany 4.0% city,
+  Guthrie 3.75% city — these are the authoritative SST-published
+  rates effective through 2078-12-31.
+- Avalara confirms: Catoosa 3.25% city / 9.25% combined, Bethany
+  4.0% city / 8.5% combined — both match our engine exactly.
+- SalesTaxHandbook's per-city OK pages were the unreliable
+  source. No engine drift.
 
-The OK SST file we load (``OKR2026Q2FEB17.zip``) carries city
-``rate_pct`` values that haven't been updated to reflect post-
-2022 city tax raises. Bethany has been at 4.0% city since 2000
-in our SST data, but SalesTaxHandbook says it raised to 4.125%
-in Feb 2022; Catoosa 3.25% since 1995 vs SalesTaxHandbook 4.05%
-current.
-
-Either:
-1. The OK SST quarterly file we have is missing recent rate
-   changes (unlikely for an SST member that publishes quarterly)
-2. SalesTaxHandbook is including sub-city overlays (EDC / crime
-   / street maint) in their "city tax" line that the SST file
-   encodes as separate jurisdiction codes our loader is dropping
-3. There's an OK-specific encoding we're not picking up
-
-Option 2 seems most likely. Investigation needed: probe the OK
-SST file directly for Catoosa's jurisdiction codes (4 OK cities
-have separate Crime Control / Park / Street District overlays
-per OK Tax Commission's "Sales and Use Tax Rates" PDF). Deferred
-pending SST file inspection.
+**Lesson for future audits**: when verifying OK rates,
+cross-check Avalara before trusting SalesTaxHandbook. Their
+listed "combined rate" for OK cities can be inflated by including
+phantom overlays. Verified against multiple sources is the new
+default for non-NM rate audits.
 
 States probed clean (no placeholder city names surfaced):
 - IN / GA / NC / KY: state or county-only tax models, no city
