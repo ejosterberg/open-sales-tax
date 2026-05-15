@@ -529,6 +529,33 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("77520", "77521", "77522", "77523"),
     ),
+    # iter-190 additions (3 more Houston-area incorporated cities,
+    # 2026-05-15): each returns state-only 6.25% pre-fix.
+    "Humble": (
+        # Humble (incorporated, separate from Houston) is in Harris Co
+        # and a METRO member. 6.25 + METRO 1.0 + city 1.0 = 8.25%.
+        "Harris County",
+        "Houston MTA (METRO)",
+        Decimal("1.000"),
+        ("77338", "77346", "77396"),
+    ),
+    "Tomball": (
+        # Tomball is in Harris Co but NOT in the METRO service area.
+        # City absorbs the full 2.0% local cap. 6.25 + 0 + 0 + 2.0 = 8.25%.
+        "Harris County",
+        None,
+        Decimal("2.000"),
+        ("77375", "77377"),
+    ),
+    "La Porte": (
+        # La Porte is in Harris Co but NOT a METRO member. City 1.75%
+        # + Fire Control/EMS District 0.25% = 2.0% local. No transit.
+        # 6.25 + 0 + 0 + 2.0 = 8.25%.
+        "Harris County",
+        None,
+        Decimal("2.000"),
+        ("77571", "77572"),
+    ),
     # =================================================================
     # Dallas / Fort Worth Metroplex (DART 1.0% / FWTA 0.5%)
     # =================================================================
