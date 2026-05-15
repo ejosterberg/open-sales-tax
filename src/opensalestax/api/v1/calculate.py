@@ -17,6 +17,7 @@ from opensalestax.api.v1.schemas import (
 )
 from opensalestax.auth import authenticate
 from opensalestax.core.calculate import LineItem, calculate_tax
+from opensalestax.core.coverage import coverage_warning_for_states
 from opensalestax.db.session import get_session
 
 router = APIRouter(tags=["calculate"])
@@ -55,6 +56,12 @@ async def calculate(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    # Surface a coverage_warning for states with known local-tax gaps
+    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute). The
+    # CalculationResult already tracks which states' DataVersions
+    # contributed; just look them up against the warnings table.
+    coverage_warning = coverage_warning_for_states(sorted(result.data_versions.keys()))
+
     return CalculateResponse(
         subtotal=result.subtotal,
         tax_total=result.tax_total,
@@ -78,4 +85,5 @@ async def calculate(
             for line in result.lines
         ],
         disclaimer=result.disclaimer,
+        coverage_warning=coverage_warning,
     )

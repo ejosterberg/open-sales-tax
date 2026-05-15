@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from opensalestax.api.v1.schemas import JurisdictionRate, RatesResponse
 from opensalestax.auth import authenticate
+from opensalestax.core.coverage import coverage_warning_for_states
 from opensalestax.core.disclaimer import disclaimer
 from opensalestax.core.lookup import (
     lookup_jurisdictions_by_zip,
@@ -71,6 +72,19 @@ async def get_rates(
     resolved = await resolve_rates_for_authorities(session, authorities, today, "general")
     combined = combined_rate_pct(resolved)
 
+    # Surface a coverage_warning for states with known local-tax gaps
+    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute). Without
+    # this, a CO ZIP returns a state-only 2.9% that a casual user might
+    # mistake for the full combined rate.
+    state_abbrevs = sorted(
+        {
+            r.authority.state.abbrev
+            for r in resolved
+            if r.authority.state is not None and r.authority.state.abbrev
+        }
+    )
+    coverage_warning = coverage_warning_for_states(state_abbrevs)
+
     # Rate data refreshes quarterly when SST publishes new files.
     # 5 minutes is conservative -- mid-quarter changes that prompt a
     # `data load` on prod will still propagate within 5 min through
@@ -91,4 +105,5 @@ async def get_rates(
         ],
         combined_rate_pct=combined if resolved else Decimal("0"),
         disclaimer=disclaimer(),
+        coverage_warning=coverage_warning,
     )

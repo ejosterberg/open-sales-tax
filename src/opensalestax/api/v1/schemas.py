@@ -104,6 +104,17 @@ class RatesResponse(BaseModel):
     jurisdictions: list[JurisdictionRate]
     combined_rate_pct: Decimal
     disclaimer: str
+    coverage_warning: str | None = Field(
+        default=None,
+        description=(
+            "Populated only when the requested address falls in a state with "
+            "known coverage gaps (CO home-rule, LA parishes, AL home-rule, "
+            "HI Maui dispute). The returned combined_rate_pct may underreport "
+            "the true rate in that case. Tracked per state in "
+            "opensalestax.core.coverage."
+        ),
+        examples=[None, "Colorado: ~70 home-rule cities self-administer..."],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -251,3 +262,14 @@ class CalculateResponse(BaseModel):
     tax_total: Decimal
     lines: list[CalculatedLineResponse]
     disclaimer: str
+    coverage_warning: str | None = Field(
+        default=None,
+        description=(
+            "Populated only when the requested address falls in a state with "
+            "known coverage gaps (CO home-rule, LA parishes, AL home-rule, "
+            "HI Maui dispute). The returned tax_total may underreport the "
+            "true tax owed in that case. Tracked per state in "
+            "opensalestax.core.coverage."
+        ),
+        examples=[None, "Colorado: ~70 home-rule cities self-administer..."],
+    )
