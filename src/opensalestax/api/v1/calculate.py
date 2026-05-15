@@ -57,10 +57,28 @@ async def calculate(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     # Surface a coverage_warning for states with known local-tax gaps
-    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute). The
-    # CalculationResult already tracks which states' DataVersions
-    # contributed; just look them up against the warnings table.
-    coverage_warning = coverage_warning_for_states(sorted(result.data_versions.keys()))
+    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute).
+    # ``result.data_versions`` is declared on the dataclass but isn't
+    # populated by the calculate engine; derive the state set from the
+    # actual line-level jurisdictions instead. The state-typed
+    # authority's name is the canonical state name ("Colorado" /
+    # "Louisiana" / "Alabama" / "Hawaii"), which we reverse-map to
+    # USPS abbrev via the warning table's reverse mapping below.
+    _STATE_NAME_TO_ABBREV = {
+        "Colorado": "CO",
+        "Louisiana": "LA",
+        "Alabama": "AL",
+        "Hawaii": "HI",
+    }
+    state_abbrevs = sorted(
+        {
+            _STATE_NAME_TO_ABBREV[j.name]
+            for line in result.lines
+            for j in line.jurisdictions
+            if j.type == "state" and j.name in _STATE_NAME_TO_ABBREV
+        }
+    )
+    coverage_warning = coverage_warning_for_states(state_abbrevs)
 
     return CalculateResponse(
         subtotal=result.subtotal,
