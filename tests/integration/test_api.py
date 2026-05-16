@@ -56,6 +56,59 @@ async def test_health_returns_ok_with_version(client: AsyncClient) -> None:
 
 
 # ---------------------------------------------------------------------------
+# /v1/capabilities -- static manifest
+# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_capabilities_returns_version_and_endpoints(client: AsyncClient) -> None:
+    """The capabilities endpoint reports the engine's version + endpoint paths."""
+    response = await client.get("/v1/capabilities")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["version"] == __version__
+    # Must include every known endpoint slug.
+    assert set(body["endpoints"].keys()) >= {
+        "health",
+        "states",
+        "rates",
+        "calculate",
+        "capabilities",
+    }
+    for slug, desc in body["endpoints"].items():
+        assert desc["path"].startswith("/v1/"), f"{slug} path missing /v1 prefix"
+        assert desc["version"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_capabilities_features_includes_known_keys(client: AsyncClient) -> None:
+    """The features dict must include the known stable feature keys.
+
+    These keys form the connector-facing contract; adding new ones is
+    non-breaking, removing or flipping them is breaking. This test guards
+    against accidental removal.
+    """
+    response = await client.get("/v1/capabilities")
+    body = response.json()
+    features = body["features"]
+    for key in (
+        "coverage_warning",
+        "shipping_first_class",
+        "vendor_allocation",
+        "transaction_record_back",
+    ):
+        assert key in features, f"feature {key!r} missing from capabilities"
+        assert isinstance(features[key], bool)
+
+
+@pytest.mark.asyncio
+async def test_capabilities_coverage_warning_is_true_post_iter_189(
+    client: AsyncClient,
+) -> None:
+    """coverage_warning feature flipped True when iter-189 shipped."""
+    response = await client.get("/v1/capabilities")
+    assert response.json()["features"]["coverage_warning"] is True
+
+
+# ---------------------------------------------------------------------------
 # /v1/states -- pure-Python list, no DB needed but tested with DB present
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio

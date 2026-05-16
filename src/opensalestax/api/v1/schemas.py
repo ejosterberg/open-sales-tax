@@ -30,6 +30,76 @@ class HealthResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# /v1/capabilities
+# ---------------------------------------------------------------------------
+class EndpointDescriptor(BaseModel):
+    """Path + spec-version of one engine endpoint."""
+
+    path: str = Field(examples=["/v1/calculate"])
+    version: int = Field(
+        ge=1,
+        description=(
+            "Per-endpoint spec version. Bumped when the request/response "
+            "shape changes incompatibly. Independent from package version."
+        ),
+        examples=[1],
+    )
+
+
+class CapabilitiesResponse(BaseModel):
+    """Manifest of what this engine instance supports.
+
+    Driver: connector-tier captain's cross-cutting note in
+    ``engine-team-requests.md`` (2026-05-16). Connectors call this
+    once on Test Connection / first calc and cache the result, so
+    they can do version-aware feature detection without parsing
+    semver strings out of ``/v1/health``.
+
+    The ``features`` dict is the discoverable-feature contract:
+    booleans connector code can branch on. Adding a new key
+    that's ``true`` is non-breaking; flipping an existing ``true``
+    to ``false`` is breaking and requires a major version bump.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "version": "0.59.0",
+                "endpoints": {
+                    "health": {"path": "/v1/health", "version": 1},
+                    "states": {"path": "/v1/states", "version": 1},
+                    "rates": {"path": "/v1/rates", "version": 1},
+                    "calculate": {"path": "/v1/calculate", "version": 1},
+                    "capabilities": {"path": "/v1/capabilities", "version": 1},
+                },
+                "features": {
+                    "coverage_warning": True,
+                    "shipping_first_class": False,
+                    "vendor_allocation": False,
+                    "transaction_record_back": False,
+                },
+            }
+        }
+    )
+
+    version: str = Field(
+        description="OpenSalesTax package version this engine is running.",
+        examples=["0.59.0"],
+    )
+    endpoints: dict[str, EndpointDescriptor] = Field(
+        description="Map of endpoint slug -> {path, version}.",
+    )
+    features: dict[str, bool] = Field(
+        description=(
+            "Discoverable-feature toggles. Connectors should branch on these "
+            "rather than parsing the engine version string. Keys are stable: "
+            "additions are non-breaking; removals or true->false flips require "
+            "a major version bump."
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
 # /v1/states
 # ---------------------------------------------------------------------------
 class StateInfo(BaseModel):
