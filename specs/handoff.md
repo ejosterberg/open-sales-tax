@@ -452,7 +452,29 @@ missing CA county (Mariposa) added, ~250 new live-grid pins.
   correct. Marietta GA 6.0%, Charlottesville VA 5.3%, Topeka KS
   9.35%, Kansas City KS 9.125% all match SalesTaxHandbook exactly.
 
-**Open follow-ups discovered (not fixed) during iter-117..131**:
+**Open follow-ups (overnight 2026-05-15 batch):**
+
+- **Demo site coverage_warning rendering**: The API now returns
+  ``coverage_warning`` for CO / LA / AL / HI (iter-189, v0.58.0).
+  Demo site at ``demo.opensalestax.org`` does NOT render this field
+  yet -- the Astro/JS calculator at
+  ``ejosterberg/open-sales-tax-website`` needs a small update to:
+  1. Read ``data.coverage_warning`` from the API response
+  2. Render it as a yellow banner above the rate table when present
+  Eric: a 5-line JS change in the calculator partial. Until that
+  ships, CO addresses on the demo still look like 2.9% without
+  context. The API contract is correct; only the demo presentation
+  lags.
+
+- **CA El Dorado County 1.0% over-collect** (real bug, audit
+  required): Engine returns 8.25% for unincorporated El Dorado Co
+  ZIPs (e.g. El Dorado Hills 95762); Avalara confirms 7.25%
+  truth. Fix: drop El Dorado Co rate from 1.000 to 0.000 AND add
+  Placerville as an explicit city entry (Placerville has its own
+  ~0.5% Measure L) so it doesn't get under-collected by the same
+  change. ~20 El Dorado Co ZIPs affected.
+
+**Older open follow-ups discovered during iter-117..131:**
 - ~~**NM TRD over-collect 0.25%**~~ **RESOLVED** in iter-172..175
   (overnight 2026-05-14..05-15) — all 17 tier-1+tier-2 NM cities
   re-verified against TRD. See overnight summary at top of file.
