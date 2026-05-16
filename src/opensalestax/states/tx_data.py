@@ -1303,6 +1303,21 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("78626", "78628", "78633"),
     ),
+    # iter-194 additions (Austin metro suburbs in Travis Co/Capital
+    # Metro). Each was returning state-only 6.25%; combined 8.25%
+    # post-fix (state + city 1.0 + Austin MTA 1.0).
+    "Lago Vista": (
+        "Travis County",
+        "Austin MTA (Capital Metro)",
+        Decimal("1.000"),
+        ("78645",),
+    ),
+    "Manor": (
+        "Travis County",
+        "Austin MTA (Capital Metro)",
+        Decimal("1.000"),
+        ("78653",),
+    ),
     "Pflugerville": (
         "Travis County",
         None,
