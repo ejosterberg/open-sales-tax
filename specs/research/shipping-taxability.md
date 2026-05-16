@@ -88,7 +88,7 @@ DOR verification before shipping code goes live.
 | WV | CONDITIONAL | H | W. Va. Code 11-15-3: "gross proceeds" includes delivery when item taxable. |
 | WI | CONDITIONAL | H | Wis. Stat. 77.51(15rm): "sales price" includes delivery when item taxable. |
 | WY | EXEMPT_IF_SEPARATE | H | Wyo. Stat. 39-15-101(a)(viii): "sale price" excludes separately stated freight. |
-| PR | TBD | L | Puerto Rico SUT — needs separate research |
+| PR | CONDITIONAL | M | Puerto Rico IVU (8 LPRA 32021) — practitioner default that delivery is part of "precio de venta" when item is taxable, similar to majority US pattern. Primary-source verification still needed before P1 production deploy. |
 
 **Counts**: NONE × 5; ALWAYS × 1; CONDITIONAL × 26; EXEMPT_IF_SEPARATE × 19; MIXED × 1; TBD × 1 (PR).
 
