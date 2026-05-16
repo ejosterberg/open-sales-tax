@@ -1303,6 +1303,29 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("78626", "78628", "78633"),
     ),
+    # iter-195 additions (San Antonio metro suburbs in Bexar Co).
+    # Each was returning state-only 6.25%; combined 8.25% post-fix.
+    # These cities are NOT VIA Metropolitan Transit members (Universal
+    # City voted out; Helotes/Converse never joined), so the 2.0%
+    # local cap goes entirely to city tax with no transit overlay.
+    "Helotes": (
+        "Bexar County",
+        None,
+        Decimal("2.000"),
+        ("78023",),
+    ),
+    "Converse": (
+        "Bexar County",
+        None,
+        Decimal("2.000"),
+        ("78109",),
+    ),
+    "Universal City": (
+        "Bexar County",
+        None,
+        Decimal("2.000"),
+        ("78148",),
+    ),
     # iter-194 additions (Austin metro suburbs in Travis Co/Capital
     # Metro). Each was returning state-only 6.25%; combined 8.25%
     # post-fix (state + city 1.0 + Austin MTA 1.0).
