@@ -1303,6 +1303,35 @@ TX_CITIES: dict[str, tuple[str, str | None, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("78626", "78628", "78633"),
     ),
+    # iter-196 additions (SA metro extended -- Bulverde, Lytle,
+    # Elmendorf). All return 8.25% combined; component breakdown
+    # is fictional vs SalesTaxHandbook (we model as city 2.0% with
+    # no transit; actual is city + Special Purpose Districts) but
+    # the combined cap is what matters for collection.
+    "Bulverde": (
+        # In Comal Co; not in VIA. Verified 8.25% combined via Avalara.
+        "Comal County",
+        None,
+        Decimal("2.000"),
+        ("78163",),
+    ),
+    "Lytle": (
+        # In Atascosa Co; not in VIA. Verified 8.25% combined via
+        # SalesTaxHandbook.
+        "Atascosa County",
+        None,
+        Decimal("2.000"),
+        ("78073",),
+    ),
+    "Elmendorf": (
+        # In Bexar Co; SalesTaxHandbook shows "Wilson County ESD No 2
+        # Special" overlay -- the ESD crosses into Bexar Co around
+        # Elmendorf. Combined 8.25% verified.
+        "Bexar County",
+        None,
+        Decimal("2.000"),
+        ("78112",),
+    ),
     # iter-195 additions (San Antonio metro suburbs in Bexar Co).
     # Each was returning state-only 6.25%; combined 8.25% post-fix.
     # These cities are NOT VIA Metropolitan Transit members (Universal
