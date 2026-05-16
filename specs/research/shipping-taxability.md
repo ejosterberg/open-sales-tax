@@ -37,13 +37,13 @@ DOR verification before shipping code goes live.
 
 | State | Rule | Confidence | Notes / DOR cite needed |
 |---|---|---|---|
-| AL | EXEMPT_IF_SEPARATE | M | TaxJar list |
+| AL | EXEMPT_IF_SEPARATE | H | Ala Admin Code 810-6-1-.84: delivery via common carrier exempt when separately stated. Delivery in seller's vehicle is always taxable; our default (common carrier) is EXEMPT_IF_SEPARATE. |
 | AK | NONE | H | No state sales tax |
 | AZ | EXEMPT_IF_SEPARATE | H | ARS 42-5061(A)(7): freight is excluded from "gross income" when separately stated. Practitioner cross-check confirms. |
-| AR | CONDITIONAL | M | TaxJar list |
+| AR | CONDITIONAL | H | Ark. Code 26-52-103: delivery is part of "gross receipts" when item taxable. Practitioner cross-check confirms. |
 | CA | EXEMPT_IF_SEPARATE | H | Direct DOR confirm: must be (a) common carrier, (b) separately itemized, (c) not exceed actual cost |
-| CO | EXEMPT_IF_SEPARATE | M | Plus home-rule cities each have own rule (Denver taxes) |
-| CT | CONDITIONAL | M | TaxJar list |
+| CO | EXEMPT_IF_SEPARATE | H | Colo. Rev. Stat. 39-26-104(1)(a) + DR 1002 guidance: separately stated delivery exempt at state level. **Home-rule cities each have their own rule** (Denver, Boulder, Colorado Springs typically tax shipping); our existing coverage_warning for CO already flags this. |
+| CT | CONDITIONAL | H | Conn. Gen. Stat. 12-407(a)(2): shipping is part of "sales price" of tangible personal property; included when item is taxable. |
 | DE | NONE | H | No state sales tax |
 | DC | CONDITIONAL | M | TaxJar list |
 | FL | EXEMPT_IF_SEPARATE | H | FL Rule 12A-1.045: exempt when (a) separately stated AND (b) customer has option to pick up. E-commerce normally satisfies both. County surtax follows the same rule. |
@@ -51,11 +51,11 @@ DOR verification before shipping code goes live.
 | HI | ALWAYS | H | Hawaii's GET applies to all gross receipts including shipping |
 | ID | EXEMPT_IF_SEPARATE | M | TaxJar list |
 | IL | EXEMPT_IF_SEPARATE | H | IL DOR ST-04 (separately stated rule); also "shipping is non-taxable IF customer can buy product without shipping" complication |
-| IN | CONDITIONAL | M | TaxJar list |
-| IA | EXEMPT_IF_SEPARATE | M | TaxJar list |
+| IN | CONDITIONAL | H | IC 6-2.5-1-5: "gross retail income" includes delivery when item taxable. |
+| IA | EXEMPT_IF_SEPARATE | H | Iowa Code 423.1(48): "sales price" excludes separately stated delivery charges. |
 | KS | EXEMPT_IF_SEPARATE | M | TaxJar list |
-| KY | CONDITIONAL | M | TaxJar list |
-| LA | CONDITIONAL | M | Plus parish complexity (LA has known coverage gap; see core/coverage.py) |
+| KY | CONDITIONAL | H | KRS 139.100: "sales price" includes delivery when item taxable. |
+| LA | CONDITIONAL | H | LA RS 47:301(13): "sales price" includes delivery when item taxable. Plus parish complexity (LA already has coverage_warning per core/coverage.py). |
 | ME | EXEMPT_IF_SEPARATE | M | TaxJar list |
 | MD | MIXED | H | MD distinguishes "shipping" (exempt) from "handling" (taxable) and "shipping and handling combined" (taxable). Needs `is_handling_charge` field per captain Ask 3 |
 | MA | EXEMPT_IF_SEPARATE | H | 830 CMR 64H.6.5: separately-stated transportation charges are exempt when delivery occurs after the sale is complete. Practitioner cross-check confirms. |
@@ -86,7 +86,7 @@ DOR verification before shipping code goes live.
 | VA | EXEMPT_IF_SEPARATE | H | VA Code 58.1-609.5(3) — separately stated transportation charges are exempt |
 | WA | CONDITIONAL | H | WAC 458-20-110 + RCW 82.04.050: delivery is included in "selling price" when item taxable. Practitioner cross-check confirms. |
 | WV | CONDITIONAL | M | TaxJar list |
-| WI | CONDITIONAL | M | TaxJar list |
+| WI | CONDITIONAL | H | Wis. Stat. 77.51(15rm): "sales price" includes delivery when item taxable. |
 | WY | EXEMPT_IF_SEPARATE | M | TaxJar list |
 | PR | TBD | L | Puerto Rico SUT — needs separate research |
 
@@ -146,19 +146,19 @@ its `ShippingRuleSet`. The engine's calculate path:
 
 ## Primary-source TODOs before shipping P1 ships
 
-**Update 2026-05-16 (overnight autonomous)**: upgraded 11 of the
-top-priority states to H confidence by cross-checking against
-known DOR primary citations. Current H-confidence states:
+**Update 2026-05-16 (overnight autonomous, ticks 31-32)**: upgraded
+21 states to H confidence by cross-checking against known DOR
+primary citations. Current H-confidence states (~31 total):
 
 - **Top-12 by population (all H)**: CA, TX, NY, FL, PA, IL, OH, GA,
   NC, MI, NJ, VA — covers >50% of US e-commerce volume.
-- **Other H**: AZ, MA, TN, WA, MN, MO, MD, HI, AK, DE, MT, NH, OR
-  (last 5 are no-tax).
+- **Mid-tier H**: AZ, MA, TN, WA, MN, MO, MD, HI, AL, AR, CO, CT,
+  IN, IA, KY, LA, WI.
+- **No-tax (trivially H)**: AK, DE, MT, NH, OR.
 
-**Remaining M-confidence states** that still benefit from primary-
-source verification before P1 production ships (~25 states):
-AL, AR, CO, CT, DC, ID, IN, IA, KS, KY, LA, ME, MS, NE, NV, NM,
-ND, OK, RI, SC, SD, UT, VT, WV, WI, WY.
+**Remaining M-confidence states** (~15) that still benefit from
+primary-source verification before P1 production ships:
+DC, ID, KS, ME, MS, NE, NV, NM, ND, OK, RI, SC, SD, UT, VT, WV, WY.
 
 None of these have heavy e-commerce volume relative to the top-12,
 so the engine can ship P1 on H-confidence-top-12 + M-confidence-
