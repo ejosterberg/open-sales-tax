@@ -404,19 +404,20 @@ async def _compute_shipping_tax(
             if is_taxable
             else f"{state_abbrev} exempts separately-stated shipping " f"({rule_set.citation})."
         )
-    elif rule == ShippingRule.MIXED:
-        # MIXED states currently only used for MD; the handling_rule
-        # override is selected above. Reaching MIXED as default_rule
-        # is unexpected; treat as taxable per the safer-for-collection
-        # default.
+    else:
+        # MIXED — currently only MD; the handling_rule override is
+        # selected above so reaching this branch means the request
+        # didn't ask for handling. Treat as taxable per the safer-
+        # for-collection default. (assert_never enforces
+        # exhaustiveness if ShippingRule grows.)
+        assert (
+            rule == ShippingRule.MIXED
+        ), f"Unhandled ShippingRule variant {rule!r}; add an elif branch."
         is_taxable = True
         reason = (
             f"{state_abbrev} has special shipping rules; treating as taxable "
             f"by default ({rule_set.citation})."
         )
-    else:  # pragma: no cover -- exhaustiveness; mypy will flag if Enum grows
-        is_taxable = False
-        reason = f"Unknown ShippingRule {rule!r}; not taxing."
 
     if not is_taxable:
         return ShippingResult(
