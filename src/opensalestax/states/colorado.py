@@ -117,6 +117,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -275,6 +277,25 @@ class Colorado:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return CO's STATE-LEVEL shipping rule.
+
+        At the state level, separately stated delivery is exempt
+        from CO's 2.9% rate. WARNING -- the ~70 home-rule
+        self-collecting cities (Denver, Boulder, Colorado Springs,
+        Fort Collins, etc.) each set their own shipping rule and
+        most of them DO tax shipping; this module models the state
+        portion only and the home-rule coverage_warning already
+        flags the broader gap (see module docstring).
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation=(
+                "C.R.S. 39-26-104(1)(a) (state portion only; "
+                "home-rule cities apply their own shipping rules)"
+            ),
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Colorado()

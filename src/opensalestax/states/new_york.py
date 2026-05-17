@@ -75,6 +75,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -333,6 +335,20 @@ class NewYork:
         """New York has no annual sales-tax holidays at the state level."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return NY's shipping rule.
+
+        New York treats delivery charges as part of the taxable
+        receipt when the underlying item is taxable; shipping is
+        included in the taxable base when the goods are taxable
+        and excluded when the goods are exempt. Practitioner
+        default for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="NY Tax Bulletin ST-838",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = NewYork()

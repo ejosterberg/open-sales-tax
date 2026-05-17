@@ -156,6 +156,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -488,6 +490,19 @@ class Mississippi:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MS's shipping rule.
+
+        Mississippi treats delivery charges as part of "gross
+        income" when the underlying item is taxable; shipping
+        follows the taxability of the goods. Practitioner default
+        for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="Miss. Code 27-65-3",
         )
 
 

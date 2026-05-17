@@ -150,7 +150,13 @@ from __future__ import annotations
 from decimal import Decimal
 
 from opensalestax.states._sst_base import SstStateModule
-from opensalestax.states.protocol import StateModule, StateTier, TaxabilityRule
+from opensalestax.states.protocol import (
+    ShippingRule,
+    ShippingRuleSet,
+    StateModule,
+    StateTier,
+    TaxabilityRule,
+)
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
@@ -333,6 +339,17 @@ class Kansas(SstStateModule):
             if friendly is not None:
                 return friendly
         return super()._authority_name(code, authority_type)
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return KS's shipping rule.
+
+        Separately stated freight is excluded from the taxable
+        sales price; bundled freight is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="K.S.A. 79-3603 + EDU-87",
+        )
 
 
 # Compile-time Protocol satisfaction check + module-import-time

@@ -190,7 +190,13 @@ from __future__ import annotations
 from decimal import Decimal
 
 from opensalestax.states._sst_base import SstStateModule
-from opensalestax.states.protocol import StateModule, StateTier, TaxabilityRule
+from opensalestax.states.protocol import (
+    ShippingRule,
+    ShippingRuleSet,
+    StateModule,
+    StateTier,
+    TaxabilityRule,
+)
 from opensalestax.states.registry import register
 
 # Wyoming taxability matrix per Wyo. Stat. Title 39, Chapter 15
@@ -401,6 +407,17 @@ class Wyoming(SstStateModule):
             if friendly is not None:
                 return friendly
         return super()._authority_name(code, authority_type)
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return WY's shipping rule.
+
+        Separately stated freight is excluded from "sale price";
+        bundled freight is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="Wyo. Stat. 39-15-101(a)(viii)",
+        )
 
 
 # Compile-time Protocol satisfaction check + module-import-time

@@ -48,9 +48,11 @@ _FEATURES: dict[str, bool] = {
     # field when the requested ZIP falls in a state with documented
     # local-tax coverage gaps (CO/LA/AL/HI).
     "coverage_warning": True,
-    # Captain Ask 3 (engine-team-requests.md). Will flip to True
-    # when v0.59.0 ships the shipping field. Currently False.
-    "shipping_first_class": False,
+    # Captain Ask 3 (engine-team-requests.md). Shipped in v0.59.0.
+    # Connectors can pass a top-level ``shipping`` field on
+    # /v1/calculate; engine applies the destination state's
+    # ``ShippingRule`` and returns a parallel ``shipping`` block.
+    "shipping_first_class": True,
     # Captain Ask 2. Eric ruled out-of-scope 2026-05-16; stays
     # False permanently unless that decision is reopened.
     "vendor_allocation": False,

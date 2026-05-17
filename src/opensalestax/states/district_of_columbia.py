@@ -94,6 +94,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -260,6 +262,20 @@ class DistrictOfColumbia:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return DC's shipping rule.
+
+        The District of Columbia treats delivery charges as part
+        of "gross receipts" from the sale of tangible personal
+        property; shipping is included in the taxable base when
+        the underlying item is taxable. Practitioner default for
+        typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="DC Code 47-2001(n)(1)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = DistrictOfColumbia()

@@ -99,6 +99,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -319,6 +321,17 @@ class Idaho:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return ID's shipping rule.
+
+        Separately stated freight / delivery charges are exempt;
+        bundled freight is taxable as part of the sales price.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="IDAPA 35.01.02.045",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Idaho()

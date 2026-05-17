@@ -32,6 +32,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateTier,
     TaxabilityRule,
@@ -241,6 +243,20 @@ class SstStateModule:
         """No sales-tax holidays tracked by default tier-2 modules."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Default shipping rule for SST member states.
+
+        Most SST member states tax shipping under the "delivery is
+        part of the sales price when the item is taxable" pattern
+        (CONDITIONAL). States that diverge (the EXEMPT_IF_SEPARATELY_
+        STATED states like CA/MI/IA/MO/VA/etc., or HI's ALWAYS, or
+        MD's MIXED) override in their own module.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="SST Agreement uniform definition of 'sales price'",
+        )
 
     # ---- helpers ----------------------------------------------------------
     def _authority_name(self, code: str, authority_type: str) -> str:

@@ -20,6 +20,7 @@ import datetime as dt
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal
+from enum import Enum
 from pathlib import Path
 from typing import Literal, Protocol, runtime_checkable
 
@@ -159,6 +160,52 @@ class SpecialCase:
 
 
 # ---------------------------------------------------------------------------
+# Shipping taxability (Ask 3 / v0.59.0)
+# ---------------------------------------------------------------------------
+class ShippingRule(str, Enum):
+    """How a state taxes shipping/delivery charges.
+
+    Five patterns cover all 52 US jurisdictions (per
+    ``specs/research/shipping-taxability.md``):
+
+    - ``NONE``: state has no sales tax (AK, DE, MT, NH, OR)
+    - ``ALWAYS_TAXABLE``: tax shipping unconditionally (HI only)
+    - ``CONDITIONAL``: tax when items are taxable (26 states; dominant)
+    - ``EXEMPT_IF_SEPARATELY_STATED``: default taxable; exempt if shipping
+      is shown as a separate line on the invoice (19 states)
+    - ``MIXED``: state has special rules (MD only; distinguishes
+      shipping vs handling)
+    """
+
+    NONE = "none"
+    ALWAYS_TAXABLE = "always_taxable"
+    CONDITIONAL = "conditional"
+    EXEMPT_IF_SEPARATELY_STATED = "exempt_if_separately_stated"
+    MIXED = "mixed"
+
+
+@dataclass(frozen=True, slots=True)
+class ShippingRuleSet:
+    """How a state taxes shipping/delivery charges.
+
+    The ``default_rule`` applies for ordinary shipping charges. The
+    optional ``handling_rule`` is used only in states (Maryland) that
+    treat "handling" as separately taxable from "shipping". In all
+    other states, ``is_handling_charge=True`` requests are routed
+    through ``default_rule`` (the connector signal is accepted but
+    ignored).
+
+    ``citation`` carries the DOR / statute reference for the rule.
+    Documented per
+    ``specs/research/shipping-taxability.md``.
+    """
+
+    default_rule: ShippingRule
+    handling_rule: ShippingRule | None = None
+    citation: str = ""
+
+
+# ---------------------------------------------------------------------------
 # The Protocol every state module implements
 # ---------------------------------------------------------------------------
 @runtime_checkable
@@ -226,5 +273,20 @@ class StateModule(Protocol):
         iterator (most states have no annual holidays). States with
         holidays (TX, FL, MA, MD, ...) override this and return
         the year's windows.
+        """
+        ...
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return how this state taxes shipping/delivery charges.
+
+        Used by the engine when the caller passes a top-level
+        ``shipping`` field on ``/v1/calculate``. See
+        ``ShippingRule`` for the five-pattern enumeration and
+        ``specs/research/shipping-taxability.md`` for per-state
+        primary-source citations.
+
+        Default in ``_sst_base.SstStateModule`` returns
+        ``ShippingRule.CONDITIONAL`` (the 26-state plurality). States
+        that diverge override.
         """
         ...

@@ -153,7 +153,13 @@ from __future__ import annotations
 from decimal import Decimal
 
 from opensalestax.states._sst_base import SstStateModule
-from opensalestax.states.protocol import StateModule, StateTier, TaxabilityRule
+from opensalestax.states.protocol import (
+    ShippingRule,
+    ShippingRuleSet,
+    StateModule,
+    StateTier,
+    TaxabilityRule,
+)
 from opensalestax.states.registry import register
 
 # Michigan has NO general local sales tax. The SST rate file contains
@@ -312,6 +318,17 @@ class Michigan(SstStateModule):
 
     jurisdiction_types: dict[str, str] = _JURISDICTION_TYPE
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MI's shipping rule.
+
+        Shipping is exempt when separately stated and incidental to
+        the sale; bundled shipping is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="MCL 205.51 / RAB 2015-17",
+        )
 
 
 # Compile-time Protocol satisfaction check + module-import-time

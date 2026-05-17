@@ -108,6 +108,126 @@ async def test_capabilities_coverage_warning_is_true_post_iter_189(
     assert response.json()["features"]["coverage_warning"] is True
 
 
+@pytest.mark.asyncio
+async def test_capabilities_shipping_first_class_is_true_post_v059(
+    client: AsyncClient,
+) -> None:
+    """shipping_first_class flipped True when v0.59.0 shipped."""
+    response = await client.get("/v1/capabilities")
+    assert response.json()["features"]["shipping_first_class"] is True
+
+
+# ---------------------------------------------------------------------------
+# /v1/calculate shipping -- v0.59.0
+# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_calculate_without_shipping_omits_shipping_block(
+    client: AsyncClient,
+) -> None:
+    """Requests that don't include `shipping` get no shipping block back.
+
+    Preserves pre-v0.59.0 behavior; existing consumers see no change.
+    """
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "55401"},
+            "line_items": [{"amount": "100.00", "category": "general"}],
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body.get("shipping") is None
+
+
+@pytest.mark.asyncio
+async def test_calculate_mn_conditional_shipping_taxed_when_items_taxable(
+    client: AsyncClient,
+) -> None:
+    """MN CONDITIONAL: taxable item -> shipping taxed at combined rate."""
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "55401"},
+            "line_items": [{"amount": "100.00", "category": "general"}],
+            "shipping": {"amount": "12.50"},
+        },
+    )
+    body = response.json()
+    assert body["shipping"] is not None
+    assert Decimal(body["shipping"]["tax_amount"]) > 0
+    assert "MN taxes shipping when items are taxable" in body["shipping"]["taxable_reason"]
+
+
+@pytest.mark.asyncio
+async def test_calculate_or_none_rule_zero_shipping_tax(
+    client: AsyncClient,
+) -> None:
+    """OR NONE: shipping tax is always zero (no state sales tax)."""
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "97201"},
+            "line_items": [{"amount": "100.00"}],
+            "shipping": {"amount": "12.50"},
+        },
+    )
+    body = response.json()
+    assert body["shipping"]["tax_amount"] == "0"
+    assert "OR has no state-level sales tax" in body["shipping"]["taxable_reason"]
+
+
+@pytest.mark.asyncio
+async def test_calculate_ca_exempt_if_separately_stated_default_exempt(
+    client: AsyncClient,
+) -> None:
+    """CA EXEMPT_IF_SEPARATELY_STATED: default separately_stated=True -> exempt."""
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "94102"},
+            "line_items": [{"amount": "100.00"}],
+            "shipping": {"amount": "12.50"},
+        },
+    )
+    body = response.json()
+    assert body["shipping"]["tax_amount"] == "0"
+    assert "separately-stated" in body["shipping"]["taxable_reason"]
+
+
+@pytest.mark.asyncio
+async def test_calculate_ca_exempt_if_separately_stated_false_taxable(
+    client: AsyncClient,
+) -> None:
+    """CA: separately_stated=False -> shipping IS taxable."""
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "94102"},
+            "line_items": [{"amount": "100.00"}],
+            "shipping": {"amount": "12.50", "separately_stated": False},
+        },
+    )
+    body = response.json()
+    assert Decimal(body["shipping"]["tax_amount"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_calculate_hi_always_taxable(client: AsyncClient) -> None:
+    """HI ALWAYS_TAXABLE: shipping taxed regardless of item taxability."""
+    response = await client.post(
+        "/v1/calculate",
+        json={
+            "address": {"zip5": "96813"},
+            "line_items": [{"amount": "100.00"}],
+            "shipping": {"amount": "12.50"},
+        },
+    )
+    body = response.json()
+    assert Decimal(body["shipping"]["tax_amount"]) > 0
+    assert "unconditionally" in body["shipping"]["taxable_reason"]
+
+
 # ---------------------------------------------------------------------------
 # /v1/states -- pure-Python list, no DB needed but tested with DB present
 # ---------------------------------------------------------------------------

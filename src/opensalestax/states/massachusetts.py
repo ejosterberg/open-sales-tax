@@ -36,6 +36,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -144,6 +146,18 @@ class Massachusetts:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MA's shipping rule.
+
+        Separately stated transportation charges are exempt when
+        delivery occurs after the sale is complete; bundled
+        transportation is taxable as part of the sales price.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="830 CMR 64H.6.5",
         )
 
 

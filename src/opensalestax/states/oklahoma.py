@@ -188,6 +188,8 @@ from decimal import Decimal
 from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.protocol import (
     HolidayWindow,
+    ShippingRule,
+    ShippingRuleSet,
     StateModule,
     StateTier,
     TaxabilityRule,
@@ -469,6 +471,17 @@ class Oklahoma(SstStateModule):
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return OK's shipping rule.
+
+        Separately stated freight is excluded from "gross receipts";
+        bundled freight is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="68 O.S. 1352(12)",
         )
 
 

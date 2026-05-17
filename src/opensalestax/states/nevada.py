@@ -222,7 +222,13 @@ from __future__ import annotations
 from decimal import Decimal
 
 from opensalestax.states._sst_base import SstStateModule
-from opensalestax.states.protocol import StateModule, StateTier, TaxabilityRule
+from opensalestax.states.protocol import (
+    ShippingRule,
+    ShippingRuleSet,
+    StateModule,
+    StateTier,
+    TaxabilityRule,
+)
 from opensalestax.states.registry import register
 
 # Nevada taxability matrix per NRS Chapter 372.
@@ -383,6 +389,17 @@ class Nevada(SstStateModule):
     }
 
     taxability: dict[str, TaxabilityRule] = _TAXABILITY
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return NV's shipping rule.
+
+        Separately stated freight is excluded from "gross receipts";
+        bundled freight is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="NRS 372.025",
+        )
 
 
 # Compile-time Protocol satisfaction check + module-import-time

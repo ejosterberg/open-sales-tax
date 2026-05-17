@@ -35,6 +35,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -227,6 +229,18 @@ class Alaska:
         """No statewide sales-tax holidays in Alaska."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Alaska has no state-level sales tax.
+
+        Shipping is not taxed at the state level. Some AK
+        municipalities (modeled via ARSSTC data) may have their own
+        shipping rules; those are not surfaced in v1 P1.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.NONE,
+            citation="AS has no state-level sales tax",
+        )
 
 
 # Compile-time check: Alaska satisfies the StateModule Protocol.

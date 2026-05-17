@@ -86,6 +86,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -363,6 +365,18 @@ class Texas:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return TX's shipping rule.
+
+        Texas treats delivery as part of the "sales price" when the
+        underlying item is taxable; exempt items don't carry taxable
+        shipping. Practitioner default for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="TX Tax Code 151.007(a)",
         )
 
 

@@ -34,6 +34,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -87,6 +89,13 @@ class NoTaxState:
         """No-tax states have no sales-tax holidays (no tax to suspend)."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """No-tax states never tax shipping."""
+        return ShippingRuleSet(
+            default_rule=ShippingRule.NONE,
+            citation=f"{self.state_name} levies no statewide sales tax.",
+        )
 
     def __repr__(self) -> str:
         return f"<NoTaxState {self.state_abbrev}>"

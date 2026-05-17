@@ -33,6 +33,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -145,6 +147,20 @@ class Maryland:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MD's mixed shipping rule.
+
+        Maryland distinguishes "shipping" (exempt when separately
+        stated) from "handling" (always taxable). The engine routes
+        ``is_handling_charge=True`` requests through ``handling_rule``;
+        ordinary shipping flows through ``default_rule``.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            handling_rule=ShippingRule.ALWAYS_TAXABLE,
+            citation="MD COMAR 03.06.01.30 + Tax-General Article 11-101(l)",
         )
 
 

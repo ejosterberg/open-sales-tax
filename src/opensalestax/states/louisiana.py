@@ -160,6 +160,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -407,6 +409,26 @@ class Louisiana:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return LA's shipping rule (state portion only).
+
+        Louisiana treats delivery charges as part of the "sales
+        price" when the underlying item is taxable; shipping
+        follows the taxability of the goods. Practitioner default
+        for typical e-commerce.
+
+        PARISH-LEVEL CAVEAT: Louisiana's ~64 parishes administer
+        their own sales taxes independently (see module docstring
+        and ``specs/decisions/05-louisiana-parishes.md``); parish
+        treatment of shipping may diverge from the state rule. v1
+        P1 ships only the state-portion shipping rule -- callers
+        with parish exposure should consult local ordinances.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="LA RS 47:301(13)",
         )
 
 

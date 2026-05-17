@@ -86,6 +86,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -316,6 +318,20 @@ class California:
         """California has no annual sales-tax holidays."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return CA's shipping rule.
+
+        CDTFA's full test is multi-factor: shipping is exempt when
+        (a) the delivery is by common carrier, (b) the charge is
+        separately itemized, and (c) the charge does not exceed actual
+        cost. The engine models the dominant separately-stated test;
+        the actual-cost criterion is a connector-level concern.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="CA RTC 6011/6012 + Sales and Use Tax Regulation 1628",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = California()

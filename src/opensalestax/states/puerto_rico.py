@@ -265,6 +265,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -547,6 +549,26 @@ class PuertoRico:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return PR's shipping rule (M-confidence; verify before P1).
+
+        Puerto Rico's IVU ("Impuesto sobre Ventas y Uso") is
+        structurally a sales tax (see module docstring). The
+        practitioner default is that delivery charges are part of
+        the "precio de venta" when the underlying item is taxable,
+        mirroring the dominant US CONDITIONAL pattern.
+
+        CONFIDENCE: M (medium). The citation below is the general
+        IVU imposition statute; primary-source verification of the
+        specific delivery-charge treatment in PR's Codigo de
+        Rentas Internas and the Departamento de Hacienda's Cartas
+        Circulares is still needed before P1 production deploy.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="8 LPRA 32021",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = PuertoRico()

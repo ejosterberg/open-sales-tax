@@ -128,6 +128,8 @@ from decimal import Decimal
 from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.protocol import (
     HolidayWindow,
+    ShippingRule,
+    ShippingRuleSet,
     StateModule,
     StateTier,
     TaxabilityRule,
@@ -310,6 +312,17 @@ class Iowa(SstStateModule):
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return IA's shipping rule.
+
+        Separately stated delivery charges are excluded from "sales
+        price" and therefore exempt; bundled charges are taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="Iowa Code 423.1(48)",
         )
 
 

@@ -93,6 +93,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -356,6 +358,28 @@ class Pennsylvania:
         """Pennsylvania has no annual sales-tax holidays."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return PA's shipping rule.
+
+        Pennsylvania treats delivery charges as part of the
+        "purchase price" when the underlying item is taxable;
+        shipping follows the taxability of the goods. This is the
+        practitioner default for common-carrier deliveries (the
+        typical e-commerce case).
+
+        DELIVERY-METHOD CAVEAT: PA distinguishes "delivery by
+        seller's vehicle" (always taxable when the item is
+        taxable) from "common carrier" (depends on the seller's
+        election). The default CONDITIONAL rule encoded here is
+        correct for the common-carrier case that dominates
+        e-commerce; sellers delivering in their own vehicles may
+        face different treatment.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="61 Pa. Code 32.6(b)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Pennsylvania()

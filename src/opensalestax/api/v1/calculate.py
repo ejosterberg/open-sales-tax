@@ -14,9 +14,10 @@ from opensalestax.api.v1.schemas import (
     CalculateRequest,
     CalculateResponse,
     JurisdictionRate,
+    ShippingOutput,
 )
 from opensalestax.auth import authenticate
-from opensalestax.core.calculate import LineItem, calculate_tax
+from opensalestax.core.calculate import LineItem, ShippingRequest, calculate_tax
 from opensalestax.core.coverage import coverage_warning_for_states
 from opensalestax.db.session import get_session
 
@@ -46,12 +47,21 @@ async def calculate(
     every line, also with a ``note`` -- the call doesn't fail.
     """
     items = [LineItem(amount=li.amount, category=li.category) for li in body.line_items]
+    shipping_request: ShippingRequest | None = None
+    if body.shipping is not None:
+        shipping_request = ShippingRequest(
+            amount=body.shipping.amount,
+            separately_stated=body.shipping.separately_stated,
+            is_handling_charge=body.shipping.is_handling_charge,
+            method=body.shipping.method,
+        )
     try:
         result = await calculate_tax(
             session,
             zip5=body.address.zip5,
             line_items=items,
             zip4=body.address.zip4,
+            shipping=shipping_request,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -80,6 +90,15 @@ async def calculate(
     )
     coverage_warning = coverage_warning_for_states(state_abbrevs)
 
+    shipping_output: ShippingOutput | None = None
+    if result.shipping is not None:
+        shipping_output = ShippingOutput(
+            amount=result.shipping.amount,
+            tax_amount=result.shipping.tax_amount,
+            rate_pct=result.shipping.rate_pct,
+            taxable_reason=result.shipping.taxable_reason,
+        )
+
     return CalculateResponse(
         subtotal=result.subtotal,
         tax_total=result.tax_total,
@@ -104,4 +123,5 @@ async def calculate(
         ],
         disclaimer=result.disclaimer,
         coverage_warning=coverage_warning,
+        shipping=shipping_output,
     )

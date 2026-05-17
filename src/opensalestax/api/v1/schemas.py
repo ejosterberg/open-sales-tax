@@ -233,6 +233,79 @@ class LineItemRequest(BaseModel):
         return v
 
 
+class ShippingInput(BaseModel):
+    """Shipping/delivery component of a /v1/calculate request.
+
+    First-class shipping handling shipped in v0.59.0 per connector-
+    tier captain Ask 3. The engine applies the destination state's
+    shipping taxability rule (CONDITIONAL / EXEMPT_IF_SEPARATELY_
+    STATED / ALWAYS / MIXED / NONE) and returns the calculated
+    shipping tax in a parallel ``ShippingOutput`` block on the
+    response.
+
+    Backward-compatible: callers that continue to send shipping as
+    a ``LineItemRequest`` with ``category="shipping"`` are still
+    accepted; the engine applies the state-specific rule either
+    way. The first-class field is preferred for new integrations
+    and is required for states that distinguish handling from
+    shipping (Maryland).
+    """
+
+    amount: Decimal = Field(
+        ge=0,
+        description="Pre-tax shipping amount, non-negative.",
+        examples=["12.50", "9.99"],
+    )
+    separately_stated: bool = Field(
+        default=True,
+        description=(
+            "True if the shipping charge is displayed as a separate "
+            "line on the invoice (default for e-commerce). Relevant "
+            "in EXEMPT_IF_SEPARATELY_STATED states (CA, FL, IL, MA, "
+            "MI, MO, NV, VA, etc.) where bundled shipping IS taxable."
+        ),
+    )
+    is_handling_charge: bool = Field(
+        default=False,
+        description=(
+            "True if this charge is a handling fee rather than pure "
+            "shipping. Honored only in Maryland (where the state "
+            "distinguishes shipping from handling); ignored in all "
+            "other states."
+        ),
+    )
+    method: str | None = Field(
+        default=None,
+        description="Carrier / shipping method label. Analytics only; ignored by the tax calculation.",
+        examples=["ups_ground", "usps_priority", "fedex_2day", None],
+    )
+
+
+class ShippingOutput(BaseModel):
+    """Shipping component of a /v1/calculate response."""
+
+    amount: Decimal = Field(description="The pre-tax shipping amount the request submitted.")
+    tax_amount: Decimal = Field(
+        description="Tax owed on the shipping charge. Zero when the destination state's rule exempts.",
+    )
+    rate_pct: Decimal = Field(
+        description="Effective shipping tax rate (combined state + county + city + district), or 0 if exempt.",
+    )
+    taxable_reason: str | None = Field(
+        default=None,
+        description=(
+            "Human-readable debug aid explaining why shipping was/wasn't taxed (e.g. 'MN taxes shipping "
+            "when items are taxable'). Useful for connector logs and merchant support; not a stable "
+            "user-facing string."
+        ),
+        examples=[
+            None,
+            "MN taxes shipping when at least one item is taxable",
+            "OR has no state sales tax",
+        ],
+    )
+
+
 class CalculateRequest(BaseModel):
     """POST /v1/calculate request body."""
 
@@ -257,6 +330,14 @@ class CalculateRequest(BaseModel):
                     },
                 },
                 {
+                    "summary": "Cart with first-class shipping (v0.59.0+)",
+                    "value": {
+                        "address": {"zip5": "55401"},
+                        "line_items": [{"amount": "100.00", "category": "general"}],
+                        "shipping": {"amount": "12.50", "separately_stated": True},
+                    },
+                },
+                {
                     "summary": "Texas back-to-school holiday (Aug 8)",
                     "value": {
                         "address": {"zip5": "75201"},
@@ -271,6 +352,14 @@ class CalculateRequest(BaseModel):
 
     address: AddressInput
     line_items: list[LineItemRequest] = Field(default_factory=list)
+    shipping: ShippingInput | None = Field(
+        default=None,
+        description=(
+            "Optional shipping/delivery component. When omitted, the engine doesn't "
+            "compute shipping tax (preserves pre-v0.59.0 behavior). When provided, "
+            "engine returns a parallel ``shipping`` block on the response."
+        ),
+    )
 
 
 class CalculatedLineResponse(BaseModel):
@@ -342,4 +431,12 @@ class CalculateResponse(BaseModel):
             "opensalestax.core.coverage."
         ),
         examples=[None, "Colorado: ~70 home-rule cities self-administer..."],
+    )
+    shipping: ShippingOutput | None = Field(
+        default=None,
+        description=(
+            "Shipping tax block when the request included a top-level ``shipping`` "
+            "field. Omitted when the request didn't include shipping (preserves "
+            "pre-v0.59.0 behavior)."
+        ),
     )

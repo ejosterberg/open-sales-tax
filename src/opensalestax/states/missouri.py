@@ -152,6 +152,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -572,6 +574,18 @@ class Missouri:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MO's shipping rule.
+
+        Per MO DOR guidance, delivery is exempt when separately
+        stated AND elected by the purchaser; bundled or
+        seller-required delivery is taxable as part of the sale.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="MO DOR LR 7820 + 144.025",
         )
 
 

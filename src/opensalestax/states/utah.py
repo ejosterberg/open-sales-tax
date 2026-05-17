@@ -265,6 +265,8 @@ from decimal import Decimal
 from opensalestax.states._sst_base import SstStateModule
 from opensalestax.states.protocol import (
     HolidayWindow,
+    ShippingRule,
+    ShippingRuleSet,
     StateModule,
     StateTier,
     TaxabilityRule,
@@ -499,6 +501,17 @@ class Utah(SstStateModule):
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return UT's shipping rule.
+
+        Separately stated transportation charges are excluded from
+        "purchase price"; bundled transportation is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="UCA 59-12-103",
+        )
 
 
 # Compile-time Protocol satisfaction check + module-import-time

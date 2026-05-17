@@ -54,6 +54,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -230,6 +232,19 @@ class Minnesota:
         """Minnesota has no annual sales-tax holidays."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return MN's shipping rule.
+
+        Minnesota treats delivery charges as part of the "sales
+        price" when the underlying item is taxable; shipping
+        follows the taxability of the goods. Practitioner default
+        for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="MN Stat 297A.61 subd 7",
+        )
 
 
 def _expand_zip5_range(low: str, high: str) -> Iterable[str]:

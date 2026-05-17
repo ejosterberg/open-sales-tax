@@ -289,6 +289,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -808,6 +810,21 @@ class NewMexico:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return NM's shipping rule (Gross Receipts Tax model).
+
+        New Mexico imposes a GROSS RECEIPTS TAX (GRT) rather than
+        a traditional sales tax (see the module docstring's
+        GRT-vs-sales-tax discussion). Under the GRT model, delivery
+        charges are part of the seller's "gross receipts" when the
+        underlying item is taxable, so the consumer-facing math
+        matches the CONDITIONAL pattern used by sales-tax states.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="NMSA 7-9-3",
         )
 
 

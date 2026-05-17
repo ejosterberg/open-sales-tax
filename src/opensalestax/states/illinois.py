@@ -82,6 +82,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -331,6 +333,21 @@ class Illinois:
         """Illinois has no recurring annual sales-tax holiday in the current law."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return IL's shipping rule.
+
+        Under IL DOR ST-04, separately stated shipping is exempt;
+        bundled shipping is taxable. A secondary "must be optional"
+        wrinkle exists -- shipping is taxable when the customer is
+        REQUIRED to take delivery (no in-store pickup option) --
+        which most e-commerce transactions trigger; that nuance is
+        a connector-level signal and not currently modeled here.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="35 ILCS 120/3-5 (Use Tax Regulations)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Illinois()

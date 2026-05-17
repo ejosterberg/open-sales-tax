@@ -54,6 +54,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -269,6 +271,17 @@ class Arizona:
         """Arizona has no annual sales-tax holidays."""
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return AZ's shipping rule.
+
+        Freight is excluded from "gross income" subject to TPT when
+        separately stated; bundled freight is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="ARS 42-5061(A)(7)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Arizona()

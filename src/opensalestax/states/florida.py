@@ -65,6 +65,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -309,6 +311,19 @@ class Florida:
                     notes="Tools and shop supplies for skilled trade workers.",
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return FL's shipping rule.
+
+        Shipping is exempt when it is (a) separately stated and
+        (b) the customer has the option to pick up the item. The
+        e-commerce default ordinarily satisfies both conditions;
+        the county discretionary surtax follows the same rule.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="FL Rule 12A-1.045",
         )
 
 

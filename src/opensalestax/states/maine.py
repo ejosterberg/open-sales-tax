@@ -123,6 +123,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -315,6 +317,17 @@ class Maine:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return ME's shipping rule.
+
+        Separately stated transportation charges are excluded from
+        "sale price"; bundled transportation is taxable.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="36 MRSA 1752(14)(B)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Maine()

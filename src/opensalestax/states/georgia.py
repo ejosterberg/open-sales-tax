@@ -129,6 +129,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -369,6 +371,18 @@ class Georgia:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return GA's shipping rule.
+
+        Georgia treats delivery as part of the "sales price" when
+        the underlying item is taxable; exempt items don't carry
+        taxable shipping.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="GA Reg 560-12-2-.105",
+        )
 
 
 def _authority_name(code: str, authority_type: str) -> str:

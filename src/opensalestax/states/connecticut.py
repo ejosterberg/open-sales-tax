@@ -94,6 +94,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -272,6 +274,20 @@ class Connecticut:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return CT's shipping rule.
+
+        Connecticut treats delivery charges as part of the "sales
+        price" of tangible personal property; shipping is included
+        in the taxable base when the underlying item is taxable
+        and excluded when the item is exempt. Practitioner default
+        for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="Conn. Gen. Stat. 12-407(a)(2)",
         )
 
 

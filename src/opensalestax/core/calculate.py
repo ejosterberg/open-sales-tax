@@ -29,8 +29,10 @@ from opensalestax.core.lookup import (
     lookup_jurisdictions_by_zip,
     lookup_jurisdictions_by_zip5_loose,
 )
-from opensalestax.core.resolve import resolve_rates_for_authorities
+from opensalestax.core.resolve import combined_rate_pct, resolve_rates_for_authorities
 from opensalestax.db.models import HolidayPeriod, State, TaxabilityRule
+from opensalestax.states.protocol import ShippingRule
+from opensalestax.states.registry import get_state_module
 
 # Tax amounts round to 4 dp internally. Display rounding is the
 # caller's job.
@@ -78,6 +80,36 @@ class CalculatedLine:
 
 
 @dataclass(frozen=True, slots=True)
+class ShippingRequest:
+    """Shipping component of a calculation request.
+
+    v0.59.0 first-class shipping (per connector-tier captain Ask 3).
+    The engine applies the destination state's `ShippingRule`
+    (CONDITIONAL / EXEMPT_IF_SEPARATELY_STATED / ALWAYS_TAXABLE /
+    MIXED / NONE) and returns a `ShippingResult` on the calculation.
+    """
+
+    amount: Decimal
+    separately_stated: bool = True
+    is_handling_charge: bool = False
+    method: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.amount < 0:
+            raise ValueError(f"shipping amount must be non-negative, got {self.amount}")
+
+
+@dataclass(frozen=True, slots=True)
+class ShippingResult:
+    """Computed shipping tax."""
+
+    amount: Decimal
+    tax_amount: Decimal
+    rate_pct: Decimal
+    taxable_reason: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class CalculationResult:
     """Top-level result of :func:`calculate_tax`."""
 
@@ -87,6 +119,8 @@ class CalculationResult:
     disclaimer: str
     data_versions: dict[str, str] = field(default_factory=dict)
     """Map of state abbrev -> active data version label, for traceability."""
+    shipping: ShippingResult | None = None
+    """Computed shipping tax. None when the request didn't include a `shipping` component."""
 
 
 async def calculate_tax(
@@ -95,6 +129,7 @@ async def calculate_tax(
     line_items: list[LineItem],
     zip4: str | None = None,
     effective_date: dt.date | None = None,
+    shipping: ShippingRequest | None = None,
 ) -> CalculationResult:
     """Tax a list of line items at a given address.
 
@@ -102,8 +137,15 @@ async def calculate_tax(
     and a constitution-§13 disclaimer field. If the ZIP doesn't
     match any known jurisdiction, every line gets ``tax=0`` with a
     ``note`` explaining why -- the call doesn't fail.
+
+    When ``shipping`` is provided, the engine applies the destination
+    state's ``ShippingRule`` and returns a parallel ``shipping``
+    block on the result. See ``opensalestax.states.protocol.ShippingRule``
+    for the five-pattern enumeration and
+    ``specs/research/shipping-taxability.md`` for per-state primary
+    citations.
     """
-    if not line_items:
+    if not line_items and shipping is None:
         return CalculationResult(
             subtotal=Decimal("0"),
             tax_total=Decimal("0"),
@@ -146,11 +188,25 @@ async def calculate_tax(
         tax_total += line.tax
         lines_out.append(line)
 
+    shipping_result: ShippingResult | None = None
+    if shipping is not None:
+        shipping_result = await _compute_shipping_tax(
+            session=session,
+            shipping=shipping,
+            authorities=authorities,
+            state_abbrev=state_abbrev,
+            lines_out=lines_out,
+            eff_date=eff_date,
+        )
+        if shipping_result is not None:
+            tax_total += shipping_result.tax_amount
+
     return CalculationResult(
         subtotal=subtotal,
         tax_total=tax_total,
         lines=lines_out,
         disclaimer=disclaimer(),
+        shipping=shipping_result,
     )
 
 
@@ -270,6 +326,120 @@ def _zero_line(item: LineItem, note: str | None) -> CalculatedLine:
         rate_pct=Decimal("0"),
         jurisdictions=[],
         note=note,
+    )
+
+
+async def _compute_shipping_tax(
+    session: AsyncSession,
+    shipping: ShippingRequest,
+    authorities: list,
+    state_abbrev: str | None,
+    lines_out: list[CalculatedLine],
+    eff_date: dt.date,
+) -> ShippingResult | None:
+    """Apply the destination state's ShippingRule and return a ShippingResult.
+
+    Returns None when the state isn't loaded (engine can't determine
+    the rule). The caller treats None as "engine ignored shipping"
+    rather than "engine returned zero".
+
+    Decision per `specs/phase-shipping-p1/plan.md`:
+    - Shipping inherits the same combined rate as products (state +
+      county + city + district).
+    - `is_handling_charge=True` is honored only in MD (the only MIXED
+      state); ignored elsewhere.
+    - `separately_stated=True` (the default) makes
+      EXEMPT_IF_SEPARATELY_STATED states return zero;
+      `separately_stated=False` makes them taxable.
+    - For CONDITIONAL states: taxable iff at least one line is taxable.
+    - For NONE states: always zero.
+    - For ALWAYS_TAXABLE (HI): always taxable.
+    """
+    if state_abbrev is None:
+        return ShippingResult(
+            amount=shipping.amount,
+            tax_amount=Decimal("0"),
+            rate_pct=Decimal("0"),
+            taxable_reason=(
+                "No state-level jurisdiction matched the address; shipping " "not taxed."
+            ),
+        )
+
+    state_module = get_state_module(state_abbrev)
+    if state_module is None:
+        return ShippingResult(
+            amount=shipping.amount,
+            tax_amount=Decimal("0"),
+            rate_pct=Decimal("0"),
+            taxable_reason=(f"State {state_abbrev} has no engine module; shipping not taxed."),
+        )
+
+    rule_set = state_module.shipping_rule_set()
+    rule = (
+        rule_set.handling_rule
+        if (shipping.is_handling_charge and rule_set.handling_rule is not None)
+        else rule_set.default_rule
+    )
+
+    # Determine taxability.
+    if rule == ShippingRule.NONE:
+        is_taxable = False
+        reason = f"{state_abbrev} has no state-level sales tax."
+    elif rule == ShippingRule.ALWAYS_TAXABLE:
+        is_taxable = True
+        reason = f"{state_abbrev} taxes shipping unconditionally ({rule_set.citation})."
+    elif rule == ShippingRule.CONDITIONAL:
+        any_line_taxable = any(line.tax > 0 for line in lines_out)
+        is_taxable = any_line_taxable
+        reason = (
+            f"{state_abbrev} taxes shipping when items are taxable " f"({rule_set.citation})."
+            if is_taxable
+            else f"{state_abbrev} exempts shipping when no items are taxable "
+            f"({rule_set.citation})."
+        )
+    elif rule == ShippingRule.EXEMPT_IF_SEPARATELY_STATED:
+        is_taxable = not shipping.separately_stated
+        reason = (
+            f"{state_abbrev} taxes shipping when not separately stated " f"({rule_set.citation})."
+            if is_taxable
+            else f"{state_abbrev} exempts separately-stated shipping " f"({rule_set.citation})."
+        )
+    elif rule == ShippingRule.MIXED:
+        # MIXED states currently only used for MD; the handling_rule
+        # override is selected above. Reaching MIXED as default_rule
+        # is unexpected; treat as taxable per the safer-for-collection
+        # default.
+        is_taxable = True
+        reason = (
+            f"{state_abbrev} has special shipping rules; treating as taxable "
+            f"by default ({rule_set.citation})."
+        )
+    else:  # pragma: no cover -- exhaustiveness; mypy will flag if Enum grows
+        is_taxable = False
+        reason = f"Unknown ShippingRule {rule!r}; not taxing."
+
+    if not is_taxable:
+        return ShippingResult(
+            amount=shipping.amount,
+            tax_amount=Decimal("0"),
+            rate_pct=Decimal("0"),
+            taxable_reason=reason,
+        )
+
+    # Taxable -- compute using the combined rate from the resolved
+    # authorities. Shipping inherits the same combined rate as
+    # products (state + county + city + district per NY ST-838 / MN
+    # delivery-charge guidance / dominant practitioner pattern).
+    resolved = await resolve_rates_for_authorities(session, authorities, eff_date, "general")
+    rate_pct = combined_rate_pct(resolved)
+    tax_amount = (shipping.amount * rate_pct / Decimal("100")).quantize(
+        TAX_QUANTUM, rounding=ROUND_HALF_UP
+    )
+    return ShippingResult(
+        amount=shipping.amount,
+        tax_amount=tax_amount,
+        rate_pct=rate_pct,
+        taxable_reason=reason,
     )
 
 

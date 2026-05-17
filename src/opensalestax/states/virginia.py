@@ -124,6 +124,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -595,6 +597,18 @@ class Virginia:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return VA's shipping rule.
+
+        Separately stated transportation charges are exempt from
+        Virginia sales tax; bundled transportation is taxable as
+        part of the sales price.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="VA Code 58.1-609.5(3)",
         )
 
 

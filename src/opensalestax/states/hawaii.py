@@ -206,6 +206,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -465,6 +467,20 @@ class Hawaii:
         """
         del year
         return iter(())
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Hawaii's GET applies unconditionally to all gross receipts.
+
+        Unlike most US states, HI levies a Gross Excise Tax on the
+        seller rather than a sales tax on the buyer; "gross receipts"
+        includes shipping with no separately-stated or
+        items-taxable exception. Shipping is therefore always taxable
+        whether bundled or itemized.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.ALWAYS_TAXABLE,
+            citation="Hawaii GET applies to all gross receipts including shipping (HRS chapter 237)",
+        )
 
 
 _PROTOCOL_CHECK: StateModule = Hawaii()

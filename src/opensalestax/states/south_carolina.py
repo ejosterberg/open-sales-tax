@@ -110,6 +110,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -410,6 +412,19 @@ class SouthCarolina:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return SC's shipping rule.
+
+        South Carolina treats delivery charges as part of "gross
+        proceeds" when the underlying item is taxable; shipping
+        follows the taxability of the goods. Practitioner default
+        for typical e-commerce.
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.CONDITIONAL,
+            citation="SC Code 12-36-90",
         )
 
 

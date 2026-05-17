@@ -234,6 +234,8 @@ from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
     RateRow,
+    ShippingRule,
+    ShippingRuleSet,
     SpecialCase,
     StateModule,
     StateTier,
@@ -768,6 +770,20 @@ class Alabama:
                     ),
                 ),
             ]
+        )
+
+    def shipping_rule_set(self) -> ShippingRuleSet:
+        """Return AL's shipping rule.
+
+        Delivery via common carrier is exempt when separately stated
+        (ALDOR Admin Rule 810-6-1-.84); bundled freight is taxable.
+        Delivery in the seller's own vehicle is always taxable and is
+        not modeled here -- the default assumes common-carrier
+        delivery (the typical e-commerce case).
+        """
+        return ShippingRuleSet(
+            default_rule=ShippingRule.EXEMPT_IF_SEPARATELY_STATED,
+            citation="Ala Admin Code 810-6-1-.84",
         )
 
 
