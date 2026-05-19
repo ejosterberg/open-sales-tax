@@ -7321,3 +7321,79 @@ def test_shipping_tax_matches_rule(
         f"taxable_reason={data['shipping'].get('taxable_reason')}"
     )
     assert diff <= tol, msg
+
+
+# ---------------------------------------------------------------------------
+# MN transit-district cross-county leak regression (iter-211)
+# ---------------------------------------------------------------------------
+# See specs/findings/mn-transit-district-cross-county-leak.md for the bug
+# context. Several MN transit-district authorities are bound to ZIPs in
+# counties they don't belong to (Anoka onto Stearns, Cook onto Stearns,
+# St. Louis onto Beltrami, etc.). Each row pins one (ZIP, district name
+# that must NOT appear in the response).
+#
+# Marked xfail until the loader fix lands; an xpass means the bug is
+# fixed and the marker should be removed.
+MN_DISTRICT_LEAK_GRID: list[tuple[str, str, str]] = [
+    # ZIP 56301 (St. Cloud, Stearns Co) -- should NOT have Anoka district
+    ("56301", "Anoka County Transportation Sales Tax", "St. Cloud / Stearns Co"),
+    # ZIP 56301 (St. Cloud, Stearns Co) -- should NOT have Cook district
+    ("56301", "Cook County Transportation Sales Tax", "St. Cloud / Stearns Co"),
+    # ZIP 56310 (Avon, Stearns Co) -- should NOT have Anoka district
+    ("56310", "Anoka County Transportation Sales Tax", "Avon / Stearns Co"),
+    # ZIP 56630 (Blackduck, Beltrami Co) -- should NOT have St. Louis district
+    ("56630", "St. Louis County Transportation Sales Tax", "Blackduck / Beltrami Co"),
+]
+
+
+@pytest.mark.liveapi
+@pytest.mark.xfail(
+    reason=(
+        "Known bug -- MN transit districts leak across county boundaries. "
+        "See specs/findings/mn-transit-district-cross-county-leak.md. "
+        "Remove this xfail when the loader fix lands; xpass = fixed."
+    ),
+    strict=False,
+)
+@pytest.mark.parametrize(
+    ("zip5", "leak_district_name", "label"),
+    MN_DISTRICT_LEAK_GRID,
+    ids=[f"{r[0]}-no-{r[1].split()[0]}" for r in MN_DISTRICT_LEAK_GRID],
+)
+def test_mn_district_no_cross_county_leak(
+    zip5: str,
+    leak_district_name: str,
+    label: str,
+) -> None:
+    """A non-Anoka/Cook/St-Louis ZIP must not stack those districts.
+
+    Currently fails: ZIP 56301 (Stearns Co) over-collects ~0.875% from
+    phantom Anoka + Cook district authorities. Pinned here so the fix
+    flips xfail -> xpass when it lands.
+    """
+    last_exc: Exception | None = None
+    response = None
+    for _attempt in range(5):
+        try:
+            response = httpx.get(
+                API.replace("/v1/calculate", "/v1/rates"),
+                params={"zip5": zip5},
+                timeout=15.0,
+            )
+        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as exc:
+            last_exc = exc
+            continue
+        if response.status_code == 429:
+            wait = min(int(response.headers.get("Retry-After", "5")), 90)
+            time.sleep(max(wait, 1))
+            continue
+        break
+    if response is None:
+        raise AssertionError(f"{label} {zip5}: live engine unreachable: {last_exc}")
+    assert response.status_code == 200, f"engine HTTP {response.status_code}: {response.text}"
+    data = response.json()
+    names = {j["name"] for j in data.get("jurisdictions", [])}
+    assert leak_district_name not in names, (
+        f"{label} ({zip5}) wrongly stacks '{leak_district_name}' -- "
+        f"jurisdictions returned: {sorted(names)}"
+    )
