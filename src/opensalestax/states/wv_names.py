@@ -101,6 +101,15 @@ WV_CITY_NAMES: dict[str, str] = {
     "62332": "Paw Paw",  # ZIP 25434 (Morgan Co)
     "62764": "Pennsboro",  # ZIP 26415 (Ritchie Co)
     "63892": "Pine Grove",  # ZIP 26419 (Wetzel Co)
+    # iter-208 additions (8, 2026-05-19): P-R alphabet sweep continued.
+    "63940": "Pineville",  # ZIP 24874 (Wyoming Co)
+    "66412": "Quinwood",  # ZIP 25981 (Greenbrier Co)
+    "67108": "Ravenswood",  # ZIP 26164 (Jackson Co)
+    "67636": "Reedsville",  # ZIP 26547 (Preston Co)
+    "68116": "Richwood",  # ZIP 26261 (Nicholas Co)
+    "70084": "Romney",  # ZIP 26757 (Hampshire Co)
+    "70588": "Rowlesburg",  # ZIP 26425 (Preston Co)
+    "70828": "Rupert",  # ZIP 25984 (Greenbrier Co)
 }
 
 
