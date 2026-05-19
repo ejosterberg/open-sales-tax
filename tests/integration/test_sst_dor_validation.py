@@ -7190,6 +7190,71 @@ SHIPPING_GRID: list[tuple[str, str, dict, str, str, str]] = [
         "0.05",
         "MD MIXED shipping bundled -> taxable -- iter-200",
     ),
+    # iter-201: 7 more pins extending grid coverage across rule
+    # patterns and high-volume states. EXEMPT verifications: MA, VA,
+    # MI, AZ. CONDITIONAL coverage adds PA, OH, GA.
+    (
+        "MA",
+        "02108",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "MA EXEMPT (default separately_stated=True) -- iter-201",
+    ),
+    (
+        "VA",
+        "23219",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "VA EXEMPT (default separately_stated=True) -- iter-201",
+    ),
+    (
+        "MI",
+        "48201",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "MI EXEMPT (default separately_stated=True) -- iter-201",
+    ),
+    (
+        "AZ",
+        "85003",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "AZ EXEMPT (default separately_stated=True) -- iter-201",
+    ),
+    # PA 19103 (Philadelphia): state 6 + Phila 2 = 8.0
+    # shipping tax = 12.50 * 8.0% = 1.0000
+    (
+        "PA",
+        "19103",
+        {"amount": "12.50"},
+        "1.0000",
+        "0.05",
+        "PA CONDITIONAL (state 6 + Philadelphia 2) -- iter-201",
+    ),
+    # OH 43215 (Columbus): state 5.75 + Franklin 1.25 + COTA 1.0 = 8.0
+    # shipping tax = 12.50 * 8.0% = 1.0000
+    (
+        "OH",
+        "43215",
+        {"amount": "12.50"},
+        "1.0000",
+        "0.05",
+        "OH CONDITIONAL (state 5.75 + Franklin + COTA) -- iter-201",
+    ),
+    # GA 30303 (Atlanta): state 4 + Fulton + TSPLOST + MARTA + Atlanta = 8.9
+    # shipping tax = 12.50 * 8.9% = 1.1125
+    (
+        "GA",
+        "30303",
+        {"amount": "12.50"},
+        "1.1125",
+        "0.05",
+        "GA CONDITIONAL (Atlanta full stack incl. MARTA) -- iter-201",
+    ),
 ]
 
 
