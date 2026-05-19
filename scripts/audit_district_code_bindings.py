@@ -120,15 +120,29 @@ def scan_bindings(
                     continue
                 if not _row_active_on(cols, target):
                     continue
-                # cols[30] = jurisdiction_code in the triplet at col 29
-                code = cols[30]
-                if not any(code.startswith(p) for p in code_prefixes):
-                    continue
-                # cols[17] = zip5_low; use it as a representative ZIP
-                # for the row's binding. Prefix is first 3 digits.
                 zip5 = cols[17]
-                if len(zip5) >= 3:
-                    code_to_prefixes[code].add(zip5[:3])
+                if len(zip5) < 3:
+                    continue
+                prefix = zip5[:3]
+                # Each row can carry MULTIPLE district codes in
+                # repeating triplets starting at col 29 with stride 3:
+                # (intra_state_class, jurisdiction_code, jurisdiction_type).
+                # iter-218 fix: prior versions only checked cols[30] (the
+                # first triplet), missing codes that appear in later
+                # triplet positions. The MN parser handles all triplets;
+                # the audit must mirror that to be accurate.
+                for start in range(29, len(cols) - 2, 3):
+                    code = cols[start + 1]
+                    type_ = cols[start + 2] if (start + 2) < len(cols) else ""
+                    if not code:
+                        continue
+                    # Skip type-45 (state location-reference codes)
+                    # to match the loader's filter.
+                    if type_ == "45":
+                        continue
+                    if not any(code.startswith(p) for p in code_prefixes):
+                        continue
+                    code_to_prefixes[code].add(prefix)
     return code_to_prefixes
 
 

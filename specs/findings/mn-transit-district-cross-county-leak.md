@@ -197,21 +197,42 @@ Candidates:
   ORDER BY ta.name;
   ```
 
-## iter-215 update: source-CSV inspection results
+## iter-215 update: source-CSV inspection results (REVISED iter-218)
+
+> **iter-218 correction**: The initial scan in iter-215 only looked
+> at `cols[30]` (the first triplet position). SST boundary rows can
+> carry multiple district codes in repeating triplets at stride 3
+> starting at col 29. After fixing the audit script to walk all
+> triplet positions, the actual code → prefix coverage is broader
+> than originally reported. The corrected scan results are below.
 
 Inspecting `/var/lib/opensalestax/data/MNB2026Q2FEB18.zip` directly
-on the production VM:
+on the production VM (currently-active records only):
 
 ```
-Code 80001 binds to ZIP prefixes: ['563']           ← Stearns / Benton
-Code 80003 binds to ZIP prefixes: ['556']           ← Beltrami
-Code 80004 binds to ZIP prefixes: ['551','553','554','555']  ← Hennepin (correct)
-Code 80005 binds to ZIP prefixes: ['563','564']
-Code 80006 binds to ZIP prefixes: ['557','558']     ← Carlton (Duluth area)
-Code 80011 binds to ZIP prefixes: ['566','567']
-Code 80012 binds to ZIP prefixes: ['553','563']
-Code 80013 binds to ZIP prefixes: ['559']
+Code 80001 binds to ZIP prefixes: ['553','563']     ← Anoka + Stearns
+Code 80003 binds to ZIP prefixes: ['556']           ← (Brainerd area?)
+Code 80004 binds to ZIP prefixes: ['551','553','554','555']  ← Hennepin (likely correct)
+Code 80005 binds to ZIP prefixes: ['563','564']     ← Stearns + Mille Lacs
+Code 80006 binds to ZIP prefixes: ['557','558']     ← Carlton/Duluth
+Code 80008 binds to ZIP prefixes: ['550','551','553','554','555','560']  ← Metro Area
+Code 80009 binds to ZIP prefixes: ['550','551','553','554','555','560']  ← Metro Area
+Code 80011 binds to ZIP prefixes: ['566','567']     ← Bemidji area
+Code 80012 binds to ZIP prefixes: ['553','563']     ← same as 80001
+Code 80013 binds to ZIP prefixes: ['559']           ← east-metro / Washington
 ```
+
+**Notable**: codes 80001 and 80012 bind to the EXACT same ZIP prefix
+set (553 + 563). Strongly suggests they're a sales/use tax pair
+(or duplicate row format) for the SAME underlying tax. The current
+`mn_names.py` labels them as TWO DIFFERENT counties' transportation
+taxes (Cook + Anoka) — that's incoherent for codes that share
+identical geography.
+
+Codes 80008 + 80009 also share identical geography (550-555 + 560)
+which makes sense — those ARE two distinct taxes (Metro Area
+Transportation + Metro Area Housing) applied uniformly across the
+7-county metro. Same geography is legitimate for that pair.
 
 Compare to `mn_names.py`'s mapping:
 
