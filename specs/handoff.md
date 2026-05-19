@@ -64,19 +64,43 @@ when the fix lands.
 
 ## What to start on next
 
-**The obvious next move is fixing the MN transit-district leak.**
-The findings doc has the DB query that surfaces the bug, concrete
-repro via the live API, and a hypothesis (likely a parsing bug in
-type-63 district row handling in `src/opensalestax/states/
-minnesota.py` or a stale state-default-bind being applied to
-district boundaries that should be county-scoped). The xfail
-regression in `tests/integration/test_sst_dor_validation.py` will
-flip xfail → xpass to signal the fix landed; remove the marker at
-that point. ETA: probably 1-2 hours of focused investigation.
+**Read `specs/findings/mn-transit-district-cross-county-leak.md`
+top-to-bottom first.** It documents an evolving investigation
+from iter-211 through iter-215. The original "loader bug"
+hypothesis was retracted in iter-215 after source-CSV
+inspection on the prod VM.
 
-If Eric instead wants something different (e.g. continue WV-style
-hand-curation in UT/IA/WI, or resume captain-tier work on the
-error-envelope migration investigation), ask before pivoting.
+The real issue (now believed): `mn_names.py` (and likely
+`ia_names.py`, `nc_names.py`) have **incorrect mappings between
+SST district codes and friendly names**. Example: code 80001 is
+mapped to "Cook County Transportation Sales Tax" but the SST
+file binds 80001 only to 563xx ZIPs (Stearns/Benton — St. Cloud
+area, ~150 mi from Cook Co). The LABEL is wrong; the binding is
+fine.
+
+**The obvious next move is correcting the `mn_names.py` district
+mappings** using empirical evidence (which ZIP prefixes each
+code binds to in the live SST file). For Stearns/Benton 563xx
+binding code 80001, the likely correct name is "St. Cloud Area
+Sales Tax" (MN DOR Local Sales Tax Schedule Fact Sheet 164).
+Each of the 6 districts identified in the finding doc needs a
+similar empirical re-check.
+
+For IA, the picture is more complicated (Census ZCTA county
+disagrees with SST county_fips on some ZIPs) — investigate
+after MN is sorted.
+
+The xfail regression in `tests/integration/test_sst_dor_validation.py`
+will flip xpass once either (a) the names update so the wrong
+friendly name no longer appears, or (b) the cross-source
+disagreement is resolved upstream. Rename the test from
+`*_district_leak` to something neutral (`*_district_label_match`)
+at fix time.
+
+If Eric instead wants something different (e.g. finish the last
+10 WV placeholders, start the UT/IA/WI hand-curation sweep, or
+resume captain-tier work on the error-envelope migration
+investigation), ask before pivoting.
 
 ## Recent releases (latest first)
 
