@@ -119,6 +119,19 @@ WV_CITY_NAMES: dict[str, str] = {
     "75820": "Spencer",  # ZIP 25276 (Roane Co)
     "77980": "Summersville",  # ZIP 26651 (Nicholas Co)
     "78964": "Sylvester",  # ZIP 25193 (Boone Co)
+    # iter-210 additions (7, 2026-05-19): T-W alphabet sweep concluded.
+    # Code 86620 (ZIP 26554) resolves to "Fairmont" which already has
+    # code 26452 (iter-82). Skipped to avoid duplicate-labelling --
+    # 86620 may be a Fairmont-adjacent town sharing the 26554 ZIP or
+    # a distinct authority (sales-tax + use-tax pair). Defer until
+    # disambiguated.
+    "80020": "Thomas",  # ZIP 26292 (Tucker Co)
+    "81268": "Tunnelton",  # ZIP 26444 (Preston Co)
+    "83500": "Vienna",  # ZIP 26105 (Wood Co)
+    "84940": "Wayne",  # ZIP 25570 (Wayne Co)
+    "86116": "West Union",  # ZIP 26456 (Doddridge Co)
+    "87556": "Williamstown",  # ZIP 26187 (Wood Co)
+    "87988": "Winfield",  # ZIP 25213 (Putnam Co)
 }
 
 
