@@ -3,7 +3,9 @@
 **For the next Claude Code session that opens this directory.**
 
 **v0.59.0 is the latest release (2026-05-17, first-class shipping
-field).** Untagged main is at iter-199 (live-API shipping pins).
+field).** Untagged main is at iter-212 (MN district leak xfail
+regression test). 10 unreleased iters of overnight work since
+v0.59.0 — see "Overnight 2026-05-19" below for the punch list.
 
 Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
@@ -12,6 +14,69 @@ and prod API at the Cloudflare-fronted public URL
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
 every published DOR rate within 0.05% across **781 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
+
+## Overnight 2026-05-19 (iter-200..212, since v0.59.0)
+
+**WV labelled-city coverage 22 → 88 (+66 entries, ~90% of WV
+placeholders).** Used a DB-driven single-ZIP-bound probe pattern:
+query `tax_authorities` for placeholders bound to a single ZIP,
+WebFetch zip-codes.com for that ZIP's primary city, label the
+code. Multi-ZIP placeholders (mostly likely county-level or
+special-district authorities mislabelled as 'city' by the loader)
+left for a different pattern. See `src/opensalestax/states/
+wv_names.py` for the full table.
+
+| iter | added | running coverage |
+|---|---|---|
+| 203 | 11 | 33/98 (34%) |
+| 204 | 8  | 41/98 (42%) |
+| 205 | 8  | 49/98 (50%) |
+| 206 | 8  | 57/98 (58%) |
+| 207 | 8  | 65/98 (66%) |
+| 208 | 8  | 73/98 (74%) |
+| 209 | 8  | 81/98 (83%) |
+| 210 | 7  | 88/98 (90%) |
+
+10 WV placeholders remain: 5 multi-ZIP (likely county/district
+authorities) and 5 duplicate-bound (probably sales-tax + use-tax
+authority pairs that share a ZIP — see iter-210 commit). Deferred
+until a different pattern handles them.
+
+**MN transit-district cross-county ZIP leak (iter-211, NEW BUG):**
+6 MN transit-district authorities have boundaries bound to ZIPs
+in counties they don't belong to. Concrete impact:
+
+- ZIP 56301 (St. Cloud, Stearns Co) over-collects ~0.875% from
+  phantom "Anoka County Transportation Sales Tax" + "Cook County
+  Transportation Sales Tax" stacking. Should be 7.625%; returns 8.5%.
+- ZIP 56630 (Blackduck, Beltrami Co) over-collects ~0.625% from
+  phantom "St. Louis County Transportation Sales Tax".
+- Affected districts: Anoka, Cook, Beltrami, St. Louis, Carlton,
+  Washington (single-county transit districts leaking into other
+  counties' ZIP prefixes). County-level authorities bind correctly
+  — only `district`-type authorities are affected.
+
+See `specs/findings/mn-transit-district-cross-county-leak.md` for
+the full evidence, hypothesis, and where to look in the loader.
+iter-212 added xfail-marked liveapi regression tests pinning the
+expected behavior (4 rows: 2 St. Cloud, Avon, Blackduck) — xpass
+when the fix lands.
+
+## What to start on next
+
+**The obvious next move is fixing the MN transit-district leak.**
+The findings doc has the DB query that surfaces the bug, concrete
+repro via the live API, and a hypothesis (likely a parsing bug in
+type-63 district row handling in `src/opensalestax/states/
+minnesota.py` or a stale state-default-bind being applied to
+district boundaries that should be county-scoped). The xfail
+regression in `tests/integration/test_sst_dor_validation.py` will
+flip xfail → xpass to signal the fix landed; remove the marker at
+that point. ETA: probably 1-2 hours of focused investigation.
+
+If Eric instead wants something different (e.g. continue WV-style
+hand-curation in UT/IA/WI, or resume captain-tier work on the
+error-envelope migration investigation), ask before pivoting.
 
 ## Recent releases (latest first)
 
