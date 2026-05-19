@@ -7052,3 +7052,131 @@ def test_combined_rate_matches_dor(
         f"expected {expected}% (+/- {tol}). source: {source}"
     )
     assert diff <= tol, msg
+
+
+# ---------------------------------------------------------------------------
+# Shipping P1 live-engine pins (v0.59.0 / iter-198)
+# ---------------------------------------------------------------------------
+# Each row exercises one ShippingRule pattern via the new /v1/calculate
+# shipping field. Format: (state, zip5, $100 item + $12.50 shipping
+# request_shipping_dict, expected_shipping_tax_amount_str, tolerance,
+# source_note). Designed to drift-detect the engine's shipping math
+# against the per-state ShippingRule.
+SHIPPING_GRID: list[tuple[str, str, dict, str, str, str]] = [
+    # MN CONDITIONAL: items taxable -> shipping taxed @ combined rate.
+    # MN state 6.875 + Hennepin 0.15 + Minneapolis 0.5 + transit 1.5 = 9.025
+    # shipping tax = 12.50 * 9.025% = 1.128125 -> 1.1281
+    (
+        "MN",
+        "55401",
+        {"amount": "12.50"},
+        "1.1281",
+        "0.05",
+        "MN CONDITIONAL (state 6.875% + Hennepin + Minneapolis + transit) -- iter-198",
+    ),
+    # OR NONE: no state sales tax -> shipping never taxed
+    (
+        "OR",
+        "97201",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "OR NONE (no state sales tax) -- iter-198",
+    ),
+    # HI ALWAYS: GET applies to all gross receipts unconditionally
+    # HI state 4.0 + Honolulu county surcharge 0.5 = 4.5
+    # shipping tax = 12.50 * 4.5% = 0.5625
+    (
+        "HI",
+        "96813",
+        {"amount": "12.50"},
+        "0.5625",
+        "0.05",
+        "HI ALWAYS (GET 4.5% in Honolulu Co) -- iter-198",
+    ),
+    # CA EXEMPT_IF_SEPARATELY_STATED, default separately_stated=True:
+    # shipping exempt -> tax = 0
+    (
+        "CA",
+        "94102",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "CA EXEMPT (separately_stated=True default) -- iter-198",
+    ),
+    # CA same ZIP, separately_stated=False -> shipping is taxable
+    # SF combined ~8.625%; shipping tax = 12.50 * 8.625% = 1.078125 -> 1.0781
+    (
+        "CA",
+        "94102",
+        {"amount": "12.50", "separately_stated": False},
+        "1.0781",
+        "0.10",
+        "CA EXEMPT_IF_SEPARATELY_STATED overridden -> taxable -- iter-198",
+    ),
+]
+
+
+@pytest.mark.liveapi
+@pytest.mark.parametrize(
+    ("state", "zip5", "shipping_input", "expected_tax", "tolerance", "source"),
+    SHIPPING_GRID,
+    ids=[
+        f"{r[0]}-{r[1]}-ship{'-bundled' if not r[2].get('separately_stated', True) else ''}"
+        for r in SHIPPING_GRID
+    ],
+)
+def test_shipping_tax_matches_rule(
+    state: str,
+    zip5: str,
+    shipping_input: dict,
+    expected_tax: str,
+    tolerance: str,
+    source: str,
+) -> None:
+    """Live-engine pin for v0.59.0 shipping P1.
+
+    Sends a $100 general line + the shipping_input dict, asserts the
+    response's shipping.tax_amount matches expected within tolerance.
+    Pins per-state ShippingRule behavior end-to-end against the live
+    engine. Drift surfaces if a state's rule changes silently or if
+    the engine miscomputes the combined rate for shipping.
+    """
+    last_exc: Exception | None = None
+    response = None
+    for _attempt in range(5):
+        try:
+            response = httpx.post(
+                API,
+                json={
+                    "address": {"zip5": zip5},
+                    "line_items": [{"amount": "100.00"}],
+                    "shipping": shipping_input,
+                },
+                timeout=15.0,
+            )
+        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as exc:
+            last_exc = exc
+            continue
+        if response.status_code == 429:
+            wait = min(int(response.headers.get("Retry-After", "5")), 90)
+            time.sleep(max(wait, 1))
+            continue
+        break
+    if response is None:
+        raise AssertionError(f"shipping {state} {zip5}: live engine unreachable: {last_exc}")
+    assert response.status_code == 200, f"engine HTTP {response.status_code}: {response.text}"
+    data = response.json()
+    assert (
+        "shipping" in data and data["shipping"] is not None
+    ), f"{state} {zip5}: response missing shipping block. source: {source}"
+    got = Decimal(str(data["shipping"]["tax_amount"]))
+    expected_dec = Decimal(expected_tax)
+    tol = Decimal(tolerance)
+    diff = abs(got - expected_dec)
+    msg = (
+        f"shipping {state} {zip5}: got {got}, expected {expected_tax} "
+        f"(+/- {tol}). source: {source}. "
+        f"taxable_reason={data['shipping'].get('taxable_reason')}"
+    )
+    assert diff <= tol, msg
