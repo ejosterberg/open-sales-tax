@@ -7114,6 +7114,82 @@ SHIPPING_GRID: list[tuple[str, str, dict, str, str, str]] = [
         "0.10",
         "CA EXEMPT_IF_SEPARATELY_STATED overridden -> taxable -- iter-198",
     ),
+    # iter-200: high-volume state CONDITIONAL coverage + IL/FL EXEMPT
+    # + MD MIXED (both handling-yes and handling-no paths).
+    # TX 75201 (Dallas): state 6.25 + DART 1.0 + Dallas 1.0 = 8.25
+    # shipping tax = 12.50 * 8.25% = 1.03125 -> 1.0313
+    (
+        "TX",
+        "75201",
+        {"amount": "12.50"},
+        "1.0313",
+        "0.05",
+        "TX CONDITIONAL (state 6.25 + DART + Dallas) -- iter-200",
+    ),
+    # NY 10001 (Manhattan): state 4.0 + NYC 4.5 + MCTD 0.375 = 8.875
+    # shipping tax = 12.50 * 8.875% = 1.109375 -> 1.1094
+    (
+        "NY",
+        "10001",
+        {"amount": "12.50"},
+        "1.1094",
+        "0.05",
+        "NY CONDITIONAL (NYC 8.875 inc. MCTD) -- iter-200",
+    ),
+    # IL 60601 (Chicago): EXEMPT_IF_SEPARATELY_STATED, default True
+    # IL is in the same bucket as CA (most-common e-commerce pattern).
+    # Pinning the default exempt path here covers the IL "even when
+    # required delivery" edge documented in shipping-taxability.md
+    # (we treat the standard case).
+    (
+        "IL",
+        "60601",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "IL EXEMPT (separately_stated=True default) -- iter-200",
+    ),
+    # FL 33101 (Miami): EXEMPT_IF_SEPARATELY_STATED, default True
+    # Plus Miami-Dade Co surtax follows the rule, so exempt overall.
+    (
+        "FL",
+        "33101",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "FL EXEMPT (separately_stated=True default) -- iter-200",
+    ),
+    # MD 21201 (Baltimore) default path: MIXED -> EXEMPT_IF_SEPARATELY_
+    # STATED for shipping. Default separately_stated=True, no handling
+    # signal -> exempt.
+    (
+        "MD",
+        "21201",
+        {"amount": "12.50"},
+        "0.0000",
+        "0.0001",
+        "MD MIXED default (shipping exempt when separately stated) -- iter-200",
+    ),
+    # MD 21201 with is_handling_charge=True: routed through handling_rule
+    # (ALWAYS_TAXABLE). MD state 6.0% -> tax = 12.50 * 6.0% = 0.75.
+    (
+        "MD",
+        "21201",
+        {"amount": "12.50", "is_handling_charge": True},
+        "0.7500",
+        "0.05",
+        "MD MIXED handling -> ALWAYS_TAXABLE (state 6.0%) -- iter-200",
+    ),
+    # MD 21201 with separately_stated=False: shipping taxable per
+    # EXEMPT_IF_SEPARATELY_STATED rule when bundled.
+    (
+        "MD",
+        "21201",
+        {"amount": "12.50", "separately_stated": False},
+        "0.7500",
+        "0.05",
+        "MD MIXED shipping bundled -> taxable -- iter-200",
+    ),
 ]
 
 
