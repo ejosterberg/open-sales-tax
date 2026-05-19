@@ -1,10 +1,31 @@
-# Finding: MN transit district authorities have cross-county ZIP bindings
+# Finding: SST district code mappings may be wrong (RETRACTED → REFRAMED)
+
+**Original claim (iter-211):** MN transit district authorities have
+cross-county ZIP bindings caused by a loader bug.
+
+**RETRACTED in iter-215 (2026-05-19, same session):** Source-CSV
+inspection shows the loader is NOT misreading columns. The SST
+file's MN boundary CSV binds code 80001 ONLY to 563xx ZIPs
+(Stearns/Benton — St. Cloud area), NOT to any 556xx ZIPs (Cook
+County's actual prefix). But our `mn_names.py` maps 80001 →
+"Cook County Transportation Sales Tax". That's the inconsistency:
+**either `mn_names.py`'s label is wrong, OR the SST file is using
+a code-numbering convention that we mis-inferred when curating
+the friendly-name table.**
+
+For IA, the picture is different: ZIP 50001 (Ackworth, primary
+Warren County per Census ZCTA) has SST rows saying county_fips=181
+(Union County) and district=98181 (Union LOST). The engine merges
+Census ZCTA (Warren) + SST binding (Union LOST), producing a
+disagreeing stack. That's a county-identification-source-mismatch
+issue, not a loader bug.
+
+**Severity:** Still medium (the rate stacks ARE wrong on the
+affected ZIPs — about 0.5-1% over-collection) but the FIX is
+different from what iter-211/212/214 originally proposed.
 
 **Discovered:** iter-211 (2026-05-19), during autonomous-loop MN
 hand-curation reconnaissance.
-
-**Severity:** Medium — incorrect rate stack returned for many MN ZIPs.
-Over-collection on the order of 0.3-0.6% for affected ZIPs.
 
 **Scope:** At least 6 MN transit district authorities have
 incorrect boundary→ZIP bindings spanning ZIP prefixes outside
@@ -175,3 +196,64 @@ Candidates:
   GROUP BY ta.id, ta.name
   ORDER BY ta.name;
   ```
+
+## iter-215 update: source-CSV inspection results
+
+Inspecting `/var/lib/opensalestax/data/MNB2026Q2FEB18.zip` directly
+on the production VM:
+
+```
+Code 80001 binds to ZIP prefixes: ['563']           ← Stearns / Benton
+Code 80003 binds to ZIP prefixes: ['556']           ← Beltrami
+Code 80004 binds to ZIP prefixes: ['551','553','554','555']  ← Hennepin (correct)
+Code 80005 binds to ZIP prefixes: ['563','564']
+Code 80006 binds to ZIP prefixes: ['557','558']     ← Carlton (Duluth area)
+Code 80011 binds to ZIP prefixes: ['566','567']
+Code 80012 binds to ZIP prefixes: ['553','563']
+Code 80013 binds to ZIP prefixes: ['559']
+```
+
+Compare to `mn_names.py`'s mapping:
+
+| Code | mn_names.py says | SST file shows it on | Likely correct name |
+|---|---|---|---|
+| 80001 | Cook County Transportation Sales Tax | 563xx (Stearns) | St. Cloud Area Sales Tax? |
+| 80003 | Beltrami County Transportation Sales Tax | 556xx | (matches Beltrami?) |
+| 80004 | Hennepin County Transit Sales Tax | 551/553/554/555 | Hennepin Co Transit ✓ |
+| 80011 | St. Louis County Transportation Sales Tax | 566/567 | Bemidji area? |
+| 80012 | Anoka County Transportation Sales Tax | 553+563 | unclear |
+
+**The loader is fine.** It's reading the right columns. Our
+`mn_names.py` curated mappings were inferred from limited
+evidence (the iter-83 timeframe) and several entries don't match
+the SST file's actual code-to-region binding.
+
+For IA, ZIP 50001 (Ackworth) has SST rows with:
+- county_fips = 181 (Union County, per IA FIPS)
+- district_code = 98181 (Union County LOST per ia_names.py)
+- effective_to = 29991231 (active, not historical)
+
+But Census ZCTA says ZIP 50001 is Warren County. This is a
+disagreement between IA's SST quarterly boundary file and the
+Census ZCTA cross-walk we use for `zip_in_state` / county fallback.
+The engine ends up returning Warren County (from Census) AND
+Union LOST (from SST), which is internally inconsistent.
+
+## What this means for the xfail tests in iter-212 + iter-214
+
+The xfail tests assert that certain "leaked" district names don't
+appear in the response. They will START PASSING (xpass) two ways:
+
+1. **mn_names.py / ia_names.py / nc_names.py corrected** —
+   the friendly names update, and "Cook County Transportation
+   Sales Tax" no longer appears at ZIP 56301 because we relabeled
+   80001 properly. The numeric binding stays the same; only the
+   string changes. Most likely outcome.
+2. **Loader / data-source resolution change** — we filter
+   district bindings to match the county-identification of the
+   ZIP (Census ZCTA). The numeric binding goes away too. More
+   invasive but more correct.
+
+Either resolution flips the xfail to xpass. The test names should
+probably be renamed from `*_district_leak` to something more
+neutral like `*_district_label_match` when one of the fixes lands.
