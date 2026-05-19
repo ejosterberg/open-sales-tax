@@ -461,6 +461,26 @@ def test_new_mexico_parse_rates_emits_state_county_city_layers() -> None:
         ("Farmington", "San Juan County", Decimal("8.1875")),
         ("Hobbs", "Lea County", Decimal("6.5625")),
         ("Carlsbad", "Eddy County", Decimal("7.3958")),
+        # iter-202 (2026-05-19): added the 13 tier-2 NM cities
+        # refreshed in iter-174 + iter-175 to the unit-test pin so
+        # the entire SalesTaxHandbook-verified set is drift-detected.
+        # Pins use the post-refresh values; if a future maintainer
+        # touches NM_LOCATION_RATES without intent, this test fires.
+        ("Clovis", "Curry County", Decimal("7.9375")),
+        ("Alamogordo", "Otero County", Decimal("8.1875")),
+        ("Gallup", "McKinley County", Decimal("8.5625")),
+        ("Los Lunas", "Valencia County", Decimal("8.425")),
+        ("Sunland Park", "Doña Ana County", Decimal("8.19")),
+        ("Las Vegas", "San Miguel County", Decimal("8.1458")),
+        ("Deming", "Luna County", Decimal("8.25")),
+        ("Lovington", "Lea County", Decimal("7.000")),
+        ("Artesia", "Eddy County", Decimal("7.6458")),
+        ("Portales", "Roosevelt County", Decimal("8.55")),
+        ("Silver City", "Grant County", Decimal("8.125")),
+        ("Espanola", "Rio Arriba County", Decimal("8.8125")),
+        ("Grants", "Cibola County", Decimal("8.000")),
+        ("Anthony", "Doña Ana County", Decimal("8.3775")),
+        ("Bernalillo", "Sandoval County", Decimal("7.4375")),
     ],
 )
 def test_new_mexico_dor_verified_combined_rates(
