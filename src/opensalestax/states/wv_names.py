@@ -59,6 +59,21 @@ WV_CITY_NAMES: dict[str, str] = {
     "79708": "Terra Alta",  # ZIP 26764 (Preston Co)
     "84580": "Wardensville",  # ZIP 26851 (Hardy Co)
     "85972": "Weston",  # ZIP 26452 (Lewis Co)
+    # iter-204 additions (8, 2026-05-19): DB-driven probe pattern.
+    # Queried tax_authorities for single-ZIP-bound placeholders, then
+    # WebFetched zip-codes.com for the primary city. Single-ZIP
+    # binding ensures the city attribution is unambiguous. Multi-ZIP
+    # placeholders (e.g. 01900 spans 3 counties) are kept aside for a
+    # different approach -- they're likely county-level or special-
+    # district authorities mislabelled as 'city' by the loader.
+    "00772": "Alderson",  # ZIP 24910 (Monroe Co)
+    "01996": "Ansted",  # ZIP 25812 (Fayette Co)
+    "04276": "Barboursville",  # ZIP 25504 (Cabell Co)
+    "10852": "Bruceton Mills",  # ZIP 26525 (Preston Co)
+    "13108": "Capon Bridge",  # ZIP 26711 (Hampshire Co)
+    "14524": "Chapmanville",  # ZIP 25508 (Logan Co)
+    "15076": "Chester",  # ZIP 26034 (Hancock Co)
+    "15676": "Clay",  # ZIP 25043 (Clay Co)
 }
 
 
