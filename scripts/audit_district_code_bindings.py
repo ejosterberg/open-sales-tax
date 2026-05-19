@@ -46,6 +46,7 @@ want to diff future quarterly drops against today's.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import importlib
 import sys
 import zipfile
@@ -74,8 +75,40 @@ def find_zip_for_state(data_dir: Path, state: str) -> Path | None:
     return matches[-1] if matches else None
 
 
-def scan_bindings(zip_path: Path, code_prefixes: tuple[str, ...]) -> dict[str, set[str]]:
-    """Scan an SST boundary CSV and yield code -> set of 3-digit ZIP prefixes."""
+def _row_active_on(cols: list[str], as_of: dt.date) -> bool:
+    """Return True if the SST boundary row is effective on the given date."""
+    eff_from_raw = cols[1] if len(cols) > 1 else ""
+    eff_to_raw = cols[2] if len(cols) > 2 else ""
+    if not eff_from_raw:
+        return True
+    try:
+        eff_from = dt.date(int(eff_from_raw[:4]), int(eff_from_raw[4:6]), int(eff_from_raw[6:8]))
+    except (ValueError, IndexError):
+        return True
+    if eff_from > as_of:
+        return False
+    if eff_to_raw and eff_to_raw != "29991231":
+        try:
+            eff_to = dt.date(int(eff_to_raw[:4]), int(eff_to_raw[4:6]), int(eff_to_raw[6:8]))
+            if eff_to < as_of:
+                return False
+        except (ValueError, IndexError):
+            pass
+    return True
+
+
+def scan_bindings(
+    zip_path: Path,
+    code_prefixes: tuple[str, ...],
+    as_of: dt.date | None = None,
+) -> dict[str, set[str]]:
+    """Scan an SST boundary CSV and yield code -> set of 3-digit ZIP prefixes.
+
+    Filters out historically-expired rows by default (mirrors the
+    loader's ``_record_active_on`` behavior). Pass ``as_of`` to scan
+    a different snapshot date.
+    """
+    target = as_of or dt.date.today()
     code_to_prefixes: dict[str, set[str]] = defaultdict(set)
     with zipfile.ZipFile(zip_path) as zf:
         csv_name = zf.namelist()[0]
@@ -84,6 +117,8 @@ def scan_bindings(zip_path: Path, code_prefixes: tuple[str, ...]) -> dict[str, s
                 line = raw.decode("latin-1").rstrip()
                 cols = line.split(",")
                 if len(cols) < 35:
+                    continue
+                if not _row_active_on(cols, target):
                     continue
                 # cols[30] = jurisdiction_code in the triplet at col 29
                 code = cols[30]
