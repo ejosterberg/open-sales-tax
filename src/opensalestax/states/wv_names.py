@@ -110,6 +110,15 @@ WV_CITY_NAMES: dict[str, str] = {
     "70084": "Romney",  # ZIP 26757 (Hampshire Co)
     "70588": "Rowlesburg",  # ZIP 26425 (Preston Co)
     "70828": "Rupert",  # ZIP 25984 (Greenbrier Co)
+    # iter-209 additions (8, 2026-05-19): S-W alphabet sweep continued.
+    "71356": "Saint Marys",  # ZIP 26170 (Pleasants Co)
+    "73636": "Shinnston",  # ZIP 26431 (Harrison Co)
+    "74380": "Sistersville",  # ZIP 26175 (Tyler Co)
+    "74740": "Smithers",  # ZIP 25186 (Fayette Co)
+    "75172": "Sophia",  # ZIP 25921 (Raleigh Co)
+    "75820": "Spencer",  # ZIP 25276 (Roane Co)
+    "77980": "Summersville",  # ZIP 26651 (Nicholas Co)
+    "78964": "Sylvester",  # ZIP 25193 (Boone Co)
 }
 
 
