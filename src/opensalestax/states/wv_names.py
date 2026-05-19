@@ -92,6 +92,15 @@ WV_CITY_NAMES: dict[str, str] = {
     "51100": "Mannington",  # ZIP 26582 (Marion Co)
     "52228": "Masontown",  # ZIP 26542 (Preston Co)
     "53572": "Middlebourne",  # ZIP 26149 (Tyler Co)
+    # iter-207 additions (8, 2026-05-19): M-P alphabet sweep continued.
+    "55468": "Montgomery",  # ZIP 25136 (Fayette Co)
+    "56020": "Moundsville",  # ZIP 26041 (Marshall Co)
+    "58372": "New Cumberland",  # ZIP 26047 (Hancock Co)
+    "58684": "New Martinsville",  # ZIP 26155 (Wetzel Co)
+    "61636": "Paden City",  # ZIP 26159 (Wetzel Co)
+    "62332": "Paw Paw",  # ZIP 25434 (Morgan Co)
+    "62764": "Pennsboro",  # ZIP 26415 (Ritchie Co)
+    "63892": "Pine Grove",  # ZIP 26419 (Wetzel Co)
 }
 
 
