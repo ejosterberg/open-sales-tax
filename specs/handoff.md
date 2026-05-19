@@ -2,21 +2,49 @@
 
 **For the next Claude Code session that opens this directory.**
 
-**v0.56.0 is the latest release (2026-05-14, major correctness
-ratchet folding 191 commits of iter-117..171).** Untagged main has
-shipped **12 more iters (172..183)** overnight 2026-05-14..05-15:
-17 NM city rates re-verified against TRD + **124 city friendly
-names added** across 9 states (WA +15, TN +14, AR +9, KS +16,
-SD +8, UT +12, ND +9, OK +21, WI +20). Receipt-quality across
-the curated tables substantially improved.
+**v0.59.0 is the latest release (2026-05-17, first-class shipping
+field).** Untagged main is at iter-199 (live-API shipping pins).
 
 Live at
 [github.com/ejosterberg/open-sales-tax](https://github.com/ejosterberg/open-sales-tax)
 and prod API at the Cloudflare-fronted public URL
 [api.opensalestax.org](https://api.opensalestax.org/v1/docs).
 All 52 jurisdictions tier-1. The SST loader/lookup engine matches
-every published DOR rate within 0.05% across **777 sampled
+every published DOR rate within 0.05% across **781 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
+
+## Recent releases (latest first)
+
+- **v0.59.0** (2026-05-17, iter-198): **First-class shipping field
+  for /v1/calculate.** Closes connector-tier captain Ask 3;
+  unblocks OpenCart O-3. New `ShippingInput`/`ShippingOutput`
+  schema; every state module's `shipping_rule_set()` returns one
+  of 5 rules (CONDITIONAL×27, EXEMPT_IF_SEPARATELY_STATED×19,
+  NONE×5, ALWAYS_TAXABLE×1 HI, MIXED×1 MD) with primary
+  DOR/statute citations from
+  `specs/research/shipping-taxability.md`. `shipping_first_class`
+  capability flag flipped True. Decisions ratified in
+  `specs/phase-shipping-p1/plan.md`. Iter-199 added 5 live-API
+  shipping pins to the DOR grid for drift detection.
+
+- **v0.58.0** (2026-05-15): `coverage_warning` field (iter-189)
+  +`/v1/capabilities` endpoint (iter-197) + 7 more TX/AZ cities
+  (iter-188/190/191/192/193/194/195/196). Coverage warning fires
+  for CO/LA/AL/HI when those state-only responses understate the
+  true rate.
+
+- **v0.57.0** (2026-05-15): Overnight quality ratchet (16 iters
+  iter-172..187). NM TRD rate refresh: all 17 NM tier-1+tier-2
+  cities re-verified against published 2026 TRD rates. **130
+  city friendly names added across 10 states** (WA+15, TN+14,
+  AR+9, KS+16, SD+8, UT+12, ND+9, OK+21, WI+20, WV+6). 6 TX DFW
+  satellites added.
+
+- **v0.56.0** (2026-05-14): Major correctness ratchet (191
+  commits, iter-117..171). MN/SD cross-state ZIP RESOLVED
+  (iter-165..168); OH COTA multi-district fix (iter-169); MO
+  KCMO multi-county fix (iter-170/171); CA/TX/AZ/FL/SC data
+  expansion.
 
 ## Overnight 2026-05-14..05-15 (iter-172..183, since v0.56.0)
 
