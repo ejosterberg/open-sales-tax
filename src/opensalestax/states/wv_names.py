@@ -83,6 +83,15 @@ WV_CITY_NAMES: dict[str, str] = {
     "32044": "Glenville",  # ZIP 26351 (Gilmer Co)
     "32716": "Grafton",  # ZIP 26354 (Taylor Co)
     "35428": "Harrisville",  # ZIP 26362 (Ritchie Co)
+    # iter-206 additions (8, 2026-05-19): H-M alphabet sweep continued.
+    "37636": "Hinton",  # ZIP 25951 (Summers Co)
+    "39340": "Hundred",  # ZIP 26575 (Wetzel Co)
+    "46636": "Lewisburg",  # ZIP 24901 (Greenbrier Co)
+    "48148": "Logan",  # ZIP 25601 (Logan Co)
+    "50932": "Man",  # ZIP 25635 (Logan Co)
+    "51100": "Mannington",  # ZIP 26582 (Marion Co)
+    "52228": "Masontown",  # ZIP 26542 (Preston Co)
+    "53572": "Middlebourne",  # ZIP 26149 (Tyler Co)
 }
 
 
