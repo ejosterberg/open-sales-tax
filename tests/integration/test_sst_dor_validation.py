@@ -7343,6 +7343,11 @@ MN_DISTRICT_LEAK_GRID: list[tuple[str, str, str]] = [
     ("56310", "Anoka County Transportation Sales Tax", "Avon / Stearns Co"),
     # ZIP 56630 (Blackduck, Beltrami Co) -- should NOT have St. Louis district
     ("56630", "St. Louis County Transportation Sales Tax", "Blackduck / Beltrami Co"),
+    # iter-214 cross-state extension -- same bug class in IA + NC.
+    # ZIP 50001 (Ackworth, Warren Co IA) -- should NOT have Union LOST
+    ("50001", "Union County Local Option Sales Tax", "Ackworth / Warren Co IA"),
+    # ZIP 27915 (Avon, Dare Co NC) -- should NOT have Durham transit
+    ("27915", "Durham County Public Transportation Sales Tax", "Avon NC / Dare Co"),
 ]
 
 

@@ -77,14 +77,88 @@ bound correctly — only `district`-type authorities are affected.
        assert "Anoka County Transportation Sales Tax" not in authority_names
    ```
 
+## Cross-state pattern (iter-214 update)
+
+**This is not just an MN bug.** A second-pass audit found the same
+cross-county district-binding pattern in IA and NC. Likely a
+generic SST loader bug, not specific to any one state's code path.
+
+### Iowa: "<County> Local Option Sales Tax" district leak
+
+22+ IA "Local Option Sales Tax" district authorities have boundaries
+spanning ZIP prefixes outside their county. Examples (each row =
+one IA district, observed ZIP prefixes vs the county's actual
+prefix span):
+
+| District | ZIPs | Observed prefixes | County actually in |
+|---|---|---|---|
+| Adair County LOST | 16 | 500, 501, 502, 508 | 500xx / 508xx |
+| Carroll County LOST | 19 | 500, 514 | 514xx |
+| Iowa County LOST | 24 | 501, 522, 523 | 522xx |
+| Polk County LOST | 52 | 500, 501, 502, 503, 509 | 500xx-503xx (Des Moines metro) |
+| Story County LOST | 25 | 500, 501, 502 | 500xx (Ames) |
+
+Concrete impact: **ZIP 50001 (Ackworth, Warren Co)** wrongly stacks
+"Union County Local Option Sales Tax 1.00%" — returns 7.000%
+combined when it should be 6.000% (state only, since Warren Co
+itself has 0.00%). **Per-transaction over-collection: 1%.**
+
+### North Carolina: county transit district leak
+
+3+ NC county Public Transportation Sales Tax districts have ZIPs
+bound outside their actual county. Example:
+
+- **ZIP 27915 (Avon, Dare Co — Outer Banks)** wrongly stacks
+  "Durham County Public Transportation Sales Tax 0.50%" — returns
+  7.25% combined when it should be 6.75% (state 4.75 + Dare 2.00).
+  **Per-transaction over-collection: 0.5%.** Dare County is ~150
+  miles east of Durham.
+
+### Hypothesis revision
+
+The pattern is consistent enough across MN / IA / NC that the bug
+is almost certainly NOT in any individual state module. Look in
+the shared loader path or shared boundary-record processing.
+Candidates:
+
+1. **`_sst_base.parse_boundaries`** or the equivalent shared
+   `_authority_bindings` logic — if `record.district_code` is
+   being read from the wrong column for some record types, every
+   state would inherit the leak.
+2. **`parse_boundary_csv` in `opensalestax/data/sst_csv.py`** —
+   column offset bug specific to certain SST record types.
+3. **The dedup/seen filter** — if `key` tuples collide for
+   different (state, authority) pairs, distinct districts could
+   collapse onto each other's ZIPs.
+
+## What to investigate (revised)
+
+1. Pick a single concrete repro (ZIP 56301 Stearns Co + Anoka
+   district is the cleanest) and trace the binding from the SST
+   source CSV row → loader → DB. The leak entry point will be in
+   the chain.
+2. Counties bind correctly across all states, so compare
+   county-binding code path vs district-binding code path looking
+   for the asymmetry.
+3. Re-run the live ZIP probes after the fix; combined rates
+   should drop to the correct values:
+   - ZIP 56310 → 7.625% (no Anoka stack)
+   - ZIP 56630 → 7.875% (no St. Louis stack)
+   - ZIP 50001 → 6.000% (no Union LOST stack)
+   - ZIP 27915 → 6.75% (no Durham transit stack)
+4. The xfail regression in `tests/integration/test_sst_dor_validation.py`
+   (iter-212) covers 4 rows -- extend with IA + NC cases once the
+   pattern is confirmed.
+
 ## Out of scope for this finding
 
 - Hand-labelling the 65+ MN city placeholders (deferred until
   the district bug is fixed — the rate-mismatch noise from the
   district leak would mask label-vs-rate verification).
-- Investigating whether OTHER states have similar district leaks
-  (worth a 1-hour audit by running the same prefix-vs-name check
-  for KS / IA / WI / TN special-purpose districts).
+- Full audit of WI / OK / KS / TN / GA / IL districts. The MN /
+  IA / NC evidence is enough to confirm a generic bug; a per-state
+  exhaustive scan can wait until the root cause is identified
+  (it'll go away across the board once the shared bug is fixed).
 
 ## Cross-references
 
