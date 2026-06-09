@@ -1,13 +1,25 @@
-# Finding: SST district code mappings may be wrong (iter-220 RESOLVED for MN)
+# Finding: SST district code mappings may be wrong (iter-220/221 RESOLVED)
 
-> **iter-220 RESOLUTION (2026-05-19):** MN portion of this finding is
-> CLOSED. Deep-research on MN DOR's authoritative "Tax Type Codes"
-> spreadsheet (`tax-type-codes.xlsx` at revenue.state.mn.us/media/document/58036)
-> produced a definitive code → name mapping for all MN 80xxx
-> district codes. `mn_names.py` has been re-derived from that
-> spreadsheet and now includes 52 entries (up from 10), all correct.
-> Remaining work: prod data reload (mechanical) + same pattern
-> investigation for IA + NC code mappings.
+> **iter-221 FULL RESOLUTION (2026-05-19):** All three states
+> (MN, IA, NC) now fixed in code. Remaining work is purely
+> mechanical: prod data reload to apply the corrected mappings,
+> then the 6-row xfail regression in
+> `tests/integration/test_sst_dor_validation.py` will flip to
+> xpass and the marker can be removed.
+>
+> - **MN** (iter-220): 52-entry `MN_DISTRICT_NAMES` re-derived from
+>   MN DOR's `tax-type-codes.xlsx` (was 10 entries with 7 wrong).
+> - **IA** (iter-221): off-by-one fix for 3 entries (98175 Taylor →
+>   Union, 98181 Union → Warren, added 98173 Taylor). Confirmed via
+>   IA DOR's SST page that 98XXX scheme is "98 + 3-digit county FIPS"
+>   for unincorporated areas, with 98201+ reserved for 102 multi-
+>   county-city districts (those line items are NOT published by IA
+>   DOR — left for a future direct-request follow-up).
+> - **NC** (iter-221): removed 99055 (NCDOR doesn't list it; was
+>   wrongly duplicating "Durham" with 99063). Updated remaining 4
+>   labels to NCDOR's published wording "Public Transportation Tax"
+>   (not "...Sales Tax"). 99055 may be a stale entry or a pre-
+>   emptive entry for Dare County's Nov 3 2026 Article 46 ballot.
 
 **Original claim (iter-211):** MN transit district authorities have
 cross-county ZIP bindings caused by a loader bug.
