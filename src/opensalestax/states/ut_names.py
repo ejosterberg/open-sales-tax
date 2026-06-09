@@ -51,6 +51,23 @@ UT_CITY_NAMES: dict[str, str] = {
     "08020": "Brian Head",  # FIPS Place 4908020 (Iron Co; ZIP 84719)
     "08787": "Bryce Canyon City",  # FIPS Place 4908787 (Garfield Co; ZIP 84764)
     "11870": "Centerfield",  # FIPS Place 4911870 (Sanpete Co; ZIP 84622)
+    # iter-227 additions (15, 2026-05-19): more Census-Gazetteer-verified
+    # entries. Continues the FIPS Place 49-XXXXX pattern.
+    "01310": "American Fork",  # FIPS Place 4901310 (Utah Co)
+    "06370": "Blanding",  # FIPS Place 4906370 (San Juan Co)
+    "06700": "Bluff",  # FIPS Place 4906700 (San Juan Co)
+    "07690": "Bountiful",  # FIPS Place 4907690 (Davis Co)
+    "08460": "Brigham City",  # FIPS Place 4908460 (Box Elder Co)
+    "08570": "Brighton",  # FIPS Place 4908570 (Salt Lake Co)
+    "11440": "Cedar Hills",  # FIPS Place 4911440 (Utah Co)
+    "11980": "Centerville",  # FIPS Place 4911980 (Davis Co)
+    "14290": "Clinton",  # FIPS Place 4914290 (Davis Co)
+    "20810": "Eagle Mountain",  # FIPS Place 4920810 (Utah Co)
+    "23530": "Ephraim",  # FIPS Place 4923530 (Sanpete Co)
+    "23640": "Erda",  # FIPS Place 4923640 (Tooele Co)
+    "23750": "Escalante",  # FIPS Place 4923750 (Garfield Co)
+    "24080": "Eureka",  # FIPS Place 4924080 (Juab Co)
+    "24630": "Fairview",  # FIPS Place 4924630 (Sanpete Co)
 }
 
 
