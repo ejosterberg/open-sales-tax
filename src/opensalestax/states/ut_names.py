@@ -94,6 +94,45 @@ UT_CITY_NAMES: dict[str, str] = {
     "47730": "Manti",  # FIPS Place 4947730 (Sanpete Co)
     "47840": "Mantua",  # FIPS Place 4947840 (Box Elder Co)
     "47950": "Mapleton",  # FIPS Place 4947950 (Utah Co)
+    # iter-229 additions (34, 2026-05-19): Census Gazetteer M-S sweep.
+    # Skipped 57080 (Orem-matching FIPS Place) until the 57300/57080
+    # duplication is investigated -- both codes appear to bind to Orem
+    # area ZIPs (84057/58/59/97), possibly a sales/use-pair convention
+    # specific to UT.
+    "48720": "Mayfield",  # FIPS Place 4948720 (Sanpete Co)
+    "49820": "Midway",  # FIPS Place 4949820 (Wasatch Co)
+    "50370": "Millville",  # FIPS Place 4950370 (Cache Co)
+    "50700": "Moab",  # FIPS Place 4950700 (Grand Co)
+    "51140": "Mona",  # FIPS Place 4951140 (Juab Co)
+    "51360": "Monroe",  # FIPS Place 4951360 (Sevier Co)
+    "51580": "Monticello",  # FIPS Place 4951580 (San Juan Co)
+    "51910": "Morgan",  # FIPS Place 4951910 (Morgan Co)
+    "53010": "Mount Pleasant",  # FIPS Place 4953010 (Sanpete Co)
+    "53560": "Naples",  # FIPS Place 4953560 (Uintah Co)
+    "54220": "Nephi",  # FIPS Place 4954220 (Juab Co)
+    "54660": "Nibley",  # FIPS Place 4954660 (Cache Co)
+    "54990": "North Logan",  # FIPS Place 4954990 (Cache Co)
+    "57740": "Panguitch",  # FIPS Place 4957740 (Garfield Co)
+    "58510": "Parowan",  # FIPS Place 4958510 (Iron Co)
+    "58730": "Payson",  # FIPS Place 4958730 (Utah Co)
+    "59390": "Perry",  # FIPS Place 4959390 (Box Elder Co)
+    "62360": "Providence",  # FIPS Place 4962360 (Cache Co)
+    "63240": "Redmond",  # FIPS Place 4963240 (Sevier Co)
+    "63570": "Richfield",  # FIPS Place 4963570 (Sevier Co)
+    "63680": "Richmond",  # FIPS Place 4963680 (Cache Co)
+    "64010": "Riverdale",  # FIPS Place 4964010 (Weber Co)
+    "64120": "River Heights",  # FIPS Place 4964120 (Cache Co)
+    "64560": "Rockville",  # FIPS Place 4964560 (Washington Co)
+    "64670": "Roosevelt",  # FIPS Place 4964670 (Duchesne Co)
+    "65770": "Salem",  # FIPS Place 4965770 (Utah Co)
+    "65880": "Salina",  # FIPS Place 4965880 (Sevier Co)
+    "67660": "Santa Clara",  # FIPS Place 4967660 (Washington Co)
+    "67770": "Santaquin",  # FIPS Place 4967770 (Utah Co)
+    "67825": "Saratoga Springs",  # FIPS Place 4967825 (Utah Co)
+    "67880": "Scipio",  # FIPS Place 4967880 (Millard Co)
+    "69640": "Smithfield",  # FIPS Place 4969640 (Cache Co)
+    "69970": "Snowville",  # FIPS Place 4969970 (Box Elder Co)
+    "70190": "Snyderville",  # FIPS Place 4970190 (Summit Co; CDP)
 }
 
 
