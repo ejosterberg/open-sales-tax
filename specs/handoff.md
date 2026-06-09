@@ -42,25 +42,59 @@ authorities) and 5 duplicate-bound (probably sales-tax + use-tax
 authority pairs that share a ZIP — see iter-210 commit). Deferred
 until a different pattern handles them.
 
-**MN transit-district cross-county ZIP leak (iter-211, NEW BUG):**
-6 MN transit-district authorities have boundaries bound to ZIPs
-in counties they don't belong to. Concrete impact:
+**MN/IA/NC district name corrections (iter-211..222, CLOSED):**
+The original iter-211 hypothesis (loader bug causing cross-county
+"leak") was retracted in iter-215; the real issue was wrong
+hand-curated friendly-name mappings in `mn_names.py`, `ia_names.py`,
+and `nc_names.py`. Closed across two deep-research workflows and
+14 commits:
 
-- ZIP 56301 (St. Cloud, Stearns Co) over-collects ~0.875% from
-  phantom "Anoka County Transportation Sales Tax" + "Cook County
-  Transportation Sales Tax" stacking. Should be 7.625%; returns 8.5%.
-- ZIP 56630 (Blackduck, Beltrami Co) over-collects ~0.625% from
-  phantom "St. Louis County Transportation Sales Tax".
-- Affected districts: Anoka, Cook, Beltrami, St. Louis, Carlton,
-  Washington (single-county transit districts leaking into other
-  counties' ZIP prefixes). County-level authorities bind correctly
-  — only `district`-type authorities are affected.
+- **iter-220 — MN:** MN_DISTRICT_NAMES re-derived from MN DOR's
+  authoritative "Tax Type Codes" xlsx
+  (revenue.state.mn.us/media/document/58036). 10 entries → 52,
+  7 wrong labels corrected (e.g. 80001 "Cook Co Transp" → "St.
+  Cloud Area Sales/Use", 80012 "Anoka Co Transp" → "Stearns Co
+  Sales/Use"). Plus 42 newly-added codes covering Cannabis Gross
+  Receipts, Retail Delivery Fee, Liquor, Car Rental, lodging
+  taxes for 15 cities, etc.
+- **iter-221 — IA:** off-by-one in IA_DISTRICT_NAMES: 98175 was
+  "Taylor" → "Union" (FIPS 19175); 98181 "Union" → "Warren"
+  (FIPS 19181); 98173 "Taylor" added (was missing). Source:
+  revenue.iowa.gov SST page.
+- **iter-221 — NC:** removed 99055 (NCDOR doesn't list it; was
+  wrongly duplicating "Durham" alongside 99063). Renamed 4
+  remaining codes to NCDOR's exact wording "Public Transportation
+  Tax" (was "...Sales Tax"). Source: NCDOR SST participants page.
+- **iter-222:** new unit test
+  `test_state_names_invariants.test_fips_derived_codes_match_county_name`
+  enforces the FIPS-pattern invariant for IA + NC at every CI run.
+  Smoke-verified it catches all 3 known-bug labels.
 
-See `specs/findings/mn-transit-district-cross-county-leak.md` for
-the full evidence, hypothesis, and where to look in the loader.
-iter-212 added xfail-marked liveapi regression tests pinning the
-expected behavior (4 rows: 2 St. Cloud, Avon, Blackduck) — xpass
-when the fix lands.
+The 6-row xfail regression in `tests/integration/test_sst_dor_validation.py`
+(`MN_DISTRICT_LABEL_GRID`) will flip to xpass after the next prod
+data reload. Mechanical follow-up:
+
+```bash
+# Hot-deploy iter-220/221 mn_names/ia_names/nc_names to prod,
+# then refresh per-state data versions to apply the new friendly
+# names in tax_authorities.name. Boundaries don't need refresh
+# (only friendly names changed; ZIP↔authority bindings unchanged).
+ssh opensalestax-01 "cd /home/ejosterberg/open-sales-tax && \
+  git pull --ff-only origin main && \
+  docker compose build api && \
+  docker compose up -d --force-recreate api"
+# Then re-run loader for the three states:
+for s in MN IA NC; do
+  ssh opensalestax-01 "docker exec open-sales-tax-api-1 \
+    python -m opensalestax data load -s $s -v <latest-version>"
+done
+```
+
+See `specs/findings/mn-transit-district-cross-county-leak.md`
+for the full investigation history including iter-211's wrong
+"loader bug" hypothesis, iter-215's retraction, the audit script
+in `scripts/audit_district_code_bindings.py` (iter-216..218),
+and both deep-research workflow IDs.
 
 ## Standing process: monthly state-rate audit (iter-219)
 
@@ -78,43 +112,42 @@ to find its taskId and call the runtime accordingly.
 
 ## What to start on next
 
-**Read `specs/findings/mn-transit-district-cross-county-leak.md`
-top-to-bottom first.** It documents an evolving investigation
-from iter-211 through iter-215. The original "loader bug"
-hypothesis was retracted in iter-215 after source-CSV
-inspection on the prod VM.
+**The obvious next move is deploying iter-220/221 to prod + a
+data reload for MN/IA/NC** so the corrected friendly names
+surface in the live engine. The mechanical sequence is in the
+"MN/IA/NC district name corrections" section above.
 
-The real issue (now believed): `mn_names.py` (and likely
-`ia_names.py`, `nc_names.py`) have **incorrect mappings between
-SST district codes and friendly names**. Example: code 80001 is
-mapped to "Cook County Transportation Sales Tax" but the SST
-file binds 80001 only to 563xx ZIPs (Stearns/Benton — St. Cloud
-area, ~150 mi from Cook Co). The LABEL is wrong; the binding is
-fine.
+After the reload:
 
-**The obvious next move is correcting the `mn_names.py` district
-mappings** using empirical evidence (which ZIP prefixes each
-code binds to in the live SST file). For Stearns/Benton 563xx
-binding code 80001, the likely correct name is "St. Cloud Area
-Sales Tax" (MN DOR Local Sales Tax Schedule Fact Sheet 164).
-Each of the 6 districts identified in the finding doc needs a
-similar empirical re-check.
+1. Verify the 6 xfail rows in `MN_DISTRICT_LABEL_GRID` now xpass
+   (`pytest -m liveapi tests/integration/test_sst_dor_validation.py
+   -k test_mn_district_label_correct`).
+2. Remove the xfail decorator and rename the grid constant from
+   `MN_DISTRICT_LABEL_GRID` to something neutral like
+   `DISTRICT_LABEL_REGRESSION_GRID` (it now covers IA + NC too).
+3. Tag a release (v0.60.0 candidate) and update `CHANGELOG.md`.
 
-For IA, the picture is more complicated (Census ZCTA county
-disagrees with SST county_fips on some ZIPs) — investigate
-after MN is sorted.
+If Eric wants something different, the next-obvious-thing menu:
 
-The xfail regression in `tests/integration/test_sst_dor_validation.py`
-will flip xpass once either (a) the names update so the wrong
-friendly name no longer appears, or (b) the cross-source
-disagreement is resolved upstream. Rename the test from
-`*_district_leak` to something neutral (`*_district_label_match`)
-at fix time.
+- **Finish the last 10 WV placeholders** (5 multi-ZIP + 5
+  duplicate-bound). The remaining cases are likely county-level
+  or special-district authorities mis-classified as 'city' by
+  the loader — they need a different pattern than the iter-203..210
+  ZIP-probe approach.
+- **UT/WI hand-curation sweep**. UT codes follow the FIPS Place
+  scheme (49-NNNNN) so they can be bulk-resolved via Census
+  TIGER/Line gazetteer data; needs offline FIPS Place data. WI
+  has the same FIPS Place pattern (55-NNNNN) and a far larger
+  pool (~1850 placeholders).
+- **Resume captain-tier work** on the error-envelope migration
+  investigation (`specs/captain-requests/error-envelope-migration-investigation.md`)
+  — that gates v0.60.0 per the iter-197 captain brief.
+- **Hand-request IA DOR for the 98201+ multi-county-city
+  mapping** that IA DOR documents the existence of but doesn't
+  publish in tabular form (102 codes covering 45 cities × 2
+  counties + 4 cities × 3 counties).
 
-If Eric instead wants something different (e.g. finish the last
-10 WV placeholders, start the UT/IA/WI hand-curation sweep, or
-resume captain-tier work on the error-envelope migration
-investigation), ask before pivoting.
+If Eric wants none of the above, ask before pivoting.
 
 ## Recent releases (latest first)
 
