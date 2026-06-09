@@ -39,6 +39,18 @@ UT_CITY_NAMES: dict[str, str] = {
     "71070": "South Salt Lake",  # ZIPs 84115/84119 (Salt Lake Co; FIPS Place 4971070)
     "71290": "Spanish Fork",  # ZIP 84660 (Utah Co; FIPS Place 4971290)
     "80090": "Vernal",  # ZIP 84078 (Uintah Co; FIPS Place 4980090)
+    # iter-226 additions (9, 2026-05-19): derived directly from the
+    # Census 2024 Gazetteer for UT places (state 49). Each SST code
+    # XXXXX matches Census FIPS Place 49-XXXXX:
+    "00650": "Alta",  # FIPS Place 4900650 (Salt Lake Co; ZIP 84092 shared w/ Sandy)
+    "02740": "Aurora",  # FIPS Place 4902740 (Sevier Co; ZIP 84620)
+    "04060": "Beaver",  # FIPS Place 4904060 (Beaver Co; ZIP 84713)
+    "05490": "Bicknell",  # FIPS Place 4905490 (Wayne Co; ZIP 84715)
+    "05534": "Big Water",  # FIPS Place 4905534 (Kane Co; ZIP 84741)
+    "07470": "Boulder",  # FIPS Place 4907470 (Garfield Co; ZIP 84716)
+    "08020": "Brian Head",  # FIPS Place 4908020 (Iron Co; ZIP 84719)
+    "08787": "Bryce Canyon City",  # FIPS Place 4908787 (Garfield Co; ZIP 84764)
+    "11870": "Centerfield",  # FIPS Place 4911870 (Sanpete Co; ZIP 84622)
 }
 
 
