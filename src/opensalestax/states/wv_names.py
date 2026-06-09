@@ -4,8 +4,21 @@
 
 WV authorizes municipalities to levy a 1% Municipal Sales and
 Use Tax (W. Va. Code section 8-13C-4); 60+ WV cities have done
-so. Verified by ZIP probe against WV State Tax Department's
-"Municipal Sales and Use Tax" publication (2026-Q1).
+so.
+
+iter-203..210 (2026-05-19): expanded coverage from 22 to 88 of
+98 placeholders using a DB-driven single-ZIP probe pattern +
+zip-codes.com primary-city lookup. iter-224 brought it to 98/98
+(100%) after discovering that the WV SST boundary CSV puts the
+city name in plain text at cols[14] -- no probing needed for
+the remaining edge cases (multi-ZIP placeholders and apparent
+duplicates, which turned out to be distinct municipalities
+co-located in the same ZIP).
+
+The cols[14] discovery generalizes -- a follow-up could mine
+every WV SST row directly and prune wv_names.py to only the
+codes that DON'T appear in the source's plain-text city-name
+column.
 """
 
 from __future__ import annotations
@@ -44,6 +57,29 @@ WV_CITY_NAMES: dict[str, str] = {
     "35284": "Harpers Ferry",  # ZIP 25425 (Jefferson Co)
     "54484": "Milton",  # ZIP 25541 (Cabell Co)
     "73468": "Shepherdstown",  # ZIP 25443 (Jefferson Co)
+    # iter-224 additions (10, 2026-05-19): completes WV coverage at 98/98.
+    # Discovered the SST boundary CSV puts the friendly city name in
+    # plain text at cols[14] -- no ZIP probing needed. Every previously-
+    # "unresolved" placeholder (multi-ZIP and apparent duplicates) is
+    # actually a distinct WV municipality that happens to share a ZIP
+    # with an already-labelled neighbor:
+    #   * Bolivar shares 25425 with Harpers Ferry (Jefferson Co)
+    #   * Nutter Fort shares 26301 with Clarksburg (Harrison Co)
+    #   * Ranson shares 25414 with Charles Town (Jefferson Co)
+    #   * Westover shares 26501 with Morgantown (Monongalia Co)
+    #   * White Hall shares 26554 with Fairmont (Marion Co)
+    # The iter-203/210 "duplicate" hypothesis was wrong; these are
+    # genuinely distinct municipalities co-located in the same ZIP.
+    "01900": "Anmoore",  # Harrison Co (ZIPs 25411/26323/26330)
+    "03292": "Athens",  # Mercer Co (ZIPs 24712/24739)
+    "08932": "Bolivar",  # Jefferson Co (ZIP 25425)
+    "09796": "Bramwell",  # Mercer Co (ZIPs 24715/24724)
+    "51676": "Marlinton",  # Pocahontas Co (ZIPs 24924/24954)
+    "59836": "Nutter Fort",  # Harrison Co (ZIP 26301)
+    "66988": "Ranson",  # Jefferson Co (ZIPs 25414/25430/25438)
+    "85156": "Weirton",  # Hancock/Brooke Co (ZIPs 26035/26062)
+    "85996": "Westover",  # Monongalia Co (ZIPs 26501/26502)
+    "86620": "White Hall",  # Marion Co (ZIP 26554)
     # iter-203 additions (11, 2026-05-19): same pattern as iter-187.
     # ZIP 25430 (placeholder code 66988) skipped -- 66988 also binds
     # to ZIP 25438, so the city attribution is ambiguous and cannot
