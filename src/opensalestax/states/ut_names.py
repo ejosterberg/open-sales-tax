@@ -133,6 +133,28 @@ UT_CITY_NAMES: dict[str, str] = {
     "69640": "Smithfield",  # FIPS Place 4969640 (Cache Co)
     "69970": "Snowville",  # FIPS Place 4969970 (Box Elder Co)
     "70190": "Snyderville",  # FIPS Place 4970190 (Summit Co; CDP)
+    # iter-230 additions (16, 2026-05-19): Census Gazetteer S-W sweep.
+    # The remaining UT 97xxx-series placeholders do NOT match Census
+    # FIPS Place GEOIDs -- they appear to be UT-specific identifiers
+    # (possibly CDPs not in the standard gazetteer, or special-purpose
+    # taxing districts). Investigate separately via UT State Tax
+    # Commission's "Tax Rate Charts" publication.
+    "71180": "South Weber",  # FIPS Place 4971180 (Davis Co)
+    "71840": "Springdale",  # FIPS Place 4971840 (Washington Co)
+    "72280": "Springville",  # FIPS Place 4972280 (Utah Co)
+    "72720": "Stansbury Park",  # FIPS Place 4972720 (Tooele Co; CDP)
+    "72940": "Sterling",  # FIPS Place 4972940 (Sanpete Co)
+    "74810": "Syracuse",  # FIPS Place 4974810 (Davis Co)
+    "76900": "Toquerville",  # FIPS Place 4976900 (Washington Co)
+    "77010": "Torrey",  # FIPS Place 4977010 (Wayne Co)
+    "77560": "Tropic",  # FIPS Place 4977560 (Garfield Co)
+    "80420": "Vineyard",  # FIPS Place 4980420 (Utah Co)
+    "80530": "Virgin",  # FIPS Place 4980530 (Washington Co)
+    "81960": "Washington",  # FIPS Place 4981960 (Washington Co)
+    "82510": "Wellington",  # FIPS Place 4982510 (Carbon Co)
+    "82840": "West Bountiful",  # FIPS Place 4982840 (Davis Co)
+    "84710": "Willard",  # FIPS Place 4984710 (Box Elder Co)
+    "85370": "Woods Cross",  # FIPS Place 4985370 (Davis Co)
 }
 
 
