@@ -62,6 +62,20 @@ iter-212 added xfail-marked liveapi regression tests pinning the
 expected behavior (4 rows: 2 St. Cloud, Avon, Blackduck) — xpass
 when the fix lands.
 
+## Standing process: monthly state-rate audit (iter-219)
+
+A recurring scheduled Claude task fires the 1st of every month at
+7am local time (taskId: `monthly-state-tax-audit`). It audits all
+50 states + DC + PR for rate changes since last audit and writes
+the report to `specs/audits/monthly-rate-audit-YYYY-MM-DD.md`,
+auto-commits small mechanical fixes, and spawns chips for larger
+refreshes. Next run: 2026-06-01.
+
+If you want to invoke it ad-hoc (e.g. after a known rate change
+hits the news), use the "Scheduled" sidebar → "Run now" on
+`monthly-state-tax-audit`, or `mcp__scheduled-tasks__list_scheduled_tasks`
+to find its taskId and call the runtime accordingly.
+
 ## What to start on next
 
 **Read `specs/findings/mn-transit-district-cross-county-leak.md`
