@@ -15,7 +15,33 @@ All 52 jurisdictions tier-1. The SST loader/lookup engine matches
 every published DOR rate within 0.05% across **781 sampled
 ZIP+4s** on the live engine (every US jurisdiction covered).
 
-## Overnight 2026-05-19 (iter-200..212, since v0.59.0)
+## Overnight 2026-05-19 (iter-200..231, since v0.59.0)
+
+**Session totals:** 29 substantive iters, 28 commits, all CI green.
+Two deep-research workflow runs (wqptxor1k MN, wh43sz09n IA+NC).
+Three states now at major progress milestones:
+
+| State | Before | After | Method |
+|---|---|---|---|
+| **WV** | 22/98 (22%) | **98/98 (100%)** | iter-203..210 ZIP-probe pattern; iter-224 cols[14] discovery |
+| **UT** | 21 entries | 120 entries | iter-226..230 Census Gazetteer FIPS Place 49-XXXXX |
+| **WI** | 56 entries | 68 entries (kick-off) | iter-231 Census Gazetteer FIPS Place 55-XXXXX |
+| MN | 10 district entries | 52 entries (re-derived) | iter-220 MN DOR xlsx |
+| IA | 19 entries (3 wrong) | 20 entries (corrected) | iter-221 FIPS pattern via revenue.iowa.gov |
+| NC | 5 entries (1 wrong) | 4 entries (corrected) | iter-221 NCDOR SST page |
+
+**Major artifacts shipped this session:**
+- `scripts/audit_district_code_bindings.py` (iter-216..218) — diagnostic
+  tool for any state's SST-code → ZIP-prefix coverage
+- `tests/unit/test_state_names_invariants.py` (iter-222) — FIPS-pattern
+  regression guard catches mislabelings at CI time
+- `specs/findings/mn-transit-district-cross-county-leak.md` (iter-211..221)
+  — full investigation history including retractions and 3-tier
+  hand-curation strategy
+- `specs/findings/sst-source-file-quirks.md` (iter-225) — cross-state
+  SST CSV column convention survey
+- Scheduled monthly state-rate audit task (`monthly-state-tax-audit`,
+  first run 2026-06-01)
 
 **WV labelled-city coverage 22 → 88 (+66 entries, ~90% of WV
 placeholders).** Used a DB-driven single-ZIP-bound probe pattern:
@@ -148,6 +174,22 @@ If Eric wants something different, the next-obvious-thing menu:
   counties + 4 cities × 3 counties).
 
 If Eric wants none of the above, ask before pivoting.
+
+### Latest session continuation hooks
+
+- **UT 97xxx-series codes (~60 remaining)** don't match Census FIPS
+  Place — need UT State Tax Commission "Tax Rate Charts"
+  cross-check. Possibly CDPs not in standard gazetteer or special-
+  purpose tax districts.
+- **UT 57080 vs 57300** both bind to Orem-area ZIPs. Census says
+  57080 is Orem; iter-180 has 57300 as Orem. Possibly a sales/use
+  pair or alternate-code convention -- needs disambiguation.
+- **WI long tail (~1782 placeholders)** mostly Wisconsin Towns (a
+  township-level government), not in Census Place gazetteer. Use
+  `2024_gaz_cousub_55.txt` (Census County Subdivision file) to
+  cover Towns. Mechanical batch through 100+ iters wasn't appropriate
+  for the autonomous loop; better as a one-time script that downloads
+  the cousub file once and processes the whole pool offline.
 
 ## Recent releases (latest first)
 
