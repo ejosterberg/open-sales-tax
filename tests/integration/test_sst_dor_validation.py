@@ -7324,29 +7324,49 @@ def test_shipping_tax_matches_rule(
 
 
 # ---------------------------------------------------------------------------
-# MN transit-district cross-county leak regression (iter-211)
+# District-label-correctness regression (iter-211..220)
 # ---------------------------------------------------------------------------
-# See specs/findings/mn-transit-district-cross-county-leak.md for the bug
-# context. Several MN transit-district authorities are bound to ZIPs in
-# counties they don't belong to (Anoka onto Stearns, Cook onto Stearns,
-# St. Louis onto Beltrami, etc.). Each row pins one (ZIP, district name
-# that must NOT appear in the response).
+# See specs/findings/mn-transit-district-cross-county-leak.md for the
+# investigation history. The original iter-211 hypothesis was that the
+# SST loader was leaking district authorities across counties. iter-215
+# inspected the raw SST source CSV and showed the loader is fine -- the
+# real issue was that mn_names.py (and likely ia_names.py / nc_names.py)
+# had WRONG mappings between SST jurisdiction codes and friendly names.
 #
-# Marked xfail until the loader fix lands; an xpass means the bug is
-# fixed and the marker should be removed.
-MN_DISTRICT_LEAK_GRID: list[tuple[str, str, str]] = [
-    # ZIP 56301 (St. Cloud, Stearns Co) -- should NOT have Anoka district
+# Concrete example: code 80001 in MN's SST file binds to 553+563 ZIP
+# prefixes (Anoka+Stearns). mn_names.py iter-83 labelled it
+# "Cook County Transportation Sales Tax" -- demonstrably impossible
+# since Cook County sits in 556xx, far away from either 553 or 563.
+#
+# iter-220 re-derived the entire MN mapping from MN DOR's authoritative
+# "Tax Type Codes" xlsx (revenue.state.mn.us/media/document/58036). After
+# the fix lands AND prod gets a data reload, these tests will xpass --
+# the historically-wrong names will no longer appear in any response.
+#
+# Each row asserts: for the given ZIP, the (now-known-wrong) name MUST
+# NOT appear in the response. Test stays xfail until prod's data is
+# reloaded with the corrected mn_names.py; remove xfail at that point.
+MN_DISTRICT_LABEL_GRID: list[tuple[str, str, str]] = [
+    # ZIP 56301 (St. Cloud, Stearns Co): code 80012 was wrongly labelled
+    # "Anoka County Transportation Sales Tax" -- now "Stearns County Sales".
     ("56301", "Anoka County Transportation Sales Tax", "St. Cloud / Stearns Co"),
-    # ZIP 56301 (St. Cloud, Stearns Co) -- should NOT have Cook district
+    # ZIP 56301: code 80001 was wrongly labelled "Cook County
+    # Transportation Sales Tax" -- now "St. Cloud Area Sales and Use Tax".
     ("56301", "Cook County Transportation Sales Tax", "St. Cloud / Stearns Co"),
-    # ZIP 56310 (Avon, Stearns Co) -- should NOT have Anoka district
+    # ZIP 56310 (Avon, Stearns Co): same as 56301 / code 80012.
     ("56310", "Anoka County Transportation Sales Tax", "Avon / Stearns Co"),
-    # ZIP 56630 (Blackduck, Beltrami Co) -- should NOT have St. Louis district
+    # ZIP 56630 (Blackduck, Beltrami Co): code 80011 was wrongly labelled
+    # "St. Louis County Transportation Sales Tax" -- now "Beltrami County
+    # Sales and Use Tax".
     ("56630", "St. Louis County Transportation Sales Tax", "Blackduck / Beltrami Co"),
-    # iter-214 cross-state extension -- same bug class in IA + NC.
-    # ZIP 50001 (Ackworth, Warren Co IA) -- should NOT have Union LOST
+    # IA + NC parallel cases (different states, same label-mismatch class).
+    # ZIP 50001 (Ackworth, Warren Co IA): SST binds district 98181 ->
+    # "Union County LOST" but Warren Co (where the ZIP physically lives
+    # per Census ZCTA) shouldn't have Union's tax.
     ("50001", "Union County Local Option Sales Tax", "Ackworth / Warren Co IA"),
-    # ZIP 27915 (Avon, Dare Co NC) -- should NOT have Durham transit
+    # ZIP 27915 (Avon, Dare Co NC): nc_names.py mislabels code 99055 as
+    # "Durham County Public Transportation Sales Tax" -- FIPS pattern
+    # says 99055 -> FIPS 37055 = Dare County. Label is wrong.
     ("27915", "Durham County Public Transportation Sales Tax", "Avon NC / Dare Co"),
 ]
 
@@ -7354,27 +7374,29 @@ MN_DISTRICT_LEAK_GRID: list[tuple[str, str, str]] = [
 @pytest.mark.liveapi
 @pytest.mark.xfail(
     reason=(
-        "Known bug -- MN transit districts leak across county boundaries. "
-        "See specs/findings/mn-transit-district-cross-county-leak.md. "
-        "Remove this xfail when the loader fix lands; xpass = fixed."
+        "MN labels fixed in mn_names.py iter-220 but prod data not yet "
+        "reloaded; tests pass once data reload runs. IA + NC label fixes "
+        "still pending. See specs/findings/mn-transit-district-cross-county-leak.md. "
+        "When all 6 rows xpass, remove the xfail marker."
     ),
     strict=False,
 )
 @pytest.mark.parametrize(
     ("zip5", "leak_district_name", "label"),
-    MN_DISTRICT_LEAK_GRID,
-    ids=[f"{r[0]}-no-{r[1].split()[0]}" for r in MN_DISTRICT_LEAK_GRID],
+    MN_DISTRICT_LABEL_GRID,
+    ids=[f"{r[0]}-no-{r[1].split()[0]}" for r in MN_DISTRICT_LABEL_GRID],
 )
-def test_mn_district_no_cross_county_leak(
+def test_mn_district_label_correct(
     zip5: str,
     leak_district_name: str,
     label: str,
 ) -> None:
-    """A non-Anoka/Cook/St-Louis ZIP must not stack those districts.
+    """A ZIP must not surface a historically-wrong district label.
 
-    Currently fails: ZIP 56301 (Stearns Co) over-collects ~0.875% from
-    phantom Anoka + Cook district authorities. Pinned here so the fix
-    flips xfail -> xpass when it lands.
+    For each (ZIP, historically-wrong-name) pair, assert the wrong name
+    does NOT appear in the response's jurisdictions list. Failure means
+    either (a) mn_names.py / ia_names.py / nc_names.py still has the
+    wrong label, or (b) prod hasn't been re-loaded since the fix.
     """
     last_exc: Exception | None = None
     response = None

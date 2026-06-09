@@ -1,4 +1,13 @@
-# Finding: SST district code mappings may be wrong (RETRACTED → REFRAMED)
+# Finding: SST district code mappings may be wrong (iter-220 RESOLVED for MN)
+
+> **iter-220 RESOLUTION (2026-05-19):** MN portion of this finding is
+> CLOSED. Deep-research on MN DOR's authoritative "Tax Type Codes"
+> spreadsheet (`tax-type-codes.xlsx` at revenue.state.mn.us/media/document/58036)
+> produced a definitive code → name mapping for all MN 80xxx
+> district codes. `mn_names.py` has been re-derived from that
+> spreadsheet and now includes 52 entries (up from 10), all correct.
+> Remaining work: prod data reload (mechanical) + same pattern
+> investigation for IA + NC code mappings.
 
 **Original claim (iter-211):** MN transit district authorities have
 cross-county ZIP bindings caused by a loader bug.
