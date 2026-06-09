@@ -107,6 +107,28 @@ WI_CITY_NAMES: dict[str, str] = {
     "83175": "Wales",  # ZIP 53183 (Waukesha Co; FIPS Place 5583175)
     "84675": "Wauwatosa",  # ZIP 53226 (Milwaukee Co; FIPS Place 5584675)
     "88150": "Wisconsin Dells",  # ZIP 53965 (Columbia/Sauk Co; FIPS Place 5588150)
+    # iter-231 additions (12, 2026-05-19): Census 2024 Gazetteer for WI
+    # places (state 55). Same bulk-lookup pattern proven on UT in
+    # iter-226..230. Each SST code XXXXX matches Census FIPS Place
+    # 55-XXXXX.
+    "00100": "Abbotsford",  # FIPS Place 5500100 (Clark/Marathon Co)
+    "00275": "Adams",  # FIPS Place 5500275 (Adams Co)
+    "00450": "Adell",  # FIPS Place 5500450 (Sheboygan Co; village)
+    "00750": "Albany",  # FIPS Place 5500750 (Green Co; village)
+    "01000": "Algoma",  # FIPS Place 5501000 (Kewaunee Co)
+    "01150": "Allouez",  # FIPS Place 5501150 (Brown Co; village)
+    "01225": "Alma",  # FIPS Place 5501225 (Buffalo Co)
+    "01300": "Alma Center",  # FIPS Place 5501300 (Jackson Co; village)
+    "01325": "Almena",  # FIPS Place 5501325 (Barron Co; village)
+    "01400": "Almond",  # FIPS Place 5501400 (Portage Co; village)
+    "01725": "Amery",  # FIPS Place 5501725 (Polk Co)
+    "01750": "Amherst",  # FIPS Place 5501750 (Portage Co; village)
+    # NOTE: WI has ~1850 SST city placeholders total; the Census
+    # Gazetteer for WI places only covers cities, villages, and CDPs.
+    # WI's unique Town governance form (used in townships) is NOT in
+    # the Place gazetteer -- WI Towns require the Census County
+    # Subdivision file (2024_gaz_cousub_55.txt). Future iters can use
+    # that file to label the remaining ~70% of WI codes.
 }
 
 
