@@ -482,7 +482,7 @@ class NewMexico:
         """
         del source_file, version_label
         yield RateRow(
-            authority_name="New Mexico",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=NM_STATE_RATE_PCT,
             effective_from=NM_STATE_EFFECTIVE_FROM,
@@ -502,7 +502,7 @@ class NewMexico:
                 rate_pct=Decimal("0.000"),
                 effective_from=NM_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name="New Mexico",
+                parent_authority_name=self.state_name,
             )
         # Emit ONE city RateRow per covered location. The "city"
         # authority carries the combined-local (county + city +
@@ -593,7 +593,7 @@ class NewMexico:
                 # loader closes this gap.
                 continue
             yield BoundaryRow(
-                authority_name="New Mexico",
+                authority_name=self.state_name,
                 authority_type="state",
                 zip5=zip5,
                 zip4_low=None,
@@ -614,7 +614,7 @@ class NewMexico:
             for zip5 in zips:
                 if zip5 not in emitted_zips:
                     yield BoundaryRow(
-                        authority_name="New Mexico",
+                        authority_name=self.state_name,
                         authority_type="state",
                         zip5=zip5,
                         zip4_low=None,

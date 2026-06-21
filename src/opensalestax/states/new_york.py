@@ -160,7 +160,7 @@ class NewYork:
         del source_file, version_label
         # State row -- 4.0%.
         yield RateRow(
-            authority_name="New York",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=NY_STATE_RATE_PCT,
             effective_from=NY_STATE_EFFECTIVE_FROM,
@@ -176,7 +176,7 @@ class NewYork:
             rate_pct=NY_MCTD_RATE,
             effective_from=NY_STATE_EFFECTIVE_FROM,
             effective_to=None,
-            parent_authority_name="New York",
+            parent_authority_name=self.state_name,
         )
         # Per-county rows -- every NY county. The ZIP_COUNTY-driven
         # boundary loader binds every NY ZIP to its county, so every
@@ -188,7 +188,7 @@ class NewYork:
                 rate_pct=NY_COUNTY_RATE_PCT[ny_county_name],
                 effective_from=NY_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name="New York",
+                parent_authority_name=self.state_name,
             )
         # Per-city rows. Most cities have a 0% city rate; only NYC
         # (4.5%), Yonkers (1.5%), New Rochelle / Mount Vernon /
@@ -262,7 +262,7 @@ class NewYork:
             if chosen_county is None:
                 continue
             yield BoundaryRow(
-                authority_name="New York",
+                authority_name=self.state_name,
                 authority_type="state",
                 zip5=zip5,
                 zip4_low=None,
@@ -294,7 +294,7 @@ class NewYork:
             for zip5 in zips:
                 if zip5 not in emitted_zips:
                     yield BoundaryRow(
-                        authority_name="New York",
+                        authority_name=self.state_name,
                         authority_type="state",
                         zip5=zip5,
                         zip4_low=None,

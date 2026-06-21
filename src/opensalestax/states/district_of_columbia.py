@@ -209,7 +209,7 @@ class DistrictOfColumbia:
         """
         del source_file, version_label
         yield RateRow(
-            authority_name="District of Columbia",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=Decimal("6.000"),
             effective_from=_GENERAL_RATE_6PCT_EFFECTIVE_FROM,
@@ -217,7 +217,7 @@ class DistrictOfColumbia:
             parent_authority_name=None,
         )
         yield RateRow(
-            authority_name="District of Columbia",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=Decimal("7.000"),
             effective_from=_GENERAL_RATE_7PCT_EFFECTIVE_FROM,

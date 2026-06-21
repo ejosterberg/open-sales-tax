@@ -360,9 +360,7 @@ async def _compute_shipping_tax(
             amount=shipping.amount,
             tax_amount=Decimal("0"),
             rate_pct=Decimal("0"),
-            taxable_reason=(
-                "No state-level jurisdiction matched the address; shipping " "not taxed."
-            ),
+            taxable_reason=("No state-level jurisdiction matched the address; shipping not taxed."),
         )
 
     state_module = get_state_module(state_abbrev)
@@ -392,17 +390,16 @@ async def _compute_shipping_tax(
         any_line_taxable = any(line.tax > 0 for line in lines_out)
         is_taxable = any_line_taxable
         reason = (
-            f"{state_abbrev} taxes shipping when items are taxable " f"({rule_set.citation})."
+            f"{state_abbrev} taxes shipping when items are taxable ({rule_set.citation})."
             if is_taxable
-            else f"{state_abbrev} exempts shipping when no items are taxable "
-            f"({rule_set.citation})."
+            else f"{state_abbrev} exempts shipping when no items are taxable ({rule_set.citation})."
         )
     elif rule == ShippingRule.EXEMPT_IF_SEPARATELY_STATED:
         is_taxable = not shipping.separately_stated
         reason = (
-            f"{state_abbrev} taxes shipping when not separately stated " f"({rule_set.citation})."
+            f"{state_abbrev} taxes shipping when not separately stated ({rule_set.citation})."
             if is_taxable
-            else f"{state_abbrev} exempts separately-stated shipping " f"({rule_set.citation})."
+            else f"{state_abbrev} exempts separately-stated shipping ({rule_set.citation})."
         )
     else:
         # MIXED — currently only MD; the handling_rule override is

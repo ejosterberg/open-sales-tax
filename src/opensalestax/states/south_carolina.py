@@ -224,7 +224,7 @@ class SouthCarolina:
         """
         del source_file, version_label
         yield RateRow(
-            authority_name="South Carolina",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=SC_STATE_RATE_PCT,
             effective_from=SC_STATE_EFFECTIVE_FROM,
@@ -241,7 +241,7 @@ class SouthCarolina:
                 rate_pct=SC_COUNTY_RATE_PCT[sc_county_name],
                 effective_from=SC_STATE_EFFECTIVE_FROM,
                 effective_to=None,
-                parent_authority_name="South Carolina",
+                parent_authority_name=self.state_name,
             )
         for city_name, (sc_city_county, city_rate, _zips) in sorted(SC_CITIES.items()):
             yield RateRow(
@@ -321,7 +321,7 @@ class SouthCarolina:
             if chosen_county is None:
                 continue
             yield BoundaryRow(
-                authority_name="South Carolina",
+                authority_name=self.state_name,
                 authority_type="state",
                 zip5=zip5,
                 zip4_low=None,
@@ -342,7 +342,7 @@ class SouthCarolina:
             for zip5 in zips:
                 if zip5 not in emitted_zips:
                     yield BoundaryRow(
-                        authority_name="South Carolina",
+                        authority_name=self.state_name,
                         authority_type="state",
                         zip5=zip5,
                         zip4_low=None,

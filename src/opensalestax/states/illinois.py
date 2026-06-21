@@ -225,13 +225,14 @@ class Illinois:
         """
         del source_file, version_label
         # County → RTA mapping per 70 ILCS 3615/4.03.
+        rta_collar = "RTA (Collar Counties)"
         rta_for_county: dict[str, str] = {
             "Cook County": "RTA (Cook County)",
-            "DuPage County": "RTA (Collar Counties)",
-            "Kane County": "RTA (Collar Counties)",
-            "Lake County": "RTA (Collar Counties)",
-            "McHenry County": "RTA (Collar Counties)",
-            "Will County": "RTA (Collar Counties)",
+            "DuPage County": rta_collar,
+            "Kane County": rta_collar,
+            "Lake County": rta_collar,
+            "McHenry County": rta_collar,
+            "Will County": rta_collar,
         }
 
         # Build city-anchor county map for cross-county-line ZIPs.

@@ -81,7 +81,7 @@ def version() -> None:
 
 @app.command()
 def serve(
-    host: str = typer.Option("0.0.0.0", help="Bind interface."),  # noqa: S104
+    host: str = typer.Option("0.0.0.0", help="Bind interface."),  # noqa: S104  # nosec B104
     port: int = typer.Option(8080, help="Bind port."),
     reload: bool = typer.Option(False, help="Auto-reload on code change (dev only)."),
 ) -> None:
@@ -92,6 +92,29 @@ def serve(
         uvicorn --factory opensalestax.app:create_app --host <HOST> --port <PORT>
 
     Requires ``OPENSALESTAX_DATABASE_URL`` to be set.
+
+    Security note: the default bind host is 0.0.0.0 (all interfaces).
+    This is intentional and standard for containerized deployments --
+    the container's network namespace already constrains exposure.
+    Compensating controls layered on top:
+
+    1. The API enforces per-IP rate limits (SlowAPIMiddleware, default
+       60 req/min; see specs/security/audit-2026-05-04.md section "The
+       one real bug found").
+    2. Sensitive endpoints require X-API-Key (SHA-256 hashed, 192-bit
+       entropy); only the read-only /v1/rates and /v1/calculate are
+       publicly anonymous.
+    3. Defense-in-depth headers (HSTS, X-Frame-Options, Referrer-
+       Policy, Permissions-Policy) ship on every response.
+    4. Production deployments front the container with Cloudflare,
+       which terminates TLS and provides DDoS protection. Direct
+       container access is firewall-restricted to localhost.
+    5. The ``--host`` flag accepts any override; an operator who wants
+       loopback-only binding can pass ``--host 127.0.0.1``.
+
+    Suppressions: ``# noqa: S104`` for ruff; ``# nosec B104`` for
+    bandit. Both refer to the same finding (bind-to-all-interfaces);
+    both are accepted with the controls above.
     """
     import uvicorn
 

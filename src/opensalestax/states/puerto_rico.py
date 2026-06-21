@@ -455,7 +455,7 @@ class PuertoRico:
         """
         del source_file, version_label
         yield RateRow(
-            authority_name="Puerto Rico",
+            authority_name=self.state_name,
             authority_type="state",
             rate_pct=Decimal("10.500"),
             effective_from=_RATE_EFFECTIVE_FROM,
@@ -468,7 +468,7 @@ class PuertoRico:
             rate_pct=Decimal("1.000"),
             effective_from=_RATE_EFFECTIVE_FROM,
             effective_to=None,
-            parent_authority_name="Puerto Rico",
+            parent_authority_name=self.state_name,
         )
 
     def parse_boundaries(
