@@ -185,6 +185,32 @@ To run either task immediately rather than waiting for the
 schedule, use the "Scheduled" sidebar → "Run now" on the task,
 or list via `mcp__scheduled-tasks__list_scheduled_tasks`.
 
+### MANDATORY security gate (iter-234)
+
+Per Eric's standing directive ("security scans run with any change
+before it is posted"), BOTH scheduled tasks were updated to require
+a SonarQube scan + the `quality-gate` skill before any `git push`.
+Push must be blocked if either:
+
+1. `quality-gate` reports any FAIL (ruff format/check, mypy strict,
+   pytest, pip-audit).
+2. SonarQube scan introduces ANY new BLOCKER or CRITICAL finding
+   vs. the previous baseline.
+
+OWASP self-review is also required on the diff (SQL injection,
+path traversal, credential exposure, auth bypass, info leakage).
+
+**Baseline established iter-234 (2026-05-19):**
+- 0 bugs / 0 vulnerabilities / 0 security hotspots
+- Reliability A / Security A / Maintainability A
+- 29 CRITICAL code smells (pre-existing — all dated 2026-05-04..06
+  or 2026-05-17, none from the iter-203..233 session)
+- 4 MAJOR code smells
+- Dashboard: http://10.32.161.205:9000/dashboard?id=opensalestax
+
+Any scheduled-task run that introduces a 30th CRITICAL finding (or
+any new BLOCKER) blocks itself before push.
+
 ## What to start on next
 
 **The obvious next move is deploying iter-220/221 to prod + a
