@@ -122,19 +122,68 @@ for the full investigation history including iter-211's wrong
 in `scripts/audit_district_code_bindings.py` (iter-216..218),
 and both deep-research workflow IDs.
 
-## Standing process: monthly state-rate audit (iter-219)
+## Standing processes (recurring scheduled tasks)
 
-A recurring scheduled Claude task fires the 1st of every month at
-7am local time (taskId: `monthly-state-tax-audit`). It audits all
-50 states + DC + PR for rate changes since last audit and writes
-the report to `specs/audits/monthly-rate-audit-YYYY-MM-DD.md`,
-auto-commits small mechanical fixes, and spawns chips for larger
-refreshes. Next run: 2026-06-01.
+Two scheduled Claude tasks keep the project actively maintained
+without Eric having to drive every cadence step. Both are stored
+under `C:\Users\ejosterberg\.claude\scheduled-tasks\` and run when
+the Claude Code app is open (or on next launch if it was closed
+when the cron fired).
 
-If you want to invoke it ad-hoc (e.g. after a known rate change
-hits the news), use the "Scheduled" sidebar → "Run now" on
-`monthly-state-tax-audit`, or `mcp__scheduled-tasks__list_scheduled_tasks`
-to find its taskId and call the runtime accordingly.
+### Daily state-tax audit (`monthly-state-tax-audit` taskId)
+
+**Schedule:** 7am local, every day. Cycles through 2 jurisdictions
+per day; 26 days covers all 52 (50 states + DC + PR). Days 27-31
+are buffer.
+
+| Day | Pair | Day | Pair |
+|----:|------|----:|------|
+|  1 | AK, AL |  14 | MT, NC |
+|  2 | AR, AZ |  15 | ND, NE |
+|  3 | CA, CO |  16 | NH, NJ |
+|  4 | CT, DC |  17 | NM, NV |
+|  5 | DE, FL |  18 | NY, OH |
+|  6 | GA, HI |  19 | OK, OR |
+|  7 | IA, ID |  20 | PA, PR |
+|  8 | IL, IN |  21 | RI, SC |
+|  9 | KS, KY |  22 | SD, TN |
+| 10 | LA, MA |  23 | TX, UT |
+| 11 | MD, ME |  24 | VA, VT |
+| 12 | MI, MN |  25 | WA, WI |
+| 13 | MO, MS |  26 | WV, WY |
+
+Per-state procedure compares the state's authoritative DOR (or
+SST Governing Board for SST members) rate publication against
+the live engine, writes findings to `specs/audits/YYYY/MM/state-
+audit-YYYY-MM-DD.md`, auto-commits trivial fixes, chips larger
+refreshes for Eric's review.
+
+Set up in iter-219 as monthly; reshaped to daily-rotation in
+iter-233 per Eric's feedback that monthly-as-one-big-batch was
+too coarse.
+
+### Weekly software improvement (`weekly-software-improvement` taskId)
+
+**Schedule:** 8am local, every Monday. Looks for the highest-yield
+improvement to ship that week. 7-tier decision tree:
+
+1. Real bugs / correctness / security issues open right now
+2. Open items in handoff.md's "what to start on next"
+3. Sales-tax-legislation discoveries worth converting to public
+   `docs/legislation/<topic>.md` explainers
+4. Documentation gaps (TODOs, missing examples, stale docstrings)
+5. Test coverage gaps (modules below 80%)
+6. Performance / code-smell wins (audit script, profiling)
+7. Community signal (issues, PRs, external mentions)
+
+Last resort: improve a state module's docstring to read better
+for a contributor. Set up in iter-233.
+
+### Invoking ad-hoc
+
+To run either task immediately rather than waiting for the
+schedule, use the "Scheduled" sidebar → "Run now" on the task,
+or list via `mcp__scheduled-tasks__list_scheduled_tasks`.
 
 ## What to start on next
 
