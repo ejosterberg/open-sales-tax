@@ -209,9 +209,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Milwaukee",
         "53202",
         "2402",
-        "5.900",
+        # iter-236 audit (2026-06-29): bumped 5.900 -> 7.900. This pin
+        # predated WI Act 12 (Milwaukee city 2% sales tax, effective
+        # 2024-01-01) and only summed state 5% + Milwaukee County 0.9%.
+        # Downtown 53202 is inside Milwaukee city limits, so the 2% city
+        # tax applies. The live engine returns 7.900 and the parallel
+        # iter-63 pin (53202-0001) already expects 7.900 (WI Act 12).
+        "7.900",
         "0.05",
-        "WI DOR (state 5% + Milwaukee County 0.9%)",
+        "WI DOR (state 5% + Milwaukee County 0.9% + Milwaukee city 2% per Act 12)",
     ),
     ("WI", "Madison", "53703", "3505", "5.500", "0.05", "WI DOR (state 5% + Dane County 0.5%)"),
     # West Virginia -- WV DOR sales tax 2026-Q1
