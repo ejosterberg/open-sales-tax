@@ -56,6 +56,12 @@ class StateModule(Protocol):
 
 ## Step-by-step: adding a tier-2 SST state
 
+> New to the SST data files? Read
+> [the SST quarterly file format field guide](legislation/sst-file-format.md)
+> first — it explains the filename convention, the rate and boundary
+> file layouts, and the format gotchas before you meet them in a
+> failing test.
+
 **This is the easiest contribution.** If your state is in SST
 but not yet listed, add it in three steps:
 

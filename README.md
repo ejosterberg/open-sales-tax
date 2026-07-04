@@ -241,7 +241,9 @@ every state is a Python module implementing a small Protocol.
 Maintainers are listed per-state in [MAINTAINERS.md](MAINTAINERS.md).
 
 To add or improve your state's module, see
-[docs/state-modules.md](docs/state-modules.md).
+[docs/state-modules.md](docs/state-modules.md). For a plain-English
+tour of the underlying data files, see
+[the SST quarterly file format field guide](docs/legislation/sst-file-format.md).
 
 ## License + provenance
 
