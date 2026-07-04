@@ -152,7 +152,17 @@ jobs:
             poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
+        # MariaDB support ships as the optional `mariadb` extra (asyncmy). The
+        # mariadb matrix leg must install it to exercise the mysql+asyncmy path;
+        # the postgres leg deliberately omits it, which also verifies a default
+        # (PostgreSQL-only) install needs no asyncmy. See db/session.py and
+        # specs/findings/asyncmy-sqli-pysec-2026-286.md.
+        run: |
+          if [ "${{ matrix.db }}" = "mariadb" ]; then
+            poetry install --no-interaction --no-ansi --extras mariadb
+          else
+            poetry install --no-interaction --no-ansi
+          fi
 
       - name: Set DATABASE_URL for ${{ matrix.db }}
         run: |
