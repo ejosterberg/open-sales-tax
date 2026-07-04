@@ -67,9 +67,10 @@ trio = ["trio (>=0.32.0)"]
 name = "asyncmy"
 version = "0.2.11"
 description = "A fast asyncio MySQL driver"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"mariadb\""
 files = [
     {file = "asyncmy-0.2.11-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d1c3b957024d1eccb5053e78aa6e1e522943922a4853b03402acf13c93e9e54d"},
     {file = "asyncmy-0.2.11-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d6fc770fd29784302b4961e0ce865712e88aabc8451d42381193fa8f2b2a92ad"},
@@ -2198,7 +2199,10 @@ files = [
 [package.extras]
 dev = ["pytest", "setuptools"]
 
+[extras]
+mariadb = ["asyncmy"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "f0fd8cbf4156fce14cd7ad4f203b79fc10b09f4783daddce28bb77f3510bacfd"
+content-hash = "f46f1af397dc6742edc17bd10d7bd3d33afcfd66cb85bac5c95e9e07e55823ae"

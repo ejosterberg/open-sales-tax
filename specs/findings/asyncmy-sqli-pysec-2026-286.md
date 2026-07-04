@@ -1,8 +1,30 @@
 # Finding: asyncmy SQL-injection (PYSEC-2026-286) — Critical, no upstream fix
 
 **Opened:** 2026-07-04 (from pip-audit during the daily state-tax audit gate)
-**Status:** OPEN — awaiting a decision on making `asyncmy` an optional extra
+**Status:** MITIGATED (asyncmy made an optional extra 2026-07-04) — still
+watching weekly for an upstream fix; asyncmy remains unfixed at 0.2.11.
 **Severity:** Critical (CVSS 9.8)
+
+## Update 2026-07-04 — mitigation applied
+
+Eric approved making `asyncmy` optional. Shipped on branch
+`deps/pytest9-pip-audit-2026-07`:
+
+- `asyncmy` moved to `{optional = true}` + a `[tool.poetry.extras]`
+  `mariadb = ["asyncmy"]`. Default (PostgreSQL) installs no longer pull the
+  Critical-CVE wheel; confirmed via `poetry install --sync --dry-run`
+  ("Removing asyncmy"). MariaDB users opt in: `pip install "opensalestax[mariadb]"`.
+- `db/session.py` gained `_require_dsn_driver()`: a `mysql+asyncmy://` DSN
+  without the extra now fails fast with the exact install command instead of
+  a bare `ModuleNotFoundError` on first connect. Covered by
+  `tests/unit/test_db_session.py` (4 tests).
+- README + `settings.py` DSN docstring updated with the extra.
+
+**Weekly watch:** a scheduled task re-checks PyPI/OSV for (a) an asyncmy
+release > 0.2.11 that fixes PYSEC-2026-286 and (b) any change in aiomysql's
+advisory/maintenance status. When a fix ships, pin asyncmy to it. The
+optional-extra structure stays regardless — it's good hygiene, not just a
+CVE workaround.
 
 ## What
 
