@@ -22,6 +22,16 @@ The rate increase is a confirmed scheduled change per the OTR
 Both rate rows are emitted with effective-dated bounds so the
 engine picks the correct rate for any transaction date.
 
+**AUDIT TRAP -- do NOT change the current rate to 6.5%.** DC's FY2025
+budget originally set a two-step increase (6% -> 6.5% on 2025-10-01,
+then 6.5% -> 7% on 2026-10-01). The *Sales Tax Increase Delay
+Amendment Act of 2025* **cancelled the 6.5% step**: the general rate
+**remains 6.0% through 2026-09-30** and then goes **directly to 7.0%
+on 2026-10-01**. Several third-party aggregators (taxcloud, kintsugi,
+vatupdate, sales.tax) still list 6.5% as the "current" rate -- that is
+stale/incorrect. Verify against otr.cfo.dc.gov, not aggregators.
+(Confirmed in daily-audit 2026-07-04.)
+
 ## DC special-category rates (NOT encoded in v0.6 -- see PR notes)
 
 DC imposes higher sales-tax rates on several non-general categories
