@@ -305,6 +305,30 @@ If Eric wants none of the above, ask before pivoting.
   correctly returns 7.900% (Milwaukee city 2% per WI Act 12). Pin bumped
   to 7.900 with an explanatory comment. No engine change.
 
+## Recent improvements (weekly sweeps)
+
+- **2026-07-04 — Public SST file-format field guide (Tier 3).** The
+  weekly software-improvement sweep converted the project's
+  accumulated SST-format knowledge — previously scattered across
+  `specs/research/sst-file-format.md` and
+  `specs/findings/sst-source-file-quirks.md` — into a public,
+  contributor-facing explainer at
+  [`docs/legislation/sst-file-format.md`](../docs/legislation/sst-file-format.md).
+  It walks a cold contributor through the filename/version convention,
+  the 9-column rate file (and the non-standardized col-2
+  jurisdiction-type code), the 89/90-column boundary file with its
+  `z`/`4`/`a` records and repeating district triplets, and every
+  format gotcha that cost real debugging time (VT BOM, single-digit
+  days, csv↔zip migration, the two no-end-date sentinels, phantom
+  type-45 location codes, ZIP+4 zero-padding, the 90th-column
+  widening) — each grounded in the actual parser source. Added
+  `docs/legislation/README.md` as an index for future explainers and
+  linked the guide from `README.md` + `docs/state-modules.md` so it's
+  the first thing a new-state contributor finds. Docs-only, no
+  code/dependency surface. Gate: ruff format/check + mypy (134 files)
+  + pytest (1560 passed) all green; **SonarQube 0 new BLOCKER/CRITICAL**
+  (baseline 0, current 0). Commit `7bd82f2` on `main`.
+
 ## Recent releases (latest first)
 
 - **v0.59.0** (2026-05-17, iter-198): **First-class shipping field
