@@ -268,6 +268,33 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **HI Maui County GET surcharge FIXED in repo, prod reload PENDING
+  (audit 2026-07-06, commit f68fe40, chipped).** The engine had
+  under-collected the **Maui County 0.5% GET surcharge on every
+  Maui-County transaction since 2024-01-01**: `hi_data.py` recorded
+  Maui at 0.000% (combined 4.0%) with a wrong "not enacted" comment.
+  The surcharge was in fact enacted by County Ordinance 5511 (signed
+  2023-07-19), effective 2024-01-01 → 2030-12-31 — confirmed vs the HI
+  DOTAX county-surcharge schedule + Maui County Council notice. This
+  resolves the long-standing iter-158/159 open item. Fixed: Maui
+  0.000→0.500%, all HI docstrings/notes, **HI removed from
+  `STATE_COVERAGE_WARNINGS`** (gap now closed — all 4 inhabited
+  counties correct at 4.5%), stale "HI Maui dispute" refs cleaned from
+  api schemas/handlers, and tests (incl. Kahului 96732 pin 4.000→4.500,
+  `test_hawaii_combined_rate_maui_is_4_5`). **The live engine still
+  returns 4.0% for Maui until prod is redeployed + HI reloaded** — chip
+  "Deploy HI Maui GET fix to prod (reload HI)" carries the sequence.
+  Until then the Kahului pin fails under `-m liveapi`. Flag for CY2030:
+  all current HI county surcharges sunset 2030-12-31. See
+  `specs/findings/hi-maui-county-surcharge-2026-07.md` and
+  `specs/audits/2026/07/state-audit-2026-07-06.md`.
+- **GA SST rate file 1 quarter behind (audit 2026-07-06, chipped).**
+  Prod caches `GAR2026Q2FEB19` / `GAB2026Q2FEB16` (Q2 2026); latest SST
+  rate file is `GAR2026Q3JUN05` (posted 2026-06-08). No real-world drift
+  — all 10 GA tier-1 cities match the engine + GA DOR published rates.
+  Routine currency refresh; chip "Refresh GA SST quarterly to
+  GAR2026Q3JUN05" carries the load sequence. See
+  `specs/audits/2026/07/state-audit-2026-07-06.md`.
 - **FL Collier + Palm Beach over-collect FIXED in repo, prod reload
   PENDING (audit 2026-07-05, commit 32a61f6, chipped).** The CY2026
   DR-15DSS (R.11/25) cross-check caught two stale FL county surtaxes
