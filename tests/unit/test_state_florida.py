@@ -79,6 +79,15 @@ def test_florida_county_surtax_rates_within_legal_range() -> None:
         ("Pinellas County", Decimal("1.000")),
         ("Leon County", Decimal("1.500")),
         ("Citrus County", Decimal("0.000")),  # No surtax -- combined 6%
+        # daily-audit 2026-07-05: corrected from stale 1.000 values.
+        (
+            "Collier County",
+            Decimal("0.000"),
+        ),  # DR-15DSS CY2026 "None" (1% infra surtax ended at cap)
+        (
+            "Palm Beach County",
+            Decimal("0.500"),
+        ),  # DR-15DSS CY2026: 0.5% eff Jan 1 2026 (prior 1% ended)
     ],
 )
 def test_florida_well_known_county_surtaxes(county: str, expected_pct: Decimal) -> None:

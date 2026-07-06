@@ -10,8 +10,14 @@ FL DOR and posted at:
   https://floridarevenue.com/taxes/taxesfees/Pages/discretionary_sales_surtax.aspx
 
 Cross-checked against the FL DOR Tax Information Publication (TIP)
-series for any county-rate changes after the annual DR-15DSS issue
-(verified 2026-05-04 -- no mid-year 2026 changes posted).
+series for any county-rate changes after the annual DR-15DSS issue.
+Re-verified 2026-07-05 (daily state-tax audit) against the CY2026
+DR-15DSS (R. 11/25): two stale values carried over from the
+2026-05-04 build were corrected -- **Collier** (was 1.000; the
+CY2026 table lists it "None") and **Palm Beach** (was 1.000; the
+CY2026 table shows 0.500 effective Jan 1 2026, the prior 1%
+infrastructure surtax having ended). Both cross-confirmed against
+Avalara + SalesTaxHandbook. No other CY2026 tier-1 drift found.
 
 Architecture: Florida has only TWO modeled layers; there is **no
 city-level general sales tax** anywhere in the state.
@@ -72,6 +78,15 @@ Notable 2026 surtax-rate situations to watch:
 - **Broward** -- **1.0%** (0.5% transportation + 0.5% county
   infrastructure).
 - **Orange (Orlando)** -- **0.5%** (school capital outlay).
+- **Palm Beach (West Palm Beach / Boca Raton)** -- **0.5%**
+  effective Jan 1 2026 (the 1% infrastructure surtax that ran
+  2016-2025 ended; a new 0.5% surtax runs Jan 1 2026-Dec 31 2035).
+- **Collier (Naples)** -- **0.0%** (combined 6.0%); the 1%
+  infrastructure surtax (2019 start, $490M/7-yr cap) reached its
+  cap and ended -- DR-15DSS lists Collier "None" for 2025 and 2026.
+- **Brevard / Charlotte** -- both 1.0% now but their component
+  surtaxes carry Dec 31 2026 expirations; re-check at the CY2027
+  DR-15DSS reissue.
 
 DISCLAIMER: This is calculation infrastructure, not tax advice.
 Verify every rate against the current FL DOR DR-15DSS publication
@@ -106,7 +121,9 @@ FL_COUNTY_SURTAX_PCT: dict[str, Decimal] = {
     "Charlotte County": Decimal("1.000"),  # Local Govt Infrastructure
     "Citrus County": Decimal("0.000"),  # No discretionary surtax in 2026
     "Clay County": Decimal("1.500"),  # 1% Local Govt Infra + 0.5% School
-    "Collier County": Decimal("1.000"),  # School Capital Outlay
+    "Collier County": Decimal(
+        "0.000"
+    ),  # daily-audit 2026-07-05: DR-15DSS CY2026 lists Collier "None" (prior 1% infrastructure surtax hit its $490M/7yr cap and ended). Was wrongly 1.000; corrected to 0.000 (Naples etc. -> combined 6.0%)
     "Columbia County": Decimal("1.500"),  # 1% Small County + 0.5% School
     "DeSoto County": Decimal("1.500"),  # 1% Small County + 0.5% School
     "Dixie County": Decimal("1.000"),  # Small County Surtax
@@ -153,7 +170,9 @@ FL_COUNTY_SURTAX_PCT: dict[str, Decimal] = {
     ),  # iter-142: was 1.0; SalesTaxHandbook 2026 shows 1.5 (Small County Surtax + School Capital Outlay)
     "Orange County": Decimal("0.500"),  # School Capital Outlay
     "Osceola County": Decimal("1.500"),  # 1% Transportation + 0.5% School
-    "Palm Beach County": Decimal("1.000"),  # 1% Infrastructure (school surtax expired)
+    "Palm Beach County": Decimal(
+        "0.500"
+    ),  # daily-audit 2026-07-05: DR-15DSS CY2026 (R.11/25) shows 0.5% eff Jan 1 2026 (prior 1% infrastructure surtax ended; new 0.5% Jan 1 2026-Dec 31 2035). Was wrongly 1.000 (stale from build); corrected (WPB/Boca -> combined 6.5%)
     "Pasco County": Decimal("1.000"),  # 0.5% School + 0.5% Local Govt (Penny for Pasco)
     "Pinellas County": Decimal("1.000"),  # Penny for Pinellas (Local Govt Infrastructure)
     "Polk County": Decimal("1.000"),  # 0.5% Indigent Care + 0.5% School
