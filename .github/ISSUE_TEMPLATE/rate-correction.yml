@@ -1,0 +1,100 @@
+name: "💵 Report a wrong or missing sales-tax rate"
+description: "Know a rate that's wrong or missing? Report it here — no coding required."
+title: "[rate] <STATE> <ZIP> — wrong/missing rate"
+labels: ["bug", "rate-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for helping keep OpenSalesTax accurate! 🙏
+
+        **You do not need to write any code to file this.** If you know your
+        state's sales tax — because you're a tax preparer, an accountant, a
+        business owner, DOR staff, or just a resident who checked — you can
+        report a wrong or missing rate here and a maintainer will make the
+        code change.
+
+        The one thing we ask: **cite a primary source** (a state Department
+        of Revenue page, a statute, or the SST published rate file). We can't
+        change a rate on an unsourced claim, and per
+        [constitution §2](https://github.com/ejosterberg/open-sales-tax/blob/main/specs/constitution.md)
+        we can't use figures copied from a commercial tax vendor (Avalara,
+        TaxJar, Vertex, Sovos, TaxCloud).
+
+        Not sure what rate the API currently returns? See
+        [How to check a rate](https://github.com/ejosterberg/open-sales-tax/blob/main/docs/contributing-without-code.md#how-to-check-what-the-api-currently-returns).
+  - type: input
+    id: state
+    attributes:
+      label: State
+      description: "Two-letter abbreviation, e.g. MN, TX, CA."
+      placeholder: "MN"
+    validations:
+      required: true
+  - type: input
+    id: zip
+    attributes:
+      label: ZIP code (5-digit, or ZIP+4 if the rate varies within the ZIP)
+      placeholder: "55101"
+    validations:
+      required: true
+  - type: input
+    id: jurisdiction
+    attributes:
+      label: City / county / district
+      description: "The place name(s) this address falls in, if you know them."
+      placeholder: "Saint Paul, Ramsey County"
+    validations:
+      required: false
+  - type: input
+    id: current_rate
+    attributes:
+      label: What rate does OpenSalesTax return today?
+      description: "The combined rate the API gives now (leave blank if the rate is missing entirely)."
+      placeholder: "6.875%"
+    validations:
+      required: false
+  - type: input
+    id: correct_rate
+    attributes:
+      label: What should the combined rate be?
+      placeholder: "7.875%"
+    validations:
+      required: true
+  - type: input
+    id: effective_date
+    attributes:
+      label: Effective date of the correct rate
+      description: "When did (or does) this rate take effect? Rates change quarterly."
+      placeholder: "2026-04-01"
+    validations:
+      required: false
+  - type: textarea
+    id: source
+    attributes:
+      label: Primary source (required)
+      description: >-
+        A link to a state DOR rate lookup / publication, a statute, or the
+        SST published rate file. Paste the URL and, if helpful, quote the
+        line that shows the rate. This is what lets a maintainer make the fix.
+      placeholder: |
+        https://www.revenue.state.mn.us/sales-tax-rate-calculator
+        "Saint Paul: 7.875% (state 6.875% + Ramsey Co Transit 0.5% + St Paul 0.5%)"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: "Overlapping districts, a boundary quirk, a recent voter-approved change — whatever helps."
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before you submit
+      options:
+        - label: "My source is a primary source (state DOR / statute / SST file), NOT a commercial vendor like Avalara or TaxJar."
+          required: true
+        - label: "I searched existing issues and this isn't already reported."
+          required: true

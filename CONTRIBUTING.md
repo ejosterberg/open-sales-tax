@@ -4,6 +4,12 @@ Thanks for your interest in helping build a free, open-source US sales-tax
 calculation API. This document covers everything you need to make your
 first contribution.
 
+> **Not a developer?** You can still help — and the tax knowledge you'd
+> bring is exactly what the project needs most. See
+> [Help your state without writing Python](docs/contributing-without-code.md)
+> for the no-code paths (report a wrong rate, verify a state, or adopt one).
+> The rest of this document is the Python/pull-request track.
+
 ## TL;DR
 
 1. Fork + clone the repo.

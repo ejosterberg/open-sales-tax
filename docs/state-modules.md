@@ -6,6 +6,10 @@ contributor pattern**: every US state is a Python module
 implementing a small Protocol. Volunteers who know their state's
 tax law can add or upgrade a state's coverage independently.
 
+> **This page is the code track.** If you know a state's tax law but
+> don't write Python, you can still improve its accuracy — see
+> [Help your state without writing Python](contributing-without-code.md).
+
 ## Coverage tiers
 
 | Tier | What it means | Example |

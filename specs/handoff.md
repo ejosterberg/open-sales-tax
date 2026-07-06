@@ -327,6 +327,36 @@ If Eric wants none of the above, ask before pivoting.
 
 ## Recent improvements (weekly sweeps)
 
+- **2026-07-06 — No-code contributor on-ramp (Tier 4 doc gap, driven
+  by Tier 7 community signal).** The weekly sweep responded to open
+  issue [#38](https://github.com/ejosterberg/open-sales-tax/issues/38)
+  ("How are you finding state-module contributors?" — a genuine
+  maintainer question from a fellow founder, unanswered since
+  2026-05-21). The durable answer to "how do you find people with tax-
+  domain knowledge" is to *lower the barrier so domain experts can
+  contribute without Python*, which was previously impossible: every
+  contributor doc (`CONTRIBUTING.md`, `docs/state-modules.md`) assumed
+  the reader writes Python, ran Poetry, and could pytest against two DB
+  engines. Shipped: (1) the project's **first GitHub issue forms** under
+  `.github/ISSUE_TEMPLATE/` — a structured **rate-correction** form (a
+  tax preparer / accountant / business owner can report a wrong or
+  missing rate with a DOR citation, no code), an **adopt-a-state** form
+  (become a state maintainer, "Python comfort: none" is a valid answer),
+  and a `config.yml` chooser linking the no-code guide; (2)
+  `docs/contributing-without-code.md` — "Help your state without writing
+  Python," covering the primary-source rule (no commercial-vendor data
+  per constitution §2), the three no-code paths, and how to check a
+  rate via the demo site / `/v1/rates`; (3) two triage labels
+  (`rate-report`, `state-adoption`); (4) prominent links to the no-code
+  guide from `README.md`, `CONTRIBUTING.md` (above the dev-setup wall),
+  and `docs/state-modules.md`. Docs + GitHub-config only — no code or
+  dependency surface. **Issue #38 itself is a founder-to-founder
+  question best answered personally by Eric** (it asks "have *you*
+  found a reliable way…"); left open for his reply, but the durable
+  artifact it prompted now serves every future would-be contributor.
+  Gate: ruff format/check + mypy + pytest all green; SonarQube delta
+  recorded below. Commit on `main`.
+
 - **2026-07-04 — Public SST file-format field guide (Tier 3).** The
   weekly software-improvement sweep converted the project's
   accumulated SST-format knowledge — previously scattered across

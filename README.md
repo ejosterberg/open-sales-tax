@@ -236,11 +236,17 @@ curl -s -X POST https://api.opensalestax.org/v1/calculate \
 
 Yes please! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+**You don't have to write Python to help.** If you know your state's
+sales tax — as a tax preparer, accountant, business owner, or
+DOR-watcher — you can report a wrong rate or adopt a state without
+touching code. Start with
+[Help your state without writing Python](docs/contributing-without-code.md).
+
 The architectural keystone is the **per-state contributor pattern**:
 every state is a Python module implementing a small Protocol.
 Maintainers are listed per-state in [MAINTAINERS.md](MAINTAINERS.md).
 
-To add or improve your state's module, see
+To add or improve your state's module in code, see
 [docs/state-modules.md](docs/state-modules.md). For a plain-English
 tour of the underlying data files, see
 [the SST quarterly file format field guide](docs/legislation/sst-file-format.md).

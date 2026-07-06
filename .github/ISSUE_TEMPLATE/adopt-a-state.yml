@@ -1,0 +1,80 @@
+name: "🗺️ Adopt a state (become a state maintainer)"
+description: "Want to own the sales-tax accuracy of a state you know? Start here — Python optional."
+title: "[adopt] <STATE> — interested maintainer"
+labels: ["help wanted", "state-adoption"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Interested in maintaining a state? 🎉
+
+        The hardest part of OpenSalesTax isn't the Python — it's having
+        someone who **knows a state's tax law and keeps watching it** as
+        rates change every quarter. That person is often an accountant, a
+        tax preparer, a bookkeeper, or a business owner, not a developer.
+
+        **That's fine — Python is optional.** Tell us which state you know
+        and how you'd like to help. If you don't write code, you can still
+        own a state by verifying rates and supplying citations each quarter;
+        a maintainer (or one of the project's automated audit runs) handles
+        the mechanical Python part.
+
+        See [Help your state without writing Python](https://github.com/ejosterberg/open-sales-tax/blob/main/docs/contributing-without-code.md)
+        for the full picture, and [MAINTAINERS.md](https://github.com/ejosterberg/open-sales-tax/blob/main/MAINTAINERS.md)
+        for who currently owns what.
+  - type: input
+    id: state
+    attributes:
+      label: Which state?
+      placeholder: "Ohio (OH)"
+    validations:
+      required: true
+  - type: dropdown
+    id: background
+    attributes:
+      label: How do you know this state's sales tax?
+      options:
+        - "Tax preparer / accountant / bookkeeper"
+        - "Department of Revenue / government staff"
+        - "Business owner who collects/remits it"
+        - "Software developer"
+        - "Resident / general interest"
+        - "Other (describe below)"
+    validations:
+      required: true
+  - type: dropdown
+    id: python
+    attributes:
+      label: How comfortable are you with Python?
+      description: "Honest answers help us pair you well. 'None' is a perfectly good answer."
+      options:
+        - "None — I'd contribute tax knowledge, not code"
+        - "A little — I can read it / make small edits with guidance"
+        - "Comfortable — I can write the module and tests"
+    validations:
+      required: true
+  - type: checkboxes
+    id: help_with
+    attributes:
+      label: What would you like to help with?
+      options:
+        - label: "Verify the state's rates against the DOR each quarter"
+        - label: "Provide primary-source citations for rate changes"
+        - label: "Describe the state's taxability rules (clothing, groceries, shipping, etc.)"
+        - label: "Write / update the Python module and tests"
+        - label: "Ongoing maintenance (be the listed maintainer)"
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything you'd like us to know?
+    validations:
+      required: false
+  - type: checkboxes
+    id: vendor
+    attributes:
+      label: Disclosure
+      description: >-
+        Not a blanket exclusion — just a documented vetting step (constitution §2).
+      options:
+        - label: "I currently or formerly work(ed) for a commercial sales-tax vendor (Avalara, TaxJar, Vertex, Sovos, TaxCloud). (Check only if true — leave unchecked otherwise.)"
+          required: false

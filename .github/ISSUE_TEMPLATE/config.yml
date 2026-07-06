@@ -1,0 +1,19 @@
+# Issue-template chooser configuration.
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Help your state without writing Python
+    url: https://github.com/ejosterberg/open-sales-tax/blob/main/docs/contributing-without-code.md
+    about: >-
+      You do NOT need to be a developer to improve OpenSalesTax. If you
+      know your state's sales tax, this guide shows the no-code ways to help.
+  - name: 🛠️ Add or improve a state module (code)
+    url: https://github.com/ejosterberg/open-sales-tax/blob/main/docs/state-modules.md
+    about: >-
+      Ready to write Python? The step-by-step guide for adding a tier-2 SST
+      state or promoting a state to a fully maintained tier-1 module.
+  - name: ❓ General question
+    url: https://github.com/ejosterberg/open-sales-tax/blob/main/CONTRIBUTING.md
+    about: >-
+      Setup, DCO sign-off, and the pull-request process are all covered in
+      CONTRIBUTING.md. Still stuck? Open a blank issue with the "question" label.
