@@ -2831,8 +2831,8 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # ----- v0.32 Hawaii per-county GET surcharges -------------------------
     # Source: HI DOTAX Tax Facts 31-1 + HRS section 46-16.8 (county
     # surcharge on state tax). State 4.0% + county surcharge per
-    # HI_COUNTY_RATE_PCT. Three of four inhabited counties impose
-    # the 0.5% surcharge as of 2025-01-01; Maui has not enacted it.
+    # HI_COUNTY_RATE_PCT. All four inhabited counties impose the 0.5%
+    # surcharge (Maui corrected 0->0.5% on the 2026-07-06 daily audit).
     (
         "HI",
         "Honolulu (Oahu)",
@@ -2865,9 +2865,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Kahului (Maui)",
         "96732",
         "0001",
-        "4.000",
+        "4.500",
         "0.05",
-        "HI DOTAX Tax Facts 31-1 (state 4% only -- Maui no surcharge as of 2025-01-01) -- v0.32 per-county",
+        "HI DOTAX county-surcharge schedule (state 4% + Maui County 0.5%, effective 2024-01-01 per County Ord. 5511) -- daily-audit 2026-07-06 corrected 4.000->4.500; fails under -m liveapi until prod HI reload",
     ),
     # ----- v0.32 Puerto Rico IVU split into state + municipal authorities ---
     # The combined consumer-facing rate is 11.5% at every PR address;

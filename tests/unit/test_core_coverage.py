@@ -11,11 +11,17 @@ from opensalestax.core.coverage import (
 
 
 def test_known_gap_states_have_warnings() -> None:
-    """The four states with documented coverage gaps each have a warning."""
+    """The states with documented coverage gaps each have a warning.
+
+    HI was removed on 2026-07-06: the last open HI item (the Maui
+    County 0.5% GET surcharge) was confirmed in effect since
+    2024-01-01 and encoded, so all four inhabited counties are now
+    correctly modeled and HI no longer understates the rate.
+    """
     assert "CO" in STATE_COVERAGE_WARNINGS
     assert "LA" in STATE_COVERAGE_WARNINGS
     assert "AL" in STATE_COVERAGE_WARNINGS
-    assert "HI" in STATE_COVERAGE_WARNINGS
+    assert "HI" not in STATE_COVERAGE_WARNINGS  # resolved 2026-07-06
 
 
 def test_warning_for_states_returns_none_for_clean_state() -> None:

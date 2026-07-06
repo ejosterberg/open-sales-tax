@@ -86,11 +86,10 @@ Per-county surcharges (SHIPPED in v0.32)
 ----------------------------------------
 Hawaii authorizes each of its four inhabited counties to enact a
 **0.5% county surcharge** on top of the state GET under **HRS
-section 46-16.8** (county surcharge on state tax). As of the most
-recent Hawaii Department of Taxation Tax Facts 31-1 publication
-(verified against the official DOTAX surcharge schedule on
-2026-05-04), three of the four inhabited counties currently impose
-the surcharge:
+section 46-16.8** (county surcharge on state tax). As of the Hawaii
+Department of Taxation county-surcharge schedule (verified
+2026-07-06), all four inhabited counties now impose the 0.5%
+surcharge:
 
 - **Honolulu County** (City and County of Honolulu, the entire
   island of Oahu) -- **0.5% effective 2007-01-01**, the longest-
@@ -99,10 +98,12 @@ the surcharge:
   2019-01-01**. Combined GET: **4.5%**.
 - **Hawaii County** (the Big Island) -- **0.5% effective
   2020-01-01**. Combined GET: **4.5%**.
-- **Maui County** (Maui, Molokai, Lanai, and Kahoolawe) -- **NO
-  surcharge in effect as of 2025-01-01**. Combined GET remains
-  **4.0%**. (Maui Bill No. 30 of 2023 authorized but did not
-  enact a 0.5% surcharge.)
+- **Maui County** (Maui, Molokai, Lanai, and Kahoolawe) -- **0.5%
+  effective 2024-01-01** through 2030-12-31, enacted by County
+  Ordinance 5511 (signed 2023-07-19). Combined GET: **4.5%**.
+  (Corrected 2026-07-06: an earlier revision wrongly recorded Maui
+  at 4.0% "no surcharge"; the surcharge has in fact been in effect
+  since 2024-01-01.)
 
 Per-county data is now seeded in :mod:`opensalestax.states.hi_data`
 (``HI_COUNTY_RATE_PCT`` / ``HI_COUNTY_SURCHARGE_EFFECTIVE``).
@@ -275,9 +276,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "food rate (unlike Maine's statutory 8% prepared-food rate); "
             "restaurant meals, takeout, and catering are all subject to "
             "the standard 4.0% GET under HRS section 237-13(2)(A). On "
-            "Oahu / Kauai / Hawaii Island the combined rate is 4.5% "
+            "all four inhabited counties the combined rate is 4.5% "
             "(state 4.0% + 0.5% county surcharge under HRS section "
-            "46-16.8); Maui County remains at 4.0% as of 2025-01-01. "
+            "46-16.8); Maui County's surcharge took effect 2024-01-01. "
             "Calculation only -- not legal or tax advice."
         ),
     ),
@@ -314,10 +315,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "buyer (see module docstring for the legal distinction). "
             "Per-county surcharges under HRS section 46-16.8 are now "
             "encoded (v0.32): Honolulu 0.5% since 2007, Kauai 0.5% "
-            "since 2019, Hawaii County 0.5% since 2020 (combined 4.5% "
-            "in those counties); Maui County remains at 4.0% as of "
-            "2025-01-01 (no surcharge enacted). Calculation only -- "
-            "not legal or tax advice."
+            "since 2019, Hawaii County 0.5% since 2020, Maui 0.5% "
+            "since 2024 (all four inhabited counties now at combined "
+            "4.5%). Calculation only -- not legal or tax advice."
         ),
     ),
 }
@@ -360,8 +360,8 @@ class Hawaii:
         (Hawaii / Honolulu / Kalawao / Kauai / Maui). The
         ZIP_COUNTY-driven boundary loader binds every HI ZIP to its
         county, so every county must have a queryable rate (even the
-        0% ones -- Maui has not enacted a surcharge as of 2025-01-01;
-        Kalawao has no county tax authority). Per-county effective
+        0% ones -- Kalawao has no county tax authority). Per-county
+        effective
         dates from :data:`HI_COUNTY_SURCHARGE_EFFECTIVE` are used for
         counties with a surcharge enacted; the state effective date is
         used as a placeholder for 0% counties so the audit trail still

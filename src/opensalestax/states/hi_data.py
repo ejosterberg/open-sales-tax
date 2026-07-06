@@ -23,18 +23,20 @@ resolve its single ZIP (96742) to a queryable rate.
 | Honolulu       | 003  | 0.500%    | 2007-01-01   | 4.500%       |
 | Kauai          | 007  | 0.500%    | 2019-01-01   | 4.500%       |
 | Hawaii (Big I) | 001  | 0.500%    | 2020-01-01   | 4.500%       |
-| Maui           | 009  | 0.000%    | (none as of 2025-01-01) | 4.000% |
+| Maui           | 009  | 0.500%    | 2024-01-01   | 4.500%       |
 | Kalawao        | 005  | 0.000%    | (no county tax authority -- DOH-administered) | 4.000% |
 
-Note on Maui: an earlier draft of HI module documentation referenced
-a 0.5% Maui County surcharge "effective 2024-01-01" but the latest
-Hawaii Department of Taxation Tax Facts 31-1 publication (verified
-against the official DOTAX surcharge schedule on 2026-05-04) shows
-Maui County at 0.000% as of 2025-01-01. Maui Bill No. 30 (2023) was
-authorized but not enacted; this module encodes the actual
-effective rate. If Maui later enacts the surcharge, update
-``HI_COUNTY_RATE_PCT["Maui County"]`` and the corresponding
-``HI_COUNTY_SURCHARGE_EFFECTIVE`` entry.
+Note on Maui (corrected 2026-07-06 daily audit): the Maui County
+0.5% surcharge IS in effect. It was enacted by County Ordinance 5511
+(signed 2023-07-19) and took effect **2024-01-01**, running through
+**2030-12-31** -- confirmed against the Hawaii Department of Taxation
+county-surcharge schedule (https://tax.hawaii.gov/geninfo/countysurcharge/)
+and the Maui County Council's "GET surcharge in effect for Maui
+County" notice. An earlier revision of this module wrongly recorded
+Maui at 0.000% ("Maui Bill No. 30 authorized but did not enact"),
+which under-collected 0.5% on every Maui-County transaction from
+2024-01-01 onward. The surcharge applies only to activities taxed at
+the 4.0% rate (not the 0.5% wholesale or 0.15% insurance rates).
 
 ### County rate effective dates
 
@@ -58,9 +60,10 @@ HI_STATE_RATE_PCT = Decimal("4.000")
 HI_STATE_EFFECTIVE_FROM = dt.date(1965, 1, 1)
 
 # Per-county GET surcharge portion (NOT including the 4.0% state
-# rate). Source: HRS section 46-16.8 + Hawaii DOTAX Tax Facts 31-1
-# (verified 2026-05-04). Combined county GET = 4.0% state +
-# this county portion.
+# rate). Source: HRS section 46-16.8 + Hawaii DOTAX county-surcharge
+# schedule (initial ship verified 2026-05-04; Maui County corrected
+# from 0.000% to 0.500% on 2026-07-06). Combined county GET = 4.0%
+# state + this county portion.
 HI_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Hawaii County": Decimal("0.500"),  # Big Island; effective 2020-01-01 -> 4.5%
     "Honolulu County": Decimal("0.500"),  # Oahu; effective 2007-01-01 -> 4.5%
@@ -71,11 +74,12 @@ HI_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # resolve its single ZIP (96742) to a queryable state-only rate.
     "Kalawao County": Decimal("0.000"),
     "Kauai County": Decimal("0.500"),  # effective 2019-01-01 -> 4.5%
-    # Maui County: 0% as of 2025-01-01 per HI DOTAX Tax Facts 31-1.
-    # Maui Bill No. 30 (2023) authorized but did not enact a 0.5%
-    # surcharge. Promote to 0.500 + add the effective date here if
-    # Maui later enacts the surcharge.
-    "Maui County": Decimal("0.000"),  # no county surcharge -> 4.0%
+    # Maui County: 0.5% surcharge in effect since 2024-01-01 (County
+    # Ordinance 5511, signed 2023-07-19), running through 2030-12-31.
+    # Corrected 2026-07-06 daily audit -- an earlier revision wrongly
+    # recorded Maui at 0.000% and under-collected 0.5% from 2024-01-01.
+    # Source: HI DOTAX county-surcharge schedule.
+    "Maui County": Decimal("0.500"),  # effective 2024-01-01 -> 4.5%
 }
 
 # Per-county surcharge effective dates (HRS section 46-16.8). The
@@ -88,7 +92,7 @@ HI_COUNTY_SURCHARGE_EFFECTIVE: dict[str, dt.date | None] = {
     "Honolulu County": dt.date(2007, 1, 1),  # 0.5% -- 2007-01-01 (longest-running)
     "Kalawao County": None,  # no county tax authority
     "Kauai County": dt.date(2019, 1, 1),  # 0.5% -- 2019-01-01
-    "Maui County": None,  # not yet enacted as of 2025-01-01
+    "Maui County": dt.date(2024, 1, 1),  # 0.5% -- 2024-01-01 (Ord. 5511)
 }
 
 

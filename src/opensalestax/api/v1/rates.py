@@ -73,7 +73,7 @@ async def get_rates(
     combined = combined_rate_pct(resolved)
 
     # Surface a coverage_warning for states with known local-tax gaps
-    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute). Without
+    # (CO home-rule, LA parishes, AL home-rule). Without
     # this, a CO ZIP returns a state-only 2.9% that a casual user might
     # mistake for the full combined rate.
     state_abbrevs = sorted(

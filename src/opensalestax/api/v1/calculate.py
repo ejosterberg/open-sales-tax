@@ -67,7 +67,7 @@ async def calculate(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     # Surface a coverage_warning for states with known local-tax gaps
-    # (CO home-rule, LA parishes, AL home-rule, HI Maui dispute).
+    # (CO home-rule, LA parishes, AL home-rule).
     # ``result.data_versions`` is declared on the dataclass but isn't
     # populated by the calculate engine; derive the state set from the
     # actual line-level jurisdictions instead. The state-typed

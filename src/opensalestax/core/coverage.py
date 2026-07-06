@@ -25,8 +25,12 @@ The states listed here are the ones whose docstrings (or
   own ordinances rather than via the state. Engine ships state
   + county portions (per ALDOR) but not the ~700 home-rule city
   overlays.
-- **HI** (Hawaii) -- per-county GET surcharge has been refined
-  but Maui Co rate dispute remains open (see handoff).
+
+(HI/Hawaii was removed from this set on 2026-07-06: all four
+inhabited counties' GET surcharges are now correctly modeled --
+the last open item, the Maui County 0.5% surcharge, was confirmed
+in effect since 2024-01-01 and encoded. HI responses no longer
+understate the rate, so a coverage warning would be misleading.)
 
 The ``SubJurisdiction`` Protocol extension (planned for v1.0+,
 spec'd in ``specs/decisions/04-colorado-home-rule.md`` and
@@ -64,12 +68,8 @@ STATE_COVERAGE_WARNINGS: dict[str, str] = {
         "Combined rates inside a home-rule city are typically 1-5% higher "
         "than what this API returns."
     ),
-    "HI": (
-        "Hawaii: General Excise Tax (GET) rate may include county surcharge "
-        "components whose modeling is still being verified (see Maui Co "
-        "dispute in handoff). Honolulu, Hawaii, Kauai counties are "
-        "modeled; Maui rate is provisional."
-    ),
+    # HI removed 2026-07-06: all four inhabited counties' GET surcharges
+    # (incl. Maui 0.5% since 2024-01-01) are now correctly modeled.
 }
 
 

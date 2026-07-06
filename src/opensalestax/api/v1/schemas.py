@@ -178,8 +178,8 @@ class RatesResponse(BaseModel):
         default=None,
         description=(
             "Populated only when the requested address falls in a state with "
-            "known coverage gaps (CO home-rule, LA parishes, AL home-rule, "
-            "HI Maui dispute). The returned combined_rate_pct may underreport "
+            "known coverage gaps (CO home-rule, LA parishes, AL "
+            "home-rule). The returned combined_rate_pct may underreport "
             "the true rate in that case. Tracked per state in "
             "opensalestax.core.coverage."
         ),
@@ -425,8 +425,8 @@ class CalculateResponse(BaseModel):
         default=None,
         description=(
             "Populated only when the requested address falls in a state with "
-            "known coverage gaps (CO home-rule, LA parishes, AL home-rule, "
-            "HI Maui dispute). The returned tax_total may underreport the "
+            "known coverage gaps (CO home-rule, LA parishes, AL "
+            "home-rule). The returned tax_total may underreport the "
             "true tax owed in that case. Tracked per state in "
             "opensalestax.core.coverage."
         ),
