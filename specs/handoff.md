@@ -268,6 +268,26 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **FL Collier + Palm Beach over-collect FIXED in repo, prod reload
+  PENDING (audit 2026-07-05, commit 32a61f6, chipped).** The CY2026
+  DR-15DSS (R.11/25) cross-check caught two stale FL county surtaxes
+  from the 2026-05-04 module build: **Collier** was 1.0% but is "None"
+  (its 1% infra surtax hit its $490M/7yr cap and ended → Naples 6.0%),
+  and **Palm Beach** was 1.0% but is 0.5% eff Jan 1 2026 (old 1% ended;
+  new 0.5% runs 2026–2035 → WPB/Boca 6.5%). Both confirmed vs
+  Avalara/SalesTaxHandbook. `fl_data.py` + 3 live pins + FL unit test
+  fixed and pushed (CI green). **The live engine still returns the old
+  too-high rates until prod is redeployed + FL data reloaded** — chip
+  "Deploy FL rate fix to prod (Collier/Palm Beach reload)" carries the
+  exact sequence. Until then the 3 pins (Naples 34102, WPB 33401, Boca
+  33432) fail under `-m liveapi`. Also flag for CY2027: Brevard +
+  Charlotte are 1.0% now but their components expire Dec 31 2026. See
+  `specs/audits/2026/07/state-audit-2026-07-05.md`.
+- **Pre-existing dep CVE: asyncmy 0.2.11 PYSEC-2026-286 (surfaced by
+  pip-audit during the 2026-07-05 gate, chipped).** No fix version
+  published; unrelated to any rate change. asyncmy is the optional
+  MariaDB driver, so PostgreSQL self-hosters are unaffected. Triage
+  chip "Triage asyncmy PYSEC-2026-286" filed.
 - **WV SST refresh Q1 → Q3 (audit 2026-06-26, chipped).** Prod caches
   `WVR2026Q1AUG14` / `WVB2026Q1SEP02`; latest SST is
   `WVR2026Q3FEB25` / `WVB2026Q3APR29`. No drift in the top-5 cities
