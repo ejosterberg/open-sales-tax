@@ -296,6 +296,23 @@ clean integration with Eric's MariaDB-based SC Books.
   jurisdiction, a known address yields the expected rate.
 - **CI runs the full test suite on every PR.** Coverage threshold
   to be set per language.
+- **Verify CI is green after every GitHub update — the work is not
+  "done" until it is.** Whenever we push a commit or open/update a PR,
+  we must confirm the resulting CI run **succeeds** (all jobs green,
+  across the full test matrix — e.g. both PostgreSQL and MariaDB legs),
+  not merely that it was triggered. Watch the run to completion
+  (`gh run watch <id> --exit-status` / `gh pr checks <n>`). A red or
+  errored CI run is treated as an incident: stop, diagnose, and fix it
+  (or revert) **in the same working session** before moving on or
+  telling Eric the work is complete. A local quality gate passing is
+  necessary but NOT sufficient — CI exercises engine/matrix conditions
+  (e.g. the MariaDB `[mariadb]` extra) that a local run may not. This
+  applies equally to autonomous/scheduled runs that push to `main`.
+  Rationale: on 2026-07-04 a locally-green change (making `asyncmy`
+  optional) was pushed and a PR opened without watching CI; the MariaDB
+  matrix leg failed because CI installed dependencies without the new
+  optional extra. The regression was invisible locally and would have
+  shipped a broken `main` had CI not been checked.
 
 ## 13. What this project is NOT
 
