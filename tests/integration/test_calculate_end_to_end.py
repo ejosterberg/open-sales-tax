@@ -547,3 +547,159 @@ async def test_threshold_above_excess_taxes_only_excess(async_session: AsyncSess
     assert over.amount == Decimal("300.00")
     assert over.note is not None
     assert "excess" in over.note.lower() or "first" in over.note.lower()
+
+
+async def _seed_ia_lost_scenario(
+    async_session: AsyncSession,
+    zip5: str,
+    *,
+    with_polk_type4: bool,
+) -> None:
+    """Seed an IA West-Des-Moines-style multi-county LOST stack.
+
+    Models the real over-collect: a ZIP that straddles Polk + Warren
+    (+ a stray IA-district) counties, each binding its own 1% Local
+    Option Sales Tax. Iowa caps LOST at 1% (Iowa Code ch. 423B), so
+    exactly one 1% district must survive -> combined 7%. Polk is the
+    dominant county-side (many boundary rows); the others are strays.
+
+    ``with_polk_type4`` adds a Polk type-4 (+4 range) row so the strict
+    ZIP+4 lookup takes the precise-match path (where the typez-fallback
+    dedup is skipped) -- proving the post-merge collapse covers it too.
+    """
+    iowa = State(abbrev="IA", name="Iowa", has_sales_tax=True, sst_member=True)
+    async_session.add(iowa)
+    await async_session.flush()
+
+    version = DataVersion(state_id=iowa.id, source="test", version_label="IA-test-2026Q3")
+    async_session.add(version)
+    await async_session.flush()
+
+    state_auth = TaxAuthority(state_id=iowa.id, name="Iowa", authority_type="state")
+    polk_county = TaxAuthority(state_id=iowa.id, name="Polk County", authority_type="county")
+    polk_lost = TaxAuthority(
+        state_id=iowa.id,
+        name="Polk County Local Option Sales Tax",
+        authority_type="district",
+    )
+    union_lost = TaxAuthority(
+        state_id=iowa.id,
+        name="Union County Local Option Sales Tax",
+        authority_type="district",
+    )
+    stray_district = TaxAuthority(
+        state_id=iowa.id, name="IA-district-98199", authority_type="district"
+    )
+    async_session.add_all([state_auth, polk_county, polk_lost, union_lost, stray_district])
+    await async_session.flush()
+
+    async_session.add_all(
+        [
+            Rate(
+                authority_id=state_auth.id,
+                rate_pct=Decimal("6.000"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+            Rate(
+                authority_id=polk_county.id,
+                rate_pct=Decimal("0.000"),
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            ),
+        ]
+        + [
+            Rate(
+                authority_id=d.id,
+                rate_pct=Decimal("1.000"),  # every IA LOST is exactly 1%
+                effective_from=dt.date(2020, 1, 1),
+                data_version_id=version.id,
+            )
+            for d in (polk_lost, union_lost, stray_district)
+        ]
+    )
+
+    # Boundaries: state + county + Polk LOST all get a type-z (zip-wide)
+    # row so they apply to the whole ZIP. Polk LOST also gets extra rows
+    # so it dominates the row-count tiebreaker; the two stray districts
+    # get a single type-z row each (they'd stack without the dedup).
+    boundaries = [
+        Boundary(authority_id=state_auth.id, zip5=zip5, data_version_id=version.id),
+        Boundary(authority_id=polk_county.id, zip5=zip5, data_version_id=version.id),
+        Boundary(authority_id=polk_lost.id, zip5=zip5, data_version_id=version.id),
+        Boundary(authority_id=union_lost.id, zip5=zip5, data_version_id=version.id),
+        Boundary(authority_id=stray_district.id, zip5=zip5, data_version_id=version.id),
+    ]
+    # Give Polk (county + LOST) extra type-4 rows so it clearly dominates.
+    for low in ("1000", "1001", "1002", "1003"):
+        boundaries.append(
+            Boundary(
+                authority_id=polk_lost.id,
+                zip5=zip5,
+                zip4_low=low,
+                zip4_high=low,
+                data_version_id=version.id,
+            )
+        )
+        if with_polk_type4:
+            boundaries.append(
+                Boundary(
+                    authority_id=polk_county.id,
+                    zip5=zip5,
+                    zip4_low=low,
+                    zip4_high=low,
+                    data_version_id=version.id,
+                )
+            )
+    async_session.add_all(boundaries)
+    await async_session.commit()
+
+
+@pytest.mark.asyncio
+async def test_ia_lost_stack_collapses_zip5_loose(async_session: AsyncSession) -> None:
+    """West Des Moines 50265 (no +4): the 3 stacked 1% LOSTs -> one -> 7%.
+
+    Regression for the daily-audit 2026-07-07 over-collect (finding
+    ia-west-des-moines-lost-dedup-2026-07.md). Pre-fix this returned 9%
+    (Polk LOST + Union LOST + IA-district-98199 all summed).
+    """
+    await _seed_ia_lost_scenario(async_session, "50265", with_polk_type4=False)
+
+    result = await calculate_tax(
+        async_session,
+        zip5="50265",
+        line_items=[LineItem(amount=Decimal("100.00"))],
+        effective_date=dt.date.today(),
+    )
+
+    line = result.lines[0]
+    assert line.rate_pct == Decimal("7.000"), "IA LOST is capped at 1% -> 7% combined"
+    assert result.tax_total == Decimal("7.0000")
+    districts = [j for j in line.jurisdictions if j.type == "district"]
+    assert len(districts) == 1, f"exactly one LOST should survive; got {districts}"
+    assert districts[0].name == "Polk County Local Option Sales Tax"
+
+
+@pytest.mark.asyncio
+async def test_ia_lost_stack_collapses_zip4_strict(async_session: AsyncSession) -> None:
+    """A real +4 that hits Polk's type-4 range still collapses to one LOST.
+
+    Covers the strict (precise-match) path, where the typez-fallback
+    dedup is skipped -- the post-merge collapse must still fire.
+    """
+    await _seed_ia_lost_scenario(async_session, "50265", with_polk_type4=True)
+
+    result = await calculate_tax(
+        async_session,
+        zip5="50265",
+        zip4="1001",  # inside Polk's seeded +4 range
+        line_items=[LineItem(amount=Decimal("100.00"))],
+        effective_date=dt.date.today(),
+    )
+
+    line = result.lines[0]
+    assert line.rate_pct == Decimal("7.000")
+    assert result.tax_total == Decimal("7.0000")
+    districts = [j for j in line.jurisdictions if j.type == "district"]
+    assert len(districts) == 1
+    assert districts[0].name == "Polk County Local Option Sales Tax"

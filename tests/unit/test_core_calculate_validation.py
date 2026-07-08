@@ -21,6 +21,8 @@ from opensalestax.core.calculate import (
     _apply_threshold,
 )
 from opensalestax.core.lookup import (
+    _SINGLE_LOCAL_DISTRICT_STATES,
+    _collapse_single_local_districts,
     _pick_closest_per_type,
     _pick_one_city_county_per_zip5,
     lookup_jurisdictions_by_zip,
@@ -625,3 +627,93 @@ class TestPickOneCityCountyPerZip5:
         picked = _pick_one_city_county_per_zip5(rows)
         types = sorted(a.authority_type for a in picked)
         assert types == ["city", "county"]
+
+
+def _ia_auth(id_: int, name: str, authority_type: str):
+    """Stub authority tagged as Iowa (has ``.state.abbrev == 'IA'``)."""
+    auth = _stub_authority(id_, name, authority_type)
+    auth.state = SimpleNamespace(abbrev="IA")
+    return auth
+
+
+class TestCollapseSingleLocalDistricts:
+    """Iowa LOST dedup: multi-county ZIPs must not sum several 1% LOSTs.
+
+    Regression for the West Des Moines over-collect (audit 2026-07-07,
+    finding ia-west-des-moines-lost-dedup-2026-07.md): ZIP 50265
+    straddles Polk + Warren counties and bound Polk LOST 1% + Union LOST
+    1% + IA-district-98199 1% = 9%; 50266 added a Dallas district for
+    10%. Iowa's LOST is capped at 1% (Iowa Code ch. 423B), so exactly one
+    1% district must survive -> combined 7%.
+    """
+
+    def test_ia_stack_collapses_to_dominant_50265(self) -> None:
+        """Polk (most rows) wins; Union + 98199 dropped. Combined -> 7%."""
+        state = _ia_auth(1, "Iowa", "state")
+        county = _ia_auth(2, "Polk County", "county")
+        polk_lost = _ia_auth(3, "Polk County Local Option Sales Tax", "district")
+        union_lost = _ia_auth(4, "Union County Local Option Sales Tax", "district")
+        stray = _ia_auth(5, "IA-district-98199", "district")
+        authorities = [state, county, polk_lost, union_lost, stray]
+        # Polk LOST covers almost the whole ZIP; the others are strays.
+        zip_counts = {polk_lost.id: 3916, union_lost.id: 21, stray.id: 2}
+        total_counts = {polk_lost.id: 60, union_lost.id: 8, stray.id: 1}
+        out = _collapse_single_local_districts(authorities, zip_counts, total_counts, "IA")
+        districts = [a.name for a in out if a.authority_type == "district"]
+        assert districts == ["Polk County Local Option Sales Tax"]
+        # State + county + county survive untouched.
+        assert {a.authority_type for a in out} == {"state", "county", "district"}
+
+    def test_ia_stack_collapses_to_dominant_50266(self) -> None:
+        """Four stacked 1% districts collapse to the single dominant one."""
+        state = _ia_auth(1, "Iowa", "state")
+        county = _ia_auth(2, "Dallas County", "county")
+        dallas = _ia_auth(3, "IA-district-98049", "district")
+        polk_lost = _ia_auth(4, "Polk County Local Option Sales Tax", "district")
+        union_lost = _ia_auth(5, "Union County Local Option Sales Tax", "district")
+        stray = _ia_auth(6, "IA-district-98199", "district")
+        authorities = [state, county, dallas, polk_lost, union_lost, stray]
+        zip_counts = {dallas.id: 40, polk_lost.id: 12, union_lost.id: 8, stray.id: 1}
+        total_counts = {dallas.id: 30, polk_lost.id: 60, union_lost.id: 8, stray.id: 1}
+        out = _collapse_single_local_districts(authorities, zip_counts, total_counts, "IA")
+        districts = [a.name for a in out if a.authority_type == "district"]
+        # Dallas district has the most rows for THIS ZIP -> it wins.
+        assert districts == ["IA-district-98049"]
+
+    def test_single_ia_district_untouched(self) -> None:
+        """A ZIP fully inside one LOST county keeps its one district."""
+        state = _ia_auth(1, "Iowa", "state")
+        county = _ia_auth(2, "Linn County", "county")
+        lost = _ia_auth(3, "Linn County Local Option Sales Tax", "district")
+        authorities = [state, county, lost]
+        out = _collapse_single_local_districts(authorities, {lost.id: 500}, {lost.id: 30}, "IA")
+        assert out == authorities
+
+    def test_non_ia_state_passes_through_unchanged(self) -> None:
+        """States not in the set keep every district (no collapse)."""
+        state = _stub_authority(1, "Minnesota", "state")
+        d1 = _stub_authority(2, "MN transit A", "district")
+        d2 = _stub_authority(3, "MN transit B", "district")
+        d3 = _stub_authority(4, "MN transit C", "district")
+        authorities = [state, d1, d2, d3]
+        zip_counts = {d1.id: 10, d2.id: 20, d3.id: 30}
+        out = _collapse_single_local_districts(authorities, zip_counts, {}, "MN")
+        # MN's metro transit districts genuinely all apply -> unchanged.
+        assert out == authorities
+
+    def test_tie_on_zip_count_breaks_by_total_then_id(self) -> None:
+        """Equal per-ZIP rows -> more total ZIPs wins; rate-neutral either way."""
+        state = _ia_auth(1, "Iowa", "state")
+        county = _ia_auth(2, "Story County", "county")
+        a = _ia_auth(3, "A County Local Option Sales Tax", "district")
+        b = _ia_auth(4, "B County Local Option Sales Tax", "district")
+        authorities = [state, county, a, b]
+        zip_counts = {a.id: 50, b.id: 50}  # exact tie for this ZIP
+        total_counts = {a.id: 5, b.id: 12}  # B claims more ZIPs regionally
+        out = _collapse_single_local_districts(authorities, zip_counts, total_counts, "IA")
+        districts = [a.name for a in out if a.authority_type == "district"]
+        assert districts == ["B County Local Option Sales Tax"]
+
+    def test_iowa_is_registered(self) -> None:
+        """Guard: IA stays in the single-local-district set."""
+        assert "IA" in _SINGLE_LOCAL_DISTRICT_STATES

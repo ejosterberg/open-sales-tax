@@ -41,6 +41,27 @@ _MIN_LONE_DISTRICT_ROWS = 20
 # Real per-block ranges are < 100 +4s; 1000 is the empirical cutoff.
 _WIDE_TYPE4_RANGE_THRESHOLD = 1000
 
+# States whose loaded "district" authorities are mutually-exclusive
+# county-level overlays that ALL carry the same rate, so at most one
+# applies to any single address. When a ZIP straddles several such
+# counties, its SST boundary file binds one district per county-side
+# and the naive engine SUMS them -- e.g. West Des Moines 50265 straddles
+# Polk + Warren (+ a Dallas sliver on 50266) and returns Polk LOST 1% +
+# Union LOST 1% + IA-district-98199 1% = 9% (10% on 50266), well over
+# Iowa's 1% cap. For these states the engine keeps only the DOMINANT
+# district (most boundary rows for the ZIP) and drops the rest. The fix
+# is rate-neutral by construction -- every candidate shares the same
+# rate -- so it only removes the erroneous stacking, never changes which
+# rate applies.
+#   IA: Local Option Sales Tax (LOST) -- uniformly 1%, county-adopted,
+#       statutorily capped at 1% by Iowa Code ch. 423B.
+# (TN's code-79 IMPROVE Act overlays are collapsed by a separate,
+# older mechanism inside ``_pick_one_city_county_per_zip5``; that path
+# keys off ``picked_city`` which TN has and IA -- county-level LOST with
+# no city authority -- does not, which is why IA needs this dedicated
+# post-merge pass that runs on both the strict and loose lookup paths.)
+_SINGLE_LOCAL_DISTRICT_STATES = {"IA"}
+
 
 async def lookup_jurisdictions_by_zip(
     session: AsyncSession,
@@ -264,6 +285,12 @@ async def lookup_jurisdictions_by_zip(
     canonical = await _canonical_state_for_zip(session, zip5)
     merged = _filter_to_canonical_state(merged, canonical)
 
+    # Collapse multi-county same-rate LOST/overlay stacks (IA West Des
+    # Moines etc.) to the dominant district. Runs after the merge so it
+    # catches both the precise-+4 case (where the typez-fallback dedup
+    # is skipped) and the fallback case.
+    merged = await _dedup_single_local_districts(session, merged, zip5)
+
     return _stable_sort(merged)
 
 
@@ -309,6 +336,89 @@ async def _dedup_typez_fallback(
     for aid, zip_count in (await session.execute(coverage_stmt)).all():
         total_zip_counts[aid] = zip_count
     return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
+
+
+def _collapse_single_local_districts(
+    authorities: list[TaxAuthority],
+    zip_counts: dict[int, int],
+    total_counts: dict[int, int],
+    local_state: str | None,
+) -> list[TaxAuthority]:
+    """Pure core of the single-local-district dedup (see async wrapper).
+
+    For a state in :data:`_SINGLE_LOCAL_DISTRICT_STATES`, keep only the
+    dominant district and drop the others. Dominance is decided by, in
+    order: most boundary rows for THIS ZIP (the county-side the ZIP
+    mostly sits in), then most total ZIPs claimed (regional-fit signal),
+    then lowest authority id (stable tiebreaker). Rate-neutral -- every
+    candidate district shares the same rate, so this never changes the
+    tax, only stops the multi-county stack from summing.
+
+    A no-op when there is at most one district or the address's local
+    state does not need the dedup. Kept pure (no DB) so it is unit-
+    testable with stub authorities.
+    """
+    districts = [a for a in authorities if a.authority_type == "district"]
+    if len(districts) <= 1 or local_state not in _SINGLE_LOCAL_DISTRICT_STATES:
+        return authorities
+    dominant = max(
+        districts,
+        key=lambda d: (zip_counts.get(d.id, 0), total_counts.get(d.id, 0), -d.id),
+    )
+    return [a for a in authorities if a.authority_type != "district" or a is dominant]
+
+
+async def _dedup_single_local_districts(
+    session: AsyncSession, authorities: list[TaxAuthority], zip5: str
+) -> list[TaxAuthority]:
+    """Collapse stacked same-rate LOST/overlay districts to the dominant one.
+
+    Runs on the final merged authority list from BOTH the strict
+    (ZIP+4) and loose (ZIP5) lookup paths. For states whose districts
+    are mutually-exclusive county overlays sharing one rate
+    (:data:`_SINGLE_LOCAL_DISTRICT_STATES`), a ZIP that straddles
+    several counties otherwise sums one district per county-side and
+    over-collects (IA West Des Moines 50265 -> 9%, 50266 -> 10%; correct
+    7%). This keeps only the district with the most boundary rows for
+    ``zip5`` and drops the rest.
+
+    Cheap by design: zero DB work unless the list has >1 district AND
+    the address's local state is one that needs the dedup, so it never
+    touches lookups for the other 48 states.
+    """
+    districts = [a for a in authorities if a.authority_type == "district"]
+    if len(districts) <= 1:
+        return authorities
+
+    # Local state = the county/city the ZIP resolved to (IA LOST is
+    # county-level with no city authority, so county is the signal);
+    # fall back to the districts' own state if somehow no county/city.
+    local_state = next(
+        (
+            abbrev
+            for a in authorities
+            if a.authority_type in ("county", "city") and (abbrev := _state_abbrev(a)) is not None
+        ),
+        None,
+    ) or _state_abbrev(districts[0])
+    if local_state not in _SINGLE_LOCAL_DISTRICT_STATES:
+        return authorities
+
+    district_ids = {d.id for d in districts}
+    zip_count_stmt = (
+        select(Boundary.authority_id, func.count(Boundary.id))
+        .where(Boundary.zip5 == zip5, Boundary.authority_id.in_(district_ids))
+        .group_by(Boundary.authority_id)
+    )
+    zip_counts = dict((await session.execute(zip_count_stmt)).tuples().all())
+    total_stmt = (
+        select(Boundary.authority_id, func.count(Boundary.zip5.distinct()))
+        .where(Boundary.authority_id.in_(district_ids))
+        .group_by(Boundary.authority_id)
+    )
+    total_counts = dict((await session.execute(total_stmt)).tuples().all())
+
+    return _collapse_single_local_districts(authorities, zip_counts, total_counts, local_state)
 
 
 async def lookup_jurisdictions_by_zip5_loose(
@@ -377,7 +487,10 @@ async def lookup_jurisdictions_by_zip5_loose(
         for aid, zip_count in (await session.execute(coverage_stmt)).all():
             total_zip_counts[aid] = zip_count
 
-    return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
+    picked = _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
+    # Collapse multi-county same-rate LOST/overlay stacks (IA) to the
+    # dominant district; no-op for states that don't need it.
+    return await _dedup_single_local_districts(session, picked, zip5)
 
 
 def _is_placeholder_name(auth: TaxAuthority) -> bool:

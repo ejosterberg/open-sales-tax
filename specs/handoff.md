@@ -268,25 +268,28 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
-- **IA West Des Moines LOST dedup over-collect — CONFIRMED live, needs
-  engine fix (audit 2026-07-07, chipped, finding written).** West Des
-  Moines cross-county ZIPs over-collect: **50265 → 9.0%** (Iowa 6% + Polk
-  LOST 1% + *Union LOST 1%* + IA-district-98199 1%) and **50266 → 10.0%**
-  (adds Dallas district 98049 1%). Correct rate is **7.0%** — Iowa's LOST is
-  capped at 1% (Iowa Code ch. 423B), so no IA address can exceed 7%. Union
-  County LOST is plainly wrong (rural south-central Iowa, unrelated to WDM).
-  This is the iter-128-logged bug, now confirmed on the live engine and
-  written up for the first time. **Not a data refresh — needs engine-level
-  Iowa LOST dedup** (mirror the v0.44 TN IMPROVE Act cross-county dedup) +
-  a check that the ZCTA canonical-county resolution anchors 50265/50266 to
-  Polk/Dallas not Union. The `-m liveapi` grid pin
-  `("IA","West Des Moines","50265","0001","7.000")` currently fails at
-  9.0%; **do NOT mask it by editing the pin** — fix the engine so it
-  xpasses. Rate file `IAR2025Q3MAY30` + boundary `IAB2026Q1DEC09` on prod
-  are current (match latest SST posting); no IA data refresh needed. Idaho
-  audited same day — no drift (state 6%, all major cities + 12 resort cities
-  correct). See `specs/findings/ia-west-des-moines-lost-dedup-2026-07.md`
-  and `specs/audits/2026/07/state-audit-2026-07-07.md`.
+- **IA West Des Moines LOST dedup over-collect — FIXED in repo, prod
+  redeploy PENDING (audit 2026-07-07, finding written, deploy chipped).**
+  West Des Moines cross-county ZIPs over-collected: **50265 → 9.0%** (Iowa
+  6% + Polk LOST 1% + *Union LOST 1%* + IA-district-98199 1%) and **50266 →
+  10.0%** (adds Dallas district 98049 1%). Correct rate is **7.0%** — Iowa's
+  LOST is capped at 1% (Iowa Code ch. 423B). **Fixed in the engine** (not
+  data): `core/lookup.py` now runs `_dedup_single_local_districts` on both
+  the strict + loose lookup paths — for `_SINGLE_LOCAL_DISTRICT_STATES`
+  (`{"IA"}`) it keeps only the dominant district (most rows for the ZIP) and
+  drops the multi-county stack. Rate-neutral: every IA district is a 1% LOST
+  (verified on prod), so collapsing never changes the rate. Covered by new
+  unit tests + two DB-backed end-to-end tests (both paths, run in CI) + live
+  grid pins for 50265/50266. **The live engine still returns 9%/10% until
+  prod is redeployed** (engine-only, NO data reload needed) — chip "Deploy
+  IA West Des Moines LOST fix to prod (redeploy api)" carries the sequence;
+  until then the two `-m liveapi` pins fail (expected). Rate file
+  `IAR2025Q3MAY30` + boundary `IAB2026Q1DEC09` on prod are current (match
+  latest SST posting); no IA data refresh needed. Cosmetic follow-up: give
+  `IA-district-98049` (Dallas Co LOST) a friendly name in `ia_names.py`.
+  Idaho audited same day — no drift. See
+  `specs/findings/ia-west-des-moines-lost-dedup-2026-07.md` and
+  `specs/audits/2026/07/state-audit-2026-07-07.md`.
 - **HI Maui County GET surcharge FIXED in repo, prod reload PENDING
   (audit 2026-07-06, commit f68fe40, chipped).** The engine had
   under-collected the **Maui County 0.5% GET surcharge on every

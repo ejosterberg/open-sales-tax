@@ -6215,7 +6215,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "7.000",
         "0.05",
-        "iter-77 audit pin: IA DOR (state 6 + Polk/Dallas LOST 1)",
+        "iter-77 audit pin: IA DOR (state 6 + Polk LOST 1). daily-audit "
+        "2026-07-07: engine LOST dedup drops stray Union LOST + district "
+        "98199 stack (was 9%); fails under -m liveapi until prod redeploy "
+        "(engine-only fix, no data reload)",
+    ),
+    (
+        "IA",
+        "West Des Moines",
+        "50266",
+        "0001",
+        "7.000",
+        "0.05",
+        "daily-audit 2026-07-07 pin: IA DOR (state 6 + 1% LOST cap, Iowa "
+        "Code ch. 423B). Dallas-side ZIP straddling Polk/Dallas/Warren; "
+        "engine LOST dedup drops the multi-county stack (was 10%); fails "
+        "under -m liveapi until prod redeploy (engine-only fix)",
     ),
     # iter-78 batch A: MN Twin Cities suburbs with city tax overlay.
     # MN cities with 0.5% city sales tax: Bloomington (eff 2018),

@@ -1,8 +1,39 @@
 # Finding — IA West Des Moines LOST dedup over-collect (2026-07)
 
-**Status:** OPEN — confirmed on the live engine 2026-07-07 during the daily
-IA+ID audit. Pre-existing (first logged iter-128); this is the first
-dedicated finding file + chip.
+**Status:** FIXED IN REPO (2026-07-07) — engine dedup landed on `main`;
+**prod redeploy PENDING** (engine-only, no data reload). Confirmed on the
+live engine 2026-07-07 during the daily IA+ID audit; pre-existing (first
+logged iter-128). See "Resolution" below.
+
+## Resolution (2026-07-07)
+
+Fixed in the lookup engine, not the data. `src/opensalestax/core/lookup.py`
+now runs a post-merge pass `_dedup_single_local_districts` on both the
+strict (ZIP+4) and loose (ZIP5) lookup paths: for states in
+`_SINGLE_LOCAL_DISTRICT_STATES` (currently `{"IA"}`), when a multi-county
+ZIP binds several district authorities it keeps only the **dominant** one
+(most boundary rows for the ZIP) and drops the rest. Rate-neutral by
+construction — verified on prod that **every** IA district authority is a
+LOST at exactly 1.000%, so collapsing the stack never changes which rate
+applies, it only stops the erroneous summing. The TN IMPROVE Act dedup
+already handled its case but keyed off `picked_city`, which IA (county-level
+LOST, no city authority) lacks — hence the dedicated post-merge pass.
+
+Verified:
+- Unit tests (pure collapse logic + tiebreakers):
+  `tests/unit/test_core_calculate_validation.py::TestCollapseSingleLocalDistricts`
+- DB-backed end-to-end (both lookup paths), runs in CI:
+  `tests/integration/test_calculate_end_to_end.py::test_ia_lost_stack_collapses_zip5_loose`
+  and `...zip4_strict` — both assert combined 7.000% with exactly one LOST.
+- Live grid pins added/updated for 50265 + 50266 (fail under `-m liveapi`
+  until prod redeploys — engine-only change).
+
+**Note:** on 50266 the dominant district is the Dallas-side LOST, which
+currently carries the placeholder name `IA-district-98049` (FIPS 19049 =
+Dallas County). Rate is correct (1% → 7%); giving 98049 a friendly name in
+`ia_names.py` is a separate, cosmetic follow-up.
+
+### Original diagnosis (kept for the record)
 
 **Severity:** Real customer-facing **over-collection of 2–3%** on West Des
 Moines, Iowa transactions. Iowa's Local Option Sales Tax is statutorily
