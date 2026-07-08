@@ -2557,9 +2557,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Springfield",
         "62701",
         "0001",
-        "9.500",
+        "10.000",
         "0.05",
-        "IDOR Tax Rate Finder (state 6.25% + Sangamon 1.0% + Springfield HR 2.25%; no RTA downstate)",
+        "IDOR Tax Rate Finder (state 6.25% + Sangamon 1.5% + Springfield HR 2.25%; no RTA downstate). Sangamon public-safety +0.5% eff 2026-07-01 (IDOR FY 2026-26-A).",
     ),
     (
         "IL",

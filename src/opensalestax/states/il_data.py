@@ -132,7 +132,9 @@ IL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Will County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
     # --- Downstate counties touched by covered cities ---
     "Winnebago County": Decimal("1.500"),  # School Facility 1% + Public Safety 0.5%
-    "Sangamon County": Decimal("1.000"),  # Sangamon County School Facility / Public Safety
+    "Sangamon County": Decimal(
+        "1.500"
+    ),  # School Facility 1% + Public Safety 0.5% (public-safety +0.5% eff 2026-07-01 per IDOR FY 2026-26-A; raises Springfield to 10.0%)
     "Peoria County": Decimal("1.000"),  # Peoria County School Facility 1%
     "Champaign County": Decimal("1.250"),  # Champaign County 1.25% (county school + public safety)
     "McLean County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
@@ -178,7 +180,9 @@ IL_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Effingham County": Decimal("0.250"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Fayette County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Ford County": Decimal("0.000"),  # verified 0% (no county tax) -- IDOR ordmache 2026-01-01
-    "Franklin County": Decimal("2.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
+    "Franklin County": Decimal(
+        "1.000"
+    ),  # public-safety -1.0% eff 2026-07-01 per IDOR FY 2026-26-A; was 2.0% (ordmache 2026-01-01, combined - state - RTA)
     "Fulton County": Decimal("1.500"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Gallatin County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)
     "Greene County": Decimal("1.000"),  # IDOR ordmache 2026-01-01 (combined - state - RTA)

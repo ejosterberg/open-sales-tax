@@ -12,7 +12,7 @@ Tier-1 quirks worth dedicated tests:
 
 - The combined rate at any covered ZIP must equal the published
   combined rate (Chicago 10.25%, Cicero 10.75% as the highest;
-  Springfield 9.50% downstate without RTA; Rockford 8.75%).
+  Springfield 10.00% downstate without RTA; Rockford 8.75%).
 - RTA is split into TWO district authorities (``RTA (Cook County)``
   at 1.00% and ``RTA (Collar Counties)`` at 0.75%) because the
   per-county rate within the RTA service area differs.
@@ -187,7 +187,10 @@ def _combined_for(city_name: str, rows: list) -> Decimal:
         ("Waukegan", Decimal("8.500")),  # state + Lake + HR 1.50 + RTA 0.75
         # Downstate (no RTA)
         ("Rockford", Decimal("8.750")),  # state + Winnebago 1.5 + HR 1.0
-        ("Springfield", Decimal("9.500")),  # state + Sangamon 1.0 + HR 2.25
+        (
+            "Springfield",
+            Decimal("10.000"),
+        ),  # state + Sangamon 1.5 + HR 2.25 (Sangamon public-safety +0.5% eff 2026-07-01, IDOR FY 2026-26-A)
         ("Peoria", Decimal("9.000")),  # state + Peoria Co 1.0 + HR 1.75
         ("Champaign", Decimal("9.000")),  # state + Champaign Co 1.25 + HR 1.50
         (
