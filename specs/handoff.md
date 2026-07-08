@@ -268,6 +268,28 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **IL Sangamon (+0.5%) / Franklin (−1.0%) county public-safety changes —
+  FIXED in repo, prod redeploy PENDING (audit 2026-07-08, commit 6e870e2,
+  chipped).** IDOR Informational Bulletin **FY 2026-26-A** (rate changes
+  effective **2026-07-01**) added a 0.50% County Public Safety Tax in
+  **Sangamon County** (local portion 1.00% → 1.50%), raising **Springfield
+  62701 from 9.50% → 10.00%**, and cut **Franklin County** public safety by
+  1.00% (2.00% → 1.00%). Both are engine-data fixes in `il_data.py`
+  (IL is self-seeded non-SST — county rates live in the module, NOT in SST
+  files), so **no data reload is needed — engine-only api redeploy**. Fixed:
+  Sangamon 1.000→1.500, Franklin 2.000→1.000; Springfield unit pin +
+  live-API grid pin 9.500→10.000. All ~30 changed *municipalities* in the
+  bulletin were cross-checked against `IL_CITIES` — none seeded, so no
+  municipal fixes. Peoria's only change is the Glen Hollow *Business
+  District* (sub-ZIP, out of v1 scope); citywide Peoria unchanged. **The
+  live engine still returns 9.50% for Springfield until prod is redeployed**
+  — chip "Deploy IL Sangamon/Franklin county fix to prod (redeploy api)"
+  carries the sequence; until then the Springfield `-m liveapi` pin fails
+  (expected). Indiana audited same day — clean (flat 7%, no locals; all 3
+  tier-1 cities match). IN SST files on prod are ancient (`INR2008Q4MAY7` /
+  `INB2005Q1JAN6`) but functionally correct (no IN change since 2008);
+  low-priority file-currency refresh chipped. See
+  `specs/audits/2026/07/state-audit-2026-07-08.md`.
 - **IA West Des Moines LOST dedup over-collect — FIXED in repo, prod
   redeploy PENDING (audit 2026-07-07, finding written, deploy chipped).**
   West Des Moines cross-county ZIPs over-collected: **50265 → 9.0%** (Iowa
