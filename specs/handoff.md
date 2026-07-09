@@ -268,6 +268,18 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **KS SST refresh Q2 → Q3 (audit 2026-07-09, chipped).** Prod caches
+  `KSR2026Q2FEB18` / `KSB2026Q2FEB18`; latest SST is `KSR2026Q3MAY20` /
+  `KSB2026Q3MAY20` (posted 2026-05-20, eff 2026-07-01). **No real-world
+  drift** — all 8 KS tier-1 cities (Topeka, Wichita, Kansas City, Olathe,
+  Hays, Lawrence, Manhattan, Salina) match the live engine exactly. Every
+  KS July-1-2026 change touching a tier-1 city is a sub-ZIP CID / STAR-bond
+  district (California Crossing / Hotel Topeka / Orpheum Theatre / Buc-ee's
+  CIDs, etc.), which are out of v1 scope. File-currency hygiene only; chip
+  "Refresh KS SST quarterly to KSR2026Q3MAY20" carries the load sequence.
+  Kentucky audited same day — clean and fully current (flat 6% statewide,
+  no local tax; KY's SST file `KYR2012Q4Aug13.csv` is the latest KY
+  publishes). See `specs/audits/2026/07/state-audit-2026-07-09.md`.
 - **IL Sangamon (+0.5%) / Franklin (−1.0%) county public-safety changes —
   FIXED in repo, prod redeploy PENDING (audit 2026-07-08, commit 6e870e2,
   chipped).** IDOR Informational Bulletin **FY 2026-26-A** (rate changes
