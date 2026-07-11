@@ -19,6 +19,25 @@ Taxability matrix (per Md. Code Ann., Tax-General):
 - **Prepared food** -- taxable.
 - **Digital goods** -- TAXABLE since 2021 (HB 932).
 
+## CATEGORY-SPECIFIC RATE NOT MODELED (deferred from v1)
+
+- **3% on data / information technology services** -- effective
+  **2025-07-01** under HB 352 (Budget Reconciliation and Financing
+  Act of 2025, signed 2025-05-20). Applies a 3% sales-and-use-tax
+  rate (not the 6% general rate) to data or information technology
+  services and system/application software publishing services --
+  NAICS 518, 519, 5132, and 5415 (see MD Comptroller Technical
+  Bulletin No. 56). This is a NEW category-specific rate; it does
+  **not** change the 6% general rate on tangible personal property.
+  OpenSalesTax does not yet model per-category rates, so the engine
+  applies the 6% general rate to all taxable categories and does not
+  emit the 3% IT-services rate. When the category-aware-rate engine
+  extension lands (same extension pending for Maine's 8%/9%/10%
+  rates), this module should emit a 3% ``RateRow`` with
+  ``applies_to_categories`` set for the covered service categories.
+  Confirmed 2026-07-11 during the daily state-tax audit; general
+  rate remains 6% with no local sales tax.
+
 State maintainer: vacant -- see MAINTAINERS.md.
 """
 
