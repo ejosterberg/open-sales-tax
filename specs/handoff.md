@@ -268,6 +268,29 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **MN SST refresh Q2 → Q3 + Meeker County ZIP attribution (audit 2026-07-12,
+  2 chips).** Prod caches `MNR2026Q2FEB18` / `MNB2026Q2FEB18`; latest SST is
+  `MNR2026Q3MAY20` / `MNB2026Q3MAY20` (posted 2026-05-20, eff 2026-07-01). **No
+  tier-1 rate drift** — Minneapolis 9.025%, St. Paul 9.875%, Rochester 8.125%,
+  Duluth 8.875% all match the live engine + MN DOR. The one in-scope general-tax
+  change this quarter is the **new Meeker County 0.5% Transit Sales & Use Tax
+  (eff 2026-07-01)**; friendly name already in `mn_names.py` (code 80054). The
+  other 3 MN Q3 changes (Chisago Lakes / Fairmont / Waseca) are lodging-only
+  excises, out of v1 scope. **Do the MN Q3 refresh in the same pass as the
+  pending iter-220/221 MN/IA/NC name reload (open item #1 above)** so both land
+  together. Chip "Refresh MN SST quarterly to MNR2026Q3MAY20" carries the
+  sequence. Separately, rural Meeker ZIPs (Litchfield 55355 → McLeod, Dassel
+  55325 → McLeod, Grove City 55329 → Stearns + stale "Anoka County
+  Transportation" label) currently mis-attribute to neighboring counties because
+  Meeker had no county tax pre-July-2026 — **expected to self-resolve on the Q3
+  reload**; chip "Verify MN Meeker County ZIP attribution after Q3 reload" +
+  finding `specs/findings/mn-meeker-county-zip-attribution-2026-07.md` (do NOT
+  ship an engine change until re-verified post-reload). Cosmetic: Rochester
+  (`MN-city-54880`) + Duluth (`MN-city-17000`) still show placeholder city
+  friendly names (rates correct). **MI audited same day — fully current**, flat
+  6% statewide with no local tax; prod SST file `MIR2023Q1DEC22` is the latest
+  SST publishes (MI's rate is constitutionally fixed, file unchanged since 2023).
+  See `specs/audits/2026/07/state-audit-2026-07-12.md`.
 - **KS SST refresh Q2 → Q3 (audit 2026-07-09, chipped).** Prod caches
   `KSR2026Q2FEB18` / `KSB2026Q2FEB18`; latest SST is `KSR2026Q3MAY20` /
   `KSB2026Q3MAY20` (posted 2026-05-20, eff 2026-07-01). **No real-world
