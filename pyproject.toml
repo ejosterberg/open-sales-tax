@@ -40,7 +40,9 @@ asyncpg = "^0.30"
 asyncmy = {version = "^0.2.10", optional = true}
 pydantic = "^2.9"
 pydantic-settings = "^2.6"
-typer = "^0.15"
+# typer 0.16 relaxed its click cap (<8.2 -> >=8.0.0); needed so click can
+# reach >=8.3.3, which fixes the click.edit() command injection PYSEC-2026-2132.
+typer = "^0.16"
 slowapi = "^0.1.9"
 httpx = "^0.27"
 
