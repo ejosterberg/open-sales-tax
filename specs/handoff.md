@@ -468,11 +468,22 @@ If Eric wants none of the above, ask before pivoting.
   items are the unchanged pre-existing baseline, none in the merged
   files). Merge-commit CI on `main` green after one transient
   "Set-up-job / Service Unavailable" MariaDB-service-container infra
-  flake was re-run. **New follow-up surfaced by the gate:** `click`
-  8.1.8 → **PYSEC-2026-2132** (fix **8.3.3** available) — a
-  transitive dep, disclosed *after* PR #39 was cut and present on
-  `main` independently of it; chipped for a focused separate bump
-  (not bundled, to keep the two dep changes cleanly reviewable).
+  flake was re-run. **Follow-up surfaced by the gate — RESOLVED same
+  day (commit `ac54a01`):** `click` 8.1.8 → **PYSEC-2026-2132**
+  (command injection in `click.edit()`, fixed in 8.3.3). click was a
+  transitive dep capped at `<8.2` by `typer ^0.15`, so the fix bumped
+  **typer 0.15.4 → 0.16.1** (0.16 relaxed its click cap to
+  `>=8.0.0`), letting **click resolve to 8.4.2**. Exposure was nil
+  (`click.edit()` is not called anywhere in `src/`), but the bump
+  removes the CVE wheel from the install surface — `pip-audit` on the
+  default install now reports **no known vulnerabilities**. Kept as a
+  separate, focused commit from PR #39 so the two dep changes stay
+  reviewable. Gate: quality-gate PASS (ruff, mypy `src/` 134 files,
+  pytest `-m "not liveapi"` 1572 passed) + CLI smoke-tested under
+  typer 0.16.1 + **SonarQube 0 BLOCKER / 0 new CRITICAL** (29
+  CRITICAL + 4 MAJOR = unchanged baseline, none in the changed
+  files); CI green on both DB legs. (The daily MO+MS audit `eef6597`
+  independently chipped the same CVE the same day — cross-validated.)
 
 - **2026-07-06 — No-code contributor on-ramp (Tier 4 doc gap, driven
   by Tier 7 community signal).** The weekly sweep responded to open
