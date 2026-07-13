@@ -69,8 +69,13 @@ The dump is regenerated on every release tag by the
 It is data-only (no schema, no API keys); the consumer's own
 ``alembic upgrade head`` is the source of truth for the schema.
 
-**MariaDB users:** the bundled dump is PostgreSQL COPY format;
-fall back to the manual ``data fetch`` + ``data load`` workflow
+**MariaDB users:** MariaDB support ships as an optional extra so the
+default install stays PostgreSQL-only. Install the driver with
+``pip install "opensalestax[mariadb]"`` and point
+``OPENSALESTAX_DATABASE_URL`` at a ``mysql+asyncmy://…`` DSN. (If you
+use a MariaDB DSN without the extra, the app fails fast with the exact
+install command.) The bundled dump is PostgreSQL COPY format, so on
+MariaDB fall back to the manual ``data fetch`` + ``data load`` workflow
 described under "Refresh from source" below.
 
 ### Quickstart with Docker (no Python install)

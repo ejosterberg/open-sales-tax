@@ -31,7 +31,13 @@ uvicorn = {extras = ["standard"], version = "^0.32"}
 sqlalchemy = {extras = ["asyncio"], version = "^2.0"}
 alembic = "^1.13"
 asyncpg = "^0.30"
-asyncmy = "^0.2.10"
+# MariaDB/MySQL async driver. OPTIONAL extra (`opensalestax[mariadb]`) so a
+# default (PostgreSQL) install does not pull it -- asyncmy 0.1.1-0.2.11 carry
+# an unfixed Critical SQLi (PYSEC-2026-286); keeping it opt-in shrinks the
+# default install's CVE surface. See specs/findings/asyncmy-sqli-pysec-2026-286.md
+# and the weekly fix-watch. db/session.py fails fast with an install hint if a
+# mysql DSN is used without this extra.
+asyncmy = {version = "^0.2.10", optional = true}
 pydantic = "^2.9"
 pydantic-settings = "^2.6"
 typer = "^0.15"
@@ -39,14 +45,19 @@ slowapi = "^0.1.9"
 httpx = "^0.27"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3"
-pytest-asyncio = "^0.24"
+pytest = "^9.0"
+pytest-asyncio = "^1.0"
 pytest-cov = "^6.0"
 ruff = "^0.7"
 mypy = "^1.13"
 pre-commit = "^4.0"
 types-requests = "^2.32"
 openpyxl = "^3.1.5"
+
+[tool.poetry.extras]
+# MariaDB/MySQL support is opt-in: `pip install "opensalestax[mariadb]"`
+# (or `poetry install --extras mariadb`). PostgreSQL needs no extra.
+mariadb = ["asyncmy"]
 
 [tool.poetry.scripts]
 opensalestax = "opensalestax.cli.main:app"

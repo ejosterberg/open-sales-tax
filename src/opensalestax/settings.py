@@ -45,7 +45,9 @@ class Settings(BaseSettings):
             "PostgreSQL example: "
             "postgresql+asyncpg://<USER>:<PASSWORD>@<HOST>:5432/<DBNAME>. "
             "MariaDB example: "
-            "mysql+asyncmy://<USER>:<PASSWORD>@<HOST>:3306/<DBNAME>."
+            "mysql+asyncmy://<USER>:<PASSWORD>@<HOST>:3306/<DBNAME> "
+            "(MariaDB requires the optional driver: "
+            'pip install "opensalestax[mariadb]").'
         ),
     )
     database_echo: bool = Field(
