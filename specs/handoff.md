@@ -389,11 +389,17 @@ If Eric wants none of the above, ask before pivoting.
   33432) fail under `-m liveapi`. Also flag for CY2027: Brevard +
   Charlotte are 1.0% now but their components expire Dec 31 2026. See
   `specs/audits/2026/07/state-audit-2026-07-05.md`.
-- **Pre-existing dep CVE: asyncmy 0.2.11 PYSEC-2026-286 (surfaced by
-  pip-audit during the 2026-07-05 gate, chipped).** No fix version
-  published; unrelated to any rate change. asyncmy is the optional
-  MariaDB driver, so PostgreSQL self-hosters are unaffected. Triage
-  chip "Triage asyncmy PYSEC-2026-286" filed.
+- **Pre-existing dep CVE: asyncmy 0.2.11 PYSEC-2026-286 — MITIGATED &
+  LANDED 2026-07-13 (PR #39, merge `f6eb0de`).** No upstream fix exists
+  (0.2.11 is latest), so the fix was structural: asyncmy is now an
+  opt-in `[mariadb]` Poetry extra, removing the Critical wheel from the
+  default PostgreSQL install surface (`db/session.py` fails fast with an
+  install hint on a `mysql+asyncmy://` DSN without the extra). See the
+  2026-07-13 weekly-sweep entry below and
+  `specs/findings/asyncmy-sqli-pysec-2026-286.md`. A weekly fix-watch
+  still re-checks PyPI/OSV; pin asyncmy to the first release that fixes
+  PYSEC-2026-286 when one ships (the optional-extra structure stays
+  regardless — it's good hygiene, not just a CVE workaround).
 - **WV SST refresh Q1 → Q3 (audit 2026-06-26, chipped).** Prod caches
   `WVR2026Q1AUG14` / `WVB2026Q1SEP02`; latest SST is
   `WVR2026Q3FEB25` / `WVB2026Q3APR29`. No drift in the top-5 cities
@@ -432,6 +438,41 @@ If Eric wants none of the above, ask before pivoting.
   to 7.900 with an explanatory comment. No engine change.
 
 ## Recent improvements (weekly sweeps)
+
+- **2026-07-13 — Landed the approved dependency-security fix (Tier 1
+  security / Tier 2 open follow-up).** The weekly sweep merged the
+  9-day-old, fully-green
+  [PR #39](https://github.com/ejosterberg/open-sales-tax/pull/39)
+  (`security(deps): pytest 9 + asyncmy optional [mariadb] extra`),
+  which had been sitting mergeable since 2026-07-04. It (1) bumps
+  **pytest 8.4.2 → 9.1.1**, clearing **CVE-2025-71176** (a local
+  `/tmp/pytest-of-*` priv-esc, fixed in pytest 9.0.3), plus
+  `pytest-asyncio → 1.4.0` and `pip → 26.1.2` (PYSEC-2026-196); and
+  (2) moves **asyncmy** to an opt-in `[mariadb]` Poetry extra so a
+  default (PostgreSQL) `pip install opensalestax` **no longer ships
+  the unfixed Critical CVSS-9.8 SQLi wheel PYSEC-2026-286** — MariaDB
+  users opt in via `pip install "opensalestax[mariadb]"`, and a new
+  `db/session.py::_require_dsn_driver` fails fast with the exact
+  install hint (never echoing the DSN) if a `mysql+asyncmy://` DSN is
+  used without the extra. Merged as `f6eb0de` (true merge commit, no
+  AI co-author trailer; the 3 branch commits carry Eric's DCO
+  sign-offs). **Resolves the open "Triage asyncmy PYSEC-2026-286"
+  follow-up.** Gate before landing: quality-gate PASS (ruff
+  format/check ✓, mypy `src/` 134 files ✓, pytest `-m "not liveapi"`
+  1564 passed / 57 DB-skipped-green-in-CI), OWASP diff self-review
+  clean (no SQLi/path-traversal/credential-leak/auth/info-leak
+  surface — the guard only does `urlsplit` + `importlib.util.find_spec`
+  and its error names the driver/extra, not the DSN). **SonarQube
+  scan on the merge revision: 0 BLOCKER, 0 new CRITICAL** (A/A/A;
+  0 bugs / 0 vuln / 0 hotspots; the 29 HIGH-impact maintainability
+  items are the unchanged pre-existing baseline, none in the merged
+  files). Merge-commit CI on `main` green after one transient
+  "Set-up-job / Service Unavailable" MariaDB-service-container infra
+  flake was re-run. **New follow-up surfaced by the gate:** `click`
+  8.1.8 → **PYSEC-2026-2132** (fix **8.3.3** available) — a
+  transitive dep, disclosed *after* PR #39 was cut and present on
+  `main` independently of it; chipped for a focused separate bump
+  (not bundled, to keep the two dep changes cleanly reviewable).
 
 - **2026-07-06 — No-code contributor on-ramp (Tier 4 doc gap, driven
   by Tier 7 community signal).** The weekly sweep responded to open
