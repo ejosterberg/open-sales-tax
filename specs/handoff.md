@@ -164,7 +164,11 @@ too coarse.
 
 ### Weekly software improvement (`weekly-software-improvement` taskId)
 
-**Schedule:** 8am local, every Monday. Looks for the highest-yield
+**Schedule:** 1pm local, every Monday (`0 13 * * 1`). Moved from
+8am on 2026-07-13 — the 8am start collided with the 7am daily-audit
+task, which was often still holding the shared git tree / SonarQube
+lock when the weekly sweep began. The early-afternoon slot leaves a
+~5–6h gap after the daily audit finishes. Looks for the highest-yield
 improvement to ship that week. 7-tier decision tree:
 
 1. Real bugs / correctness / security issues open right now
