@@ -297,22 +297,41 @@ clean integration with Eric's MariaDB-based SC Books.
 - **CI runs the full test suite on every PR.** Coverage threshold
   to be set per language.
 - **Verify CI is green after every GitHub update — the work is not
-  "done" until it is.** Whenever we push a commit or open/update a PR,
-  we must confirm the resulting CI run **succeeds** (all jobs green,
-  across the full test matrix — e.g. both PostgreSQL and MariaDB legs),
-  not merely that it was triggered. Watch the run to completion
-  (`gh run watch <id> --exit-status` / `gh pr checks <n>`). A red or
-  errored CI run is treated as an incident: stop, diagnose, and fix it
-  (or revert) **in the same working session** before moving on or
-  telling Eric the work is complete. A local quality gate passing is
-  necessary but NOT sufficient — CI exercises engine/matrix conditions
-  (e.g. the MariaDB `[mariadb]` extra) that a local run may not. This
-  applies equally to autonomous/scheduled runs that push to `main`.
-  Rationale: on 2026-07-04 a locally-green change (making `asyncmy`
+  "done" until it is.** This is a hard rule: **any commit or PR pushed
+  to any OpenSalesTax GitHub repository that has CI Actions configured
+  must have its resulting CI run watched to completion and confirmed
+  successful.** "Pushed" is not "done"; only "CI green" is done.
+  Whenever we push a commit or open/update a PR, we must confirm the
+  resulting CI run **succeeds** (all jobs green, across the full test
+  matrix — e.g. both PostgreSQL and MariaDB legs), not merely that it
+  was triggered. Watch the run to completion (`gh run watch <id>
+  --exit-status` / `gh pr checks <n>`). A red or errored CI run is
+  treated as an incident: stop, diagnose, and fix it (or revert) **in
+  the same working session** before moving on or telling Eric the work
+  is complete. A local quality gate passing is necessary but NOT
+  sufficient — CI exercises engine/matrix conditions (e.g. the MariaDB
+  `[mariadb]` extra) that a local run may not. This applies equally to
+  autonomous/scheduled runs that push to `main`.
+- **A CI-failure notification is never ignored, and never assumed.**
+  When GitHub (or Eric) reports a failed run, open the failed job and
+  read the actual cause before reacting. Distinguish a **transient
+  infrastructure flake** (e.g. `Failed to resolve action download
+  info`, runner/network/container-startup errors, registry timeouts)
+  from a **real regression** (test/lint/type failure). For a transient
+  flake, re-run the failed jobs and confirm the re-run goes green —
+  then the requirement is met. For a real regression, treat it as the
+  incident above. Either way the run must end green; a failed run left
+  un-triaged is a constitution violation.
+- Rationale: on 2026-07-04 a locally-green change (making `asyncmy`
   optional) was pushed and a PR opened without watching CI; the MariaDB
   matrix leg failed because CI installed dependencies without the new
   optional extra. The regression was invisible locally and would have
-  shipped a broken `main` had CI not been checked.
+  shipped a broken `main` had CI not been checked. On 2026-07-13 the
+  PR #39 merge commit `f6eb0de` sent a "Run failed" notification whose
+  first attempt failed on the MariaDB leg at `Failed to resolve action
+  download info` — a GitHub-side infrastructure error, not a code fault;
+  a re-run (attempt 2) went green. Both cases show why the run must be
+  watched *and* the failure cause actually read, not guessed at.
 
 ## 13. What this project is NOT
 
