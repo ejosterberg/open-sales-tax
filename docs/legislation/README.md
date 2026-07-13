@@ -16,6 +16,7 @@ including people who don't work on the codebase.
 | Topic | What it covers |
 |---|---|
 | [The SST quarterly file format](sst-file-format.md) | What the Streamlined Sales Tax rate and boundary files actually look like — filename convention, the 9-column rate file, the 89/90-column boundary file, the repeating district triplets, and the format gotchas (BOM, phantom type-45 codes, ZIP+4 padding) that cost real debugging time. |
+| [Is shipping taxable? The five patterns](shipping-taxability.md) | How each of the 52 US jurisdictions taxes shipping charges, grouped into the five `ShippingRule` patterns the engine models — the "separately stated" concept, the full per-state matrix with primary-source citations, the common-carrier vs. seller's-vehicle simplification, Maryland's shipping-vs-handling wrinkle, and how the `/v1/calculate` `shipping` field applies it all. |
 
 ## Contributing an explainer
 

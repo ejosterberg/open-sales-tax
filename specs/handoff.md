@@ -443,6 +443,34 @@ If Eric wants none of the above, ask before pivoting.
 
 ## Recent improvements (weekly sweeps)
 
+- **2026-07-13 (Monday 1pm sweep) — Published the shipping-taxability
+  legislation explainer (Tier 3 — legislation discovery worth
+  documenting).** New public page
+  [`docs/legislation/shipping-taxability.md`](../docs/legislation/shipping-taxability.md)
+  turns the internal `specs/research/shipping-taxability.md` draft into
+  a contributor- and integrator-facing explainer of the five
+  `ShippingRule` patterns (`NONE`/`ALWAYS_TAXABLE`/`CONDITIONAL`/
+  `EXEMPT_IF_SEPARATELY_STATED`/`MIXED`) the engine uses to model
+  shipping taxability across all 52 US jurisdictions. It explains the
+  pivotal "separately stated" concept, ships the **full per-state
+  matrix with primary-source citations generated directly from the
+  live engine registry** (so it can't drift from the code — the
+  distribution is CI-pinned by `test_core_shipping.py`), documents the
+  common-carrier-vs-seller's-vehicle simplification, Maryland's unique
+  shipping-vs-handling `MIXED` wrinkle (`is_handling_charge`), and a
+  worked `/v1/calculate` request/response. Second entry in the
+  `docs/legislation/` series (after `sst-file-format.md`); index README
+  updated. This is the second-most-common integrator confusion in US
+  sales tax ("do I tax the shipping charge?") answered once, publicly,
+  from statute — squarely the "don't let the project look stale"
+  directive. **Docs-only change** (two `.md` files; no code surface).
+  Gate: quality-gate PASS (ruff format 220 files ✓ / ruff check ✓ /
+  mypy strict 134 files ✓ / pytest unit 1570 passed, 4 skipped /
+  pip-audit no known vulns) + **SonarQube 0 BLOCKER / 0 new CRITICAL**
+  (29 CRITICAL + 4 MAJOR = unchanged iter-234 baseline; markdown isn't
+  analyzed by the Python sensor, so no code-smell surface; A/A/A, 0
+  bugs / 0 vuln / 0 hotspots). OWASP diff self-review N/A (no code).
+
 - **2026-07-13 — Landed the approved dependency-security fix (Tier 1
   security / Tier 2 open follow-up).** The weekly sweep merged the
   9-day-old, fully-green
