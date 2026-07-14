@@ -162,15 +162,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "GA DOR (state 4% + Fulton 3% + Atlanta MOST 1.9%)",
     ),
-    # North Carolina -- NC DOR Sales and Use Tax Rates 2026-Q1
+    # North Carolina -- NC DOR Sales and Use Tax Rates (Effective 2026-07-01)
     (
         "NC",
         "Charlotte",
         "28202",
         "1402",
-        "7.250",
+        "8.250",
         "0.05",
-        "NC DOR (state 4.75% + Mecklenburg 2% + transit 0.5%)",
+        # Mecklenburg County levied an additional 1.00% local sales/use tax
+        # effective 2026-07-01 (voter-approved 2025-11-04 referendum for roads
+        # + transit), raising the combined rate from 7.250% to 8.250% (state
+        # 4.75% + Mecklenburg 2% + transit 0.5% + additional 1%). Confirmed vs
+        # NCDOR "Current Sales and Use Tax Rates" table + NCDOR Important Notice
+        # (2026-06-24 press release). This is the ONLY NC county change for the
+        # 2025-2026 period. NC is SST -- the fix is a rate-file reload; prod is
+        # still on the stale NCR2024Q3APR26.csv, so the live engine returns
+        # 7.250% until the NC SST Q3-2026 refresh lands. daily-audit 2026-07-14
+        # bumped 7.250->8.250; fails under -m liveapi until prod NC reload.
+        "NC DOR eff 2026-07-01 (state 4.75% + Mecklenburg 2% + transit 0.5% + additional 1%)",
     ),
     (
         "NC",

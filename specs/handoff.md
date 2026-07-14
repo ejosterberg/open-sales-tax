@@ -272,6 +272,24 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **NC Mecklenburg (Charlotte) +1% → 8.25% — REAL rate change, prod reload
+  PENDING (audit 2026-07-14, chipped, liveapi pin bumped).** Mecklenburg County
+  levied an **additional 1.00% local sales/use tax effective 2026-07-01**
+  (voter-approved 2025-11-04 referendum, roads + transit), raising Charlotte's
+  combined rate **7.25% → 8.25%** (state 4.75% + county 2% + transit 0.5% +
+  additional 1%). Confirmed vs NCDOR "Current Sales and Use Tax Rates"
+  (eff 2026-07-01) + NCDOR 2026-06-24 press release. **Only NC county change in
+  2025-2026** — Wake/Guilford/Durham/Forsyth/Cumberland/Buncombe/New Hanover all
+  still match the engine. NC is SST, so the fix is a **rate-file reload**, not a
+  code change: prod is on the ~2-year-stale `NCR2024Q3APR26.csv` (boundary
+  `NCB2026Q2FEB18`), so the live engine still returns 7.25% for 28202. Chip
+  "Refresh NC SST quarterly to Q3-2026 (Mecklenburg +1% → 8.25%)" carries the
+  load + verify sequence. The Charlotte `28202` liveapi DOR-grid pin was bumped
+  7.250→8.250 with a "fails under -m liveapi until prod NC reload" note (matches
+  the HI-Maui / IA-WDM precedent); remove that note after the reload xpasses.
+  **MT audited same day — fully clean** (no statewide sales tax; engine returns
+  0% for all MT ZIPs incl. resort towns, whose local resort taxes are a
+  documented Phase-1 deferral). See `specs/audits/2026/07/state-audit-2026-07-14.md`.
 - **MN SST refresh Q2 → Q3 + Meeker County ZIP attribution (audit 2026-07-12,
   2 chips).** Prod caches `MNR2026Q2FEB18` / `MNB2026Q2FEB18`; latest SST is
   `MNR2026Q3MAY20` / `MNB2026Q3MAY20` (posted 2026-05-20, eff 2026-07-01). **No
