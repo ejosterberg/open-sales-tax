@@ -92,3 +92,7 @@ Not added to a pip-audit ignore list. The scheduled state-tax audit's
 gate does **not** block on pre-existing dependency CVEs (only on new
 SonarQube BLOCKER/CRITICAL), so this stays visible without wedging the
 daily run. Suppressing a Critical would need explicit approval.
+
+## Weekly watch log
+
+- 2026-07-15: still unfixed (asyncmy latest 0.2.11; OSV PYSEC-2026-286 still `last_affected: 0.2.11`, no `fixed` event; pip-audit clean but asyncmy not resolved into the dev venv so it was not directly audited — PyPI+OSV are authoritative). aiomysql latest 0.3.2 (2025-10-22, maintained; its only advisory PYSEC-2026-1110 was fixed in 0.3.0, so 0.3.2 is unaffected).
