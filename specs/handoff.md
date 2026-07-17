@@ -272,6 +272,23 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **NM Town of Bernalillo July-1-2026 GRT change — AMBIGUOUS, needs human
+  review, NOT auto-committed (audit 2026-07-17, finding + chip).** NM updates
+  GRT rates twice a year (Jan 1 / Jul 1); `nm_data.py` is sourced from the
+  Jan-1-2026 schedule, so it's one half-year behind. The Jul-1-2026 change set
+  is small (Los Ranchos de Albuquerque, **Bernalillo**, Elephant Butte, Colfax
+  Co, Los Alamos Co +0.625% → 7.6875%) and touches **only one modeled
+  jurisdiction: Town of Bernalillo (Sandoval Co, ZIP 87004)** — engine has
+  7.4375%. Three sources disagree on the new rate (module 7.4375% / search
+  6.9375% loc 29-120 / Avalara 7.1875%) AND on the location code (29-119 vs
+  29-120), so no commit was made. Chip "Apply NM Bernalillo July-1-2026 GRT
+  rate" carries the resolve-from-authoritative-TRD-schedule sequence. The other
+  4 changed jurisdictions are NOT modeled (coverage-expansion candidates, not
+  drift). **All 28 other modeled NM cities are unaffected and match the live
+  engine.** NV audited same day — **fully current** (prod `NVR2025Q4NOV05` =
+  latest SST publication; Las Vegas 8.375% / Reno 8.265% match). See
+  `specs/findings/nm-bernalillo-rate-change-2026-07.md` and
+  `specs/audits/2026/07/state-audit-2026-07-17.md`.
 - **NC Mecklenburg (Charlotte) +1% → 8.25% — REAL rate change, prod reload
   PENDING (audit 2026-07-14, chipped, liveapi pin bumped).** Mecklenburg County
   levied an **additional 1.00% local sales/use tax effective 2026-07-01**
