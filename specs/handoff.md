@@ -286,16 +286,21 @@ If Eric wants none of the above, ask before pivoting.
   635; 94 authorities/rates). **Verified live:** Suffolk 11717/11743/
   11787 → 8.750; Nassau 11550 unchanged at 8.625; the full
   `pytest -m liveapi -k NY` grid passes (19/19). No further action.
-- **NY non-city Westchester under-collects 1% — NEW finding, NOT
-  auto-fixed (audit 2026-07-18, chipped for review).** Unincorporated /
-  village Westchester ZIPs (e.g. Scarsdale 10583) return **7.375%** vs
-  Pub 718's **8.375%** ("Westchester — except cities" = 8⅜). The four
-  cities (Yonkers/WP/NR/Mt.V) are correct. Root cause: county base
-  modeled at 3.000% + phantom per-city taxes that cancel only for the
-  four cities. Fix is a multi-entry decomposition restructure (county
-  3.0→4.0; Yonkers city 1.5→0.5; WP/NR/Mt.V 1.0→0.0) → left for human
-  review. Full write-up in
-  `specs/findings/ny-westchester-noncity-undercollection-2026-07.md`.
+- **NY non-city Westchester under-collection — FIXED + DEPLOYED
+  (found 2026-07-18, resolved + reloaded 2026-07-18; commit 40243c5).**
+  Unincorporated/village Westchester ZIPs returned **7.375%** vs Pub
+  718's **8.375%** ("Westchester — except cities" = 8⅜) because the
+  county base was modeled at 3.000% with phantom per-city taxes that
+  cancelled only for the four cities. Re-decomposed to match Pub 718:
+  Westchester county 3.0→4.0; Yonkers city 1.5→0.5; WP/NR/Mt.V 1.0→0.0
+  (kept as 0%-city rows so friendly names still resolve — verified
+  `parse_rates` emits a row per NY_CITIES entry regardless of rate).
+  Prod reloaded via `data load -s NY -v 'NY-SST-V0.31-STATEWIDE'`
+  (data_version_id 636). **Verified live:** Scarsdale/Rye/Harrison/
+  Mamaroneck → 8.375; Yonkers 8.875; WP/NR/Mt.V 8.375; no regression
+  (Suffolk 8.75, Nassau 8.625, NYC 8.875 unchanged); `pytest -m liveapi
+  -k NY` passes 21/21. Full write-up +
+  resolution in `specs/findings/ny-westchester-noncity-undercollection-2026-07.md`.
   OH audited same day — **fully current** (SST `OHR2026Q1NOV28` latest;
   no OH county change eff Jul-1-2026; all 7 tier-1 cities match engine).
 - **NM Town of Bernalillo July-1-2026 GRT change — AMBIGUOUS, needs human
