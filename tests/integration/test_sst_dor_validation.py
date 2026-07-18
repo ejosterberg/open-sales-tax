@@ -1991,9 +1991,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Brentwood",
         "11717",
         "0001",
-        "8.625",
+        "8.750",
         "0.05",
-        "NY DTF Pub 718 (state 4% + Suffolk 4.25% + MCTD 0.375%; no city tax)",
+        "NY DTF Pub 718 (state 4% + Suffolk 4.375% + MCTD 0.375%; no city tax; "
+        "Suffolk 8¾ eff Mar 1 2025). daily-audit 2026-07-18: county rate corrected "
+        "4.25->4.375 in ny_data.py; fails under -m liveapi until prod NY data reload",
     ),
     # Texas -- Texas Comptroller of Public Accounts "City Sales and Use
     # Tax Rates" + transit-authority publications (verified 2026-05-04).
@@ -3937,18 +3939,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Huntington",
         "11743",
         "0001",
-        "8.625",
+        "8.750",
         "0.05",
-        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.625)",
+        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.75); Suffolk 8¾ eff "
+        "Mar 1 2025. daily-audit 2026-07-18 correction; fails under -m liveapi until "
+        "prod NY data reload",
     ),
     (
         "NY",
         "Smithtown",
         "11787",
         "0001",
-        "8.625",
+        "8.750",
         "0.05",
-        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.625)",
+        "iter-73 audit pin: NY DTF (state 4 + Suffolk County 4.75); Suffolk 8¾ eff "
+        "Mar 1 2025. daily-audit 2026-07-18 correction; fails under -m liveapi until "
+        "prod NY data reload",
     ),
     (
         "CA",

@@ -63,15 +63,15 @@ against NY DTF Pub 718 on 2026-05-04):
 - Rome (Oneida Co.) -- 8.750%
 - Levittown (Nassau Co.) -- 8.625%
 - Valley Stream (Nassau Co.) -- 8.625%
-- Brentwood (Suffolk Co.) -- 8.625%
-- West Babylon (Suffolk Co.) -- 8.625%
+- Brentwood (Suffolk Co.) -- 8.750%
+- West Babylon (Suffolk Co.) -- 8.750%
 - North Hempstead (Nassau Co.) -- 8.625%
 - Cheektowaga (Erie Co.) -- 8.750%
 - Tonawanda (Erie Co.) -- 8.750%
 - Irondequoit (Monroe Co.) -- 8.000%
 - Ramapo (Rockland Co.) -- 8.375%
 - Greece (Monroe Co.) -- 8.000%
-- Brookhaven (Suffolk Co.) -- 8.625%
+- Brookhaven (Suffolk Co.) -- 8.750%
 
 ZIPs not in :data:`NY_CITIES` fall back to state-only at 4.0%
 via the Census ZCTA load. This is an under-collection for any
@@ -183,7 +183,7 @@ NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Niagara County": Decimal("4.000"),
     "Broome County": Decimal("4.000"),
     "Rockland County": Decimal("4.000"),
-    "Suffolk County": Decimal("4.250"),
+    "Suffolk County": Decimal("4.375"),  # combined 8.75% (MCTD); Pub 718 8¾, eff Mar 1 2025
     # ---- Remaining 43 counties from NY DTF Pub 718 (March 1, 2025) ----
     # All combined rates verified against Pub 718; per-county rate is
     # combined - 4% state - 0.375% MCTD (for MCTD counties only).

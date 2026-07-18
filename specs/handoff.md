@@ -272,6 +272,32 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **NY Suffolk County 8.625% → 8.750% — REAL correction, prod NY reload
+  PENDING (audit 2026-07-18, committed, 3 liveapi pins bumped).** NY DTF
+  Publication 718 (2/25, eff **March 1, 2025**) lists Suffolk at 8¾ =
+  **8.750%** (county 4.375%); `ny_data.py` had the pre-increase county
+  rate 4.250 (combined 8.625%), even though its own comment cited that
+  Pub 718 edition. Fixed in repo: `ny_data.py` Suffolk County 4.250 →
+  4.375, unit-test pin, docstring, and the Brentwood 11717 / Huntington
+  11743 / Smithtown 11787 liveapi grid pins (all → 8.750). NY is
+  **non-SST**, so the live engine needs a **`data load -s NY`** on
+  `opensalestax-01` to pick up the corrected value — until then it still
+  returns 8.625% for Suffolk ZIPs and the 3 liveapi pins fail (expected,
+  documented in-line). Nassau (also 8.625%) is correct and unchanged.
+  Chip "Reload NY on prod (Suffolk County 8.625→8.75)" carries the
+  sequence. See `specs/audits/2026/07/state-audit-2026-07-18.md`.
+- **NY non-city Westchester under-collects 1% — NEW finding, NOT
+  auto-fixed (audit 2026-07-18, chipped for review).** Unincorporated /
+  village Westchester ZIPs (e.g. Scarsdale 10583) return **7.375%** vs
+  Pub 718's **8.375%** ("Westchester — except cities" = 8⅜). The four
+  cities (Yonkers/WP/NR/Mt.V) are correct. Root cause: county base
+  modeled at 3.000% + phantom per-city taxes that cancel only for the
+  four cities. Fix is a multi-entry decomposition restructure (county
+  3.0→4.0; Yonkers city 1.5→0.5; WP/NR/Mt.V 1.0→0.0) → left for human
+  review. Full write-up in
+  `specs/findings/ny-westchester-noncity-undercollection-2026-07.md`.
+  OH audited same day — **fully current** (SST `OHR2026Q1NOV28` latest;
+  no OH county change eff Jul-1-2026; all 7 tier-1 cities match engine).
 - **NM Town of Bernalillo July-1-2026 GRT change — AMBIGUOUS, needs human
   review, NOT auto-committed (audit 2026-07-17, finding + chip).** NM updates
   GRT rates twice a year (Jan 1 / Jul 1); `nm_data.py` is sourced from the

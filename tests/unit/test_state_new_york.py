@@ -154,7 +154,7 @@ def test_new_york_parse_rates_yields_county_rates() -> None:
     assert by_name["Monroe County"].rate_pct == Decimal("4.000")
     assert by_name["Westchester County"].rate_pct == Decimal("3.000")
     assert by_name["Nassau County"].rate_pct == Decimal("4.250")
-    assert by_name["Suffolk County"].rate_pct == Decimal("4.250")
+    assert by_name["Suffolk County"].rate_pct == Decimal("4.375")
     assert by_name["New York County"].rate_pct == Decimal("0.000")
 
 
