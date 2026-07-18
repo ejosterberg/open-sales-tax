@@ -220,7 +220,7 @@ class NewYork:
 
         2. Fall back to :data:`NY_CITIES` for any city ZIP missed by
            the Census pass and emit the city BoundaryRow on top of
-           the stack so the city's tax (NYC 4.5%, Yonkers 1.5%, etc.)
+           the stack so the city's tax (NYC 4.5%, Yonkers 0.5%, etc.)
            is layered correctly.
 
         Per the FL/AZ/CA pattern, emit at most ONE county per ZIP per

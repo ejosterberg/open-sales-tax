@@ -1874,7 +1874,8 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # New York -- NY DTF Publication 718 (verified 2026-05-04;
     # cross-checked NYC + Buffalo + Yonkers against Avalara per-city pages)
     # Combined = state 4% + per-county + MCTD 0.375% (where applicable)
-    # + city (NYC 4.5%, Yonkers 1.5%, NR/Mt.V/WP 1%; 0% elsewhere).
+    # + city (NYC 4.5%, Yonkers 0.5% on the 4% Westchester county rate;
+    # NR/Mt.V/WP and all other Westchester at the county rate; 0% elsewhere).
     # NYC's five boroughs all share 8.875% via the consolidated city
     # entry "New York City"; Yonkers also lands at 8.875% with a
     # different breakdown (state + Westchester + MCTD + Yonkers city).
@@ -1948,7 +1949,8 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "8.875",
         "0.05",
-        "NY DTF Pub 718 (state 4% + Westchester 3% + MCTD 0.375% + Yonkers 1.5%)",
+        "NY DTF Pub 718 (state 4% + Westchester 4% + MCTD 0.375% + Yonkers 0.5% city; "
+        "8⅞). daily-audit 2026-07-18 decomposition fix (was 3% county + 1.5% city)",
     ),
     (
         "NY",
@@ -1975,7 +1977,8 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "8.375",
         "0.05",
-        "NY DTF Pub 718 (state 4% + Westchester 3% + MCTD 0.375% + White Plains 1%)",
+        "NY DTF Pub 718 (state 4% + Westchester 4% + MCTD 0.375%; at county rate, "
+        "no extra city tax -- daily-audit 2026-07-18 decomposition correction)",
     ),
     (
         "NY",
@@ -1996,6 +1999,34 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "NY DTF Pub 718 (state 4% + Suffolk 4.375% + MCTD 0.375%; no city tax; "
         "Suffolk 8¾ eff Mar 1 2025). daily-audit 2026-07-18: county rate corrected "
         "4.25->4.375 in ny_data.py; fails under -m liveapi until prod NY data reload",
+    ),
+    # Non-city Westchester regression pins (daily-audit 2026-07-18): Pub 718
+    # lists "Westchester -- except cities" at 8⅜ = 8.375%. Scarsdale and Rye
+    # are NOT among the four cities that impose their own tax (Yonkers/WP/NR/
+    # Mt.V), so they sit at the Westchester county rate. The pre-fix model
+    # (county base 3.0%) under-collected these by 1.0% (engine returned
+    # 7.375%); ny_data.py now sets Westchester county to 4.0%.
+    (
+        "NY",
+        "Scarsdale",
+        "10583",
+        "0001",
+        "8.375",
+        "0.05",
+        "NY DTF Pub 718 (state 4% + Westchester 4% + MCTD 0.375%; non-city, 8⅜). "
+        "daily-audit 2026-07-18 Westchester decomposition fix; fails under -m "
+        "liveapi until prod NY data reload",
+    ),
+    (
+        "NY",
+        "Rye",
+        "10580",
+        "0001",
+        "8.375",
+        "0.05",
+        "NY DTF Pub 718 (state 4% + Westchester 4% + MCTD 0.375%; Rye is not one of "
+        "the four tax-imposing cities, so it's at the county rate). daily-audit "
+        "2026-07-18; fails under -m liveapi until prod NY data reload",
     ),
     # Texas -- Texas Comptroller of Public Accounts "City Sales and Use
     # Tax Rates" + transit-authority publications (verified 2026-05-04).

@@ -3,8 +3,8 @@
 **Date:** 2026-07-18 (surfaced during the NY leg of the daily state
 tax audit, day 18: NY + OH)
 **State:** New York (non-SST, self-seeded module `ny_data.py`)
-**Status:** OPEN — needs human review (jurisdiction-decomposition
-restructure; NOT auto-fixed)
+**Status:** RESOLVED in repo 2026-07-18 (prod reload tracked below) —
+fix applied after review of the 0%-city-row behavior; see "Resolution".
 **Severity:** Medium — 1% under-collection on every Westchester ZIP
 outside the four incorporated cities. Under-collection = under-remittance
 risk for self-hosters relying on the engine.
@@ -88,9 +88,30 @@ their authority rows entirely (they may need to stay as named
 zero-rate city authorities so the friendly name still resolves). This
 is why it's a review item, not a mechanical audit commit.
 
-## Not in scope for the 2026-07-18 audit commit
+## Resolution (2026-07-18)
 
-The audit's Suffolk County correction (4.25 → 4.375, a clean single-value
-data fix) was committed. This Westchester item is a multi-entry
-decomposition restructure and is left for human review per the audit's
-"conservative on automated commits" rule.
+Applied the proposed fix in `src/opensalestax/states/ny_data.py`:
+
+- `NY_COUNTY_RATE_PCT["Westchester County"]`: 3.000 → **4.000**
+- Yonkers city increment: 1.5 → **0.5**
+- New Rochelle / Mount Vernon / White Plains city increment: 1.0 → **0.0**
+
+**Verified the reviewer's concern first:** `NEW_YORK.parse_rates`
+yields a city `RateRow` for **every** `NY_CITIES` entry unconditionally
+(no skip for a 0.0 rate) — Rochester, Syracuse, Albany, Utica, etc. are
+already seeded at 0.000. So dropping New Rochelle / Mount Vernon / White
+Plains to a 0.0 city rate keeps their named city authority rows and ZIP
+bindings (friendly names still resolve); their combined rate is now
+state 4 + Westchester 4 + MCTD 0.375 = **8.375%**. Yonkers = + 0.5 city
+= **8.875%**. Non-city Westchester (Scarsdale, Rye, …) now also resolves
+to **8.375%**.
+
+Tests: updated the NY unit assertions (Westchester county 4.0, Yonkers
+city 0.5, new test asserting NR/Mt.V/WP are 0%-city rows) and added
+liveapi regression pins for Scarsdale 10583 and Rye 10580 (both 8.375).
+Full gate green (ruff, mypy, pytest -m "not liveapi" 1573 passed);
+SonarQube: no new BLOCKER/CRITICAL. Committed with DCO sign-off.
+
+**Prod:** the live engine needs a `data load -s NY` reload to pick up
+the corrected Westchester county rate (same non-SST reload path used for
+the Suffolk fix). Tracked in `specs/handoff.md`.

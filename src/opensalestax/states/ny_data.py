@@ -16,7 +16,7 @@ Architecture: New York's combined rate has up to four layers:
 1. **State portion: 4.0%** (N.Y. Tax Law section 1105) -- the
    ``New York`` state authority.
 2. **County portion** (varies, e.g. Erie 4.75%, Onondaga 4.0%,
-   Westchester 3.0%, NYC's five "boroughs" each map to a county
+   Westchester 4.0%, NYC's five "boroughs" each map to a county
    that shares the city's combined rate).
 3. **Metropolitan Commuter Transportation District (MCTD):
    +0.375%** -- a regional surcharge collected by NY DTF on
@@ -25,9 +25,10 @@ Architecture: New York's combined rate has up to four layers:
    Putnam). Modeled as a ``district`` authority that sits under
    the state.
 4. **City portion** (only a handful of NY cities impose their
-   own sales tax: New York City 4.5%, Yonkers 1.5%, New Rochelle
-   1.0%, Mount Vernon 1.0%, White Plains 1.0%; most "cities" in
-   NY have NO city sales tax and use only the county rate).
+   own sales tax on top of the county rate: New York City 4.5%,
+   Yonkers 0.5%; New Rochelle, Mount Vernon, and White Plains sit
+   at the Westchester county rate with NO extra city tax; most
+   other "cities" in NY likewise use only the county rate).
 
 NYC special case: the five boroughs of New York City are
 themselves counties (Bronx County, Kings County [Brooklyn], New
@@ -149,15 +150,17 @@ NY_MCTD_COUNTIES: frozenset[str] = frozenset(
 # counties.
 #
 # Per-county rate derivation: combined Pub 718 rate minus the 4.0%
-# state rate, minus the 0.375% MCTD surcharge for MCTD counties. For
-# the four Westchester cities that file their own returns (Mount
-# Vernon, New Rochelle, White Plains, Yonkers), the city rate is
-# encoded as the city authority on top of a 3.0% Westchester county
-# rate -- this preserves the existing combined-rate math for the four
-# city ZIPs (e.g., Yonkers 4 + 3 + 0.375 MCTD + 1.5 city = 8.875%)
-# but means non-city Westchester ZIPs under-collect by 1.0% relative
-# to Pub 718 (8.375% combined) until a future ratchet expands the
-# city/county model to handle Westchester's "instead-of" allocation.
+# state rate, minus the 0.375% MCTD surcharge for MCTD counties.
+# Westchester County is the full 4.0% (combined 8.375% with the MCTD
+# surcharge), matching Pub 718's "Westchester -- except cities" line.
+# Every part of Westchester is 8.375% EXCEPT Yonkers, which imposes an
+# additional 0.5% city sales tax on top (-> 8.875%); Mount Vernon, New
+# Rochelle, and White Plains sit at the county rate and add no extra
+# city tax (they stay in NY_CITIES as 0%-city rows so their friendly
+# names still resolve). This corrects the earlier model, which put the
+# county base at 3.0% and gave the four cities a phantom +1.0%/+1.5%
+# city tax -- that cancelled only for the four cities and left every
+# non-city Westchester ZIP 1.0% short (fixed 2026-07-18 daily-audit).
 NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
     # ---- Counties with covered cities (existing seed; preserved) ----
     # NYC's five boroughs all use 0% county portion -- the local tax
@@ -175,7 +178,7 @@ NY_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Monroe County": Decimal("4.000"),
     "Onondaga County": Decimal("4.000"),
     "Albany County": Decimal("4.000"),
-    "Westchester County": Decimal("3.000"),  # cities Yonkers, NR, Mt. V, WP add city tax
+    "Westchester County": Decimal("4.000"),  # combined 8.375% (MCTD); Yonkers adds 0.5% city on top
     "Schenectady County": Decimal("4.000"),
     "Oneida County": Decimal("4.750"),
     "Nassau County": Decimal("4.250"),
@@ -496,10 +499,10 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
             "14625",
         ),
     ),
-    # ---- Yonkers -- 8.875% (4 + 3 Westchester + 0.375 MCTD + 1.5 city) ----
+    # ---- Yonkers -- 8.875% (4 + 4 Westchester + 0.375 MCTD + 0.5 city) ----
     "Yonkers": (
         "Westchester County",
-        Decimal("1.500"),
+        Decimal("0.500"),
         ("10701", "10702", "10703", "10704", "10705", "10706", "10707", "10710"),
     ),
     # ---- Syracuse -- 8.000% (4 + 4 Onondaga; no MCTD, no city tax) ----
@@ -525,16 +528,16 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.000"),
         ("12202", "12203", "12204", "12205", "12206", "12207", "12208", "12209", "12210"),
     ),
-    # ---- New Rochelle -- 8.375% (4 + 3 Westchester + 0.375 MCTD + 1 city) ----
+    # ---- New Rochelle -- 8.375% (4 + 4 Westchester + 0.375 MCTD; at county rate, no extra city tax) ----
     "New Rochelle": (
         "Westchester County",
-        Decimal("1.000"),
+        Decimal("0.000"),
         ("10801", "10804", "10805"),
     ),
-    # ---- Mount Vernon -- 8.375% (4 + 3 Westchester + 0.375 MCTD + 1 city) ----
+    # ---- Mount Vernon -- 8.375% (4 + 4 Westchester + 0.375 MCTD; at county rate, no extra city tax) ----
     "Mount Vernon": (
         "Westchester County",
-        Decimal("1.000"),
+        Decimal("0.000"),
         ("10550", "10552", "10553"),
     ),
     # ---- Schenectady -- 8.000% (4 + 4 Schenectady; no MCTD, no city tax) ----
@@ -549,10 +552,10 @@ NY_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("0.000"),
         ("13501", "13502", "13503"),
     ),
-    # ---- White Plains -- 8.375% (4 + 3 Westchester + 0.375 MCTD + 1 city) ----
+    # ---- White Plains -- 8.375% (4 + 4 Westchester + 0.375 MCTD; at county rate, no extra city tax) ----
     "White Plains": (
         "Westchester County",
-        Decimal("1.000"),
+        Decimal("0.000"),
         ("10601", "10603", "10604", "10605", "10606", "10607"),
     ),
     # ---- Hempstead -- 8.625% (4 + 4.25 Nassau + 0.375 MCTD; no city tax) ----

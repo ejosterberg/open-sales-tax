@@ -11,8 +11,9 @@ local structure unique among US states:
   0.375% in 12 downstate counties (NYC's five plus Long Island
   plus parts of the Hudson Valley) modeled as a ``district``
   authority.
-- Per-city rates (only NYC, Yonkers, New Rochelle, Mount Vernon,
-  and White Plains impose their own city sales tax).
+- Per-city rates (only NYC 4.5% and Yonkers 0.5% impose a city tax
+  on top of the county rate; New Rochelle, Mount Vernon, and White
+  Plains sit at the Westchester county rate with a 0% city row).
 
 Tests verify metadata, registration, Protocol conformance, the
 combined NYC rate (8.875%) and Yonkers rate (8.875%, distinct
@@ -136,13 +137,29 @@ def test_new_york_parse_rates_yields_nyc_city_at_4_5_pct() -> None:
     assert nyc.parent_authority_name == "New York County"
 
 
-def test_new_york_parse_rates_yields_yonkers_city_at_1_5_pct() -> None:
-    """Yonkers' city portion is 1.5% on top of state + Westchester + MCTD."""
+def test_new_york_parse_rates_yields_yonkers_city_at_0_5_pct() -> None:
+    """Yonkers' city portion is 0.5% on top of state + Westchester 4% + MCTD.
+
+    (Pub 718: Yonkers 8⅞ = 8.875%; every other part of Westchester is
+    8.375%, so Yonkers' incremental city tax over the county rate is
+    0.5%. Corrected 2026-07-18 from a 1.5%-on-3.0%-county model.)
+    """
     rows = list(NEW_YORK.parse_rates(None, "v0.26-state-county-mctd-city"))
     by_name = {r.authority_name: r for r in rows if r.authority_type == "city"}
     yonkers = by_name["Yonkers"]
-    assert yonkers.rate_pct == Decimal("1.500")
+    assert yonkers.rate_pct == Decimal("0.500")
     assert yonkers.parent_authority_name == "Westchester County"
+
+
+def test_new_york_westchester_cities_at_county_rate_zero_city_tax() -> None:
+    """New Rochelle / Mount Vernon / White Plains sit at the Westchester
+    county rate with no extra city tax (0% city rows, retained so their
+    friendly names still resolve). Combined = 4 + 4 + 0.375 = 8.375%."""
+    rows = list(NEW_YORK.parse_rates(None, "v0.26-state-county-mctd-city"))
+    by_name = {r.authority_name: r for r in rows if r.authority_type == "city"}
+    for city in ("New Rochelle", "Mount Vernon", "White Plains"):
+        assert by_name[city].rate_pct == Decimal("0.000"), city
+        assert by_name[city].parent_authority_name == "Westchester County"
 
 
 def test_new_york_parse_rates_yields_county_rates() -> None:
@@ -152,7 +169,7 @@ def test_new_york_parse_rates_yields_county_rates() -> None:
     # Spot-check a handful of representative counties.
     assert by_name["Erie County"].rate_pct == Decimal("4.750")
     assert by_name["Monroe County"].rate_pct == Decimal("4.000")
-    assert by_name["Westchester County"].rate_pct == Decimal("3.000")
+    assert by_name["Westchester County"].rate_pct == Decimal("4.000")
     assert by_name["Nassau County"].rate_pct == Decimal("4.250")
     assert by_name["Suffolk County"].rate_pct == Decimal("4.375")
     assert by_name["New York County"].rate_pct == Decimal("0.000")
@@ -175,7 +192,7 @@ def test_new_york_combined_nyc_rate_is_8_875_pct() -> None:
 def test_new_york_combined_yonkers_rate_is_8_875_pct() -> None:
     """Yonkers combined rate must be 8.875% (different breakdown than NYC).
 
-    state 4 + Westchester 3 + MCTD 0.375 + Yonkers 1.5 = 8.875%
+    state 4 + Westchester 4 + MCTD 0.375 + Yonkers 0.5 = 8.875%
     """
     county, city_rate, _ = NY_CITIES["Yonkers"]
     state = NY_STATE_RATE_PCT
