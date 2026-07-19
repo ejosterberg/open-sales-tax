@@ -473,9 +473,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Bixby",
         "74008",
         "1234",
-        "8.417",
+        "8.917",
         "0.05",
-        "OK DOR (state 4.5% + Tulsa 0.367% + Bixby 3.55%)",
+        # daily-audit 2026-07-19: Bixby raised its city rate 3.55% -> 4.05%
+        # (combined 8.417 -> 8.917). Verified vs Avalara (Bixby city 4.05%,
+        # combined 8.917%). The engine already returns 8.917 -- the SST Q2
+        # file carries the current 4.05% rate under city code 06400 -- so
+        # this is a stale-pin correction, not real drift. The engine reports
+        # the 4.05% authority as the unnamed placeholder "OK-city-06400"
+        # (ok_names maps a different code, 37800, to "Bixby" at the OLD 3.55%);
+        # that friendly-name/dual-code issue is tracked in
+        # specs/findings/ok-bixby-dualcode-edmond-logan-2026-07.md.
+        "OK DOR / Avalara (state 4.5% + Tulsa County 0.367% + Bixby city 4.05%)",
     ),
     (
         "OK",
@@ -509,9 +518,21 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Edmond",
         "73034",
         "1234",
-        "9.000",
+        "8.250",
         "0.05",
-        "OK DOR (state 4.5% + Logan County 0.75% + Edmond 3.75%; ZIP 73034 straddles OK/Logan; +4 1234 is in Logan)",
+        # daily-audit 2026-07-19: corrected 9.000 -> 8.250. The prior 9.000
+        # expectation assumed "+4 1234 is in Logan County", but +4 1234 of
+        # 73034 resolves to the Oklahoma-County side of Edmond (Oklahoma
+        # County levies 0% county sales tax), giving state 4.5% + Edmond city
+        # 3.75% = 8.250% -- which matches Avalara's published Edmond rate
+        # (min combined 8.25%) and the engine's current output. NOTE: a
+        # genuine engine limitation exists on the Logan-County sliver of
+        # 73034 (real Logan +4 ranges e.g. 0022/0600 return 5.25% -- Logan
+        # County 0.75% + state, DROPPING the Edmond city 3.75%, instead of
+        # the expected 9.0%). Do NOT "fix" that by re-pinning a Logan +4
+        # here; the engine must bind Edmond city on the Logan side first.
+        # Tracked in specs/findings/ok-bixby-dualcode-edmond-logan-2026-07.md.
+        "OK DOR / Avalara (state 4.5% + Oklahoma County 0% + Edmond city 3.75%)",
     ),
     (
         "OK",

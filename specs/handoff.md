@@ -272,6 +272,29 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **OK — engine fully current on rates; 2 labelling/+4 issues + Q3
+  refresh (audit 2026-07-19).** All 14 OK tier-1 cities match the live
+  engine + Avalara/OK DOR. Two DOR-validation pins were stale/wrong and
+  were corrected (engine was already right): **Bixby** 8.417→**8.917**
+  (Bixby raised city 3.55%→4.05%; already in the SST Q2 file) and
+  **Edmond** 9.000→**8.250** (old pin's "+4 1234 in Logan" premise was
+  false — 1234 is the Oklahoma-County side, 0% county, = 8.25%, matching
+  Avalara). Two non-drift issues chipped + written to
+  `specs/findings/ok-bixby-dualcode-edmond-logan-2026-07.md`: (1) the
+  4.05% Bixby authority is the **unlabelled** code `06400` while
+  `ok_names` maps a different code `37800` to "Bixby" at the OLD 3.55%
+  (add `06400`→Bixby, root-cause the 37800 mislabel — same pattern as
+  MN/IA/NC iter-220/221); (2) the **Logan-County +4 sliver of Edmond
+  73034** (e.g. +4 0022/0600) returns **5.25%** — Logan 0.75% + state,
+  **dropping the Edmond city 3.75%** — vs an expected 9.0% if those +4s
+  are inside Edmond city limits (same class as the UT `-0001` county-drop;
+  do NOT paper over by re-pinning a Logan +4). Separately, **OK prod SST
+  data is a full quarter behind** (`OKR2026Q2FEB17`/`OKB2026Q2APR01`, now
+  expired past Jul-1); chip "Refresh OK SST quarterly to
+  `OKR2026Q3MAY29`/`OKB2026Q3JUN10`" carries the load sequence.
+  **OR audited same day — fully clean** (no statewide/local general sales
+  tax; engine returns 0% with zero jurisdictions for every OR ZIP). See
+  `specs/audits/2026/07/state-audit-2026-07-19.md`.
 - **NY Suffolk County 8.625% → 8.750% — REAL correction, DONE +
   DEPLOYED (audit 2026-07-18; prod reloaded 2026-07-18).** NY DTF
   Publication 718 (2/25, eff **March 1, 2025**) lists Suffolk at 8¾ =
