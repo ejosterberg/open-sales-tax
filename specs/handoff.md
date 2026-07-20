@@ -272,6 +272,19 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **PR prepared-food reduced 7% IVU not modeled — accuracy/doc gap, NOT drift,
+  chipped (audit 2026-07-20).** PA + PR both audited; **combined rates fully
+  clean** (PA: Philadelphia 8% / Pittsburgh 7% / all others 6%; PR: uniform 11.5%
+  at every ZIP — engine matches every tier-1 city, no 2026 change). The one item:
+  PR grants a **reduced 7% IVU on prepared foods** sold by **certified** merchants
+  (Act 257-2018 §4210.01 PR IRC 2011; Hacienda DA 19-03; eff 2019-10-01; SC 2995
+  certificate; alcohol excluded). `puerto_rico.py` models `prepared_food` at the
+  full 11.5% and its docstring is silent on the reduced rate. **Not auto-changed**
+  — the default 11.5% is defensible (OST has no seller-certification signal) and a
+  proper fix needs an engine feature. Chip "Model/document PR prepared-food reduced
+  7% IVU" (min = docstring; fuller = optional reduced-rate model). Finding:
+  `specs/findings/pr-prepared-food-reduced-7pct-2026-07.md`. PA has no open item
+  (its docstring already flags the Allegheny-suburb ZIP coverage-expansion idea).
 - **OK — engine fully current on rates; 2 labelling/+4 issues + Q3
   refresh (audit 2026-07-19).** All 14 OK tier-1 cities match the live
   engine + Avalara/OK DOR. Two DOR-validation pins were stale/wrong and
