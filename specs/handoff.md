@@ -519,17 +519,25 @@ If Eric wants none of the above, ask before pivoting.
   the WY Excise Division chart). Routine currency refresh; also worth
   checking whether Teton Village (83025) / Alta (83414) resolve to WY's
   9% resort-overlay max (Jackson proper 83001 correctly 7%).
-- **6 SST states need Q3 refresh (buffer-day catch-up audit 2026-06-29,
+- **SD + TN Q3 SST refresh still pending — re-audited 2026-07-22, still
+  clean, refresh NOT yet applied.** On their normal rotation day (22), SD and
+  TN were re-audited: **0 rate drift** in either (all tier-1 cities identical
+  to the 2026-06-29 probe), but prod still caches the badly-stale rate files
+  (`SDR2024Q1DEC12`, `TNR2025Q1MAR07`) — the 2026-06-29 chip was never applied.
+  Latest available is still **Q3 2026** (no Q4 yet). Re-chipped: refresh SD →
+  `SDR2026Q3JUN02`/`SDB2026Q3JUN04`, TN → `TNR2026Q3JUN11`/`TNB2026Q3MAY22`.
+  **Flag: SD's 4.2% state rate sunsets back to 4.5% on 2027-06-30** unless
+  extended — re-verify in July-2027. See
+  `specs/audits/2026/07/state-audit-2026-07-22.md`.
+- **UT/VT/WA/WI Q3 refresh (buffer-day catch-up audit 2026-06-29,
   chipped).** Days 22–25 of the rotation were missed (app not open), so
   SD/TN/UT/VT/WA/WI were audited together on the day-29 buffer. No
-  real-world rate drift in any of them, but all 6 are 1+ quarters behind
-  on prod. **SD and TN are badly behind on their RATE files** (SD prod =
-  `SDR2024Q1DEC12`, TN prod = `TNR2025Q1MAR07`). Latest Q3 2026 files:
-  SD `SDR2026Q3JUN02`/`SDB2026Q3JUN04`, TN `TNR2026Q3JUN11`/
-  `TNB2026Q3MAY22`, UT `UTR2026Q3MAY11`/`UTB2026Q3MAY11`, VT
+  real-world rate drift in any of them, but all are 1+ quarters behind
+  on prod. (SD/TN split out to the entry above after their 2026-07-22
+  re-audit.) Latest Q3 2026 files: UT `UTR2026Q3MAY11`/`UTB2026Q3MAY11`, VT
   `VTR2026Q3MAY20`/`VTB2026Q3MAY20`, WA `WAR2026Q3MAY27`/`WAB2026Q3MAY27`,
-  WI `WIR2026Q3MAY22`/`WIB2026Q3MAY22`. See
-  `specs/audits/2026/06/state-audit-2026-06-29.md`.
+  WI `WIR2026Q3MAY22`/`WIB2026Q3MAY22` (re-audited on rotation days 23–25).
+  See `specs/audits/2026/06/state-audit-2026-06-29.md`.
 - **UT `-0001` placeholder ZIP+4 drops county for some ZIPs (audit
   2026-06-29, chipped).** Calling `/v1/calculate` with the synthetic
   `-0001` ZIP+4 under-collects the county rate for Provo (84601), St
