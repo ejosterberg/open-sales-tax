@@ -506,19 +506,35 @@ If Eric wants none of the above, ask before pivoting.
   still re-checks PyPI/OSV; pin asyncmy to the first release that fixes
   PYSEC-2026-286 when one ships (the optional-extra structure stays
   regardless — it's good hygiene, not just a CVE workaround).
-- **WV SST refresh Q1 → Q3 (audit 2026-06-26, chipped).** Prod caches
-  `WVR2026Q1AUG14` / `WVB2026Q1SEP02`; latest SST is
-  `WVR2026Q3FEB25` / `WVB2026Q3APR29`. No drift in the top-5 cities
-  (all correctly 7%), but several new 2026 municipalities adopted the
-  1% municipal tax (Bramwell, Glenville, Hinton, Marlinton, Pineville,
-  Anmoore, Bath) + increases (Richwood, Westover) that only surface
-  after the Q3 load. See `specs/audits/2026/06/state-audit-2026-06-26.md`.
-- **WY SST refresh Q2 → Q3 (audit 2026-06-26, chipped).** Prod caches
-  `WYR2026Q2APR1` / `WYB2026Q2FEB23`; latest SST is `WYR2026Q3JUN2` /
-  `WYB2026Q3MAY18`. No drift in the top-7 county/city stacks (all match
-  the WY Excise Division chart). Routine currency refresh; also worth
-  checking whether Teton Village (83025) / Alta (83414) resolve to WY's
-  9% resort-overlay max (Jackson proper 83001 correctly 7%).
+- **WV + WY Q3 SST refresh still pending — re-audited 2026-07-26, still
+  clean, refresh NOT yet applied.** On their normal rotation day (26), WV
+  and WY were re-audited: **0 rate drift** in either (WV all 8 tier-1
+  cities correctly 7.000%; WY all 7 county/city stacks match the WY Excise
+  Division chart), but prod is unchanged since 2026-06-26 — the Q3 chips
+  were never applied. Prod still caches WV `WVR2026Q1AUG14`/`WVB2026Q1SEP02`
+  (2 quarters behind) and WY `WYR2026Q2APR1`/`WYB2026Q2FEB23` (1 quarter
+  behind). Latest available is still **Q3 2026** (no Q4 yet, confirmed
+  against the SST directory). Re-chipped: refresh WV →
+  `WVR2026Q3FEB25`/`WVB2026Q3APR29` (picks up the new 2026 municipalities
+  Bramwell/Glenville/Hinton/Marlinton/Pineville/Anmoore/Bath + Richwood/
+  Westover increases), WY → `WYR2026Q3JUN2`/`WYB2026Q3MAY18` (also verify
+  whether Teton Village 83025 / Alta 83414 resolve to the 9% resort-overlay
+  max; Jackson proper 83001 correctly 7%). See
+  `specs/audits/2026/07/state-audit-2026-07-26.md`.
+- **⚠️ Prod stack was DOWN ~2 days — availability incident, recovered +
+  chipped (found 2026-07-26).** The 2026-07-26 audit found both prod
+  containers (`open-sales-tax-api-1` + `open-sales-tax-postgres-1`)
+  `Exited (0)` ~2 days prior, with the public API
+  `https://api.opensalestax.org` returning HTTP 502. Both exited cleanly
+  (status 0) and neither restarted — the compose services carry **no
+  `restart:` policy**, so a host reboot / `compose down` leaves prod dark
+  until manual recovery. The audit run recovered it
+  (`docker compose up -d postgres` + `docker restart open-sales-tax-api-1`,
+  verified `/v1/rates` → 200 before probing). **Chipped:** add
+  `restart: unless-stopped` to both compose services + root-cause what
+  stopped them ~2 days ago (likely a host reboot). This is the
+  higher-impact finding of the day. See the "Operational note" in
+  `specs/audits/2026/07/state-audit-2026-07-26.md`.
 - **SD + TN Q3 SST refresh still pending — re-audited 2026-07-22, still
   clean, refresh NOT yet applied.** On their normal rotation day (22), SD and
   TN were re-audited: **0 rate drift** in either (all tier-1 cities identical
