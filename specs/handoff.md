@@ -272,6 +272,58 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **🔴 PROCESS: seven states are now backlogged on the same Q3 SST refresh
+  (audit 2026-07-31).** AR, ND, NE, SD, TN, WV, WY have each been chipped
+  individually across four separate audits (07-22, 07-26, 07-31) and **none
+  of the chips have been applied**. They will keep re-opening every cycle
+  until someone does one fleet-wide pass. Chip "Do one fleet-wide Q3 SST
+  refresh (7 states)" carries the file names and load sequence for all
+  seven. WV is the worst — **two** quarters behind.
+- **Buffer-day catch-up covering the 10 never-audited jurisdictions
+  (audit 2026-07-31): AK, AL, AR, AZ, CA, CO, ND, NE, NH, NJ.** The
+  `specs/audits/` history began 2026-06-21, so rotation days 1, 2, 3, 15
+  and 16 had **no audit record at all**; this run closed that gap.
+  **4 drifted (AR, AZ, ND, NE) — 9 wrong jurisdiction rates, all with a
+  2026-07-01 effective date; 6 clean (AK, AL, CA, CO, NH, NJ).**
+  - **AR — 6 wrong, one quarter stale** (Q2 on prod, `ARR2026Q3JUN02`
+    published). Van Buren city 1.5→**2.5**, El Dorado 1.25→**1.75**,
+    Chester **1.0 newly enacted**, Perry **1.0 newly enacted**, and two
+    that make the engine **over-collect**: Cross County 3.0→**2.125**,
+    Jackson County 2.25→**1.875**. All verified against the DFA primary
+    source (`cityCountyTaxTable_Jul_Sep_2026.pdf`). Chipped.
+  - **AZ — Florence 2.00→3.50** (ordinance 780-26, retail code 017;
+    combined 8.700 → should be **10.200**). AZ is **non-SST**, so this
+    needs an AZ DOR rate-table reload, not an SST load — chipped
+    separately. Already-published-but-future: Huachuca City 8/1,
+    Kingman 9/1, Tusayan + new San Tan Valley 10/1. NOT drift: Oro
+    Valley (use tax only) and South Tucson (food-for-home-consumption
+    → 0%, an unmodeled reduced-rate category).
+  - **ND — Scranton 1.0→2.0.** Chipped. Separately, ND's other two
+    7/1 changes (Drayton, Oakes) are **per-sale maximum-tax / refund-cap**
+    changes — the engine models flat percentages only and has **no
+    concept of ND's local tax cap**. Real capability gap for
+    large-ticket ND sales; may deserve a decision record.
+  - **NE — Edgar 1.0→1.5.** Chipped. Edgar's authority is also still an
+    unlabelled placeholder (`NE-city-14450`) — same friendly-name gap as
+    the WV/UT/WI tables.
+  - **CA fully clean** — all 10 tier-1 cities match the CDTFA table
+    headed "Effective July 1, 2026" exactly. (LA's *decomposition*
+    differs from the pin narrative — engine says county 2.5 + city 0.0,
+    pin comment says 2.25 — but the combined 9.750 is right. Labelling
+    nuance, not an error.)
+  - **AL doc-accuracy item (not a rate fix):** Tuscumbia (35674) returns
+    state+county only with **no city component**, while Birmingham,
+    Mobile, Mountain Brook, Helena etc. **are** modelled. The AL
+    `coverage_warning` currently claims city overlays are *not* modelled
+    at all, so consumers can't tell which cities are covered. Warning
+    text is now pessimistic and misleading — worth rewording.
+  - **NJ is NOT stale** despite prod holding `NJR2018Q1OCT16` /
+    `NJB2019Q2MAR27` — those are the newest files SST publishes for NJ
+    (verified against the SST directory listings). Flat 6.625%,
+    unchanged. Don't "fix" this.
+  - Full report: `specs/audits/2026/07/state-audit-2026-07-31.md`.
+  - **Next buffer-day target:** RI + SC (last audited 2026-06-21, the
+    oldest remaining), then TX/UT, VA/VT, WA/WI (all 2026-06-29).
 - **PR prepared-food reduced 7% IVU not modeled — accuracy/doc gap, NOT drift,
   chipped (audit 2026-07-20).** PA + PR both audited; **combined rates fully
   clean** (PA: Philadelphia 8% / Pittsburgh 7% / all others 6%; PR: uniform 11.5%
