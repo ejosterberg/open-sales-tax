@@ -272,6 +272,61 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **🔴 ENGINE BUG: multi-county ZIPs pick a county by an arbitrary FIPS-first
+  tiebreak — 617 ZIPs across 7 states (audit 2026-08-01, chipped).** Every
+  self-seeded (non-SST) state module binds at most one county per ZIP; when a
+  ZIP straddles counties and no seeded city anchors it, the loader takes **the
+  first county in FIPS-sorted order** (`alabama.py:520`:
+  `# No city anchor for this ZIP -- take the first AL county.`). FIPS order
+  encodes nothing about population or land area, so the choice is a coin flip.
+  `ZIP_COUNTY` already stores the full multi-county truth and the loader
+  discards all but one. **Confirmed wrong: Calera AL 35040** binds Chilton
+  County 3.000% but Calera is in **Shelby County 1.000%** (Avalara) — the
+  county component **over-collects by 2.00pp**. Guin 35563 (→Fayette, actually
+  Marion) and Hackleburg 35564 (→Franklin, actually Marion) mislabel
+  identically but are rate-neutral by coincidence. Blast radius, counting only
+  ZIPs where the tiebreak alone decided *and* the candidates levy different
+  rates: **AL 172, NY 112, FL 96, SC 93, CA 89, AZ 28, PA 27 = 617** (of 2382
+  arbitrarily-chosen multi-county ZIPs). TX/VA/MS/NM/HI show 0 only because
+  their county rates are currently uniform — the same rule runs in all **12**
+  modules and is latent there. **The fix has a precedent in this codebase:**
+  the cross-state ZIP dedup (iter-165..168) picks the area-majority state from
+  Census `AREALAND_PART`; extend that state→county and hoist it into one
+  shared helper. **Do NOT hand-pin the three AL ZIPs or edit `ZIP_COUNTY`** —
+  that hides 617 others behind the same rule. Finding:
+  `specs/findings/multi-county-zip-fips-first-tiebreak-2026-08.md`.
+- **🔴 AK ZIP 99928 (Ward Cove) over-collects 3.00pp + six AK ZIPs return
+  0.000% (audit 2026-08-01, chipped).** Diffed the full ARSSTC
+  "Rate Sheet with Zip Codes **7-1-2026**" against the live engine: 84 ZIPs,
+  **73 exact match, 4 defensibly between the inside/outside-city bracket, 1
+  over-collect, 6 under-collect**; all 18 pinned AK rows match exactly.
+  **99928** returns `Ketchikan 5.5%` — it applies the City of Ketchikan's tax
+  to a ZIP that is *not* in Ketchikan city (Ward Cove is unincorporated in
+  Ketchikan Gateway Borough; ARSSTC gives it no city filing code) **and** drops
+  the 2.5% borough tax it does owe, so both components are wrong; correct is
+  **2.500%**. Separately **99903 / 99918 / 99950** (Ketchikan Gateway Borough,
+  floor 2.5%), **99824** (Douglas, City & Borough of Juneau 5.0%), **99836**
+  (6.0%) and **99850** (4.5%) return a bare `Alaska 0.000%` with no
+  jurisdictions — missing boundary rows, not wrong rates (the borough
+  authorities exist and are correct for 99901). Investigate *why* a city
+  binding exists for a ZIP with no ARSSTC city code before patching 99928 —
+  the AK boundary builder may be mis-inferring city membership generally.
+  **No 8-1-2026 ARSSTC sheet exists**, so nothing took effect in AK today.
+  Gotcha for future audits: the sheet's `inoutcity` column contains `'I '`
+  **with a trailing space** — strip it or inside-city rows bucket as outside.
+  Finding: `specs/findings/ak-ward-cove-overcollect-and-zero-rate-zips-2026-08.md`.
+- **AL — six ALDOR city rate changes, none modelled; no drift (audit
+  2026-08-01).** All 24 pinned AL rows match the live engine exactly.
+  **Rogersville** and **Bay Minette** changed effective **2026-08-01**;
+  **Calera, Priceville, Hackleburg** effective 2026-07-01 and **Guin**
+  2026-06-01. **None appear in `AL_CITIES`**, so no engine rate changed —
+  these are instances of the documented home-rule coverage gap (30 of ~700
+  municipalities seeded), not drift. Rogersville is +1% (its first rise in 25
+  years); exact new rates for the rest are in the individual ALDOR notice PDFs
+  and should be read from there before any seeding work. Calera additionally
+  exposed the county-binding bug above. **Still open from 2026-07-31:** AL's
+  `coverage_warning` claims city overlays are *not* modelled while 30 cities
+  are, so consumers can't tell which are covered — worth rewording.
 - **🔴 PROCESS: seven states are now backlogged on the same Q3 SST refresh
   (audit 2026-07-31).** AR, ND, NE, SD, TN, WV, WY have each been chipped
   individually across four separate audits (07-22, 07-26, 07-31) and **none
