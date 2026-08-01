@@ -272,8 +272,36 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
-- **🔴 ENGINE BUG: multi-county ZIPs pick a county by an arbitrary FIPS-first
-  tiebreak — 617 ZIPs across 7 states (audit 2026-08-01, chipped).** Every
+- **✅ FIXED IN REPO 2026-08-01 (commit `e99237f`), PROD DEPLOY + RELOAD
+  PENDING — the three engine defects below.** All three were fixed, gated
+  (ruff/mypy/pytest 1592 passed/pip-audit clean; SonarQube 0 BLOCKER /
+  0 CRITICAL) and pushed with CI green on both matrix legs. **The live
+  engine still returns the old answers until prod is redeployed and the
+  affected states reloaded** — that step was **blocked by the permission
+  classifier** in the 2026-08-01 session (read-only ssh works; `docker exec
+  … data load` and `docker compose build` are denied). Until it runs, the
+  8 new `-m liveapi` DOR-grid rows (7 AK + AZ Florence) fail by design.
+  - **Multi-county tiebreak → area-majority.** New shared helper
+    `data/county_choice.py::choose_county_name` (city anchor > Census
+    land-area majority > lowest-FIPS fallback) + generated map
+    `data/zip_county_dominant.py` (33,931 pairs) from
+    `scripts/regen_zip_county_dominant.py`. All **12** modules converted;
+    VA keeps its Historic Triangle override, HI converted though it has 0
+    multi-county ZIPs. **1,257 ZIPs re-bound, 305 with a rate change.**
+    Regression suite `tests/unit/test_county_choice.py` (19 cases).
+  - **AK borough bindings.** New `AK_BOROUGH_ZIPS` (ARSSTC-attested)
+    overlaid on the Census map. 99928 Ward Cove 5.5 → **2.5** (was
+    over-collecting 3.00pp), 99903/99918/99950 → **8.0**, 99824 → **5.0**,
+    99836 → **6.0**, 99850 → **4.5** (all were 0.000%).
+  - **AZ Florence** 2.000 → **3.500** (ordinance 780-26, eff 2026-07-01);
+    85132 combined 8.700 → **10.200**.
+  - **Deploy sequence when unblocked:** `git pull --ff-only origin main &&
+    docker compose build api && docker compose up -d --force-recreate api`
+    on `opensalestax-01`, then `data load` for AK, AZ and the 12
+    tiebreak-affected states. A pre-change DB dump is at
+    `opensalestax-01:/home/ejosterberg/ost_pre_backlog_20260801.dump` (44 MB).
+- **🔴 ENGINE BUG (ORIGINAL WRITE-UP): multi-county ZIPs pick a county by an
+  arbitrary FIPS-first tiebreak — 617 ZIPs across 7 states.** Every
   self-seeded (non-SST) state module binds at most one county per ZIP; when a
   ZIP straddles counties and no seeded city anchors it, the loader takes **the
   first county in FIPS-sorted order** (`alabama.py:520`:
