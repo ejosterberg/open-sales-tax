@@ -60,7 +60,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.ny_data import (
     NY_CITIES,
@@ -240,25 +240,13 @@ class NewYork:
         # Pass 1: state + county (+ MCTD) for every NY ZIP per Census ZCTA.
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            chosen_county: str | None = None
-            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
-            sorted_ny_pairs = sorted(cf for sa, cf in pairs if sa == "NY")
-            for county_fips in sorted_ny_pairs:
-                ny_county_name = county_name("NY", county_fips)
-                if ny_county_name is None or ny_county_name not in NY_COUNTY_RATE_PCT:
-                    continue
-                if preferred_county is not None:
-                    if ny_county_name == preferred_county:
-                        chosen_county = ny_county_name
-                        break
-                    # keep iterating in hopes of finding the city's county
-                    continue
-                # No city anchor -- take the first NY county.
-                chosen_county = ny_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "NY",
+                zip5,
+                pairs,
+                NY_COUNTY_RATE_PCT,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 continue
             yield BoundaryRow(

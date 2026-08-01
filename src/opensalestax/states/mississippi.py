@@ -144,7 +144,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.ms_data import (
     MS_CITIES,
@@ -342,30 +342,18 @@ class Mississippi:
                 city_county_for_zip[cz] = cc
 
         # Pass 1: state + county for every MS ZIP per Census ZCTA.
-        # Emit at most one county per ZIP: prefer the city-anchor
-        # county if known, else the first Census-listed MS county
-        # in deterministic FIPS-sorted order.
-        #
-        # ZIP_COUNTY values are frozensets, so iteration order is
-        # non-deterministic; we sort by FIPS for stable test results.
+        # Emit at most one county per ZIP: prefer the city-anchor county
+        # if known, else the Census land-area-majority county. See
+        # choose_county_name().
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            sorted_ms_pairs = sorted(cf for sa, cf in pairs if sa == "MS")
-            chosen_county: str | None = None
-            for county_fips in sorted_ms_pairs:
-                ms_county_name = county_name("MS", county_fips)
-                if ms_county_name is None or ms_county_name not in MS_COUNTY_RATE_PCT:
-                    continue
-                if preferred_county is not None:
-                    if ms_county_name == preferred_county:
-                        chosen_county = ms_county_name
-                        break
-                    continue
-                chosen_county = ms_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "MS",
+                zip5,
+                pairs,
+                MS_COUNTY_RATE_PCT,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 continue
             yield BoundaryRow(

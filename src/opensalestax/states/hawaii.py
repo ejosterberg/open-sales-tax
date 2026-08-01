@@ -195,7 +195,7 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.hi_data import (
     HI_COUNTY_RATE_PCT,
@@ -407,18 +407,14 @@ class Hawaii:
         """
         del source_file, version_label
         # Pass 1: state + county for every HI ZIP per Census ZCTA.
-        # Emit at most one county per ZIP: take the first HI county
-        # in deterministic FIPS-sorted order. (HI has no city-level
-        # GET, so no city-anchor preference is needed.)
+        # Emit at most one county per ZIP, using the Census
+        # land-area-majority county. (HI has no city-level GET, so no
+        # city-anchor preference is needed.) Hawaii's counties are
+        # islands, so measured cross-county ZIPs are zero today -- this
+        # uses the shared rule anyway so the arbitrary FIPS-order
+        # tiebreak isn't left latent here.
         for zip5, pairs in ZIP_COUNTY.items():
-            sorted_hi_pairs = sorted(cf for sa, cf in pairs if sa == "HI")
-            chosen_county: str | None = None
-            for county_fips in sorted_hi_pairs:
-                hi_county_name = county_name("HI", county_fips)
-                if hi_county_name is None or hi_county_name not in HI_COUNTY_RATE_PCT:
-                    continue
-                chosen_county = hi_county_name
-                break
+            chosen_county = choose_county_name("HI", zip5, pairs, HI_COUNTY_RATE_PCT)
             if chosen_county is None:
                 continue
             yield BoundaryRow(

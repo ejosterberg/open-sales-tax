@@ -104,6 +104,29 @@ AK_BOROUGHS: dict[str, Decimal] = {
     "Ketchikan Gateway Borough": Decimal("2.500"),
 }
 
+# ARSSTC-attested borough ZIPs that Census ZIP_COUNTY does NOT resolve to
+# the taxing borough. The borough pass in :mod:`opensalestax.states.alaska`
+# is driven by Census ZCTA geography, which is authoritative for *where a
+# ZIP is* but not for *who taxes it* -- and for Alaska the taxing authority
+# is ARSSTC. Where the two disagree, ARSSTC wins.
+#
+# Added 2026-08-01 after the daily audit diffed the full ARSSTC
+# "Rate Sheet with Zip Codes 7-1-2026" against the live engine:
+#
+# - 99928 (Ward Cove) and 99950 are absent from ZIP_COUNTY entirely.
+# - 99903 and 99918 are present but Census assigns them to Wrangell
+#   (AK-275) and Prince of Wales-Hyder (AK-198) respectively, neither of
+#   which levies a borough tax -- while ARSSTC bills all four as
+#   KETCHIKAN GATEWAY at a 2.5% borough floor.
+#
+# Without this map 99928 returned the Ketchikan city rate with no borough
+# tax, and the other three returned 0.000%.
+#
+# Format: {borough_name: frozenset of ZIPs}
+AK_BOROUGH_ZIPS: dict[str, frozenset[str]] = {
+    "Ketchikan Gateway Borough": frozenset({"99903", "99918", "99928", "99950"}),
+}
+
 # (borough name, general retail rate, frozenset of ZIPs)
 AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
     "Adak": (
@@ -151,6 +174,17 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("3.000"),
         frozenset({"99739"}),
     ),
+    # Added 2026-08-01: ARSSTC carries EXCURSION INLET as a 4.5%
+    # inside-city rate under BOTH the Juneau borough (ZIP 99850) and the
+    # Haines borough (ZIP 99827) -- the community straddles the boundary.
+    # Only 99850 is claimed here; 99827 already resolves to Haines and
+    # sits inside the ARSSTC 4.5-7.0 bracket for that ZIP, so re-pointing
+    # it would trade one defensible answer for another.
+    "Excursion Inlet": (
+        "Juneau City and Borough",
+        Decimal("4.500"),
+        frozenset({"99850"}),
+    ),
     "Galena": (
         "Yukon-Koyukuk Census Area",
         Decimal("3.000"),
@@ -176,10 +210,14 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("2.000"),
         frozenset({"99694"}),
     ),
+    # 99824 (Douglas) added 2026-08-01: ARSSTC lists it as borough JUNEAU /
+    # city JUNEAU at 5.0%, but it was missing from this set so the ZIP
+    # returned 0.000%. Douglas is inside the consolidated City and Borough
+    # of Juneau.
     "Juneau": (
         "Juneau City and Borough",
         Decimal("5.000"),
-        frozenset({"99801", "99802", "99803", "99811", "99812", "99821"}),
+        frozenset({"99801", "99802", "99803", "99811", "99812", "99821", "99824"}),
     ),
     "Kake": (
         "Hoonah-Angoon Census Area",
@@ -201,10 +239,19 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("3.000"),
         frozenset({"99632"}),
     ),
+    # 99928 (Ward Cove) was WRONGLY listed here until 2026-08-01. ARSSTC
+    # gives 99928 no city filing code at all -- Ward Cove is unincorporated
+    # Ketchikan Gateway Borough territory, so it owes the 2.5% borough tax
+    # and NO city tax. Because 99928 is also absent from Census ZIP_COUNTY,
+    # the borough pass could not bind it either, so the ZIP returned the
+    # 5.5% city rate alone: over-collecting by 3.00pp AND dropping the
+    # borough tax it did owe. It is now carried in AK_BOROUGH_ZIPS instead.
+    # 99903 / 99918 / 99950 are ARSSTC "KETCHIKAN, I" ZIPs that were
+    # missing entirely (engine returned 0.000%); they behave like 99901.
     "Ketchikan": (
         "Ketchikan Gateway Borough",
         Decimal("5.500"),  # ARSSTC peak 5.5%/winter 3.0%; using peak
-        frozenset({"99901", "99928"}),
+        frozenset({"99901", "99903", "99918", "99950"}),
     ),
     "Kodiak": (
         "Kodiak Island Borough",
@@ -291,10 +338,12 @@ AK_CITIES: dict[str, tuple[str, Decimal, frozenset[str]]] = {
         Decimal("4.000"),
         frozenset({"99664"}),
     ),
+    # 99836 added 2026-08-01: ARSSTC lists it as borough SITKA at 6.0%
+    # (inside-city row); it was missing so the ZIP returned 0.000%.
     "Sitka": (
         "Sitka City and Borough",
         Decimal("6.000"),  # ARSSTC peak 6.0%/winter 5.0%; using peak
-        frozenset({"99835"}),
+        frozenset({"99835", "99836"}),
     ),
     "Skagway": (
         "Skagway Municipality",

@@ -319,9 +319,14 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.000"),
         ("85131",),
     ),
+    # Raised 2.000 -> 3.500 by Town of Florence ordinance 780-26 (passed
+    # 2026-03-17, effective 2026-07-01), which lifted the rate on several
+    # privilege-tax business classifications -- including retail (business
+    # code 017) -- and use tax. Combined 85132 rate 8.700 -> 10.200
+    # (state 5.600 + Pinal County 1.100 + town 3.500).
     "Florence": (
         "Pinal County",
-        Decimal("2.000"),
+        Decimal("3.500"),
         ("85132",),
     ),
     "Coolidge": (

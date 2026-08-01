@@ -277,7 +277,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.nm_data import (
     NM_LOCATION_EFFECTIVE_FROM,
@@ -564,27 +564,13 @@ class NewMexico:
         # must sort for stable output across test runs).
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            sorted_nm_pairs = sorted(cf for sa, cf in pairs if sa == "NM")
-            chosen_county: str | None = None
-            for county_fips in sorted_nm_pairs:
-                nm_county_name = county_name("NM", county_fips)
-                if nm_county_name is None or nm_county_name not in nm_counties_with_rates:
-                    continue
-                if preferred_county is not None:
-                    if nm_county_name == preferred_county:
-                        chosen_county = nm_county_name
-                        break
-                    # keep iterating in hopes of finding the city's county
-                    continue
-                # No city anchor -- take the first matching NM county.
-                chosen_county = nm_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                # Census ZCTA didn't list the city's county at all
-                # (USPS-only / boundary-mismatch ZIP). Trust the
-                # city's declared county.
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "NM",
+                zip5,
+                pairs,
+                nm_counties_with_rates,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 # ZIP is in NM but in a county we don't yet have a
                 # rate for (long-tail unincorporated counties). Skip

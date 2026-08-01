@@ -118,6 +118,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.county_names import county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.protocol import (
@@ -371,16 +372,17 @@ class Virginia:
                 city_county_for_zip[cz] = jurisdiction
 
         # Pass 1: state + county + district for every VA ZIP per
-        # Census ZCTA. Emit at most one county per ZIP: prefer the
-        # city-anchor jurisdiction if known, else any Historic
-        # Triangle jurisdiction (preserves the +1.0% Triangle stack
-        # at Williamsburg-overlap ZIPs like 23185 that span Charles
-        # City / James City / York / Williamsburg city), else the
-        # first Census-listed VA jurisdiction in deterministic
-        # FIPS-sorted order.
+        # Census ZCTA. Emit at most one county per ZIP, in priority
+        # order: the city-anchor jurisdiction if known, else any
+        # Historic Triangle jurisdiction (preserves the +1.0% Triangle
+        # stack at Williamsburg-overlap ZIPs like 23185 that span
+        # Charles City / James City / York / Williamsburg city), else
+        # the Census land-area-majority jurisdiction.
         #
-        # ZIP_COUNTY values are frozensets, so iteration order is
-        # non-deterministic; we sort by FIPS for stable test results.
+        # The Triangle tier is a deliberate rate-preserving override and
+        # outranks geometry; only the final tier changed on 2026-08-01,
+        # from "first in FIPS order" to the shared area-majority rule in
+        # choose_county_name().
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
             preferred_county = city_county_for_zip.get(zip5)
@@ -402,13 +404,9 @@ class Virginia:
                     if nm is not None and nm in VA_HISTORIC_TRIANGLE:
                         chosen_county = nm
                         break
-            # Third pass: first sorted VA jurisdiction.
+            # Third pass: Census land-area-majority jurisdiction.
             if chosen_county is None:
-                for cf in sorted_va_pairs:
-                    nm = county_name("VA", cf)
-                    if nm is not None and nm in VA_COUNTY_RATE_PCT:
-                        chosen_county = nm
-                        break
+                chosen_county = choose_county_name("VA", zip5, pairs, VA_COUNTY_RATE_PCT)
             if chosen_county is None and preferred_county is not None:
                 # ZIP is in a city but Census doesn't list any VA
                 # jurisdiction at all (USPS-only / boundary-mismatch).

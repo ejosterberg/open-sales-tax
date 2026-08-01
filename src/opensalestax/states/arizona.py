@@ -42,7 +42,7 @@ import datetime as dt
 from collections.abc import Iterable
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.az_data import (
     AZ_CITIES,
@@ -188,32 +188,17 @@ class Arizona:
 
         # Pass 1: state + county for every AZ ZIP per Census ZCTA.
         # For each ZIP, emit at most one county: prefer the city-anchor
-        # county if the ZIP is in AZ_CITIES, otherwise the first
-        # Census-listed AZ county.
+        # county if the ZIP is in AZ_CITIES, otherwise the Census
+        # land-area-majority county. See choose_county_name().
         zips_with_county_emitted: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            chosen_county: str | None = None
-            # ZIP_COUNTY values are frozensets; sort by FIPS for stability.
-            sorted_az_pairs = sorted(cf for sa, cf in pairs if sa == "AZ")
-            for county_fips in sorted_az_pairs:
-                az_county_name = county_name("AZ", county_fips)
-                if az_county_name is None or az_county_name not in AZ_COUNTY_RATE_PCT:
-                    continue
-                if preferred_county is not None:
-                    if az_county_name == preferred_county:
-                        chosen_county = az_county_name
-                        break
-                    # keep iterating in hopes of finding the city's county
-                    continue
-                # No city anchor for this ZIP -- take the first AZ county.
-                chosen_county = az_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                # ZIP is in a city but Census doesn't list the city's
-                # county at all (e.g. ZIP entirely on the wrong side per
-                # Census). Trust the city's declared county.
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "AZ",
+                zip5,
+                pairs,
+                AZ_COUNTY_RATE_PCT,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 continue
             yield BoundaryRow(

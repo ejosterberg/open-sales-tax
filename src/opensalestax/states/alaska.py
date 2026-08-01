@@ -30,7 +30,12 @@ from pathlib import Path
 
 from opensalestax.data.county_names import county_name as _county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
-from opensalestax.states.ak_data import AK_BOROUGHS, AK_CITIES, AK_STATE_RATE_PCT
+from opensalestax.states.ak_data import (
+    AK_BOROUGH_ZIPS,
+    AK_BOROUGHS,
+    AK_CITIES,
+    AK_STATE_RATE_PCT,
+)
 from opensalestax.states.protocol import (
     BoundaryRow,
     HolidayWindow,
@@ -190,7 +195,11 @@ class Alaska:
         # borough sales tax is collected throughout the borough
         # including inside city limits, and the city's tax is added
         # on top.
-        emitted_state_for: set[str] = set(city_zips)
+        # Build ZIP -> borough from Census ZCTA, then overlay the
+        # ARSSTC-attested bindings. Census is authoritative for where a
+        # ZIP *is*; ARSSTC is authoritative for who *taxes* it, so where
+        # the two disagree ARSSTC wins (see AK_BOROUGH_ZIPS).
+        borough_for_zip: dict[str, str] = {}
         for zip5, pairs in sorted(ZIP_COUNTY.items()):
             for state_abbrev, county_fips in pairs:
                 if state_abbrev != "AK":
@@ -198,23 +207,30 @@ class Alaska:
                 borough_name = _county_name("AK", county_fips)
                 if borough_name is None or borough_name not in AK_BOROUGHS:
                     continue
-                if zip5 not in emitted_state_for:
-                    yield BoundaryRow(
-                        authority_name="Alaska",
-                        authority_type="state",
-                        zip5=zip5,
-                        zip4_low=None,
-                        zip4_high=None,
-                    )
-                    emitted_state_for.add(zip5)
+                borough_for_zip[zip5] = borough_name
+                break  # at most one borough per ZIP
+        for borough_name, borough_zips in sorted(AK_BOROUGH_ZIPS.items()):
+            for zip5 in sorted(borough_zips):
+                borough_for_zip[zip5] = borough_name
+
+        emitted_state_for: set[str] = set(city_zips)
+        for zip5, borough_name in sorted(borough_for_zip.items()):
+            if zip5 not in emitted_state_for:
                 yield BoundaryRow(
-                    authority_name=borough_name,
-                    authority_type="county",
+                    authority_name="Alaska",
+                    authority_type="state",
                     zip5=zip5,
                     zip4_low=None,
                     zip4_high=None,
                 )
-                break  # at most one borough per ZIP
+                emitted_state_for.add(zip5)
+            yield BoundaryRow(
+                authority_name=borough_name,
+                authority_type="county",
+                zip5=zip5,
+                zip4_low=None,
+                zip4_high=None,
+            )
 
     def taxability_for(self, item_category: str, effective_date: dt.date) -> TaxabilityRule | None:
         """Return Alaska's taxability rule for ``item_category`` (general only)."""

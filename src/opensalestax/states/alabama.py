@@ -222,7 +222,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.al_data import (
     AL_CITIES,
@@ -498,35 +498,21 @@ class Alabama:
                 city_county_for_zip[cz] = cc
 
         # Pass 1: state + county for every AL ZIP per Census ZCTA.
-        # Emit at most one county per ZIP: prefer the city-anchor
-        # county if known, else the first Census-listed AL county
-        # in deterministic FIPS-sorted order.
-        #
-        # ZIP_COUNTY values are frozensets, so iteration order is
-        # non-deterministic; we sort by FIPS for stable test results.
+        # Emit at most one county per ZIP: prefer the city-anchor county
+        # if known, else the Census land-area-majority county. The rule
+        # lives in choose_county_name() so all self-seeded modules share
+        # one implementation -- see that module for why the previous
+        # "first county in FIPS order" tiebreak was wrong (it bound ZIP
+        # 35040 Calera to Chilton 3.000% instead of Shelby 1.000%).
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            sorted_al_pairs = sorted(cf for sa, cf in pairs if sa == "AL")
-            chosen_county: str | None = None
-            for county_fips in sorted_al_pairs:
-                al_county_name = county_name("AL", county_fips)
-                if al_county_name is None or al_county_name not in AL_COUNTY_RATE_PCT:
-                    continue
-                if preferred_county is not None:
-                    if al_county_name == preferred_county:
-                        chosen_county = al_county_name
-                        break
-                    # keep iterating in hopes of finding the city's county
-                    continue
-                # No city anchor for this ZIP -- take the first AL county.
-                chosen_county = al_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                # ZIP is in a city but Census doesn't list the city's
-                # county at all (USPS-only / boundary-mismatch). Trust
-                # the city's declared county.
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "AL",
+                zip5,
+                pairs,
+                AL_COUNTY_RATE_PCT,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 continue
             yield BoundaryRow(

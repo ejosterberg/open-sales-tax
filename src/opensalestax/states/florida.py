@@ -53,7 +53,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 
-from opensalestax.data.county_names import county_name
+from opensalestax.data.county_choice import choose_county_name
 from opensalestax.data.zip_county import ZIP_COUNTY
 from opensalestax.states.fl_data import (
     FL_CITIES,
@@ -199,28 +199,17 @@ class Florida:
                 city_county_for_zip[cz] = cc
 
         # Emit at most one county per ZIP per Census ZCTA: prefer the
-        # city-anchor county if known, else first Census-listed county.
+        # city-anchor county if known, else the Census land-area-majority
+        # county. See choose_county_name().
         emitted_zips: set[str] = set()
         for zip5, pairs in ZIP_COUNTY.items():
-            preferred_county = city_county_for_zip.get(zip5)
-            chosen_county: str | None = None
-            # ZIP_COUNTY values are frozensets, so iteration order is
-            # non-deterministic; sort by FIPS so cross-county ZIPs pick
-            # the same county across Python interpreter restarts.
-            sorted_fl_pairs = sorted(cf for sa, cf in pairs if sa == "FL")
-            for county_fips in sorted_fl_pairs:
-                fl_county_name = county_name("FL", county_fips)
-                if fl_county_name is None or fl_county_name not in FL_COUNTY_SURTAX_PCT:
-                    continue
-                if preferred_county is not None:
-                    if fl_county_name == preferred_county:
-                        chosen_county = fl_county_name
-                        break
-                    continue
-                chosen_county = fl_county_name
-                break
-            if chosen_county is None and preferred_county is not None:
-                chosen_county = preferred_county
+            chosen_county = choose_county_name(
+                "FL",
+                zip5,
+                pairs,
+                FL_COUNTY_SURTAX_PCT,
+                preferred=city_county_for_zip.get(zip5),
+            )
             if chosen_county is None:
                 continue
             yield BoundaryRow(

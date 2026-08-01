@@ -869,6 +869,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.01",
         "AZ DOR May 2026 CSV (state 5.6% + Pima 0.5% + Sahuarita 2.0%)",
     ),
+    # Town of Florence ordinance 780-26 (passed 2026-03-17, eff 2026-07-01)
+    # raised the privilege-tax rate on retail (business code 017) and other
+    # classifications from 2.0% to 3.5%. Confirmed against the ordinance and
+    # Avalara's Florence breakdown. Found by the 2026-08-01 daily audit.
+    # Fails under -m liveapi until prod reloads AZ.
+    (
+        "AZ",
+        "Florence",
+        "85132",
+        "0001",
+        "10.200",
+        "0.01",
+        "AZ DOR / ordinance 780-26 (state 5.6% + Pinal 1.1% + Florence 3.5%)",
+    ),
     # AZ ZCTA->county expansion (post-zip_county loader): unincorporated
     # ZIPs in covered counties but OUTSIDE the AZ_CITIES seed now resolve
     # to state + county TPT via Census ZCTA rather than state-only. ZIPs
@@ -6457,6 +6471,78 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "7.000",
         "0.05",
         "ARSSTC (Wrangell City and Borough -- highest consolidated rate)",
+    ),
+    # --- 2026-08-01 daily audit: full ARSSTC 7-1-2026 sheet diff ---
+    # Seven ZIPs the pinned set never covered. Ward Cove was the only
+    # OVER-collection; the rest returned 0.000%. All fail under
+    # -m liveapi until prod reloads AK.
+    #
+    # Ward Cove is unincorporated Ketchikan Gateway Borough territory --
+    # ARSSTC assigns it no city filing code -- but it was hand-listed as a
+    # Ketchikan city ZIP, so it returned the 5.5% city rate and dropped the
+    # 2.5% borough tax it actually owes.
+    (
+        "AK",
+        "Ward Cove",
+        "99928",
+        "0001",
+        "2.500",
+        "0.05",
+        "ARSSTC 7-1-2026 (Ketchikan Gateway Borough only; no city tax)",
+    ),
+    (
+        "AK",
+        "Ketchikan (99903)",
+        "99903",
+        "0001",
+        "8.000",
+        "0.05",
+        "ARSSTC 7-1-2026 (KGB 2.5 + Ketchikan 5.5, inside-city row)",
+    ),
+    (
+        "AK",
+        "Ketchikan (99918)",
+        "99918",
+        "0001",
+        "8.000",
+        "0.05",
+        "ARSSTC 7-1-2026 (KGB 2.5 + Ketchikan 5.5, inside-city row)",
+    ),
+    (
+        "AK",
+        "Ketchikan (99950)",
+        "99950",
+        "0001",
+        "8.000",
+        "0.05",
+        "ARSSTC 7-1-2026 (KGB 2.5 + Ketchikan 5.5, inside-city row)",
+    ),
+    (
+        "AK",
+        "Douglas (Juneau)",
+        "99824",
+        "0001",
+        "5.000",
+        "0.05",
+        "ARSSTC 7-1-2026 (City and Borough of Juneau 5.0%)",
+    ),
+    (
+        "AK",
+        "Sitka (99836)",
+        "99836",
+        "0001",
+        "6.000",
+        "0.05",
+        "ARSSTC 7-1-2026 (Sitka City and Borough 6.0% peak)",
+    ),
+    (
+        "AK",
+        "Excursion Inlet",
+        "99850",
+        "0001",
+        "4.500",
+        "0.05",
+        "ARSSTC 7-1-2026 (Excursion Inlet 4.5%, Juneau borough side)",
     ),
     (
         "AK",

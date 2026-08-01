@@ -1,7 +1,8 @@
 # Alaska: Ward Cove over-collects 3.00pp; six ARSSTC ZIPs return 0.000%
 
 **Found:** 2026-08-01 (daily state audit, day 1 — AK + AL)
-**Status:** OPEN — chipped for review
+**Status:** ✅ **FIXED IN REPO 2026-08-01** — prod reload still pending
+(see "Resolution" at the bottom)
 **Source:** ARSSTC "Sales Tax Rate Sheet with Zip Codes 7-1-2026"
 (`arsstc.org/wp-content/uploads/2026/07/ARRSTC-Sales-Tax-Rate-Sheet-with-Zip-Codes-7-1-2026.xlsx`)
 — the current published sheet, downloaded and diffed row-by-row against
@@ -124,3 +125,69 @@ curl -s -H 'User-Agent: Mozilla/5.0' \
   'https://api.opensalestax.org/v1/rates?zip5=99928'
 # -> 5.500%  Alaska 0.0; Ketchikan 5.5     (ARSSTC: 2.5, borough only)
 ```
+
+---
+
+## Resolution (2026-08-01, same day)
+
+### Root cause — not what this finding first hypothesized
+
+The finding speculated the AK boundary builder was *inferring* city
+membership. It was not. **99928 was hand-listed as a Ketchikan city ZIP**
+in `AK_CITIES["Ketchikan"]`:
+
+```python
+frozenset({"99901", "99928"})   # <- 99928 does not belong here
+```
+
+Two independent faults compounded:
+
+1. **The wrong city binding.** Ward Cove is unincorporated Ketchikan
+   Gateway Borough territory; ARSSTC assigns it no city filing code, so
+   it owes no city tax.
+2. **No borough binding was reachable.** The borough pass is driven by
+   Census `ZIP_COUNTY`, and **99928 is absent from `ZIP_COUNTY`
+   entirely** — so the 2.5% borough tax could never be applied.
+
+Together those produced 5.500% (city only) where 2.500% (borough only)
+was correct. The same `ZIP_COUNTY` gap explains 99950; 99903 and 99918
+are present but Census assigns them to Wrangell and Prince of
+Wales-Hyder, neither of which levies a borough tax, while ARSSTC bills
+all four as Ketchikan Gateway.
+
+### The general fix
+
+Census is authoritative for **where a ZIP is**; ARSSTC is authoritative
+for **who taxes it**. For Alaska, where they disagree, ARSSTC wins. New
+`AK_BOROUGH_ZIPS` in `ak_data.py` carries the ARSSTC-attested borough
+bindings and is overlaid on the Census-derived map in
+`alaska.py::parse_boundaries`, so the borough pass no longer depends on
+Census geography being complete or in agreement.
+
+### Changes
+
+| ZIP | Before | After | Change |
+|---|---|---|---|
+| 99928 Ward Cove | 5.500% (Ketchikan city) | **2.500%** (KGB only) | removed from `AK_CITIES["Ketchikan"]`, added to `AK_BOROUGH_ZIPS` |
+| 99903 | 0.000% | **8.000%** | added to Ketchikan city ZIPs + `AK_BOROUGH_ZIPS` |
+| 99918 | 0.000% | **8.000%** | ditto |
+| 99950 | 0.000% | **8.000%** | ditto |
+| 99824 Douglas | 0.000% | **5.000%** | added to `AK_CITIES["Juneau"]` |
+| 99836 | 0.000% | **6.000%** | added to `AK_CITIES["Sitka"]` |
+| 99850 Excursion Inlet | 0.000% | **4.500%** | new `AK_CITIES` entry |
+
+Verified against the module's own `parse_rates`/`parse_boundaries`
+output: all seven now match ARSSTC, and the previously-correct
+neighbours (99901 8.0, 99801 5.0, 99835 6.0) are unchanged — no
+regression.
+
+The four "between the bracket" ZIPs (99637, 99645, 99827, 99919) were
+deliberately left alone, as the finding recommended.
+
+### Tests
+
+Seven new rows added to the AK DOR grid in
+`tests/integration/test_sst_dor_validation.py`. They fail under
+`-m liveapi` until prod reloads AK, matching the HI-Maui / IA-WDM
+precedent. AK unit tests pass (`len(city_rows) == len(AK_CITIES)` still
+holds with the new Excursion Inlet entry).
