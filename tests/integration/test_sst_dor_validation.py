@@ -883,6 +883,22 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.01",
         "AZ DOR / ordinance 780-26 (state 5.6% + Pinal 1.1% + Florence 3.5%)",
     ),
+    # Town of Huachuca City ordinance 2026-06 (passed 2026-05-28, eff
+    # 2026-08-01) raised the privilege-tax rate on retail (business code 017)
+    # and other classifications, plus use tax, from 1.9% to 2.9%. Confirmed
+    # against the AZ DOR Model City Tax Code rate-and-code-updates table,
+    # which lists "Retail Sales 017 1.90 2.90" for region code HC. Found by
+    # the 2026-08-02 daily audit, one day after it took effect.
+    # Fails under -m liveapi until prod reloads AZ.
+    (
+        "AZ",
+        "Huachuca City",
+        "85616",
+        "0001",
+        "9.000",
+        "0.01",
+        "AZ DOR / ordinance 2026-06 (state 5.6% + Cochise 0.5% + town 2.9%)",
+    ),
     # AZ ZCTA->county expansion (post-zip_county loader): unincorporated
     # ZIPs in covered counties but OUTSIDE the AZ_CITIES seed now resolve
     # to state + county TPT via Census ZCTA rather than state-only. ZIPs

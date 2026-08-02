@@ -364,9 +364,14 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.000"),  # combined 9.1% (state 5.6 + Cochise 0.5 + city 3.0)
         ("85643",),
     ),
+    # Raised 1.900 -> 2.900 by Town of Huachuca City ordinance 2026-06
+    # (passed 2026-05-28, effective 2026-08-01), which lifted the rate on
+    # multiple privilege-tax business classifications -- including retail
+    # (business code 017) -- and use tax. Combined 85616 rate 8.000 ->
+    # 9.000 (state 5.600 + Cochise County 0.500 + town 2.900).
     "Huachuca City": (
         "Cochise County",
-        Decimal("1.900"),  # combined 8.0% (state 5.6 + Cochise 0.5 + city 1.9)
+        Decimal("2.900"),  # combined 9.0% (state 5.6 + Cochise 0.5 + city 2.9)
         ("85616",),
     ),
     # --- Pima County (additional, beyond Tucson + Marana) ---
