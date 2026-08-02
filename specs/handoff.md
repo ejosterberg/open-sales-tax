@@ -272,6 +272,47 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **AZ Huachuca City 1.9% → 2.9% — FIXED IN REPO 2026-08-02 (commit
+  `6f77f4e`), PROD DEPLOY PENDING; AR Q3 refresh re-confirmed still
+  unapplied (audit 2026-08-02).**
+  - **AZ — real rate change, caught one day after it took effect.** Town of
+    Huachuca City ordinance **2026-06** (passed 2026-05-28, eff
+    **2026-08-01**) raised multiple privilege-tax classifications —
+    including retail (business code 017) — and use tax from **1.9% → 2.9%**
+    (and real-property rental 1.0% → 2.9%). Confirmed against the AZ DOR
+    Model City Tax Code rate table (`Retail Sales 017 1.90 2.90`, region
+    code HC). `az_data.py` fixed; combined **85616 8.000% → 9.000%**. New
+    `DOR_GRID` pin `85616-0001` → 9.000 **fails under `-m liveapi` until
+    prod reloads AZ** — it joins the Florence row and the 7 AK rows already
+    waiting on the *same* deploy below. The other 42 of 43 AZ pins match.
+  - **AZ watch list — published, not yet effective, deliberately NOT
+    applied.** **🔔 Kingman 2.50% → 3.00% effective 2026-09-01** (ord. 2003,
+    passed 2026-06-16) is on a **modelled** city (86401/86409) and **will
+    drift the moment it lands**; the next AZ rotation day is 2026-09-02, so
+    the daily audit catches it one day late unless done sooner — chipped.
+    **Tusayan** (2% → 4%, restaurants/bars 4% → 6%, ord. 2026-02) and **San
+    Tan Valley** (ord. 2026-06), both eff **2026-10-01**, are **not
+    modelled** — coverage-expansion candidates, not drift. **Oro Valley**
+    ord. 26-10 remains **use-tax only** — still not drift.
+  - **AR — zero new drift, but nothing has moved.** All 6 AR pins match, and
+    the six jurisdictions that changed 2026-07-01 return **exactly** the
+    rates measured on 2026-07-31, because prod is still on
+    `ARR2026Q2MAR02` — one quarter behind. AR is SST, so **no code fix is
+    possible or appropriate**; only the Q3 refresh helps. Re-verified
+    against the Arkansas DFA local rate-change notices: Van Buren
+    1.500→**2.500**, El Dorado 1.250→**1.750**, Chester **1.000 enacted**
+    (engine 0.000), Perry **1.000 enacted** (engine 0.000), and the two
+    **over-collections** — Cross County 3.000→**2.125**, Jackson County
+    2.250→**1.875**.
+  - **⏳ AR October set is already published.** Effective **2026-10-01**:
+    **Alpena → 2.250%** and **Hempstead County → 2.750%** (increases),
+    **Logan County 1.750→1.500%** and **Stone County 1.250→1.000%**
+    (decreases), plus ~13 annexation-only updates. These land in the **Q4
+    SST file, due from SST by 2026-09-01**. **If the Q3 refresh is still
+    unapplied in October, Arkansas will be two quarters behind and carrying
+    two independent sets of wrong county rates**, including two more
+    over-collections.
+  - Full report: `specs/audits/2026/08/state-audit-2026-08-02.md`.
 - **✅ FIXED IN REPO 2026-08-01 (commit `e99237f`), PROD DEPLOY + RELOAD
   PENDING — the three engine defects below.** All three were fixed, gated
   (ruff/mypy/pytest 1592 passed/pip-audit clean; SonarQube 0 BLOCKER /
