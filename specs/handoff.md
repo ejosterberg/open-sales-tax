@@ -272,6 +272,46 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **GA Madison County 4% → 3% (eff 2026-07-01) — LIVE OVER-COLLECTION,
+  SST Q3 REFRESH PENDING; HI Maui reload STILL unapplied 31 days on
+  (audit 2026-08-06, day 6: GA + HI).**
+  - **GA — real rate change, live and wrong for 37 days.** Madison County
+    cut its local rate **4% → 3% effective 2026-07-01**. Prod is still on
+    `GAR2026Q2FEB19` (fetched 2026-05-04), whose Madison row is open-ended
+    at 4%, so the engine **over-collects 1.0%** on all six Madison County
+    ZIPs (30633/30629/30646/30647/30628/30627 → 8.000% vs GA DOR 7.000%).
+    Confirmed two ways: SST `GAR2026Q3JUN05.csv` code `195` (closes the 4%
+    row at 20260630, opens 3% at 20260701) and the **GA DOR Q3 2026 rate
+    chart** row `095 Madison 7`. **No code fix is possible or needed** —
+    GA rates come wholly from the SST file; the fix is the refresh.
+    Latest upstream: rate `GAR2026Q3JUN05.csv`, boundary
+    `GAB2026Q3MAY19.zip`. New `DOR_GRID` pin `30633-0001` → 7.000 **fails
+    under `-m liveapi` until prod loads GA Q3**. A full row diff confirms
+    Madison is the *only* GA jurisdiction that changed; the other 11 GA
+    pins all match live. Finding:
+    `specs/findings/ga-madison-county-rate-cut-2026-08.md`.
+  - **GA fixture deliberately left on Q2.**
+    `src/opensalestax/data/fixtures/ga/GAR2026Q2FEB19.csv` is referenced by
+    filename in `tests/unit/test_state_georgia.py` (4 sites) and in
+    `georgia.py` docstrings ("449 rows"). Swapping it to Q3 is a
+    multi-file edit that belongs with the reviewed SST refresh.
+  - **HI — no new drift, but the 2026-07-06 Maui fix is STILL not live.**
+    HI DataVersion on prod is `HI-SST-V0.32-COUNTIES` fetched
+    **2026-05-05**, i.e. predating the fix. Kahului **96732 returns
+    4.000%, should be 4.500%** — a **0.5% under-collection on every Maui
+    County transaction, ongoing since 2024-01-01 and 31 days past the
+    repo fix**. HI DOTAX schedule re-verified unchanged (all four
+    inhabited counties 0.5%; Kalawao 0%). 7 of 8 HI pins pass. HI is
+    self-seeded, so this is a plain `data load -s HI` after redeploy —
+    the cheapest outstanding fix on the board.
+  - **⚠️ Systemic: 16 of 24 SST states are ≥1 quarter stale** (AR, GA, KS,
+    MN, NC, ND, NE, OK, SD, TN, UT, VT, WA, WI, WV, WY). The other 8 (IA,
+    IN, KY, MI, NJ, NV, OH, RI) are current — SST hosts one file per state
+    and hasn't republished them, so `INR2008Q4`/`KYR2012Q4`/`RIR2019Q2`
+    are *not* stale. GA is the **first proven wrong answer** from this lag,
+    which argues for one batched refresh instead of 16 per-state chips.
+    **Decision needed from Eric.**
+
 - **AZ Huachuca City 1.9% → 2.9% — FIXED IN REPO 2026-08-02 (commit
   `6f77f4e`), PROD DEPLOY PENDING; AR Q3 refresh re-confirmed still
   unapplied (audit 2026-08-02).**

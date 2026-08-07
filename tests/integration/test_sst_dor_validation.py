@@ -6716,6 +6716,19 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "GA DOR (state 4% + Muscogee County 5%)",
     ),
+    # GA Madison County cut its local rate 4% -> 3% effective 2026-07-01
+    # (SST GAR2026Q3JUN05 code 195; GA DOR Q3 chart row "095 Madison 7").
+    # daily-audit 2026-08-06 found the engine still on GAR2026Q2FEB19, so it
+    # over-collects 1.0% here; fails under -m liveapi until the GA Q3 refresh.
+    (
+        "GA",
+        "Danielsville (Madison County)",
+        "30633",
+        "0001",
+        "7.000",
+        "0.05",
+        "GA DOR Q3 2026 chart (state 4% + Madison County 3%, effective 2026-07-01)",
+    ),
     (
         "MN",
         "Duluth",
