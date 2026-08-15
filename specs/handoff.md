@@ -272,6 +272,90 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **ND Scranton + Drayton and NE Edgar under-collect — 3 LIVE WRONG RATES,
+  all from the unapplied Q3 SST refresh; ND Minot +0.5% lands 2026-10-01
+  (audit 2026-08-15, day 15: ND + NE).**
+  - **ND — two real under-collections, live and wrong for 45 days.**
+    **Scranton** (58653) went to a **2%** total local rate effective
+    **2026-07-01** (the new sales/use/gross-receipts levy replaces the old
+    1% sales-and-gross-receipts-only tax); engine still returns **6.000%**
+    vs **7.000%** — **under-collects 1.00pp**. **Drayton** (58225) went to
+    **3.5%** total local (1% 10-1-97 + 0.5% 10-1-10 + **2% 7-1-26**, all on
+    the same base, so cumulative); engine returns **6.500%** vs **8.500%** —
+    **under-collects 2.00pp**. Both read off the ND Office of State Tax
+    Commissioner *Local Taxes by Location Guideline, Rates Effective July 1,
+    2026* total-rate column, cross-checked against `fips-codes-1-1-2026.pdf`
+    for the pre-change baseline. Neither Bowman nor Pembina County levies a
+    local tax, so combined = 5% state + city. **⚠️ This corrects the
+    2026-07-31 audit**, which recorded Drayton as a maximum-tax/refund-cap
+    change only — the cap did move ($25 → $50/sale) but the *rate* moved
+    too, and by 2.00pp. **Oakes** (58474) really is cap-only; its 2% rate is
+    correct. ND is SST, so **no code fix is possible** — the fix is the
+    `NDR2026Q3MAY19` / `NDB2026Q3MAY19` refresh. All 4 ND tier-1 pins
+    (Fargo ×2, Minot, Grand Forks) match exactly.
+  - **NE — one real under-collection.** **Edgar** (68935) raised its local
+    rate **1.0% → 1.5%** effective **2026-07-01**; engine returns **6.500%**
+    vs **7.000%** — **under-collects 0.50pp**. NE DOR's *Local Sales and Use
+    Tax Rates* eff 07-01-2026 lists `Edgar 1.5% 7.0% (.07) 102-161 14450`.
+    Confirms the 2026-07-31 chip, 45 days unapplied. Fix is the
+    `NER2026Q3MAY26` / `NEB2026Q3JUN08` refresh. All **14** NE tier-1 pins
+    match exactly. **NE has NO changes scheduled for the quarter beginning
+    2026-10-01**, so after the Q3 refresh Nebraska is clean through year-end.
+  - **🔔 ND Minot 2.0% → 2.5% effective 2026-10-01 — published, not yet
+    effective, deliberately NOT applied.** Confirmed from the ND
+    permit-holder notice: the city "has adopted an ordinance to increase its
+    city sales, use, and gross receipts tax by 0.5%," giving a combined
+    in-city rate of **8% (5% state + 2.5% city + 0.5% county)**. Minot 58701
+    goes **7.500% → 8.000%**. Minot **is a tier-1 pin**, and the rotation
+    catches it **14 days late** (day 15 = 2026-09-15 before, 2026-10-15
+    after), so it needs the **Q4 SST file** applied ahead of 2026-10-01 —
+    chipped. Pin deliberately left at 7.500 until then (AZ-Kingman
+    precedent). **Kindred** and **Walhalla** 2026-10-01 changes are
+    maximum-tax removals — the engine has **no concept of ND's local tax
+    cap**, the documented gap from 2026-07-31, so not drift. **Fargo** and
+    **Ellendale** have 2026-10-01 boundary/annexation changes (Fargo per
+    Resolution 1756025, Ellendale per Article 5.0309) that ride in on the Q4
+    boundary file.
+  - **Committed this run:** 4 friendly names (ND `20340`→Drayton,
+    `58740`→Oakes, `71500`→Scranton from ND's FIPS-codes table; NE
+    `14450`→Edgar from the NE DOR FIPS column) and 3 new DOR_GRID pins
+    encoding the correct post-refresh rates (Scranton 7.000, Drayton 8.500,
+    Edgar 7.000), each noted as failing under `-m liveapi` until prod loads
+    Q3. `liveapi` is excluded from CI, so these don't break the pipeline.
+  - Full report: `specs/audits/2026/08/state-audit-2026-08-15.md`.
+
+- **✅ IA West Des Moines LOST dedup — RESOLVED, fix is LIVE on prod
+  (verified 2026-08-15). New: IA boundary file is 2 quarters stale.**
+  - **Closes the item open since 2026-07-07.** 50265 now returns **7.000%**
+    (Iowa 6% + Polk County LOST 1%) and 50266 **7.000%** (Iowa 6% +
+    IA-district-98049 1%) — a single 1% LOST each, as Iowa Code ch. 423B
+    requires. The 2–3pp over-collection on West Des Moines transactions is
+    over and the two `-m liveapi` pins that were failing by design now pass.
+    `specs/findings/ia-west-des-moines-lost-dedup-2026-07.md` can be marked
+    RESOLVED.
+  - **⚠️ New — IA boundary file 2 quarters behind.** Prod holds
+    `IAB2026Q1DEC09`; latest SST posting is **`IAB2026Q3MAY19`**. **This
+    corrects the 2026-07-07 audit**, which recorded both IA files as
+    current — the *rate* file `IAR2025Q3MAY30` genuinely is the latest (SST
+    hosts one rate file per state and has not republished Iowa's), but the
+    boundary half was already stale then and was missed. Iowa's LOST is a
+    flat 1% cap statewide, so a stale boundary cannot produce a wrong rate
+    for an already-bound ZIP; the exposure is ZIPs whose bindings changed
+    (annexations, new LOST adoptions) silently keeping the old binding.
+    Chipped. All 10 IA tier-1 pins match at 7.000%.
+  - Cosmetic, still open: `IA-district-98049` (Dallas County LOST) is still
+    an unlabelled placeholder in `ia_names.py`.
+  - **ID audited same day — fully clean.** All **16** pins match exactly
+    (4 statewide-only at 6.000%, 6 resort-3% at 9.000%, 5 resort-1% at
+    7.000%, Salmon resort-0.5% at 6.500%). Coverage note, not drift: the
+    Idaho State Tax Commission lists **23** local-option cities and the
+    engine models **12**; the other 11 (Bellevue, Bonners Ferry, Hailey,
+    Harrison, Irwin, Kellogg, Mackay, Ponderay, Swan Valley, Tetonia,
+    Victor) are a coverage-expansion candidate. Idaho publishes no
+    consolidated rate table — the Commission directs filers to contact each
+    city — which is why this gap needs per-city primary-source work rather
+    than one table parse.
+
 - **GA Madison County 4% → 3% (eff 2026-07-01) — LIVE OVER-COLLECTION,
   SST Q3 REFRESH PENDING; HI Maui reload STILL unapplied 31 days on
   (audit 2026-08-06, day 6: GA + HI).**
