@@ -31,7 +31,6 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -286,24 +285,36 @@ def get_current_alembic_revision() -> str | None:
 
     Returns ``None`` if the database has no ``alembic_version`` row
     (e.g. fresh database that has never run ``alembic upgrade``).
+
+    Uses the async engine (asyncpg) so no psycopg2 dependency is needed.
     """
+    import asyncio
+
+    return asyncio.run(_get_current_alembic_revision_async())
+
+
+async def _get_current_alembic_revision_async() -> str | None:
+    """Async implementation of :func:`get_current_alembic_revision`."""
     # Local imports keep the CLI start-up fast; alembic transitively
     # imports a bunch of SQLAlchemy machinery.
     from alembic.runtime.migration import MigrationContext
-    from sqlalchemy import create_engine
+    from sqlalchemy.ext.asyncio import create_async_engine
 
     from opensalestax.settings import get_settings
 
     settings = get_settings()
-    sync_dsn = _to_sync_dsn(settings.database_dsn)
-
-    engine = create_engine(sync_dsn, future=True)
+    engine = create_async_engine(settings.database_dsn)
     try:
-        with engine.connect() as conn:
-            ctx = MigrationContext.configure(conn)
-            return ctx.get_current_revision()
+        async with engine.connect() as conn:
+            # MigrationContext.configure requires a sync connection;
+            # run_sync bridges the async connection into a sync callable.
+            def _read_revision(sync_conn):
+                ctx = MigrationContext.configure(sync_conn)
+                return ctx.get_current_revision()
+
+            return await conn.run_sync(_read_revision)
     finally:
-        engine.dispose()
+        await engine.dispose()
 
 
 def _to_sync_dsn(dsn: str) -> str:
@@ -340,21 +351,29 @@ def stream_dump_to_psql(
         "-f",
         "-",
     ]
-    with gzip.open(dump_path, "rb") as fh:
-        try:
-            # gzip.GzipFile is a binary file-like; mypy's stricter overloads
-            # for subprocess.run want a concrete IO[bytes], so cast.
-            result = use_runner(
-                args,
-                stdin=cast(IO[bytes], fh),
-                check=False,
-                capture_output=True,
-            )
-        except FileNotFoundError as exc:
-            raise RestoreError(
-                "`psql` not found on PATH. Install the PostgreSQL client "
-                "package (libpq) and re-run."
-            ) from exc
+    # Decompress fully in Python before handing bytes to psql.
+    # Passing a gzip.GzipFile as stdin= would give psql the raw compressed
+    # file descriptor (not the decompressed stream), resulting in binary
+    # garbage.  Using input= feeds the already-decompressed SQL bytes through
+    # a pipe so psql always receives plain text.
+    try:
+        with gzip.open(dump_path, "rb") as fh:
+            sql_bytes = fh.read()
+    except OSError as exc:
+        raise RestoreError(f"failed to decompress dump: {exc}") from exc
+
+    try:
+        result = use_runner(
+            args,
+            input=sql_bytes,
+            check=False,
+            capture_output=True,
+        )
+    except FileNotFoundError as exc:
+        raise RestoreError(
+            "`psql` not found on PATH. Install the PostgreSQL client "
+            "package (libpq) and re-run."
+        ) from exc
 
     if result.returncode != 0:
         stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
