@@ -1,9 +1,29 @@
 # Finding — IA West Des Moines LOST dedup over-collect (2026-07)
 
-**Status:** FIXED IN REPO (2026-07-07) — engine dedup landed on `main`;
-**prod redeploy PENDING** (engine-only, no data reload). Confirmed on the
-live engine 2026-07-07 during the daily IA+ID audit; pre-existing (first
-logged iter-128). See "Resolution" below.
+**Status:** ✅ **RESOLVED — fix is LIVE on prod (verified 2026-08-15).**
+Engine dedup landed on `main` 2026-07-07; the prod redeploy that was
+pending has since happened. Originally confirmed on the live engine
+2026-07-07 during the daily IA+ID audit; pre-existing (first logged
+iter-128). See "Verified live" below, then "Resolution".
+
+## Verified live (2026-08-15 daily audit)
+
+Both West Des Moines ZIPs now return the statutorily correct **7.000%**
+with exactly **one** 1% LOST each:
+
+| ZIP | Engine jurisdictions (live) | Combined |
+|-----|-----------------------------|----------|
+| 50265 | Iowa 6% + Polk County 0% + **Polk County Local Option Sales Tax 1%** | **7.000%** |
+| 50266 | Iowa 6% + Dallas County 0% + **IA-district-98049 1%** | **7.000%** |
+
+The 2–3pp over-collection on West Des Moines transactions is over, and the
+two `-m liveapi` grid pins that were failing by design now pass.
+
+**Still open (cosmetic only):** `IA-district-98049` is the Dallas-side LOST
+and remains an unlabelled placeholder in `ia_names.py`, exactly as the
+Resolution section predicted. The rate is correct; only the display name is
+missing. Verify the code against revenue.iowa.gov's SST page before adding
+it — iter-221 had to correct three IA district labels that were guessed.
 
 ## Resolution (2026-07-07)
 
