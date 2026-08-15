@@ -138,6 +138,19 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # engine resolves Hastings ZIPs to FIPS Place 21415 cleanly.
     ("NE", "La Vista", "68128", "1234", "7.500", "0.05", "NE DOR (state 5.5% + La Vista 2.0%)"),
     ("NE", "Gretna", "68138", "5000", "7.500", "0.05", "NE DOR (state 5.5% + Gretna 2.0%)"),
+    (
+        "NE",
+        "Edgar",
+        "68935",
+        "0001",
+        "7.000",
+        "0.05",
+        "daily-audit 2026-08-15 pin: NE DOR 'Local Sales and Use Tax Rates' "
+        "eff 07-01-2026 lists Edgar at 1.5% local (7.0% combined); the city "
+        "raised 1.0% -> 1.5% effective 2026-07-01. NE is SST, so the fix is "
+        "the NER2026Q3MAY26 refresh -- fails under -m liveapi (engine still "
+        "returns 6.500%) until prod loads NE Q3",
+    ),
     # Nevada -- NV DOR Tax Rates by County 2026
     ("NV", "Las Vegas", "89101", "2402", "8.375", "0.05", "NV DOR (Clark County combined)"),
     ("NV", "Reno", "89501", "1606", "8.265", "0.05", "NV DOR (Washoe County combined)"),
@@ -303,6 +316,38 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "7.750",
         "0.05",
         "ND DOR (state 5% + Cass 0.5% + Fargo 2.25%)",
+    ),
+    # daily-audit 2026-08-15: two ND cities changed effective 2026-07-01.
+    # Both rates read off the ND Office of State Tax Commissioner "Local
+    # Taxes by Location Guideline, Rates Effective July 1, 2026" total-rate
+    # column (cross-checked against fips-codes-1-1-2026.pdf for the
+    # pre-change baseline). Neither county levies a local tax (Bowman and
+    # Pembina are absent from the guideline's county table), so combined =
+    # 5% state + city. ND is SST: no code fix is possible, the fix is the
+    # NDR2026Q3MAY19 refresh. Both fail under -m liveapi until prod loads it.
+    (
+        "ND",
+        "Scranton",
+        "58653",
+        "0001",
+        "7.000",
+        "0.05",
+        "daily-audit 2026-08-15 pin: ND guideline total local 2% eff "
+        "2026-07-01 (was 1% since 4-1-02; the new sales/use/gross-receipts "
+        "levy replaces the old sales-and-gross-receipts-only 1%). Engine "
+        "still returns 6.000% -- under-collects 1.00pp until the Q3 refresh",
+    ),
+    (
+        "ND",
+        "Drayton",
+        "58225",
+        "0001",
+        "8.500",
+        "0.05",
+        "daily-audit 2026-08-15 pin: ND guideline total local 3.5% eff "
+        "2026-07-01 (1% 10-1-97 + 0.5% 10-1-10 + 2% 7-1-26, all on the same "
+        "sales/use/gross-receipts base, so cumulative). Engine still returns "
+        "6.500% -- under-collects 2.00pp until the Q3 refresh",
     ),
     # SD additional
     ("SD", "Rapid City", "57701", "1701", "6.200", "0.05", "SD DOR (state 4.2% + Rapid City 2%)"),

@@ -30,6 +30,15 @@ ND_CITY_NAMES: dict[str, str] = {
     "75380": "Tioga",  # ZIP 58784 (Williams Co; FIPS Place 3875380)
     "82660": "Wahpeton",  # ZIP 58075 (Richland Co; FIPS Place 3882660)
     "87020": "Linton",  # ZIP 58495 (Emmons Co; FIPS Place 3887020)
+    # daily-audit 2026-08-15 additions (3): the three ND cities whose
+    # 2026-07-01 local-tax changes the audit examined were all still
+    # rendering as `ND-city-NNNNN` placeholders in the live engine.
+    # Codes verified against the ND Office of State Tax Commissioner's
+    # "North Dakota FIPS Codes" table (fips-codes-1-1-2026.pdf), which
+    # publishes the FIPS Place code alongside the ND local code.
+    "20340": "Drayton",  # ZIP 58225 (Pembina Co; ND local code 157)
+    "58740": "Oakes",  # ZIP 58474 (Dickey Co; ND local code 146)
+    "71500": "Scranton",  # ZIP 58653 (Bowman Co; ND local code 190)
 }
 
 

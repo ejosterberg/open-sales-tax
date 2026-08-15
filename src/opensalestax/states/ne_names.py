@@ -19,6 +19,12 @@ NE_CITY_NAMES: dict[str, str] = {
     "03390": "Beatrice",
     "03950": "Bellevue",
     "10110": "Columbus",
+    # daily-audit 2026-08-15: Edgar raised its local rate 1.0% -> 1.5%
+    # effective 2026-07-01 and was still rendering as the placeholder
+    # `NE-city-14450` in the live engine (open follow-up from the
+    # 2026-07-31 audit). FIPS code 14450 is published directly by NE
+    # DOR's "Local Sales and Use Tax Rates" listing (07-01-2026 edition).
+    "14450": "Edgar",
     "18580": "Gering",
     "19595": "Grand Island",
     "20260": "Gretna",
