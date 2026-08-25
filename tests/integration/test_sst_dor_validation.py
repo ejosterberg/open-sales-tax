@@ -36,6 +36,46 @@ API = os.environ.get(
 )
 
 # (state, city, zip5, zip4, expected_rate_pct_str, tolerance_pct, source_note)
+# --- daily-audit 2026-08-25 (day 25: WA + WI) -------------------------
+# Washington's Q3 2026 local-rate changes (all effective 2026-07-01) moved
+# six tier-1 cities. Prod is still loaded from WAR2026Q2FEB26 /
+# WAB2026Q2FEB26, so the live engine under-collects at each of these until
+# the WAR2026Q3MAY27 / WAB2026Q3MAY27 refresh is applied. WA is an SST
+# state -- rates come wholly from the SST file, so there is no code fix.
+# Every rate below was confirmed at two independent street addresses via
+# the WA DOR address-rate API (webgis.dor.wa.gov/webapi/AddressRates.aspx),
+# which reported period="Q32026" and the location code cited in each note.
+_WA_Q3 = (
+    "WA is SST -- fix is the WAR2026Q3MAY27/WAB2026Q3MAY27 refresh; "
+    "fails under -m liveapi until prod loads WA Q3."
+)
+NOTE_TACOMA = (
+    "daily-audit 2026-08-25: 10.400 -> 10.500 (Pierce County local law "
+    "enforcement +0.1%, eff 2026-07-01; WA DOR loc code 2717). " + _WA_Q3
+)
+NOTE_BELLINGHAM = (
+    "daily-audit 2026-08-25: 9.100 -> 9.200 (Whatcom County local law "
+    "enforcement +0.1%, eff 2026-07-01; WA DOR loc code 3701). " + _WA_Q3
+)
+NOTE_FEDERAL_WAY = (
+    "daily-audit 2026-08-25: 10.300 -> 10.400 (City of Federal Way local "
+    "law enforcement +0.1%, eff 2026-07-01; WA DOR loc code 1732). " + _WA_Q3
+)
+NOTE_OLYMPIA = (
+    "daily-audit 2026-08-25: 9.800 -> 10.000 (City of Olympia +0.1% and "
+    "Thurston County +0.1%, both local law enforcement, eff 2026-07-01; "
+    "WA DOR loc code 3403). " + _WA_Q3
+)
+NOTE_LAKEWOOD = (
+    "daily-audit 2026-08-25: 10.100 -> 10.300 (City of Lakewood +0.1% and "
+    "Pierce County +0.1%, both local law enforcement, eff 2026-07-01; "
+    "WA DOR loc code 2721). " + _WA_Q3
+)
+NOTE_YAKIMA = (
+    "daily-audit 2026-08-25: 8.500 -> 8.600 (City of Yakima transportation "
+    "benefit district +0.1%, eff 2026-07-01; WA DOR loc code 3913). " + _WA_Q3
+)
+
 DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Tennessee -- TN DOR Local Option Sales Tax 2026-Q1
     (
@@ -426,9 +466,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Tacoma",
         "98402",
         "3502",
-        "10.400",
-        "0.10",
-        "WA DOR (state 6.5% + Tacoma combined ~3.9%)",
+        "10.500",
+        "0.05",
+        "WA DOR (state 6.5% + Tacoma combined local 4.0%). " + NOTE_TACOMA,
     ),
     (
         "WA",
@@ -444,18 +484,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Bellingham",
         "98225",
         "1234",
-        "9.100",
+        "9.200",
         "0.05",
-        "WA DOR (state 6.5% + Bellingham combined 2.6%)",
+        "WA DOR (state 6.5% + Bellingham combined local 2.7%). " + NOTE_BELLINGHAM,
     ),
     (
         "WA",
         "Federal Way",
         "98003",
         "1234",
-        "10.300",
-        "0.10",
-        "WA DOR (state 6.5% + Federal Way combined ~3.8%)",
+        "10.400",
+        "0.05",
+        "WA DOR (state 6.5% + Federal Way combined local 3.9%). " + NOTE_FEDERAL_WAY,
     ),
     (
         "WA",
@@ -471,9 +511,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Olympia",
         "98501",
         "1234",
-        "9.800",
+        "10.000",
         "0.05",
-        "WA DOR (state 6.5% + Olympia combined 3.3%)",
+        "WA DOR (state 6.5% + Olympia combined local 3.5%). " + NOTE_OLYMPIA,
     ),
     # OK secondary cities (post-loose-fallback fix; was 12.625% / 13.25% pre-fix)
     (
@@ -6825,9 +6865,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Lakewood (Pierce)",
         "98499",
         "0001",
-        "10.100",
+        "10.300",
         "0.05",
-        "WA DOR (state 6.5% + Lakewood combined local)",
+        "WA DOR (state 6.5% + Lakewood combined local 3.8%). " + NOTE_LAKEWOOD,
     ),
     (
         "WA",
@@ -6843,18 +6883,18 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Yakima",
         "98901",
         "0001",
-        "8.500",
+        "8.600",
         "0.05",
-        "WA DOR (state 6.5% + Yakima combined local)",
+        "WA DOR (state 6.5% + Yakima combined local 2.1%). " + NOTE_YAKIMA,
     ),
     (
         "WA",
         "Olympia (Thurston)",
         "98501",
         "0001",
-        "9.800",
+        "10.000",
         "0.05",
-        "WA DOR (state 6.5% + Olympia combined local)",
+        "WA DOR (state 6.5% + Olympia combined local 3.5%). " + NOTE_OLYMPIA,
     ),
     (
         "WA",

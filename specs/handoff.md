@@ -272,6 +272,53 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **WA — 6 LIVE WRONG RATES from the unapplied Q3 SST refresh; WI fully
+  clean (audit 2026-08-25, day 25: WA + WI).**
+  - **WA — six real under-collections, live and wrong for 55 days.** All
+    six trace to jurisdictions on WA DOR's published Q3 2026 change list,
+    every one effective **2026-07-01**: **Tacoma** 98402 10.400 → **10.500**
+    (Pierce County law-enforcement +0.1), **Bellingham** 98225 9.100 →
+    **9.200** (Whatcom County +0.1), **Federal Way** 98003 10.300 →
+    **10.400** (city +0.1), **Olympia** 98501 9.800 → **10.000** (city +0.1
+    *and* Thurston County +0.1 — two pins on this ZIP), **Lakewood** 98499
+    10.100 → **10.300** (city +0.1 *and* Pierce County +0.1), **Yakima**
+    98901 8.500 → **8.600** (transportation benefit district +0.1).
+    Prod holds `WAR2026Q2FEB26`/`WAB2026Q2FEB26`; latest upstream is
+    **`WAR2026Q3MAY27`/`WAB2026Q3MAY27`**. WA is SST, so **no code fix is
+    possible** — the fix is the refresh. Chipped.
+  - **Verification note worth reusing for any WA work:** a ZIP-only query
+    to the WA DOR address-rate API returns `code="5"`, a ZIP-centroid
+    fallback resolving to the county/PTBA rather than the city (98402 →
+    "PIERCE-PTBA RTA", 98901 → "YAKIMA COUNTY"). Those are **not** city
+    rates. Use a full street address, and confirm at **two** addresses per
+    city — that is how these six were established.
+  - **Committed this run:** 7 `DOR_GRID` pins bumped to the correct
+    post-refresh rates with cause + effective date + WA DOR location code
+    on each. Tacoma and Federal Way also had tolerance tightened
+    `0.10 → 0.05` (their old comments recorded approximate locals, "~3.9%"
+    / "~3.8%"; exact figures are now known — and at 0.10 the Tacoma pin
+    would have swallowed this exact 0.10pp change silently). All 7 fail
+    under `-m liveapi` until prod loads WA Q3; `liveapi` is excluded from
+    CI so the pipeline is unaffected.
+  - **🔔 WA Q4 2026 has no tier-1 exposure.** The only Q4 local change is
+    City of Mattawa (transportation benefit district), which is not a
+    pinned city — so unlike ND Minot, WA's Q4 file is not time-critical.
+  - **WI — fully clean.** All **9** pins match exactly, and jurisdiction
+    stacking is right too (Milwaukee = state 5% + county 0.9% + city 2%
+    per Act 12; the rest = state 5% + county 0.5%). WI DOR (page updated
+    2026-02-11) confirms **no county or city change effective in 2026** —
+    the most recent are Manitowoc 0.5% (2025-01-01) and Racine 0.5%
+    (2025-04-01). Prod is a quarter stale (`WIR2026Q2FEB18` vs upstream
+    **`WIR2026Q3MAY22`**) but with a flat 0.5% county levy statewide that
+    cannot yield a wrong rate; the exposure is boundary-only. Chipped low
+    priority.
+  - **Systemic:** WA is the **second proven wrong answer** from the SST
+    refresh backlog after GA — and the largest, 6 rates in one state. The
+    backlog now accounts for **10 live wrong rates across 4 states** (GA 1,
+    ND 2, NE 1, WA 6). Strengthens the case for one batched refresh of all
+    16 stale SST states. **Decision still pending from Eric.**
+  - Full report: `specs/audits/2026/08/state-audit-2026-08-25.md`.
+
 - **ND Scranton + Drayton and NE Edgar under-collect — 3 LIVE WRONG RATES,
   all from the unapplied Q3 SST refresh; ND Minot +0.5% lands 2026-10-01
   (audit 2026-08-15, day 15: ND + NE).**
