@@ -1,9 +1,54 @@
 # Finding: asyncmy SQL-injection (PYSEC-2026-286) — Critical, no upstream fix
 
 **Opened:** 2026-07-04 (from pip-audit during the daily state-tax audit gate)
-**Status:** MITIGATED (asyncmy made an optional extra 2026-07-04) — still
-watching weekly for an upstream fix; asyncmy remains unfixed at 0.2.11.
+**Status:** **RESOLVED 2026-08-27** — fixed upstream in **asyncmy 0.2.12**;
+constraint bumped to `^0.2.12` (lock resolves 0.2.14). Awaiting Eric's review
+on branch `deps/asyncmy-fix-0.2.12`.
 **Severity:** Critical (CVSS 9.8)
+
+## Resolution 2026-08-27 — upstream fix shipped
+
+asyncmy **0.2.12** (released 2026-08-06) fixes this. The upstream changelog
+names the CVE directly:
+
+> Security: remove unsafe `escape_dict` — dict keys could reach SQL
+> unescaped (CVE-2025-65896). (#134, #135, thanks @Cycloctane)
+
+Upstream issue [#134](https://github.com/long2ice/asyncmy/issues/134) — the
+report this advisory came from — was closed 2026-08-06, the same day 0.2.12
+published. Three independent signals agree:
+
+| Signal | Result |
+|---|---|
+| Upstream CHANGELOG (authoritative) | 0.2.12 removes `escape_dict`, cites CVE-2025-65896 |
+| OSV `PYSEC-2026-286` | range ends `last_affected: 0.2.11`; a version query for 0.2.14 returns **0 vulns** |
+| `pip-audit` (dev venv, mariadb extra installed) | asyncmy row **gone** — no longer reported |
+
+Note on OSV: the record carries **`last_affected: 0.2.11`, not a `fixed`
+event**, and has not been re-modified since 2026-07-01 — when 0.2.11 *was*
+the newest release. So OSV falling silent on 0.2.12+ is a range artifact and
+is **not on its own** proof of a fix. The upstream changelog naming the CVE
+is what makes this conclusive; OSV and pip-audit corroborate.
+
+**Change applied:** `asyncmy = {version = "^0.2.12", optional = true}` — the
+floor is the first fixed release; `poetry lock` resolves 0.2.14 (2026-08-12).
+
+**Review risk to weigh before merging:** 0.2.12 is not a narrow security
+patch. It bundles a large performance rewrite (buffered packet reading,
+C-level bulk row parsing, pointer-based protocol reads, direct cell decoding
+via the CPython C-API) plus several protocol fixes, and 0.2.13 adds
+server-side prepared statements. The fix itself is an **API removal**
+(`escape_dict` deleted, not merely corrected). This repo is unaffected by
+that removal — there are zero direct `asyncmy` imports and no `escape_dict`
+references in `src/` or `tests/`; every mention is a DSN string. But a
+MariaDB self-hoster calling `escape_dict` directly would break, and the
+rewrite is broad enough that the MariaDB path deserves a real smoke test
+before this is advertised as supported. There is still no MariaDB test
+infrastructure in-repo, so this bump is **verified by the Python-side gate
+only, not against a live MariaDB server.**
+
+The optional-extra structure is **retained** — it is install-surface
+hygiene, not just a CVE workaround.
 
 ## Update 2026-07-04 — mitigation applied
 
@@ -98,3 +143,4 @@ daily run. Suppressing a Critical would need explicit approval.
 - 2026-07-15: still unfixed (asyncmy latest 0.2.11; OSV PYSEC-2026-286 still `last_affected: 0.2.11`, no `fixed` event; pip-audit clean but asyncmy not resolved into the dev venv so it was not directly audited — PyPI+OSV are authoritative). aiomysql latest 0.3.2 (2025-10-22, maintained; its only advisory PYSEC-2026-1110 was fixed in 0.3.0, so 0.3.2 is unaffected).
 - 2026-07-22: still unfixed (asyncmy latest 0.2.11, unchanged since 2026-01-15; OSV PYSEC-2026-286 still `last_affected: 0.2.11`, no `fixed` event; pip-audit reported no vulns but asyncmy is not installed in the dev venv so it was not directly audited — PyPI+OSV are authoritative). aiomysql latest 0.3.2 (2025-10-22, maintained; only advisory PYSEC-2026-1110 fixed in 0.3.0, so 0.3.2 is unaffected).
 - 2026-07-31: still unfixed (asyncmy latest 0.2.11, unchanged since 2026-01-15; OSV PYSEC-2026-286 still `last_affected: 0.2.11`, no `fixed` event, advisory last modified 2026-07-01). asyncmy remains absent from the dev venv, so this week the locked 0.2.11 was audited directly (`pip-audit --no-deps -r` on a pinned `asyncmy==0.2.11`): PYSEC-2026-286 reported with an **empty Fix Versions column**, confirming no upstream patch. aiomysql latest 0.3.2 (2025-10-22, maintained; only advisory PYSEC-2026-1110 / GHSA-r397-ff8c-wv2g fixed in 0.3.0, so 0.3.2 is unaffected).
+- 2026-08-27: **FIXED upstream.** asyncmy 0.2.12 (2026-08-06) removes the unsafe `escape_dict` and cites CVE-2025-65896 in its changelog; upstream issue #134 closed the same day. Latest is 0.2.14 (2026-08-12). OSV still shows no explicit `fixed` event (unchanged since 2026-07-01, `last_affected: 0.2.11`) but returns 0 vulns for 0.2.14; `pip-audit` no longer reports asyncmy at all. Bumped the constraint to `^0.2.12` on branch `deps/asyncmy-fix-0.2.12` (lock → 0.2.14); gate green (ruff, mypy, 1590 unit tests, pip-audit). Held for Eric's review — not pushed. aiomysql latest 0.3.2 (2025-10-22, unchanged; maintained; only advisory PYSEC-2026-1110 / GHSA-r397-ff8c-wv2g fixed in 0.3.0, so 0.3.2 is unaffected).

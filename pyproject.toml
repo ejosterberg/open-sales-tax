@@ -32,12 +32,14 @@ sqlalchemy = {extras = ["asyncio"], version = "^2.0"}
 alembic = "^1.13"
 asyncpg = "^0.30"
 # MariaDB/MySQL async driver. OPTIONAL extra (`opensalestax[mariadb]`) so a
-# default (PostgreSQL) install does not pull it -- asyncmy 0.1.1-0.2.11 carry
-# an unfixed Critical SQLi (PYSEC-2026-286); keeping it opt-in shrinks the
-# default install's CVE surface. See specs/findings/asyncmy-sqli-pysec-2026-286.md
-# and the weekly fix-watch. db/session.py fails fast with an install hint if a
-# mysql DSN is used without this extra.
-asyncmy = {version = "^0.2.10", optional = true}
+# default (PostgreSQL) install does not pull it. asyncmy 0.1.1-0.2.11 carried a
+# Critical SQLi (PYSEC-2026-286 / CVE-2025-65896, "SQL injection via crafted
+# dict keys"); 0.2.12 fixes it by removing the unsafe `escape_dict` helper, so
+# the floor is >=0.2.12. See specs/findings/asyncmy-sqli-pysec-2026-286.md.
+# The opt-in extra stays regardless -- it is install-surface hygiene, not just a
+# CVE workaround. db/session.py fails fast with an install hint if a mysql DSN
+# is used without this extra.
+asyncmy = {version = "^0.2.12", optional = true}
 pydantic = "^2.9"
 pydantic-settings = "^2.6"
 # typer 0.16 relaxed its click cap (<8.2 -> >=8.0.0); needed so click can
