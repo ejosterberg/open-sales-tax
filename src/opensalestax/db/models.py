@@ -109,7 +109,17 @@ class DataVersion(Base):
 
     state: Mapped[State] = relationship(back_populates="data_versions")
     rates: Mapped[list[Rate]] = relationship(back_populates="data_version")
-    boundaries: Mapped[list[Boundary]] = relationship(back_populates="data_version")
+    # passive_deletes=True is REQUIRED here, not cosmetic. Boundary.data_version_id
+    # is NOT NULL with a DB-level ON DELETE CASCADE. Without passive_deletes,
+    # SQLAlchemy loads every child row on delete and emits
+    # "UPDATE boundaries SET data_version_id=NULL", which violates the NOT NULL
+    # constraint and aborts the purge -- so `data purge` failed for any state with
+    # boundaries, i.e. every SST state. Found 2026-09-05 while applying the
+    # Arkansas Q4 refresh (1.5M boundary rows). Letting the DB cascade is both
+    # correct and far faster than loading the children into the session.
+    boundaries: Mapped[list[Boundary]] = relationship(
+        back_populates="data_version", passive_deletes=True
+    )
 
     __table_args__ = (
         UniqueConstraint("state_id", "source", "version_label", name="uq_data_versions_label"),

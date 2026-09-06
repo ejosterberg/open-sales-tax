@@ -221,6 +221,78 @@ async def test_purge_removes_data_version(async_session: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
+async def test_purge_removes_data_version_with_boundaries(
+    async_session: AsyncSession,
+) -> None:
+    """purge_data_version must delete a version that HAS boundary rows.
+
+    Regression test for the 2026-09-05 Arkansas Q4 refresh failure.
+
+    ``Boundary.data_version_id`` is NOT NULL with a DB-level ON DELETE
+    CASCADE. Before the fix, ``DataVersion.boundaries`` lacked
+    ``passive_deletes=True``, so deleting a DataVersion made SQLAlchemy load
+    every child Boundary and emit ``UPDATE boundaries SET
+    data_version_id=NULL`` -- violating the NOT NULL constraint and aborting
+    the purge. That broke ``data purge`` for every state that has boundaries,
+    i.e. every SST state, which is exactly the quarterly-refresh path.
+
+    ``test_purge_removes_data_version`` above did not catch it: no fixture
+    load creates Boundary rows (the MN boundary fixture is named
+    ``MNB2026Q2FEB18-sample.csv``, which ``resolve_filename`` does not match),
+    so its ``boundary_count == 0`` assertion passed vacuously. This test
+    builds the rows directly so the delete path is actually exercised.
+    """
+    state = State(abbrev="ZZ", name="Testland", sst_member=True)
+    async_session.add(state)
+    await async_session.flush()
+
+    version = DataVersion(
+        state_id=state.id,
+        source="sst",
+        version_label="ZZ-SST-2026Q1JAN01",
+    )
+    authority = TaxAuthority(state_id=state.id, name="Testville", authority_type="city")
+    async_session.add_all([version, authority])
+    await async_session.flush()
+
+    async_session.add_all(
+        [
+            Boundary(
+                authority_id=authority.id,
+                zip5="00001",
+                data_version_id=version.id,
+            ),
+            Boundary(
+                authority_id=authority.id,
+                zip5="00002",
+                data_version_id=version.id,
+            ),
+        ]
+    )
+    await async_session.commit()
+
+    assert len((await async_session.execute(select(Boundary))).scalars().all()) == 2
+
+    # Before the passive_deletes fix this raised IntegrityError (NOT NULL
+    # violation on boundaries.data_version_id) instead of returning True.
+    deleted = await purge_data_version(async_session, "ZZ", "2026Q1JAN01")
+    assert deleted is True
+
+    remaining_versions = (
+        (
+            await async_session.execute(
+                select(DataVersion).where(DataVersion.version_label == "ZZ-SST-2026Q1JAN01")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert remaining_versions == []
+    # The DB-level ON DELETE CASCADE removed the children.
+    assert (await async_session.execute(select(Boundary))).scalars().all() == []
+
+
+@pytest.mark.asyncio
 async def test_purge_missing_version_returns_false(
     async_session: AsyncSession,
 ) -> None:
