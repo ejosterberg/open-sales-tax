@@ -272,6 +272,61 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **AZ — 5 LIVE OVER-COLLECTIONS + a missed county change; AR now two
+  quarters stale (audit 2026-09-05, day-2 rotation: AR + AZ).**
+  - **AZ audited systematically for the first time** — all 63 `AZ_CITIES`
+    and all 15 county rates diffed against the AZ DOR rate table effective
+    2026-09-01 (`TPT_RATETABLE_09012026.pdf`), rather than spot-checking
+    pinned ZIPs. That found **6 pre-existing defects** on top of the 1 new
+    change the rotation was looking for.
+  - **Five live over-collections, all fixed in repo, none deployed:**
+    **Sahuarita** 85629 11.100 → **8.100** (city 5.0 → 2.0, **3.0pp over**),
+    **Parker** 85344 10.600 → **8.600** (city 4.0 → 2.0, **2.0pp over**),
+    **Tolleson** 85353 9.100 → **8.800**, **Paradise Valley** 85253 9.100 →
+    **8.800**, **Litchfield Park** 85340 9.300 → **9.100**. Four of the five
+    trace to iter-150/152/153 copying rates from **SalesTaxHandbook /
+    Avalara** instead of the DOR — each framed as *fixing an
+    under-collection*, each actually creating a bigger error the other way.
+  - **Cochise County excise 0.500 → 1.000, effective 2026-07-01 — missed by
+    the 07-31, 08-01 and 08-02 audits.** Affects every Cochise ZIP. County
+    changes are **not** announced on the Model City Tax Code ordinance page
+    those audits read; they only appear in **Table 1** of the monthly rate
+    table PDF. **The audit procedure needs to diff Table 1 for AZ**, and the
+    analogous county source for other states.
+  - **Kingman** 2.50 → 3.00 eff 2026-09-01 (ord. 2003) — the one genuine new
+    change, predicted by the 08-02 audit, fixed + pinned.
+  - **The `DOR_GRID` blind spot is the real story.** A pin correctly asserting
+    Sahuarita 85629 → 8.100 (cited to the AZ DOR CSV) has contradicted
+    `az_data.py` for months. iter-150 did not reconcile it — it **added a
+    second pin for the same ZIP asserting 11.100**. Neither ever ran:
+    `DOR_GRID` is gated behind `-m liveapi`, which CI deselects (`1592
+    passed, 59 skipped, **816 deselected**`). **Highest-value follow-up in
+    the project right now: a CI-time test evaluating each `DOR_GRID`
+    expectation against the in-repo state modules — no network, no prod.**
+    It would have caught this the day it landed and refused the duplicate.
+  - **Sweep owed:** `grep -rniE "salestaxhandbook|avalara" src/` → **130
+    hits** across AL, AZ, CA and others. AZ is now clean; AL and CA carry the
+    heaviest remaining concentrations. Every hit is an unverified rate.
+  - **Deliberately NOT changed — needs Eric:** **Sun City** (85351, 9.300)
+    and **Vail** (85641, 8.700) are unincorporated CDPs that appear nowhere
+    in the DOR city table. By the logic already applied to Green Valley
+    (85622 = 6.100, state + county only) they would be 6.300 and 6.100 —
+    two further over-collections of 3.0pp and 2.6pp. Left alone because it
+    is a **modelling judgement**, not a transcription error (some CDP ZIPs
+    straddle incorporated territory; 85382 is already treated that way).
+  - **AR — no new drift, but now TWO quarters behind.** All 6 pinned cities
+    and 4 unpinned tier-1 cities exact. Prod holds `ARR2026Q2MAR02`; SST has
+    published **`ARR2026Q4AUG28` / `ARB2026Q4SEP02`**. The six 2026-07-01
+    changes return byte-identical wrong rates to the 08-02 audit (Cross and
+    Jackson County still **over**-collect). **Apply Q4, skip Q3.** On
+    2026-10-01 Logan and Stone County become two more over-collections.
+  - Full write-up:
+    `specs/findings/az-aggregator-sourced-rate-errors-2026-09.md`.
+  - **Rotation debt:** this run began under a 2026-09-02 clock (day 2) and
+    the date advanced to 09-04 and 09-05 mid-run. AR + AZ was completed
+    rather than restarted. **CT + DC (day 4) and DE + FL (day 5) are owed** —
+    use the days 27–31 catch-up window.
+
 - **WA — 6 LIVE WRONG RATES from the unapplied Q3 SST refresh; WI fully
   clean (audit 2026-08-25, day 25: WA + WI).**
   - **WA — six real under-collections, live and wrong for 55 days.** All
