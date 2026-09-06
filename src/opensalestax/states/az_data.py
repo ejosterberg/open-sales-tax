@@ -38,7 +38,13 @@ AZ_STATE_EFFECTIVE_FROM = dt.date(2013, 6, 1)
 # Source: AZ DOR May 2026 CSV, business code 017, county-level rows.
 AZ_COUNTY_RATE_PCT: dict[str, Decimal] = {
     "Apache County": Decimal("0.500"),
-    "Cochise County": Decimal("0.500"),
+    # Cochise County excise rose 0.500 -> 1.000 effective 2026-07-01.
+    # Confirmed from the AZ DOR Table 1 "017 Retail" row across successive
+    # monthly rate tables: the Cochise column reads 6.10% in the 01/2026 and
+    # 06/2026 tables and 6.60% from the 07/2026 table onward (state 5.6% +
+    # county). Missed by the 2026-07-31, 08-01 and 08-02 audits, which
+    # checked only the Model City Tax Code town ordinances, not Table 1.
+    "Cochise County": Decimal("1.000"),
     "Coconino County": Decimal("1.300"),
     "Gila County": Decimal("1.000"),
     "Graham County": Decimal("1.000"),
@@ -272,18 +278,22 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.200"),
         ("85390",),
     ),
+    # iter-152 raised this 2.500 -> 2.800 citing SalesTaxHandbook; the AZ DOR
+    # rate table eff 2026-09-01 lists "Retail Sales 017 2.50" for region code
+    # TN, so the pre-iter-152 value was right and iter-152 introduced a 0.3pp
+    # over-collection. Restored to the DOR value.
     "Tolleson": (
-        # iter-152: raised 2.500 → 2.800 per SalesTaxHandbook (Tolleson
-        # city tax 2.8% in 2026; under-collect 0.3% pre-fix).
         "Maricopa County",
-        Decimal("2.800"),
+        Decimal("2.500"),
         ("85353",),
     ),
+    # iter-152 raised this 2.800 -> 3.000 citing SalesTaxHandbook; the AZ DOR
+    # rate table eff 2026-09-01 lists "Retail Sales 017 2.80" for region code
+    # LP, so the pre-iter-152 value was right and iter-152 introduced a 0.2pp
+    # over-collection. Restored to the DOR value.
     "Litchfield Park": (
-        # iter-152: raised 2.800 → 3.000 per SalesTaxHandbook (Litchfield
-        # Park city tax 3.0% in 2026; under-collect 0.2% pre-fix).
         "Maricopa County",
-        Decimal("3.000"),
+        Decimal("2.800"),
         ("85340",),
     ),
     "El Mirage": (
@@ -340,9 +350,16 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.000"),
         ("86429", "86430", "86442"),
     ),
+    # Raised 2.500 -> 3.000 by City of Kingman ordinance 2003 (passed
+    # 2026-06-16, effective 2026-09-01), which lifted the rate on multiple
+    # privilege-tax business classifications -- including retail (business
+    # code 017) -- and use tax. Mohave County levies no county-level TPT, so
+    # combined 86401/86409 goes 8.100 -> 8.600 (state 5.600 + city 3.000).
+    # The same ordinance adopts Local Option V (single items over $10,000
+    # taxed at 2.5%); the engine models the general retail rate only.
     "Kingman": (
         "Mohave County",
-        Decimal("2.500"),
+        Decimal("3.000"),
         ("86401", "86409"),
     ),
     # --- Cochise County (newly online via Sierra Vista) ---
@@ -356,31 +373,37 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
     # pre-fix. Verified rates against Avalara per-city pages.
     "Tombstone": (
         "Cochise County",
-        Decimal("3.500"),  # combined 9.6% (state 5.6 + Cochise 0.5 + city 3.5)
+        Decimal("3.500"),  # combined 10.1% (state 5.6 + Cochise 1.0 + city 3.5)
         ("85638",),
     ),
     "Willcox": (
         "Cochise County",
-        Decimal("3.000"),  # combined 9.1% (state 5.6 + Cochise 0.5 + city 3.0)
+        Decimal("3.000"),  # combined 9.6% (state 5.6 + Cochise 1.0 + city 3.0)
         ("85643",),
     ),
     # Raised 1.900 -> 2.900 by Town of Huachuca City ordinance 2026-06
     # (passed 2026-05-28, effective 2026-08-01), which lifted the rate on
     # multiple privilege-tax business classifications -- including retail
     # (business code 017) -- and use tax. Combined 85616 rate 8.000 ->
-    # 9.000 (state 5.600 + Cochise County 0.500 + town 2.900).
+    # 9.500 (state 5.600 + Cochise County 1.000 + town 2.900; the county
+    # component rose 0.500 -> 1.000 on 2026-07-01, see AZ_COUNTY_RATE_PCT).
     "Huachuca City": (
         "Cochise County",
-        Decimal("2.900"),  # combined 9.0% (state 5.6 + Cochise 0.5 + city 2.9)
+        Decimal("2.900"),  # combined 9.5% (state 5.6 + Cochise 1.0 + city 2.9)
         ("85616",),
     ),
     # --- Pima County (additional, beyond Tucson + Marana) ---
+    # iter-150 raised this 2.000 -> 5.000 citing SalesTaxHandbook, a
+    # third-party aggregator. That was wrong and it over-collected 3.0pp
+    # for 85629 until the 2026-09-05 daily audit. The AZ DOR TPT Rate
+    # Table effective 2026-09-01 lists "Retail Sales 017 2.00" for region
+    # code SA (Sahuarita, Pima County) -- no 5% line appears anywhere in
+    # the town's schedule. Restored to the DOR value, which is also what
+    # the long-standing DOR_GRID pin (85629 -> 8.100 combined) asserts.
+    # See specs/findings/az-aggregator-sourced-rate-errors-2026-09.md.
     "Sahuarita": (
-        # iter-150: raised 2.000 → 5.000 in 2024 (city tax 2% became
-        # 5% special tax per SalesTaxHandbook). Engine had been
-        # under-collecting 3.0% for 85629.
         "Pima County",
-        Decimal("5.000"),
+        Decimal("2.000"),
         ("85629",),
     ),
     # --- Yuma County (additional, beyond Yuma) ---
@@ -473,7 +496,7 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ("85641",),
     ),
     "Bisbee": (
-        # state 5.6 + Cochise 0.5 + city 3.5 = 9.6.
+        # state 5.6 + Cochise 1.0 + city 3.5 = 10.1.
         "Cochise County",
         Decimal("3.500"),
         ("85603",),
@@ -493,10 +516,12 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("2.900"),
         ("85268", "85269"),
     ),
+    # Corrected 2.800 -> 2.500 by the 2026-09-05 audit. The AZ DOR rate
+    # table eff 2026-09-01 lists "Retail Sales 017 2.50" for region code PV.
+    # Combined 85253: 5.6 + Maricopa 0.7 + 2.5 = 8.800.
     "Paradise Valley": (
-        # state 5.6 + Maricopa 0.7 + city 2.8 = 9.1.
         "Maricopa County",
-        Decimal("2.800"),
+        Decimal("2.500"),
         ("85253",),
     ),
     "Youngtown": (
@@ -518,11 +543,16 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ("85938",),
     ),
     # --- iter-153: La Paz Co (Parker + Quartzsite) ---
+    # Corrected 4.000 -> 2.000 by the 2026-09-05 audit. iter-153 recorded
+    # "2% city tax + 2% special added Oct 2025"; no such retail surcharge
+    # exists. The AZ DOR rate table eff 2026-09-01 lists "Retail Sales 017
+    # 2.00" for region code PK -- the 4.00 figure is the Restaurant and Bars
+    # (011) and Hotel/Motel Additional (144) rate, which iter-153 appears to
+    # have read off the wrong row. Combined 85344: 5.6 + La Paz 1.0 + 2.0 =
+    # 8.600, not 10.600 -- a 2.0pp over-collection.
     "Parker": (
-        # state 5.6 + La Paz 1.0 + city 4.0 = 10.6.
-        # Includes 2% city tax + 2% special added Oct 2025.
         "La Paz County",
-        Decimal("4.000"),
+        Decimal("2.000"),
         ("85344",),
     ),
     "Quartzsite": (

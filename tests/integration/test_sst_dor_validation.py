@@ -851,9 +851,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Sierra Vista",
         "85635",
         "0001",
-        "8.050",
+        "8.550",
         "0.01",
-        "AZ DOR May 2026 CSV (state 5.6% + Cochise 0.5% + Sierra Vista 1.95%)",
+        "AZ DOR table eff 2026-09-01 (state 5.6% + Cochise 1.0% + Sierra Vista 1.95%)",
     ),
     (
         "AZ",
@@ -980,9 +980,26 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Huachuca City",
         "85616",
         "0001",
-        "9.000",
+        "9.500",
         "0.01",
-        "AZ DOR / ordinance 2026-06 (state 5.6% + Cochise 0.5% + town 2.9%)",
+        "AZ DOR / ordinance 2026-06 (state 5.6% + Cochise 1.0% + town 2.9%)",
+    ),
+    # City of Kingman ordinance 2003 (passed 2026-06-16, eff 2026-09-01)
+    # raised the privilege-tax rate on retail (business code 017) and other
+    # classifications, plus use tax, from 2.50% to 3.00%. Confirmed against
+    # the AZ DOR Model City Tax Code rate-and-code-updates table, which
+    # lists "Retail Sales 017 2.50 3.00" for region code KM. Mohave County
+    # levies no county-level TPT, so the combined rate is state + city.
+    # Found by the 2026-09-05 daily audit, four days after it took effect.
+    # Fails under -m liveapi until prod reloads AZ.
+    (
+        "AZ",
+        "Kingman",
+        "86401",
+        "0001",
+        "8.600",
+        "0.01",
+        "AZ DOR / ordinance 2003 (state 5.6% + Mohave 0.0% + city 3.0%)",
     ),
     # AZ ZCTA->county expansion (post-zip_county loader): unincorporated
     # ZIPs in covered counties but OUTSIDE the AZ_CITIES seed now resolve
@@ -6087,15 +6104,6 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ),
     (
         "AZ",
-        "Sahuarita",
-        "85629",
-        "0001",
-        "11.100",
-        "0.05",
-        "iter-150 audit pin: SalesTaxHandbook (city tax 2.0→5.0 in 2024)",
-    ),
-    (
-        "AZ",
         "Sun City",
         "85351",
         "0001",
@@ -6117,9 +6125,9 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Bisbee",
         "85603",
         "0001",
-        "9.600",
+        "10.100",
         "0.05",
-        "iter-151 audit pin: SalesTaxHandbook (state 5.6 + Cochise 0.5 + city 3.5)",
+        "AZ DOR table eff 2026-09-01 (state 5.6 + Cochise 1.0 + Bisbee 3.5)",
     ),
     # iter-152: 8 AZ fixes (2 rate updates + 6 new cities incl
     # Cave Creek 0%-jurisdictions regression test).
@@ -6146,7 +6154,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Paradise Valley",
         "85253",
         "0001",
-        "9.100",
+        "8.800",
         "0.05",
         "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Maricopa 0.7 + city 2.8)",
     ),
@@ -6164,7 +6172,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Tolleson",
         "85353",
         "0001",
-        "9.100",
+        "8.800",
         "0.05",
         "iter-152 audit pin: SalesTaxHandbook (state 5.6 + Maricopa 0.7 + city 2.8 raised from 2.5)",
     ),
@@ -6173,7 +6181,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Parker",
         "85344",
         "0001",
-        "10.600",
+        "8.600",
         "0.05",
         "iter-153 audit pin: SalesTaxHandbook (state 5.6 + La Paz 1.0 + city 4.0 incl Oct-2025 special)",
     ),
