@@ -266,3 +266,111 @@ the Q4 file is applied first. No January 2027 section has been posted yet.
   untouched and for AR is now a **Q4** refresh. Has survived audits on 07-22,
   07-26, 07-31, 08-01, 08-02 and now 09-05.
 - **CT + DC and DE + FL rotation slots are owed** (see the rotation note above).
+
+---
+
+## Addendum — deploy + AR refresh applied (same day, after the report above)
+
+Eric asked for the AZ deploy directly, then released the AR refresh chip. Both
+landed. **Every finding in this report is now live**, which had not been true of
+an AZ audit since 2026-08-01.
+
+### AZ deploy
+
+Prod was **21 commits behind** (last deployed commit `40243c5`, 2026-07-19), so
+this carried far more than the AZ fixes — the `e99237f` engine change
+(area-majority county rule, AK borough bindings, AZ Florence), GA Madison County,
+ND/NE and WA/WI pins. A Proxmox snapshot (`predeploy20260905`, taken with guest
+filesystem freeze) was made first.
+
+AZ's rate rows in the database dated from **2026-05-15**, so the code deploy alone
+would not have moved anything — `arizona.py` emits `AZ_CITIES` /
+`AZ_COUNTY_RATE_PCT` into the DB via the loader. The reload reused the *existing*
+label `AZ-SST-V0.55.4` deliberately: the loader purges by exact label match, so a
+new label would have left the May rows in place and **double-stacked** them.
+
+All 14 probed AZ ZIPs correct after reload:
+
+| ZIP | before | after | expected |
+|---|---:|---:|---:|
+| 85629 Sahuarita | 11.100 | **8.100** | 8.100 |
+| 85344 Parker | 10.600 | **8.600** | 8.600 |
+| 85353 Tolleson | 9.100 | **8.800** | 8.800 |
+| 85253 Paradise Valley | 9.100 | **8.800** | 8.800 |
+| 85340 Litchfield Park | 9.300 | **9.100** | 9.100 |
+| 85635 Sierra Vista | 8.050 | **8.550** | 8.550 |
+| 85603 Bisbee | 9.600 | **10.100** | 10.100 |
+| 85638 Tombstone | 9.600 | **10.100** | 10.100 |
+| 85643 Willcox | 9.100 | **9.600** | 9.600 |
+| 85616 Huachuca City | 8.000 | **9.500** | 9.500 |
+| 86401/86409 Kingman | 8.100 | **8.600** | 8.600 |
+| 85132 Florence | 8.700 | **10.200** | 10.200 |
+| 85622 Green Valley | 6.100 | 6.100 | 6.100 (control) |
+
+**The five over-collections are resolved.** Florence and Huachuca City, pending
+since 2026-08-01 and 2026-08-02, are live too.
+
+### AR Q4 refresh
+
+`ARR2026Q4AUG28.csv` + `ARB2026Q4SEP02.zip` downloaded (the boundary directory is
+`/ratesandboundry/Boundary/`, **not** `/Boundaries/`), staged into the container's
+cache volume, Q2 purged, Q4 loaded (580 authorities, 1,001 rates, 1,538,225
+boundaries). All 15 AR probes exact — the six wrong jurisdictions fixed, the nine
+tier-1 cities unmoved:
+
+| ZIP | was | now | expected |
+|---|---:|---:|---:|
+| 72956 Van Buren | 9.250 | **10.250** | 10.250 |
+| 71730 El Dorado | 9.750 | **10.250** | 10.250 |
+| 72934 Chester | 7.750 | **8.750** | 8.750 |
+| 72125 Perry | 9.250 | **10.250** | 10.250 |
+| 72396 Cross County | 10.500 | **9.625** | 9.625 |
+| 72112 Jackson County | 10.250 | **9.875** | 9.875 |
+
+Both AR county over-collections are gone. Arkansas is now current through
+2026-10-01, so the Alpena / Hempstead / Logan / Stone changes are already loaded
+and will simply take effect on their date.
+
+The five placeholder authority names (`AR-city-13570` Chester, `AR-city-54650`
+Perry, `AR-city-21070` El Dorado, `AR-city-77090` Cross County, `AR-city-49580`
+Jackson County) **persist** through the refresh — same cosmetic friendly-name gap
+tracked for WV/UT/WI/NE.
+
+### A defect the refresh exposed: `data purge` was broken
+
+The AR Q2 purge **aborted** with a NOT NULL violation on 1.53M rows. Root cause:
+`DataVersion.boundaries` lacked `passive_deletes=True`, so SQLAlchemy tried to
+nullify a NOT NULL column instead of letting the DB's `ON DELETE CASCADE` run.
+**This broke `data purge` for every SST state** — precisely the quarterly-refresh
+path, and plausibly part of why the seven-state Q3 backlog sat unapplied across
+six audits.
+
+Arkansas landed correctly anyway because the database cascade did the real work,
+but that was the schema rescuing a broken code path. Fixed in `c900583`, with a
+regression test **verified to fail without the fix** (identical
+`NotNullViolationError`) and pass with it, on a throwaway scratch database.
+
+The pre-existing `test_purge_removes_data_version` did not catch it: it asserts
+`boundary_count == 0` after purging, but **no fixture load in the suite ever
+creates a Boundary row**, so it passed vacuously. That is the second
+structurally-blind test found today, after `DOR_GRID`.
+
+Full write-up: `specs/findings/data-purge-broken-for-states-with-boundaries-2026-09.md`.
+
+### Post-deploy verification
+
+- 29 live ZIP probes across AZ and AR, all exact (see tables above)
+- Full suite against a **real PostgreSQL**: **1648 passed** (vs 1592 with DB tests
+  skipped) — the 56 normally-skipped DB tests all pass with the model change
+- CI green on `c900583`, both PostgreSQL and MariaDB legs
+- Post-refresh DB integrity: 0 orphan boundaries, 0 rates with a null data version
+
+### ⚠️ Security exposure noticed during the deploy
+
+The production PostgreSQL container publishes **`5432:5432` on `0.0.0.0`** with
+the credentials `opensalestax` / `opensalestax` (both hardcoded in
+`docker-compose.yml`). Any host on the LAN can connect to the production database
+with guessable credentials. It is how the scratch-database verification above was
+run from a workstation — which is exactly the point. Chipped separately; this
+wants a bind to `127.0.0.1` and a real password.
+

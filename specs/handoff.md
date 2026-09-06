@@ -272,6 +272,44 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **✅ RESOLVED 2026-09-05 — AZ deployed + AR refreshed; both states now correct
+  on the live engine.** Eric released the deploy and refresh chips the same day
+  the audit ran, so nothing below is still live-wrong.
+  - **AZ deploy:** prod was **21 commits behind** (`40243c5`, 2026-07-19), so this
+    also shipped the `e99237f` engine change, GA Madison County, and the ND/NE +
+    WA/WI pins. Snapshot `predeploy20260905` taken on **pmvm2** first. AZ's DB
+    rows dated from 2026-05-15, so a reload was required — done reusing the
+    **existing** label `AZ-SST-V0.55.4`, because the loader purges by exact label
+    match and a new label would have double-stacked the May rows. **14/14 AZ
+    probes exact**; the 5 over-collections plus Florence and Huachuca City are
+    resolved.
+  - **AR Q4 refresh:** `ARR2026Q4AUG28` + `ARB2026Q4SEP02` loaded (580
+    authorities, 1,001 rates, 1.54M boundaries). **15/15 probes exact** — the six
+    wrong jurisdictions fixed (both county over-collections gone), nine tier-1
+    cities unmoved. AR is now current *through* 2026-10-01, so Alpena /
+    Hempstead / Logan / Stone are already loaded and will take effect on date.
+    Boundary files live under `/ratesandboundry/Boundary/` (singular).
+  - **Placeholder AR names persist** (`AR-city-13570` Chester, `-54650` Perry,
+    `-21070` El Dorado, `-77090` Cross County, `-49580` Jackson County) — same
+    cosmetic gap as WV/UT/WI/NE.
+  - **⚠️ `data purge` was broken for every SST state** — found by this refresh.
+    `DataVersion.boundaries` lacked `passive_deletes=True`, so deleting a version
+    tried to NULL a NOT NULL column across 1.53M rows. Fixed in `c900583` with a
+    regression test **verified to fail without the fix**. Plausibly part of why
+    the seven-state Q3 backlog survived six audits. The pre-existing purge test
+    passed vacuously — no fixture ever creates a Boundary row.
+  - **⚠️ SECURITY:** prod PostgreSQL publishes **`5432` on `0.0.0.0`** with
+    credentials `opensalestax`/`opensalestax` hardcoded in `docker-compose.yml`.
+    Any LAN host can reach the production database. Chipped.
+  - **Still owed from this audit:** the CI-time `DOR_GRID` test, the 130-hit
+    aggregator re-verification sweep, and the Sun City / Vail CDP decision.
+    **New:** the `DOR_GRID` audit found **12 more conflicting duplicate pins**
+    (CA ×7, TX ×2, SC, NM, AK) of the same shape as the Sahuarita one — in every
+    case a stale county-only pin from the iter-62 ZCTA expansion colliding with a
+    city pin. The live engine returns the city-inclusive value in all 12. These
+    must be resolved against primary sources before the duplicate-check test can
+    land green.
+
 - **AZ — 5 LIVE OVER-COLLECTIONS + a missed county change; AR now two
   quarters stale (audit 2026-09-05, day-2 rotation: AR + AZ).**
   - **AZ audited systematically for the first time** — all 63 `AZ_CITIES`
