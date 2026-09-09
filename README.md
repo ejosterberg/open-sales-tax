@@ -31,7 +31,7 @@ so a fresh install can be live without spending ~50 minutes
 fetching SST data and loading every state by hand.
 
 ```bash
-pip install opensalestax
+pip install opensalestax alembic
 
 # 1. Point at any empty PostgreSQL database
 export OPENSALESTAX_DATABASE_URL="postgresql+asyncpg://USER:PASSWORD@HOST:5432/opensalestax"
@@ -45,6 +45,10 @@ opensalestax data restore
 # 4. Serve the API
 opensalestax serve --port 8080
 ```
+
+>[!NOTE]  
+> If using a python virtual environment, run `pip install -e . opensalestax alembic`. Also, ensure your system has psql installed. On macOS, this can be installed with `brew install libpq`
+
 
 That's it. ``opensalestax data restore`` downloads
 ``opensalestax-dump-<latest-tag>-postgres.sql.gz`` from the GitHub

@@ -191,7 +191,8 @@ class Rate(Base):
     authority: Mapped[TaxAuthority] = relationship(back_populates="rates")
     data_version: Mapped[DataVersion | None] = relationship(back_populates="rates")
 
-    __table_args__ = (Index("idx_rates_eff", "authority_id", "effective_from", "effective_to"),)
+    __table_args__ = (Index("idx_rates_eff", "authority_id", "effective_from", "effective_to"),
+                      Index("idx_rates_data_version", "data_version_id"))
 
     def __repr__(self) -> str:
         return f"<Rate {self.rate_pct}% authority={self.authority_id}>"
@@ -219,7 +220,11 @@ class Boundary(Base):
     authority: Mapped[TaxAuthority] = relationship(back_populates="boundaries")
     data_version: Mapped[DataVersion] = relationship(back_populates="boundaries")
 
-    __table_args__ = (Index("idx_boundaries_zip", "zip5", "zip4_low", "zip4_high"),)
+    __table_args__ = (
+        Index("idx_boundaries_zip", "zip5", "zip4_low", "zip4_high"),
+        Index("idx_boundaries_authority", "authority_id"),
+        Index("idx_boundaries_data_version", "data_version_id"),
+    )
 
     def __repr__(self) -> str:
         return f"<Boundary zip={self.zip5}-{self.zip4_low or '????'} authority={self.authority_id}>"
