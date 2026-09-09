@@ -152,31 +152,37 @@ one-word password.
 
 ## Follow-ups
 
-1. **Fleet sweep — done 2026-09-09; three other hosts are exposed.** 24 hosts
-   were checked for database/cache ports published on `0.0.0.0`:
+1. **Fleet sweep — done 2026-09-09. Both exposed Redis instances are now closed.**
 
-   | Host | Container | Port | Notes |
+   25 hosts were checked for database/cache ports bound to all interfaces.
+   **Correction to the first pass:** it listed only *running* containers, which
+   missed dormant mappings. Re-swept with `docker ps -a`.
+
+   | Host | Container | Port | Status |
    |---|---|---|---|
-   | `bagisto-test` | `bagisto-db` | 3306 | MariaDB, test host |
-   | `magento-demo` | `magento-db-1` | 3306 | MariaDB, demo host |
-   | `magento-demo` | `magento-redis-1` | 6379 | **Redis — no auth by default** |
-   | pmvm2 CT 104 | `resgrid-redis-1` | 6379 | **Redis — no auth by default**; Resgrid is a dispatch platform |
+   | `opensalestax-01` | `open-sales-tax-postgres-1` | 5432 | ✅ fixed (loopback + password rotated) |
+   | `magento-demo` | `magento-redis-1` | 6379 | ✅ **fixed 2026-09-09** — was **unauthenticated** |
+   | pmvm2 CT 104 | `resgrid-redis-1` | 6379 | ✅ **fixed 2026-09-09** — had auth, but a weak literal password |
+   | pmvm2 CT 104 | `resgrid-db-1` | 5432 | ✅ **fixed 2026-09-09** — dormant mapping, missed by the first sweep |
+   | `bagisto-test` | `bagisto-db` | 3306 | ⚠️ still open (MariaDB) |
+   | `magento-demo` | `magento-db-1` | 3306 | ⚠️ still open (MariaDB) |
+   | `magento-demo` | `magento-rabbitmq-1` | 5672, 15672 | ⚠️ still open |
+   | `magento-demo` | `magento-opensearch-1` | 9200, 9300 | ⚠️ still open |
 
-   **The Redis instances are the worrying ones.** Redis ships with no
-   authentication, so an exposed instance is not merely readable — `CONFIG SET
-   dir` + `dbfilename` is a well-known path to writing arbitrary files (cron
-   entries, `authorized_keys`) as the Redis user. Those two deserve attention
-   ahead of the MariaDB ones.
+   The two Redis instances were the priority and are done. `magento-redis-1` had
+   **no authentication at all** (`CONFIG GET requirepass` returned empty);
+   `resgrid-redis-1` did require a password, but a weak literal one hardcoded in
+   its compose `command:` line, so the open port made it brute-forceable. Both
+   are now `127.0.0.1` only, verified refused from a workstation.
 
-   Clean (no exposed database ports): `scdock0` (the public VPS),
-   `eost-docker0`, `sccllc-docker0`, `gdl-docker0`, `erpnext-test`,
-   `invoice-ninja-test`, `odoo-test`, `customer-capture`, `opencart-test`,
-   `drupal-commerce-test`, `wp-woocommerce-test`, `saleor-demo`, `medusa-test`,
-   `vendure-demo`, `ticketscad-docker`, `rscop`, `rscop-dev`, `legiscan-01`,
-   `scbooks`, `opencallbook`, `msp-arrivals`, pmvm2 CT 100, CT 102.
+   Neither application used the host mapping: Magento connects to `redis:6379`
+   (`app/etc/env.php`) and Resgrid to `172.16.193.56:6379`, both over their
+   compose networks. Magento was re-verified working afterward (see below).
 
-   These were **not** changed here — they belong to other projects and touching
-   them from a sales-tax session would be out of scope. Chipped separately.
+   The remaining rows are MariaDB/RabbitMQ/OpenSearch on test and demo hosts.
+   OpenSearch is worth a look — dev images commonly ship with the security
+   plugin disabled, which would make 9200 unauthenticated.
+
 2. **`8080` is also published on `0.0.0.0`** on this host. That one is
    intentional — it is how the reverse proxy / tunnel reaches the API — but it
    means the API is directly reachable on the LAN, bypassing Cloudflare and its
@@ -186,3 +192,60 @@ one-word password.
    fails on any `ports:` entry lacking an explicit interface, and on any
    password literal in a compose file, would have caught this the day it was
    written.
+
+## Addendum — Redis remediation, 2026-09-09
+
+### magento-demo (VM 914 on pmvm2)
+
+`compose.yaml` service `redis` (image `valkey/valkey:8.1-alpine`) bound to
+`127.0.0.1:6379:6379`. The commented-out alternative `redis:7.2-alpine` block
+in the same file was bound too, so uncommenting it cannot silently reintroduce
+the hole.
+
+Recreating the container emptied the cache — this Valkey has no volume, so its
+data was always ephemeral. Magento repopulated it immediately.
+
+**Verified working after the change:**
+
+| Check | Result |
+|---|---|
+| Home page | HTTP 200, **30674 bytes — byte-identical size to the pre-change baseline**, title "Home page", same 78 content markers |
+| `/customer/account/login/` | HTTP 200, title "Customer Login" |
+| `/customer/account/create/` | HTTP 200, title "Create New Customer Account" |
+| `/search/term/popular/` | HTTP 200, title "Popular Search Terms" |
+| Redis in use again | 93 + 8 + 3 keys across db0/db1/db2, 1228 commands processed |
+| Sessions in Redis | `db2 DBSIZE` = 2 — session storage working |
+| `10.32.161.183:6379` from a workstation | **refused** |
+| `10.32.161.183:443` (control) | still reachable |
+
+The store has no sample catalog — the home page carries only static asset
+links. That is the install's pre-existing state, not a regression; the dynamic
+routes above are the meaningful functional test.
+
+### pmvm2 CT 104 (Resgrid) — Redis closed, but the application was already down
+
+`docker-compose.yml` service `redis` bound to `127.0.0.1:6379:6379`; the
+container's static IP `172.16.193.56` and its persisted data survived the
+recreate. The dormant `db` mapping was bound to loopback in the same pass.
+
+**Resgrid itself has been broken since before this work and was not fixed here:**
+
+- `resgrid-db-1` **exited 2026-05-19 with code 137** (SIGKILL; `OOMKilled=false`,
+  so killed from outside — that date is the Proxmox move window). Its compose
+  service has **no `restart:` policy at all** (`RestartPolicy=no`), so nothing
+  ever brought it back. Down ~3.7 months.
+- `resgrid-caddy-1` crash-loops on a Caddyfile error, independent of the above:
+  `duplicate site address not allowed: 'http://10.32.161.207'`.
+- `web`, `api`, `worker`, `events` restart every few minutes because they cannot
+  reach the database.
+
+Container states were captured before and after the Redis change and are
+identical apart from Redis itself. **This outage predates and is unrelated to
+the port binding.** Chipped separately.
+
+Note the `restart: no` on `resgrid-db-1` is the same failure family Eric
+documented for the OpenSalesTax stack in
+`prod-outage-dockerd-oom-2026-07.md`: a container killed hard by something
+outside Docker, and a restart policy that declines to bring it back, leaving the
+deployment silently down until a human notices. It went unnoticed for ~3.7
+months here.
