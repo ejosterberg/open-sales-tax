@@ -98,15 +98,43 @@ ssh -L 5432:localhost:5432 opensalestax-01
 This is strictly better than the old path — it is authenticated, encrypted, and
 leaves an SSH audit trail.
 
-## Verification
+## Verification (2026-09-09)
 
 | Check | Result |
 |---|---|
-| `docker port open-sales-tax-postgres-1` | `127.0.0.1:5432` only |
-| Connect to `10.32.161.126:5432` from a workstation | **refused** |
-| Connect over an SSH tunnel with the new password | succeeds |
-| Connect with the old password | **rejected** |
-| Live API health + rate probes | correct (see below) |
+| `docker port open-sales-tax-postgres-1` | `127.0.0.1:5432` only (IPv6 listener gone too) |
+| `ss -ltn` on the host | `LISTEN 127.0.0.1:5432` — no longer `0.0.0.0` |
+| TCP connect to `10.32.161.126:5432` from a workstation | **ConnectionRefusedError** |
+| TCP connect to `10.32.161.126:8080` from a workstation (control) | reachable — confirms the refusal above is the bind, not a network fault |
+| Old password, through the host port mapping | **`password authentication failed`** |
+| No password, through the host port mapping | **`no password supplied`** |
+| New password, through the host port mapping | succeeds |
+| `ssh -L 5432:localhost:5432` tunnel | reachable — documented replacement path works |
+| Live API probes (85629 AZ, 86401 AZ, 72396 AR, 55401 MN, 10001 NY) | 8.100 / 8.600 / 9.625 / 9.025 / 8.875 — all correct |
+| Both containers | `healthy` |
+
+**One nuance worth recording, because it produced a false negative.** The first
+attempt to prove the old password was dead ran `psql -h 127.0.0.1` *inside* the
+postgres container and got `1` back — appearing to show the rotation had not
+taken. It had. The official Postgres image ships a `pg_hba.conf` whose first
+rules are:
+
+```
+local   all   all                     trust
+host    all   all   127.0.0.1/32      trust
+host    all   all   ::1/128           trust
+host    all   all   all               scram-sha-256
+```
+
+so a connection to the container's *own* loopback is trust-authenticated and any
+password — or none — is accepted. Connections arriving through the Docker port
+mapping are source-NAT'd to the bridge gateway, not `127.0.0.1`, so they fall
+through to the `scram-sha-256` rule. Re-testing through the host mapping (a
+throwaway `--network host` client container) gave the correct results above.
+
+The `trust` rules are stock and were left alone: exploiting them requires shell
+inside the database container, at which point the password is not the control
+doing the work.
 
 ## Why it survived this long
 
