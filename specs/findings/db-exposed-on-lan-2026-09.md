@@ -249,3 +249,65 @@ documented for the OpenSalesTax stack in
 outside Docker, and a restart policy that declines to bring it back, leaving the
 deployment silently down until a human notices. It went unnoticed for ~3.7
 months here.
+
+---
+
+## Closeout — every exposed port shut, 2026-09-09
+
+A final fleet re-sweep (27 hosts, `docker ps -a`) returns **zero** database,
+cache, queue or search ports published on `0.0.0.0`.
+
+| Host | Container | Port(s) | Was |
+|---|---|---|---|
+| `opensalestax-01` | `open-sales-tax-postgres-1` | 5432 | password == username |
+| `magento-demo` | `magento-redis-1` | 6379 | **no auth at all** |
+| `magento-demo` | `magento-opensearch-1` | 9200, 9300 | **no auth at all** |
+| `magento-demo` | `magento-db-1` | 3306 | MariaDB |
+| `magento-demo` | `magento-rabbitmq-1` | 5672, 15672 | non-default creds |
+| `bagisto-test` | `bagisto-db` | 3306 | MariaDB |
+| pmvm2 CT 104 | `resgrid-redis-1` | 6379 | weak literal pw |
+| pmvm2 CT 104 | `resgrid-db-1` | 5432 | dormant |
+
+**OpenSearch was the worst of them.** Magento's image runs it with the security
+plugin disabled, so before this change any host on the LAN could read *and write*
+the product index over plain HTTP with no credentials — `curl
+http://10.32.161.183:9200/_cat/indices` returned it on request. RabbitMQ, by
+contrast, rejected `guest/guest`.
+
+Two hosts needed more than a compose edit:
+
+- **`bagisto-db` was created with `docker run`, not compose**, so it had to be
+  recreated by hand preserving its anonymous volume. 144 tables before and after;
+  the app user still authenticates over `127.0.0.1:3306`, which is what
+  `bagisto/.env` uses (`DB_HOST=127.0.0.1`). The old container is retained stopped
+  as `bagisto-db-preloopback-20260909`. Bagisto itself is not actually served —
+  nginx has only the default vhost — so there was no storefront to regress.
+- **`magento-opensearch-1` has no volume**, so recreating it dropped the indices.
+  `bin/magento indexer:reindex catalogsearch_fulltext` rebuilt them and catalog
+  search was re-verified end to end.
+
+### Magento re-verified after every change
+
+| Route | Result |
+|---|---|
+| `/` | HTTP 200, 30674 bytes, "Home page" — same as the pre-change baseline |
+| `/customer/account/login/` | HTTP 200, "Customer Login" |
+| `/customer/account/create/` | HTTP 200, "Create New Customer Account" |
+| `/search/term/popular/` | HTTP 200, "Popular Search Terms" |
+| `/catalogsearch/result/?q=shirt` | HTTP 200, "Search results for: 'shirt'" — proves OpenSearch is serving |
+| 3306 / 5672 / 15672 / 9200 / 9300 / 6379 from a workstation | all **refused** |
+| 443 (control) | still reachable |
+
+### Resgrid restored as well
+
+The 3.7-month outage recorded above was fixed the same day rather than left
+open. `resgrid-db-1` was started (PostgreSQL data intact, PG_VERSION 18 matching
+the cached image at 18.3) and given the `restart: always` it never had; the
+Caddyfile was rewritten to resolve the duplicate-site-address crash loop.
+`http://10.32.161.207/` now serves **"Resgrid | Log On"**, all eight containers
+are up, and every one now carries a restart policy. Its Redis and Postgres ports
+stayed closed throughout. Details in `~/.claude/environment-inventory.md`.
+
+Still reachable on the LAN by design: the app HTTP ports, and
+`magento-demo:8080` phpMyAdmin — worth noting that one is an **orphan container**
+not present in `compose.yaml`, so `docker compose down` will not remove it.
