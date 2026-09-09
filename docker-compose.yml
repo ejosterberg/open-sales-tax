@@ -52,10 +52,26 @@ services:
     profiles: ["postgres"]
     environment:
       POSTGRES_USER: opensalestax
-      POSTGRES_PASSWORD: opensalestax
+      # Overridable so a real deployment can set a genuine secret in its
+      # gitignored .env. The literal default is a convenience for local
+      # development ONLY, and is safe there only because the port below is
+      # bound to loopback.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-opensalestax}
       POSTGRES_DB: opensalestax
     ports:
-      - "5432:5432"
+      # LOOPBACK ONLY -- do not change to "5432:5432".
+      #
+      # The api service reaches Postgres over the compose network as
+      # `postgres:5432`; it does not use this mapping at all. The mapping
+      # exists solely so a developer can point host-side tools (pytest with
+      # OPENSALESTAX_DATABASE_URL, psql, a GUI client) at localhost.
+      #
+      # Published on 0.0.0.0 this exposed the production database to every
+      # host on the LAN, with a password identical to the username. Found
+      # 2026-09-09; see specs/findings/db-exposed-on-lan-2026-09.md. To reach
+      # a remote deployment's database, tunnel instead:
+      #   ssh -L 5432:localhost:5432 <host>
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -70,11 +86,14 @@ services:
     profiles: ["mariadb"]
     environment:
       MARIADB_USER: opensalestax
-      MARIADB_PASSWORD: opensalestax
+      # See the postgres service: literal defaults are for local development
+      # only; a real deployment sets these in its gitignored .env.
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-opensalestax}
       MARIADB_DATABASE: opensalestax
-      MARIADB_ROOT_PASSWORD: rootpw
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpw}
     ports:
-      - "3306:3306"
+      # Loopback only -- same reasoning as the postgres service above.
+      - "127.0.0.1:3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
