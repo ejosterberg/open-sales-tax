@@ -4,12 +4,15 @@
 # ----------------------------------------------------------------------------
 # Build a pre-loaded PostgreSQL data dump on every release tag.
 #
-# A new user can `pip install opensalestax && opensalestax data restore` and
-# be live in under two minutes -- the alternative is the ~50-minute manual
-# `data fetch` + `data load` loop across all 24 SST states plus every
-# self-seeded state. This workflow runs on the GitHub Actions runner
-# instead, dumps the loaded database, and uploads the gzipped SQL as a
-# release asset.
+# A new user can clone the repo (or run the Docker stack) and
+# `python -m opensalestax data restore` to be live in under two minutes --
+# the alternative is the ~50-minute manual `data fetch` + `data load` loop
+# across 24 SST states plus 24 self-seeded ones. This workflow runs that
+# loop on the GitHub Actions runner instead, dumps the loaded database,
+# and uploads the gzipped SQL as a release asset.
+#
+# NB: the engine is NOT on PyPI -- the `opensalestax` PyPI name belongs to
+# this project's client SDK. Do not reintroduce a `pip install` here.
 #
 # The dump is data-only (schema is rebuilt from `alembic upgrade head` on
 # the consumer side) and excludes user-specific (`api_keys`) and
@@ -124,6 +127,27 @@ jobs:
 
       - name: Install project (with runtime deps)
         run: poetry install --no-interaction --no-ansi
+
+      - name: Check SST pins are still alive upstream
+        # Fail in seconds with a diff and a one-command fix, rather than
+        # ~15 minutes in with a bare `HTTPStatusError: 404`. SST deletes
+        # the previous file when a state republishes, so pins perish on
+        # upstream's schedule; on 2026-09-16 eighteen of twenty-four were
+        # dead and nothing had noticed.
+        #
+        # Exit 2 means SST itself was unreachable or changed shape --
+        # that is not a pin problem and must not fail a release, so it is
+        # tolerated with a warning. Exit 1 (drift) and 3 (membership
+        # change) are hard failures.
+        run: |
+          set -euo pipefail
+          status=0
+          poetry run python scripts/check_sst_pins.py || status=$?
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::Could not reach the SST listings; continuing with the existing pins."
+            exit 0
+          fi
+          exit "$status"
 
       - name: Install postgres client (psql + pg_dump)
         run: |

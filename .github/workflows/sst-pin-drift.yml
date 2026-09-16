@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Eric Osterberg and OpenSalesTax contributors
+
+# ----------------------------------------------------------------------------
+# Weekly watch on the Streamlined Sales Tax quarterly publications.
+#
+# SST hosts exactly ONE file per state per kind and DELETES the previous one
+# when a state republishes, so the pins in build-data-dump.yml perish on
+# upstream's schedule rather than ours. On 2026-09-16 eighteen of twenty-four
+# were already dead; nothing noticed until a release build failed.
+#
+# This surfaces that as a weekly report instead of a release-day surprise.
+# It deliberately only REPORTS -- adopting a new quarter changes what rates
+# users are charged, which constitution §11 makes an explicit human operation.
+# The report carries the exact one-command fix.
+#
+# It opens an issue rather than a pull request on purpose: a bot-authored PR
+# cannot carry a DCO sign-off (constitution §14), so it would land red and
+# train everyone to ignore the gate.
+# ----------------------------------------------------------------------------
+
+name: SST pin drift
+
+on:
+  schedule:
+    # Mondays 15:00 UTC. GitHub's scheduler is best-effort and can slip an
+    # hour; irrelevant for a weekly check.
+    - cron: "0 15 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check SST pins against upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install httpx
+        # The checker needs only httpx; a full `poetry install` would be
+        # ~2 minutes for a 5-second check.
+        run: pip install "httpx>=0.27,<0.29"
+
+      - name: Check pins
+        id: check
+        run: |
+          set -euo pipefail
+          status=0
+          PYTHONPATH=src python scripts/check_sst_pins.py > report.txt 2>&1 || status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          cat report.txt
+          {
+            echo "## SST pin drift check"
+            echo ""
+            echo '```'
+            cat report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Warn if SST was unreachable
+        if: steps.check.outputs.status == '2'
+        run: echo "::warning::Could not reach the SST listings. Not a pin problem; will retry next week."
+
+      - name: Open or update the drift issue
+        if: steps.check.outputs.status == '1' || steps.check.outputs.status == '3'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          title="SST pin drift: quarterly files have rotated upstream"
+          existing=$(gh issue list --state open --search "$title in:title" \
+            --json number --jq '.[0].number // empty')
+          body=$(printf '%s\n\n```\n%s\n```\n\n_Opened automatically by the weekly `sst-pin-drift` workflow. Pins are refreshed by a human because adopting a new quarter changes the rates users are charged._\n' \
+            "The pinned SST quarterly files in \`.github/workflows/build-data-dump.yml\` no longer all exist upstream. Until they are refreshed, **the data-dump build will fail** — including on a release tag." \
+            "$(cat report.txt)")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+            echo "commented on existing issue #$existing"
+          else
+            # No --label: the repo has no data/infra label, and gh fails
+            # the whole call on an unknown one.
+            gh issue create --title "$title" --body "$body"
+          fi
+        continue-on-error: true
