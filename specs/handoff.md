@@ -1061,13 +1061,59 @@ If Eric wants none of the above, ask before pivoting.
   parameterized SQLAlchemy `select()` over ORM columns, no user input
   reaches a path, and nothing new is exposed by the API (the script is
   CI-only).
-  - **⚠️ Existing releases still carry the incomplete dump.** The fix
-    applies to the next tag. The v0.59.0 asset can be rebuilt in place
-    via `workflow_dispatch` with `tag: v0.59.0`, which would quietly
-    repair every future `data restore --release v0.59.0`. **Eric's
-    call** — it rewrites a published release asset.
-  - **⚠️ `opensalestax data restore` has never worked — separate root
-    cause, confirmed but deliberately NOT fixed here.**
+  - **✅ v0.59.0's dump asset was rebuilt and replaced (2026-09-16, on
+    Eric's instruction).** `workflow_dispatch` on `main` with
+    `tag: v0.59.0`, run
+    [35108016665](https://github.com/ejosterberg/open-sales-tax/actions/runs/35108016665).
+    The coverage gate passed against a real PostgreSQL: **"OK: all 48
+    taxing states have rates; all 12 ZIP probes resolved"** —
+    `rates=35141 authorities=13449 boundaries=8863894`, dump **47 MiB**.
+    Asset replaced in place at 14:35 UTC, 0 prior downloads. Note the
+    rebuilt asset carries **`main`'s data, not v0.59.0's** — a dispatch
+    checks out the ref it runs on, and there is no way to get the fix
+    without it. Harmless here: the schema head is identical (`0004`) at
+    both points, and the data is strictly more correct. Its SST data is
+    now **2026Q4**.
+  - **⚠️ The first rebuild attempt failed, and it was not our bug: 18 of
+    24 SST pins were dead upstream.** SST hosts exactly ONE file per
+    state per kind — publishing a new quarter **removes** the old file —
+    so the pinned `2026Q2*` filenames 404. This had broken every rebuild
+    **and would have broken the next release tag**. All 24 refreshed to
+    what SST publishes today (`f6be0e8`); the six unchanged (IN, KY, MI,
+    NJ, NV, RI) are states SST has never republished. The rotation
+    behaviour is now documented inline in the workflow so the next 404
+    explains itself. **This is a recurring maintenance cost** — a
+    `scripts/check_sst_pin_freshness.py` that diffs the pins against the
+    two directory listings would turn it into one command; not built.
+  - **✅ `opensalestax data restore` FIXED (2026-09-16, on Eric's
+    instruction) — it was broken THREE independent ways.**
+    1. **psycopg2** (`302df33`): `get_current_alembic_revision` built a
+       sync `postgresql://` engine, whose default DBAPI is psycopg2 —
+       **not a dependency of this project**. Every clean install died
+       with `ModuleNotFoundError: No module named 'psycopg2'` *before
+       downloading anything*, and since that isn't a `RestoreError` it
+       escaped the CLI handler as a raw traceback. Now uses
+       `create_async_engine` + `run_sync` on the asyncpg driver the
+       package already ships, with a new `_to_async_dsn` normalizing
+       driverless/sync DSNs.
+    2. **gzip → psql** (`f6be0e8`): see the mechanism below. Fixed by
+       streaming with `shutil.copyfileobj` into psql's stdin 1 MiB at a
+       time (not buffering — the dump just grew by 23 states). Also:
+       a corrupt download now **kills psql** rather than letting it hit
+       EOF and COMMIT its partial transaction; an early psql exit
+       reports **psql's stderr** instead of our `BrokenPipeError`.
+    3. **The dump itself** — the 23 missing states above.
+    The test seam moved from `runner` to `popen_factory`, and
+    `TestStreamDumpActuallyDecompresses` now spawns a **real child
+    process** and asserts the bytes arrive decompressed. **Verified
+    these tests fail against the old implementation.**
+    **🔴 CI caught a defect in the fix that the local run missed**
+    (`b019e1b`): closing `proc.stdin` before `communicate()` raises
+    `ValueError: flush of closed file` on **Python 3.12** (CI) while
+    3.11 (local) tolerates it. `communicate()` owns the flush-and-close;
+    the manual close bought nothing. Fixed same session, CI green on
+    both matrix legs.
+  - **The original root-cause write-up, kept for the record:**
     `stream_dump_to_psql` passed a `gzip.GzipFile` as
     `subprocess.run(stdin=...)`; subprocess needs a real fd, so it calls
     `.fileno()`, which on `GzipFile` returns the **underlying
@@ -1076,18 +1122,36 @@ If Eric wants none of the above, ask before pivoting.
     the flagship "live in under two minutes" path has been broken since
     it shipped; the unit tests miss it because they inject a fake
     `runner` and never exercise real subprocess semantics.
-    **[PR #41](https://github.com/ejosterberg/open-sales-tax/pull/41)
-    from the same contributor already fixes it** (plus three FK indexes
-    with per-index rationale, and Dockerfile fixes) — left for Eric so
-    the contributor gets the credit rather than having the fix landed
-    out from under them. Needs a DCO sign-off check before merge
-    (constitution §14); `mergeable_state` was `unstable` at review time.
-    One non-blocking note for the merge: its fix buffers the whole
-    decompressed dump via `input=`, and this commit grows the dump by 23
-    states, so streaming with `Popen(stdin=PIPE)` + `copyfileobj` is a
-    worthwhile follow-up.
-  - **No GitHub comments were posted and nothing was merged** — issue
-    #40 and PR #41 both await Eric's reply.
+  - **PR #41 status after the above.** Its `restore.py` commit now
+    **conflicts with `main`** — Eric chose to land the fixes directly
+    rather than wait, and the contributor is credited by name in both
+    commit messages. **Still wanted from the PR, reviewed and endorsed:**
+    (a) the **three FK indexes** — the rationale checks out, `lookup.py`
+    has four `SELECT authority_id, COUNT(...) GROUP BY authority_id`
+    queries with no `zip5` filter that `idx_boundaries_zip` cannot
+    serve, plus the `ON DELETE CASCADE` table scan on every purge, and
+    `models.py` was correctly updated alongside the migration so
+    autogenerate won't drift; (b) the **Dockerfile fixes**, all four
+    real. **Blocker: none of the 4 commits carry a DCO sign-off**
+    (constitution §14, CI-enforced on PRs) — the contributor needs
+    `git rebase --signoff main && git push --force-with-lease`.
+  - **🔴 NEW, needs Eric's decision — the README quickstart cannot work
+    as written.** `pyproject.toml` here declares `name = "opensalestax"`
+    at 0.59.0, but **that PyPI name belongs to a different project of
+    Eric's** — the `opensalestax-python` client SDK, last published at
+    **0.3.1** (2026-05-19). So `pip install opensalestax`, step 1 of
+    this repo's quickstart, installs the thin HTTP client: no
+    `data restore`, no `serve`, none of the runtime dependencies. This
+    almost certainly explains the "Install issues" section of issue #40
+    (manual `alembic` install, build fights). **Not fixed — it needs a
+    naming decision:** publish the engine under a distinct name
+    (`opensalestax-server`?), rename one of the two, or change the
+    README to document a source install. Everything else in the
+    quickstart is fine.
+  - **No GitHub comments were posted and nothing was merged.** A drafted
+    reply to PR #41 is waiting for Eric's review (scratchpad,
+    `pr41-reply-draft.md`), covering the credit, the conflict, the DCO
+    ask, and the PyPI-name apology.
 
 - **2026-07-13 (Monday 1pm sweep) — Published the shipping-taxability
   legislation explainer (Tier 3 — legislation discovery worth
