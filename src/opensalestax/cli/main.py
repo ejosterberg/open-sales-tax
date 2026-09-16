@@ -339,6 +339,41 @@ def data_status() -> None:
         typer.echo(f"{state_abbrev:6s} {label:40s} {fetched_at.isoformat()}")
 
 
+def _check_dump_schema(dump_path: Path) -> None:
+    """Refuse a dump whose alembic head differs from the local one.
+
+    A workflow-built dump excludes ``alembic_version`` data, so this is
+    a no-op in the normal case; it exists to stop a future dump built
+    against a different schema from being applied silently.
+
+    Extracted from :func:`data_restore` to keep that command under the
+    cognitive-complexity limit, and so the two failure paths can be
+    read side by side.
+    """
+    try:
+        sample = read_dump_sample(dump_path)
+        dump_rev = sniff_alembic_version(sample)
+        current_rev = get_current_alembic_revision()
+        validate_schema_compatibility(dump_rev, current_rev)
+    except RestoreError as exc:
+        typer.secho(f"schema check failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        # Anything the database layer raises (refused connection, auth
+        # failure, missing driver) must surface as a message, never as a
+        # traceback: the driver's exception chain carries the DSN and
+        # its expanded credentials. Report the type, never the DSN.
+        typer.secho(
+            f"schema check failed: could not reach the database "
+            f"({type(exc).__name__}). Check OPENSALESTAX_DATABASE_URL "
+            f"and that the server is reachable, then retry. "
+            f"Use --skip-schema-check to bypass this check.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1) from exc
+
+
 @data_app.command("restore")
 def data_restore(
     release: str | None = typer.Option(
@@ -427,33 +462,8 @@ def data_restore(
             typer.secho(f"error: {exc}", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1) from exc
 
-    # Schema-version check: refuse to apply a dump that pins a head
-    # different from the one Alembic just produced. A workflow-built
-    # dump excludes alembic_version data and so this is a no-op there.
     if not skip_schema_check:
-        try:
-            sample = read_dump_sample(dump_path)
-            dump_rev = sniff_alembic_version(sample)
-            current_rev = get_current_alembic_revision()
-            validate_schema_compatibility(dump_rev, current_rev)
-        except RestoreError as exc:
-            typer.secho(f"schema check failed: {exc}", fg=typer.colors.RED, err=True)
-            raise typer.Exit(code=1) from exc
-        except Exception as exc:
-            # Anything the database layer raises (refused connection,
-            # auth failure, missing driver) must be reported as a
-            # message, never as a traceback: the driver's exception
-            # chain carries the DSN and its expanded credentials.
-            # Report the type and the target, never the DSN itself.
-            typer.secho(
-                f"schema check failed: could not reach the database "
-                f"({type(exc).__name__}). Check OPENSALESTAX_DATABASE_URL "
-                f"and that the server is reachable, then retry. "
-                f"Use --skip-schema-check to bypass this check.",
-                fg=typer.colors.RED,
-                err=True,
-            )
-            raise typer.Exit(code=1) from exc
+        _check_dump_schema(dump_path)
 
     if dry_run:
         typer.secho("dry-run: skipping psql apply", fg=typer.colors.YELLOW)
