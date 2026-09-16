@@ -610,6 +610,59 @@ class TestCliRestoreCommand:
         combined = result.output
         assert "MariaDB" in combined or "manual data load path" in combined
 
+    def test_database_failure_never_prints_the_password(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """A database error must not leak the DSN into the terminal.
+
+        Typer/Rich render local variables in tracebacks by default, and
+        the PostgreSQL driver expands the DSN into locals containing
+        ``'password': '...'``. An unreachable database therefore printed
+        the plaintext password to stderr -- and into any CI log
+        capturing it -- while ``settings.py`` and ``db/session.py`` were
+        carefully avoiding exactly that.
+        """
+        runner = CliRunner()
+        dump = tmp_path / "dump.sql.gz"
+        with gzip.open(dump, "wb") as fh:
+            fh.write(b"-- dump\n")
+
+        secret = "PlaintextPasswordThatMustNotAppear"
+
+        from opensalestax import settings as settings_module
+        from opensalestax.cli import main as cli_main
+
+        monkeypatch.setattr(settings_module, "_settings", None)
+        monkeypatch.setenv(
+            "OPENSALESTAX_DATABASE_URL",
+            f"postgresql+asyncpg://ostuser:{secret}@127.0.0.1:59999/nope",
+        )
+
+        def _boom() -> str:
+            # Stand-in for what asyncpg raises on an unreachable host.
+            raise ConnectionRefusedError(61, "Connection refused")
+
+        monkeypatch.setattr(cli_main, "get_current_alembic_revision", _boom)
+
+        try:
+            result = runner.invoke(app, ["data", "restore", "--file", str(dump), "--dry-run"])
+        finally:
+            monkeypatch.setattr(settings_module, "_settings", None)
+
+        assert result.exit_code == 1
+        rendered = result.output + (str(result.exception) if result.exception else "")
+        assert secret not in rendered, "the database password leaked into CLI output"
+        assert "schema check failed" in result.output
+
+    def test_cli_does_not_render_locals_in_tracebacks(self) -> None:
+        """Defense in depth for the leak above, at the app level.
+
+        Every command in this CLI handles the database DSN, so locals
+        must stay out of rendered tracebacks globally -- not just on the
+        one code path that was found to leak.
+        """
+        assert app.pretty_exceptions_show_locals is False
+
     def test_dry_run_skips_apply_and_returns_zero(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:

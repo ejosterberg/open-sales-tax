@@ -63,6 +63,15 @@ app = typer.Typer(
     name="opensalestax",
     help="OpenSalesTax -- open-source US sales tax calculation API.",
     no_args_is_help=True,
+    # SECURITY: Typer/Rich render local variables in tracebacks by
+    # default. Every CLI command here ends up holding the database DSN
+    # -- and the driver expands it into locals like
+    # ``{'user': ..., 'password': ...}`` -- so an unhandled exception
+    # printed the plaintext password to the terminal and into any CI
+    # log capturing stderr. `settings.py` and `db/session.py` are
+    # careful never to echo the DSN; the traceback path bypassed that
+    # discipline entirely. Turning locals off restores it.
+    pretty_exceptions_show_locals=False,
 )
 data_app = typer.Typer(help="Manage SST data files.", no_args_is_help=True)
 app.add_typer(data_app, name="data")
@@ -370,12 +379,13 @@ def data_restore(
     By default this fetches the latest published GitHub release dump,
     validates that its schema head matches the consumer database, then
     pipes the gzipped SQL through ``psql``. Net effect: a fresh local
-    install is fully populated with every state the package ships --
-    all 24 SST states plus every self-seeded state -- in under two
-    minutes, instead of the ~50-minute manual fetch+load loop.
+    install is fully populated with all 48 taxing jurisdictions (24
+    SST-sourced, 24 self-seeded) in under two minutes, instead of the
+    ~50-minute manual fetch+load loop.
 
-    PostgreSQL only -- the dump uses pg_dump's COPY format. MariaDB
-    deployments must use ``opensalestax data load`` per state.
+    Requires the ``psql`` client (libpq) on PATH -- the dump is streamed
+    through it. PostgreSQL only: the dump uses pg_dump's COPY format, so
+    MariaDB deployments must use ``opensalestax data load`` per state.
     """
     # Engine guard first; everything else is wasted effort on MariaDB.
     from opensalestax.settings import get_settings
@@ -428,6 +438,21 @@ def data_restore(
             validate_schema_compatibility(dump_rev, current_rev)
         except RestoreError as exc:
             typer.secho(f"schema check failed: {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1) from exc
+        except Exception as exc:
+            # Anything the database layer raises (refused connection,
+            # auth failure, missing driver) must be reported as a
+            # message, never as a traceback: the driver's exception
+            # chain carries the DSN and its expanded credentials.
+            # Report the type and the target, never the DSN itself.
+            typer.secho(
+                f"schema check failed: could not reach the database "
+                f"({type(exc).__name__}). Check OPENSALESTAX_DATABASE_URL "
+                f"and that the server is reachable, then retry. "
+                f"Use --skip-schema-check to bypass this check.",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(code=1) from exc
 
     if dry_run:
