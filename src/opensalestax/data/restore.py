@@ -27,7 +27,6 @@ Design notes:
 
 from __future__ import annotations
 
-import contextlib
 import gzip
 import re
 import shutil
@@ -417,9 +416,9 @@ def stream_dump_to_psql(
         ) from exc
 
     decompress_error: Exception | None = None
+    assert proc.stdin is not None
     try:
         with gzip.open(dump_path, "rb") as fh:
-            assert proc.stdin is not None
             shutil.copyfileobj(fh, proc.stdin, _COPY_CHUNK_BYTES)
     except BrokenPipeError:
         # psql exited before consuming the whole dump. Its own stderr
@@ -431,11 +430,11 @@ def stream_dump_to_psql(
         # hit EOF and COMMIT the partial transaction it has open.
         decompress_error = exc
         proc.kill()
-    finally:
-        if proc.stdin is not None:
-            with contextlib.suppress(BrokenPipeError, OSError):
-                proc.stdin.close()
 
+    # communicate() flushes and closes stdin itself, then drains stderr.
+    # Do NOT close stdin here first: on Python 3.12+ that later flush
+    # raises "ValueError: flush of closed file" (3.11 happens to
+    # tolerate it, which is why CI caught this and a local run did not).
     _, stderr_bytes = proc.communicate()
 
     if decompress_error is not None:
