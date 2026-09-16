@@ -35,6 +35,7 @@ import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
@@ -294,31 +295,64 @@ def get_current_alembic_revision() -> str | None:
 
     Returns ``None`` if the database has no ``alembic_version`` row
     (e.g. fresh database that has never run ``alembic upgrade``).
+
+    Uses the **async** driver the package already depends on. The
+    obvious sync spelling -- ``create_engine("postgresql://...")`` --
+    resolves to psycopg2, which is not a dependency of this project and
+    is awkward to build on macOS. That made ``data restore`` die with
+    ``ModuleNotFoundError: No module named 'psycopg2'`` before it even
+    downloaded anything (issue #40). Reaching for asyncpg here keeps the
+    install surface to exactly one PostgreSQL driver.
     """
+    import asyncio
+
+    return asyncio.run(_get_current_alembic_revision_async())
+
+
+async def _get_current_alembic_revision_async() -> str | None:
+    """Async implementation of :func:`get_current_alembic_revision`."""
     # Local imports keep the CLI start-up fast; alembic transitively
     # imports a bunch of SQLAlchemy machinery.
     from alembic.runtime.migration import MigrationContext
-    from sqlalchemy import create_engine
+    from sqlalchemy.ext.asyncio import create_async_engine
 
     from opensalestax.settings import get_settings
 
     settings = get_settings()
-    sync_dsn = _to_sync_dsn(settings.database_dsn)
-
-    engine = create_engine(sync_dsn, future=True)
+    engine = create_async_engine(_to_async_dsn(settings.database_dsn))
     try:
-        with engine.connect() as conn:
-            ctx = MigrationContext.configure(conn)
-            return ctx.get_current_revision()
+        async with engine.connect() as conn:
+            # MigrationContext wants a sync Connection; run_sync bridges
+            # the async one into a sync callable on the greenlet.
+            def _read_revision(sync_conn: Any) -> str | None:
+                return MigrationContext.configure(sync_conn).get_current_revision()
+
+            return await conn.run_sync(_read_revision)
     finally:
-        engine.dispose()
+        await engine.dispose()
 
 
 def _to_sync_dsn(dsn: str) -> str:
-    """Convert an async SQLAlchemy DSN to a sync one for alembic + psql."""
+    """Strip the driver from a DSN, leaving the bare scheme for psql."""
     parts = urlsplit(dsn)
     scheme = parts.scheme.split("+", 1)[0]
     return parts._replace(scheme=scheme).geturl()
+
+
+def _to_async_dsn(dsn: str) -> str:
+    """Force a PostgreSQL DSN onto the asyncpg driver.
+
+    ``OPENSALESTAX_DATABASE_URL`` is commonly written without a driver
+    (``postgresql://...``) or with a sync one; either would send
+    :func:`create_async_engine` looking for a driver we don't ship.
+    Restore is PostgreSQL-only (the CLI rejects MariaDB before reaching
+    here), so anything non-PostgreSQL is passed through untouched and
+    left to fail with SQLAlchemy's own message.
+    """
+    parts = urlsplit(dsn)
+    if parts.scheme.split("+", 1)[0].lower() not in {"postgres", "postgresql"}:
+        return dsn
+    return parts._replace(scheme="postgresql+asyncpg").geturl()
 
 
 def stream_dump_to_psql(

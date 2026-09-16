@@ -25,6 +25,8 @@ from opensalestax.data.restore import (
     GITHUB_OWNER,
     GITHUB_REPO,
     RestoreError,
+    _to_async_dsn,
+    _to_sync_dsn,
     build_asset_url,
     download_dump,
     dsn_to_psql_args,
@@ -324,6 +326,40 @@ class TestReadDumpSample:
             fh.write(b"hello world" * 100)
         sample = read_dump_sample(target, max_bytes=20)
         assert sample == b"hello worldhello wor"
+
+
+class TestAsyncDsnNormalization:
+    """`get_current_alembic_revision` must never reach for psycopg2.
+
+    Issue #40: it built a sync ``postgresql://`` engine, whose default
+    DBAPI is psycopg2 -- not a dependency of this project, and a pain
+    to build on macOS. `data restore` therefore died with
+    ``ModuleNotFoundError: No module named 'psycopg2'`` before it even
+    downloaded the dump.
+    """
+
+    @pytest.mark.parametrize(
+        "dsn",
+        [
+            "postgresql://u:p@h:5432/d",
+            "postgres://u:p@h:5432/d",
+            "postgresql+asyncpg://u:p@h:5432/d",
+            "postgresql+psycopg2://u:p@h:5432/d",
+        ],
+    )
+    def test_postgres_dsns_are_forced_onto_asyncpg(self, dsn: str) -> None:
+        assert _to_async_dsn(dsn).startswith("postgresql+asyncpg://")
+
+    def test_credentials_and_target_are_preserved(self) -> None:
+        assert _to_async_dsn("postgresql://u:p@h:5432/d") == "postgresql+asyncpg://u:p@h:5432/d"
+
+    def test_non_postgres_dsn_is_passed_through_untouched(self) -> None:
+        # MariaDB is rejected earlier in the CLI; don't silently rewrite it.
+        assert _to_async_dsn("mysql+asyncmy://u:p@h/d") == "mysql+asyncmy://u:p@h/d"
+
+    def test_psql_still_gets_a_driverless_dsn(self) -> None:
+        # psql speaks libpq and chokes on SQLAlchemy's "+driver" suffix.
+        assert _to_sync_dsn("postgresql+asyncpg://u:p@h:5432/d") == "postgresql://u:p@h:5432/d"
 
 
 class _FakePsql:
