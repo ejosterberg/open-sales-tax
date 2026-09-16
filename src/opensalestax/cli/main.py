@@ -370,8 +370,9 @@ def data_restore(
     By default this fetches the latest published GitHub release dump,
     validates that its schema head matches the consumer database, then
     pipes the gzipped SQL through ``psql``. Net effect: a fresh local
-    install is fully populated with all 24 SST states + AZ in under
-    two minutes, instead of the ~50-minute manual fetch+load loop.
+    install is fully populated with every state the package ships --
+    all 24 SST states plus every self-seeded state -- in under two
+    minutes, instead of the ~50-minute manual fetch+load loop.
 
     PostgreSQL only -- the dump uses pg_dump's COPY format. MariaDB
     deployments must use ``opensalestax data load`` per state.

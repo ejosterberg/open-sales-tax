@@ -6,9 +6,10 @@
 #
 # A new user can `pip install opensalestax && opensalestax data restore` and
 # be live in under two minutes -- the alternative is the ~50-minute manual
-# `data fetch` + `data load` loop across all 24 SST states + AZ. This
-# workflow runs on the GitHub Actions runner instead, dumps the loaded
-# database, and uploads the gzipped SQL as a release asset.
+# `data fetch` + `data load` loop across all 24 SST states plus every
+# self-seeded state. This workflow runs on the GitHub Actions runner
+# instead, dumps the loaded database, and uploads the gzipped SQL as a
+# release asset.
 #
 # The dump is data-only (schema is rebuilt from `alembic upgrade head` on
 # the consumer side) and excludes user-specific (`api_keys`) and
@@ -205,24 +206,59 @@ jobs:
           done
 
       - name: Load Arizona TPT (self-seeded; no SST file)
+        # Kept as its own step because AZ carries a meaningful version
+        # label tied to the AZ DOR TPT Rate Table refresh (surfaced in
+        # the summary table below). Every other self-seeded state is
+        # loaded by the registry-derived step that follows.
         run: |
           set -euo pipefail
           poetry run python -m opensalestax data load \
             --state AZ --version "${AZ_VERSION}"
 
-      - name: Verify load (data status)
+      - name: Load remaining self-seeded (non-SST) states
+        # Issue #40: every published dump through v0.59.0 shipped the 24
+        # SST states plus AZ and NOTHING else, so a restored install
+        # answered nothing for CA, TX, NY, FL, PA, IL and 17 more -- 23
+        # tier-1 taxing states in total. The API returns a well-formed
+        # empty jurisdiction list for an unloaded state, so this looked
+        # like "0% tax" rather than an error.
+        #
+        # The list is derived from the state registry rather than
+        # hardcoded: self-seeded modules carry their data in-tree, so
+        # the version label is just a tag and no upstream fetch is
+        # needed. A newly contributed self-seeded state is therefore
+        # picked up here automatically instead of silently missing the
+        # next dump.
+        run: |
+          set -euo pipefail
+          label="${{ steps.tag.outputs.tag }}-selfseeded"
+          mapfile -t SELF_SEEDED < <(poetry run python -c "from opensalestax.states import all_states; print('\n'.join(sorted(m.state_abbrev for m in all_states() if getattr(m, 'self_seeded', False) and m.has_sales_tax and m.state_abbrev != 'AZ')))")
+          if [ "${#SELF_SEEDED[@]}" -eq 0 ]; then
+            echo "::error::Registry returned no self-seeded states; refusing to build a partial dump"
+            exit 1
+          fi
+          echo "Loading ${#SELF_SEEDED[@]} self-seeded states at label '$label'"
+          for state in "${SELF_SEEDED[@]}"; do
+            echo "::group::Loading $state (self-seeded)"
+            poetry run python -m opensalestax data load \
+              --state "$state" --version "$label"
+            echo "::endgroup::"
+          done
+
+      - name: Verify load (coverage gate)
+        # The gate this replaced asserted `COUNT(*) FROM rates >= 1000`,
+        # which the SST states clear on their own -- so it passed on
+        # every dump that was missing 23 states. The replacement is
+        # registry-derived and probes real ZIPs through the same lookup
+        # engine the API serves from. See the script's module docstring.
         run: |
           set -euo pipefail
           poetry run python -m opensalestax data status
-          # Sanity check: each loaded state should have at least one rate.
           rates=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM rates;")
           authorities=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM tax_authorities;")
           boundaries=$(psql -h localhost -U opensalestax -d opensalestax -At -c "SELECT COUNT(*) FROM boundaries;")
           echo "rates=$rates authorities=$authorities boundaries=$boundaries"
-          if [ "$rates" -lt 1000 ]; then
-            echo "::error::Suspiciously low rate count ($rates); aborting before publishing dump"
-            exit 1
-          fi
+          poetry run python scripts/verify_dump_coverage.py
 
       - name: Build pg_dump asset
         id: dump

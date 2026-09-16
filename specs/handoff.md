@@ -1009,6 +1009,86 @@ If Eric wants none of the above, ask before pivoting.
 
 ## Recent improvements (weekly sweeps)
 
+- **2026-09-16 (Monday sweep) — The published data dump was missing 23
+  taxing states; fixed, plus a coverage gate that can't pass vacuously
+  (Tier 1 correctness, driven by Tier 7 community signal).** Acting on
+  external contributor issue
+  [#40](https://github.com/ejosterberg/open-sales-tax/issues/40) (open
+  and unanswered for 32 days), found that
+  `.github/workflows/build-data-dump.yml` loaded ZCTA + the 24 SST
+  states + **Arizona and nothing else**. The project ships **24
+  self-seeded state modules**; only AZ had a load step, so **23 tier-1
+  taxing states — AK AL CA CO CT DC FL HI ID IL LA MA MD ME MO MS NM NY
+  PA PR SC TX VA — were absent from every dump the project has ever
+  published.** That is the reporter's exact symptom: `90210` (CA)
+  returned nothing while `55401` (MN, an SST state) worked. The failure
+  is silent by construction — the ZCTA load gives the ZIP a state
+  binding, so lookup succeeds and returns an *empty* jurisdiction list,
+  and the API answers `200` with `combined_rate_pct: 0`. A consumer
+  under-collects 100% of the tax due and sees nothing wrong. **The
+  existing gate could not catch it:** it asserted
+  `COUNT(*) FROM rates >= 1000`, which the SST states clear on their
+  own — a threshold check standing in for a coverage check, passing
+  vacuously on every release. Shipped: (1) a new workflow step loading
+  the remaining 23 states, with the list **derived from the state
+  registry at build time** rather than hardcoded, so a newly
+  contributed self-seeded state can never again silently miss the next
+  dump; (2) `scripts/verify_dump_coverage.py`, a registry-derived
+  coverage gate asserting every `has_sales_tax` module has rate rows
+  plus 12 real ZIP probes through the same `lookup_jurisdictions_by_zip`
+  the API serves from, spanning SST and self-seeded sources and both
+  stacked-local and flat-statewide shapes (deliberately **not**
+  asserting rate values — that is `DOR_GRID`'s job, and would turn
+  every quarterly change into a release failure); (3)
+  `tests/unit/test_dump_coverage.py` (19 tests) including
+  `test_gate_rejects_the_dump_that_shipped_with_v0_59_0`, which runs the
+  gate against the exact v0.59.0 contents and asserts it names all 23;
+  (4) corrected the "24 SST states + AZ" coverage claim in the workflow
+  header, `restore.py` and the `data restore` CLI help. **Verified:**
+  all 23 states produce data through the real parse path (**1,830 rates
+  / 32,136 boundaries**); CA `90210` resolves to exactly California +
+  Los Angeles County + Beverly Hills, matching the hosted API's
+  10.500%; each of the 12 probe ZIPs was checked against the live API
+  before being encoded; the workflow's `mapfile` construct was run in
+  bash and returns exactly the 23 abbrevs. Finding:
+  `specs/findings/dump-missing-self-seeded-states-2026-09.md`. Gate:
+  quality-gate PASS (ruff format ✓ / ruff check ✓ / mypy `src/` 136
+  files ✓ / pytest `-m "not liveapi"` **1611 passed**, 60 DB-skipped,
+  816 deselected / pip-audit — no project-dependency vulnerabilities)
+  + **SonarQube 0 BLOCKER / 0 CRITICAL** (unchanged from the 0
+  baseline; Security A, Maintainability A, 0 vulnerabilities, 0
+  hotspots). OWASP diff self-review clean — the only new SQL is a
+  parameterized SQLAlchemy `select()` over ORM columns, no user input
+  reaches a path, and nothing new is exposed by the API (the script is
+  CI-only).
+  - **⚠️ Existing releases still carry the incomplete dump.** The fix
+    applies to the next tag. The v0.59.0 asset can be rebuilt in place
+    via `workflow_dispatch` with `tag: v0.59.0`, which would quietly
+    repair every future `data restore --release v0.59.0`. **Eric's
+    call** — it rewrites a published release asset.
+  - **⚠️ `opensalestax data restore` has never worked — separate root
+    cause, confirmed but deliberately NOT fixed here.**
+    `stream_dump_to_psql` passed a `gzip.GzipFile` as
+    `subprocess.run(stdin=...)`; subprocess needs a real fd, so it calls
+    `.fileno()`, which on `GzipFile` returns the **underlying
+    compressed** descriptor — psql receives gzip magic bytes and dies.
+    Reproduced directly. `restore.py` has one commit in its history, so
+    the flagship "live in under two minutes" path has been broken since
+    it shipped; the unit tests miss it because they inject a fake
+    `runner` and never exercise real subprocess semantics.
+    **[PR #41](https://github.com/ejosterberg/open-sales-tax/pull/41)
+    from the same contributor already fixes it** (plus three FK indexes
+    with per-index rationale, and Dockerfile fixes) — left for Eric so
+    the contributor gets the credit rather than having the fix landed
+    out from under them. Needs a DCO sign-off check before merge
+    (constitution §14); `mergeable_state` was `unstable` at review time.
+    One non-blocking note for the merge: its fix buffers the whole
+    decompressed dump via `input=`, and this commit grows the dump by 23
+    states, so streaming with `Popen(stdin=PIPE)` + `copyfileobj` is a
+    worthwhile follow-up.
+  - **No GitHub comments were posted and nothing was merged** — issue
+    #40 and PR #41 both await Eric's reply.
+
 - **2026-07-13 (Monday 1pm sweep) — Published the shipping-taxability
   legislation explainer (Tier 3 — legislation discovery worth
   documenting).** New public page

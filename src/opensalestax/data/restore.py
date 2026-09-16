@@ -6,7 +6,8 @@ The companion to `.github/workflows/build-data-dump.yml`, which builds a
 data-only ``opensalestax-dump-<tag>-postgres.sql.gz`` per release tag and
 attaches it as a release asset. New users can ``opensalestax data restore``
 to be live in under two minutes instead of running the ~50-minute manual
-``data fetch`` + ``data load`` loop across all 24 SST states + AZ.
+``data fetch`` + ``data load`` loop across all 24 SST states plus
+every self-seeded state.
 
 Design notes:
 
