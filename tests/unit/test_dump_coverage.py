@@ -31,7 +31,8 @@ _SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "verify_dump_coverag
 def _load_script() -> ModuleType:
     """Import the gate script by path (``scripts/`` is not a package)."""
     spec = importlib.util.spec_from_file_location("verify_dump_coverage", _SCRIPT)
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -92,7 +93,8 @@ def test_probe_zips_are_well_formed_and_unique() -> None:
     zips = [probe.zip5 for probe in coverage.ZIP_PROBES]
     assert len(zips) == len(set(zips))
     for zip5 in zips:
-        assert len(zip5) == 5 and zip5.isdigit()
+        assert len(zip5) == 5
+        assert zip5.isdigit()
 
 
 #: Exactly what every published dump through v0.59.0 contained: the 24
