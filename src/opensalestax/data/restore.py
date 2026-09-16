@@ -4,10 +4,20 @@
 
 The companion to `.github/workflows/build-data-dump.yml`, which builds a
 data-only ``opensalestax-dump-<tag>-postgres.sql.gz`` per release tag and
-attaches it as a release asset. New users can ``opensalestax data restore``
-to be live in under two minutes instead of running the ~50-minute manual
-``data fetch`` + ``data load`` loop across all 24 SST states plus
-every self-seeded state.
+attaches it as a release asset. Restoring it brings a fresh install live
+in under two minutes instead of the ~50-minute manual ``data fetch`` +
+``data load`` loop.
+
+Coverage contract: the dump must contain **every registered jurisdiction
+with** ``has_sales_tax=True`` -- 48 as of this writing (24 SST-sourced,
+24 self-seeded). Through v0.59.0 it shipped only the 24 SST states plus
+Arizona, so 23 taxing states silently answered "0% tax" after a restore
+(issue #40). ``scripts/verify_dump_coverage.py`` is the registry-derived
+gate that now makes that failure loud at build time; keep it wired into
+the workflow.
+
+Prerequisite: the ``psql`` client (libpq) must be on PATH -- the dump is
+streamed through it.
 
 Design notes:
 

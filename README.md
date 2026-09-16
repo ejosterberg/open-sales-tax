@@ -8,7 +8,7 @@
 [![Latest release](https://img.shields.io/github/v/release/ejosterberg/open-sales-tax?label=release&color=blue)](https://github.com/ejosterberg/open-sales-tax/releases/latest)
 [![License](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![DOR-validated](https://img.shields.io/badge/DOR--validated-407%2F407_ZIPs-brightgreen)](tests/integration/test_sst_dor_validation.py)
+[![DOR-validated](https://img.shields.io/badge/DOR--validated-754_ZIPs-brightgreen)](tests/integration/test_sst_dor_validation.py)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![DCO](https://img.shields.io/badge/DCO-required-blue)](https://developercertificate.org/)
 
@@ -30,39 +30,76 @@ Pre-loaded PostgreSQL database dumps ship with every release tag,
 so a fresh install can be live without spending ~50 minutes
 fetching SST data and loading every state by hand.
 
+> **Do not `pip install opensalestax`.** That PyPI name belongs to this
+> project's thin **client SDK** — a wrapper for calling a *running*
+> engine — not to the engine itself. The engine is not on PyPI yet, so
+> install it from source or run it with Docker. Both are supported and
+> tested.
+
+**Prerequisites:** Python 3.11+, a PostgreSQL server you can reach, and
+the `psql` client on your PATH (Debian/Ubuntu: `apt install
+postgresql-client`; macOS: `brew install libpq`). `data restore` streams
+the dump through `psql`, so it is a hard requirement.
+
 ```bash
-pip install opensalestax
+git clone https://github.com/ejosterberg/open-sales-tax.git
+cd open-sales-tax
+poetry install
 
 # 1. Point at any empty PostgreSQL database
 export OPENSALESTAX_DATABASE_URL="postgresql+asyncpg://USER:PASSWORD@HOST:5432/opensalestax"
 
 # 2. Apply the schema
-alembic -c $(python -c "import opensalestax, pathlib, os; print(os.path.join(pathlib.Path(opensalestax.__file__).parent.parent.parent, 'alembic.ini'))") upgrade head
+poetry run alembic upgrade head
 
-# 3. Restore the latest pre-built dump (all 52 jurisdictions)
-opensalestax data restore
+# 3. Restore the latest pre-built dump (all 48 taxing jurisdictions)
+poetry run python -m opensalestax data restore
 
 # 4. Serve the API
-opensalestax serve --port 8080
+poetry run python -m opensalestax serve --port 8080
 ```
 
-That's it. ``opensalestax data restore`` downloads
-``opensalestax-dump-<latest-tag>-postgres.sql.gz`` from the GitHub
-release, validates that the dump's schema matches the migration head
-you just applied, then pipes it through ``psql``. A new install is
-ready to answer real US sales-tax queries in well under two minutes.
+That's it. ``data restore`` downloads
+``opensalestax-dump-<latest-tag>-postgres.sql.gz`` (~47 MiB) from the
+GitHub release, validates that the dump's schema matches the migration
+head you just applied, then streams it through ``psql``. A new install
+is ready to answer real US sales-tax queries in well under two minutes.
+
+**Check that it worked.** This system's failure mode is a *well-formed
+empty answer*, not an error — an unloaded jurisdiction returns
+`combined_rate_pct: 0` and an empty `jurisdictions` list, which is
+indistinguishable from a genuine 0% result. So verify explicitly:
+
+```bash
+# Expect 48
+curl -s localhost:8080/v1/states | jq '[.states[] | select(.has_sales_tax)] | length'
+# Expect California + Los Angeles County + Beverly Hills
+curl -s 'localhost:8080/v1/rates?zip5=90210' | jq '.jurisdictions'
+```
+
+Or run the project's own release gate against your database, which
+probes twelve real ZIPs and every registered state:
+
+```bash
+poetry run python scripts/verify_dump_coverage.py
+```
 
 Pin a specific version:
 
 ```bash
-opensalestax data restore --release v0.23.0
+poetry run python -m opensalestax data restore --release v0.59.0
 ```
 
 Restore from a local file (useful for air-gapped installs):
 
 ```bash
-opensalestax data restore --file ./opensalestax-dump-v0.23.0-postgres.sql.gz
+poetry run python -m opensalestax data restore --file ./opensalestax-dump-v0.59.0-postgres.sql.gz
 ```
+
+> Releases before v0.59.0 carry a dump that is missing 23 taxing states
+> ([#40](https://github.com/ejosterberg/open-sales-tax/issues/40)). If
+> you restored one of those, re-run `data restore` to pick up the
+> corrected asset.
 
 The dump is regenerated on every release tag by the
 [``Build data dump`` workflow](.github/workflows/build-data-dump.yml).
@@ -71,7 +108,7 @@ It is data-only (no schema, no API keys); the consumer's own
 
 **MariaDB users:** MariaDB support ships as an optional extra so the
 default install stays PostgreSQL-only. Install the driver with
-``pip install "opensalestax[mariadb]"`` and point
+``poetry install --extras mariadb`` and point
 ``OPENSALESTAX_DATABASE_URL`` at a ``mysql+asyncmy://…`` DSN. (If you
 use a MariaDB DSN without the extra, the app fails fast with the exact
 install command.) The bundled dump is PostgreSQL COPY format, so on
@@ -83,6 +120,14 @@ described under "Refresh from source" below.
 You need [Docker](https://docs.docker.com/get-docker/) +
 [Docker Compose](https://docs.docker.com/compose/install/).
 
+> **Known gap:** the runtime image does not yet ship the `psql` client,
+> so `data restore` fails inside the container with "`psql` not found on
+> PATH". Until
+> [#41](https://github.com/ejosterberg/open-sales-tax/pull/41) lands
+> (which adds `postgresql-client`), either build the image with that
+> package added or use the source install above. Everything else in this
+> Docker path works.
+
 ```bash
 git clone https://github.com/ejosterberg/open-sales-tax.git
 cd open-sales-tax
@@ -92,11 +137,11 @@ docker compose --profile postgres up -d
 
 # Apply migrations + restore the latest published dump
 docker compose run --rm api alembic upgrade head
-docker compose run --rm api opensalestax data restore
+docker compose run --rm api python -m opensalestax data restore
 
 # Hit the API
 curl http://localhost:8080/v1/health
-curl http://localhost:8080/v1/states | jq '.states[] | select(.tier > 0)'
+curl http://localhost:8080/v1/states | jq '.states[] | select(.has_sales_tax)'
 
 # Calculate sales tax on a $100 general purchase in Minneapolis
 curl -X POST http://localhost:8080/v1/calculate \
@@ -112,27 +157,38 @@ Swagger UI.
 
 ## What's covered
 
-All 52 US sales-tax jurisdictions (50 states + DC + Puerto Rico) are
-**tier-1 maintained** -- meaning each ships a per-state module with
-a taxability matrix and is exercised by the regression tests. The
-five no-sales-tax states (AK, DE, MT, NH, OR) are correctly modeled
-with `has_sales_tax=False`.
+**52 registered jurisdictions** (50 states + DC + Puerto Rico), each
+shipping a tier-1 maintained module with a taxability matrix and
+regression tests. **48 of them levy a sales tax**; the four that do not
+-- DE, MT, NH, OR -- are modeled explicitly with `has_sales_tax=False`.
+All 48 taxing jurisdictions are loaded into every published data dump.
 
-Per-locality coverage breakdown:
+**Alaska is not one of the four.** It has no *statewide* sales tax, but
+many boroughs and cities levy their own, so AK is modeled as a taxing
+jurisdiction with local-only rates.
 
-| Coverage type | States | How |
+Coverage by data source -- which is what actually predicts refresh
+cadence and failure modes:
+
+| Data source | Count | States |
 |---|---|---|
-| Full SST data (rates + boundaries from quarterly file) | 24 SST member states | AR, GA, IA, IN, KS, KY, MI, MN, NE, NC, ND, NJ, NV, OH, OK, RI, SD, TN, UT, VT, WA, WI, WV, WY |
-| Per-county + per-city seeded from state DOR | 16 non-SST self-seeded | AZ, CA, FL, NY, TX, IL, PA, MO, MS, SC, VA, AL, NM, HI (with county surcharges), PR (with municipal SUT), CT (flat statewide) |
-| Statewide flat rate (no locals to model) | 3 | DC, MD, MA |
-| Tier-1 no-sales-tax | 5 | AK, DE, MT, NH, OR |
-| Pending SubJurisdiction Protocol architectural work | 2 | CO (home-rule cities), LA (parishes) |
+| SST quarterly rate + boundary files | 24 | AR, GA, IA, IN, KS, KY, MI, MN, NC, ND, NE, NJ, NV, OH, OK, RI, SD, TN, UT, VT, WA, WI, WV, WY |
+| Self-seeded from state DOR publications (data in-tree) | 24 | AK, AL, AZ, CA, CO, CT, DC, FL, HI, ID, IL, LA, MA, MD, ME, MO, MS, NM, NY, PA, PR, SC, TX, VA |
+| No sales tax at any level | 4 | DE, MT, NH, OR |
 
-**407 ZIPs validated against published state DOR rates** on every
+Known gaps *within* a covered state: **CO** home-rule cities and **LA**
+parish-level collectors await the SubJurisdiction Protocol work, so
+their sub-state stacking is incomplete. Flat-rate states (CT, DC, MA,
+MD) have no locals to model and resolve through the Census ZCTA
+ZIP-to-state binding.
+
+**754 ZIPs across all 52 jurisdictions are validated against published
+state DOR rates** (791 assertions) on every
 release ([the live regression test](tests/integration/test_sst_dor_validation.py)).
-The grid spans every state with locals; CI auto-rebuilds the
+CI auto-rebuilds the
 [pre-loaded data dump](https://github.com/ejosterberg/open-sales-tax/releases/latest)
-on every release tag.
+on every release tag, gated on a coverage check that fails the build if
+any taxing jurisdiction is missing.
 
 ## Refresh from source (current DOR data)
 
@@ -193,11 +249,11 @@ curl -s https://api.opensalestax.org/v1/health
 # {"status":"ok","version":"0.54.0","database_connected":true}
 ```
 
-### 2. List tier-1 states
+### 2. List the jurisdictions that levy a sales tax
 
 ```bash
 curl -s https://api.opensalestax.org/v1/states \
-  | jq '.states[] | select(.tier == 1) | .abbrev'
+  | jq '.states[] | select(.has_sales_tax) | .abbrev'   # 48 rows
 ```
 
 ### 3. Calculate tax with per-jurisdiction breakdown
@@ -252,9 +308,10 @@ every state is a Python module implementing a small Protocol.
 Maintainers are listed per-state in [MAINTAINERS.md](MAINTAINERS.md).
 
 To add or improve your state's module in code, see
-[docs/state-modules.md](docs/state-modules.md). For a plain-English
-tour of the underlying data files, see
-[the SST quarterly file format field guide](docs/legislation/sst-file-format.md).
+[docs/state-modules.md](docs/state-modules.md). For plain-English
+explainers of the underlying data files and the non-obvious parts of
+each state's tax law, see the
+[legislation & data-format field guides](docs/legislation/README.md).
 
 ## License + provenance
 

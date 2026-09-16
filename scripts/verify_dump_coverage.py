@@ -4,8 +4,8 @@
 
 Guard for ``.github/workflows/build-data-dump.yml``. The published
 ``opensalestax-dump-<tag>-postgres.sql.gz`` is the flagship install
-path -- ``pip install opensalestax && opensalestax data restore`` is
-advertised as "live in under two minutes". A dump that silently omits
+path: a fresh install runs ``data restore`` and is advertised as "live
+in under two minutes". A dump that silently omits
 states is worse than no dump at all: the API answers every request
 with a well-formed empty jurisdiction list, so the consumer sees
 "0% tax" rather than an error.

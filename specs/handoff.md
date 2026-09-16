@@ -1007,7 +1007,136 @@ If Eric wants none of the above, ask before pivoting.
   correctly returns 7.900% (Milwaukee city 2% per WI Act 12). Pin bumped
   to 7.900 with an explanatory comment. No engine change.
 
+## Open decisions needing Eric (2026-09-16)
+
+Four expert reviews were run against the issue-#40 fallout. Their
+recommendations, and what is still unresolved:
+
+1. **🔴 PyPI name collision — needs a decision, nothing shipped.** This
+   repo's `pyproject.toml` declares `name = "opensalestax"`, but that
+   PyPI name is the *client SDK* (`ejosterberg/opensalestax-python`,
+   v0.3.1). The engine has never been published under any name.
+   **Recommendation: publish as distribution `opensalestax-server` AND
+   rename the import package to `opensalestax_server`.** The half-measure
+   — new distribution name, import name left as `opensalestax` — is
+   actively unsafe: both wheels unpack into the same
+   `site-packages/opensalestax/` and collide on `__init__.py`, which pip
+   overwrites with no warning. Install order then decides whether the SDK
+   breaks loudly or the engine reports the SDK's version number
+   (`0.3.1`) from `/v1/health`; `pip uninstall opensalestax` deletes a
+   file both distributions claim. Cost of the full rename: 802
+   mechanical references across 156 files, all internal — a miss is an
+   `ImportError` caught by mypy + pytest, not a silent wrong answer. The
+   console script `opensalestax`, every `OPENSALESTAX_*` env var, every
+   `/v1/` route and the dump filename all stay byte-identical. **Note
+   also: `pip install` is broken three ways, not one** — `alembic.ini`
+   isn't in the wheel and `script_location` is repo-root-relative, so
+   README step 2 could never have worked from a wheel. PyPI supports
+   *pending* trusted publishers, so there is no bootstrap-token dance
+   (unlike npm). Fallback if the churn isn't wanted: stay source+Docker
+   only, which is what the README now documents.
+2. **Dockerfile: no `psql`, and the `opensalestax` console script is not
+   on PATH in the runtime image** — so `data restore` cannot work inside
+   Docker at all. **Deliberately left to PR #41**, which already fixes
+   it; taking it would have been the third piece of that contributor's
+   PR landed out from under them. README now flags it as a known gap.
+3. **CONTRIBUTING.md promises a CI gate that does not exist** — step 7
+   claims CI runs a "Docker build"; `ci.yml` has no Docker job. Either
+   add the job or drop the claim. A Docker build gate would have caught
+   most of issue #40's finding 3.
+4. **A quickstart smoke test in CI is the highest-value missing gate.**
+   `data restore` "had never worked" — nobody had ever run the
+   documented install end-to-end on a clean machine. No triage cadence
+   fixes that; a job that performs the documented quickstart does.
+5. **Triage is the other gap.** Issue #38 waited 48 days for a first
+   reply and still has a 2026-08-11 follow-up unanswered; #40/#41 waited
+   32. This happened *while* the daily-audit and weekly-improvement
+   tasks were running — the automation was pointed at the code and never
+   at the inbox. Worth adding an issue/PR triage step to the existing
+   weekly slot, and checking whether GitHub mail is being filtered.
+6. **Boundary loads are wall-clock dependent.** `_sst_base.py`'s
+   `boundaries_as_of` defaults to `dt.date.today()` and `Boundary` has no
+   effective-date columns, so the same pinned file loaded on two
+   different days yields different boundary tables — a dump built today
+   silently drops rows that become effective 2026-10-01. Deliberate and
+   documented, but it means "pinned" does not imply "reproducible" for
+   boundaries. Fix is to pin `boundaries_as_of` explicitly in the dump
+   build and record it in the artifact. **Not done.**
+7. **Vendoring SST rate files would be cheap real reproducibility.** All
+   24 rate files total **414 KiB** (boundaries are 344 MiB — a different
+   problem). Committing them per quarter would make builds survive
+   upstream deletion. Blocked on one unknown: SST publishes no terms of
+   use and no explicit redistribution grant. Worth a two-sentence email
+   to the Governing Board. Note the project already redistributes
+   SST-derived content in the public dump asset, so this is not a new
+   category of exposure.
+8. **Docs audit found ~30 further inaccuracies** beyond those fixed
+   below — stale tier-0/1/2 ladder documentation in
+   `docs/state-modules.md` and `docs/api.md` (every module is tier 1
+   now), `docs/quickstart.md` never mentioning `data restore` at all,
+   `docs/data-refresh.md` pointing at the wrong container cache path and
+   dead SST pins, an undocumented `/v1/capabilities` endpoint, and
+   `CONTRIBUTING.md` telling contributors to run the MariaDB test leg
+   after a `poetry install` that omits the driver (needs
+   `--extras mariadb`). A dedicated `docs/install.md` is recommended so
+   the install story lives in one file rather than six.
+
 ## Recent improvements (weekly sweeps)
+
+- **2026-09-16 (follow-up) — SST pin-rot tooling, a credential leak, and
+  the docs that were lying about how to install this.** Four expert
+  reviews (packaging / release engineering / maintainer practice /
+  technical writing) were run against the issue-#40 fallout; their open
+  decisions are in "Open decisions needing Eric" above. Shipped from
+  them:
+  - **🔒 SECURITY — the DB password was printed to the terminal.** A
+    failed `data restore` rendered the DSN **14 times** via Rich's
+    traceback, which shows local variables by default and the driver
+    expands the DSN into `{'user': …, 'password': …}`. `settings.py` and
+    `db/session.py` were carefully never echoing the DSN; the traceback
+    path bypassed that entirely. Fixed at two levels:
+    `pretty_exceptions_show_locals=False` on the Typer app, and the
+    schema check now catches any database exception and reports the
+    type + remedy rather than letting it escape. **Verified: 14 → 0
+    occurrences in a real CLI run.** Two regression tests pin both
+    layers.
+  - **SST pin-rot tooling.** New `src/opensalestax/data/sst_index.py`
+    (reads the two SST directory listings) and
+    `scripts/check_sst_pins.py` (diffs them against the workflow's
+    pins). Wired into the dump build as an early step — a dead pin now
+    fails in ~5 seconds with a table and a one-command fix instead of
+    ~15 minutes in with a bare 404 — plus a weekly
+    `sst-pin-drift.yml` that opens/updates an issue so the news arrives
+    before a release rather than during one. **The key structural
+    insight: because upstream keeps exactly one file per (state, kind),
+    "differs from upstream" and "is dead" are the same condition** — so
+    no age heuristic and no allowlist are needed, and the six states SST
+    never republished (IN 2008, KY 2012, MI 2023, NJ 2018, NV 2025,
+    RI 2019) cannot false-positive. An age-based check would have
+    flagged all six forever. **Verified against the real pre-refresh
+    pins: it reports exactly the 18 drifted states / 35 dead pins, and
+    `--write` reproduces last commit's hand fix byte-for-byte.** It
+    reports and can rewrite, but never adopts — constitution §11.
+    20 unit tests against checked-in listing fixtures (no network).
+  - **Docs corrected where they actively misled.** `pip install
+    opensalestax` replaced with the source install + an explicit warning
+    that the PyPI name is the client SDK; the `alembic.ini`
+    `parent.parent.parent` incantation (which cannot resolve from a
+    wheel) replaced with `poetry run alembic upgrade head`; a "check
+    that it worked" section added, because **this system's failure mode
+    is a well-formed empty answer, not an error**; `docker compose run
+    … opensalestax` → `python -m opensalestax` (the console script is
+    not on PATH in the image); the Docker `psql` gap flagged as known
+    and pointed at PR #41. Coverage claims corrected throughout:
+    **AK was listed as a no-sales-tax state and is not one** (four —
+    DE, MT, NH, OR — and AK is a taxing jurisdiction with local-only
+    rates), the coverage table summed to 50 of 52 with ID and ME missing
+    entirely, and the DOR-validation figure was 407 when the real grid
+    is **791 assertions across 754 distinct ZIPs in all 52
+    jurisdictions**. Tier-based examples replaced with `has_sales_tax`
+    (every module is tier 1, so the tier filter selected everything).
+  - Gate: ruff ✓ / mypy 137 files ✓ / pytest **1644 passed** /
+    SonarQube recorded below.
 
 - **2026-09-16 (Monday sweep) — The published data dump was missing 23
   taxing states; fixed, plus a coverage gate that can't pass vacuously
