@@ -27,12 +27,14 @@ Design notes:
 
 from __future__ import annotations
 
+import contextlib
 import gzip
 import re
+import shutil
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -65,6 +67,11 @@ _TAG_RE = re.compile(r"^v\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.\-]+)?$")
 #: ``alembic upgrade head`` row stays in place. If a future workflow
 #: change ever bundles the alembic_version row, this sniff catches it.
 _SCHEMA_SNIFF_BYTES = 256 * 1024  # 256 KiB: pg_dump emits header tables early
+
+#: Chunk size for streaming decompressed SQL into psql's stdin. Large
+#: enough that the syscall overhead is negligible on a multi-hundred-MB
+#: dump, small enough that peak memory stays irrelevant.
+_COPY_CHUNK_BYTES = 1024 * 1024  # 1 MiB
 
 
 class RestoreError(Exception):
@@ -318,20 +325,37 @@ def stream_dump_to_psql(
     dump_path: Path,
     dsn: str,
     *,
-    runner=None,
+    popen_factory: Callable[..., subprocess.Popen[bytes]] | None = None,
 ) -> None:
     """Pipe a gzipped dump through ``gunzip | psql`` and raise on failure.
 
-    The ``runner`` parameter is a hook for tests to substitute a fake
-    :func:`subprocess.run`. Production callers leave it ``None`` and get
-    the real one.
+    The decompressed SQL is streamed into psql's stdin a chunk at a
+    time, so memory stays flat no matter how large the dump grows.
+
+    .. important::
+
+       Do **not** "simplify" this by handing the :class:`gzip.GzipFile`
+       straight to ``subprocess`` as ``stdin=``. ``subprocess`` needs a
+       real OS file descriptor, so it calls ``.fileno()`` -- and
+       ``GzipFile.fileno()`` returns the descriptor of the *underlying
+       compressed file*. Decompression is bypassed entirely and psql
+       receives gzip magic bytes, failing with
+       ``invalid command \\<binary garbage>``. That was the bug in issue
+       #40, and it made ``data restore`` unusable from the day it
+       shipped. ``tests/unit/test_data_restore.py`` has a regression
+       test that runs a real child process to prove the bytes arrive
+       decompressed; a mocked runner cannot catch this class of defect.
+
+    The ``popen_factory`` parameter is a hook for tests to substitute a
+    fake :class:`subprocess.Popen`. Production callers leave it ``None``
+    and get the real one.
 
     psql is invoked with ``--single-transaction`` and ``ON_ERROR_STOP=1``
     so a partial failure rolls back rather than leaving the database in
     a half-loaded state. ``--quiet`` keeps the firehose of NOTICE lines
     out of the user's terminal.
     """
-    use_runner = runner or subprocess.run
+    factory = popen_factory or subprocess.Popen
     args = [
         "psql",
         "--single-transaction",
@@ -341,25 +365,54 @@ def stream_dump_to_psql(
         "-f",
         "-",
     ]
-    with gzip.open(dump_path, "rb") as fh:
-        try:
-            # gzip.GzipFile is a binary file-like; mypy's stricter overloads
-            # for subprocess.run want a concrete IO[bytes], so cast.
-            result = use_runner(
-                args,
-                stdin=cast(IO[bytes], fh),
-                check=False,
-                capture_output=True,
-            )
-        except FileNotFoundError as exc:
-            raise RestoreError(
-                "`psql` not found on PATH. Install the PostgreSQL client "
-                "package (libpq) and re-run."
-            ) from exc
+    try:
+        # stdout is discarded rather than piped: we never read it, and
+        # leaving it unread while we write to stdin is how pipe
+        # deadlocks happen. stderr stays piped because it carries the
+        # error message we report, and ON_ERROR_STOP=1 means psql stops
+        # at the first one, so it cannot grow without bound.
+        proc = factory(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+    except FileNotFoundError as exc:
+        raise RestoreError(
+            "`psql` not found on PATH. Install the PostgreSQL client " "package (libpq) and re-run."
+        ) from exc
 
-    if result.returncode != 0:
-        stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
-        raise RestoreError(f"psql exited with code {result.returncode}: {stderr or '(no stderr)'}")
+    decompress_error: Exception | None = None
+    try:
+        with gzip.open(dump_path, "rb") as fh:
+            assert proc.stdin is not None
+            shutil.copyfileobj(fh, proc.stdin, _COPY_CHUNK_BYTES)
+    except BrokenPipeError:
+        # psql exited before consuming the whole dump. Its own stderr
+        # explains why far better than "broken pipe" does, so fall
+        # through and report that instead.
+        pass
+    except (OSError, EOFError) as exc:
+        # Truncated or corrupt download. Kill psql rather than let it
+        # hit EOF and COMMIT the partial transaction it has open.
+        decompress_error = exc
+        proc.kill()
+    finally:
+        if proc.stdin is not None:
+            with contextlib.suppress(BrokenPipeError, OSError):
+                proc.stdin.close()
+
+    _, stderr_bytes = proc.communicate()
+
+    if decompress_error is not None:
+        raise RestoreError(
+            f"failed to decompress {dump_path}: {decompress_error}. "
+            f"The download may be truncated or corrupt -- delete the file and retry."
+        ) from decompress_error
+
+    if proc.returncode != 0:
+        stderr = (stderr_bytes or b"").decode("utf-8", errors="replace").strip()
+        raise RestoreError(f"psql exited with code {proc.returncode}: {stderr or '(no stderr)'}")
 
 
 def download_dump(url: str, dest: Path, *, http_client_factory=None) -> None:

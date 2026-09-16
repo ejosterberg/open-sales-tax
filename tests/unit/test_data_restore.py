@@ -11,8 +11,10 @@ tested via Typer's :class:`CliRunner` with subprocess + httpx mocked.
 from __future__ import annotations
 
 import gzip
+import io
+import subprocess
+import sys
 from pathlib import Path
-from unittest import mock
 
 import pytest
 from typer.testing import CliRunner
@@ -324,8 +326,37 @@ class TestReadDumpSample:
         assert sample == b"hello worldhello wor"
 
 
+class _FakePsql:
+    """Stand-in for a :class:`subprocess.Popen` running psql.
+
+    Accepts (and discards) everything written to ``stdin`` so the
+    flag-checking and error-path tests don't need a real child process.
+    """
+
+    def __init__(self, *, returncode: int = 0, stderr: bytes = b"") -> None:
+        self.stdin = io.BytesIO()
+        self.returncode = returncode
+        self._stderr = stderr
+        self.killed = False
+
+    def communicate(self):
+        return (None, self._stderr)
+
+    def kill(self) -> None:
+        self.killed = True
+
+
+class _BrokenPipeSink(io.BytesIO):
+    """A stdin pipe whose reader has already gone away."""
+
+    def write(self, data):  # type: ignore[override]
+        raise BrokenPipeError(32, "Broken pipe")
+
+
 # ---------------------------------------------------------------------------
-# stream_dump_to_psql -- subprocess.run is mocked
+# stream_dump_to_psql -- Popen is mocked for the flag and error paths.
+# The bytes psql actually receives are checked for real in
+# TestStreamDumpActuallyDecompresses below.
 # ---------------------------------------------------------------------------
 class TestStreamDumpToPsql:
     def test_invokes_psql_with_safe_flags(self, tmp_path: Path) -> None:
@@ -335,15 +366,15 @@ class TestStreamDumpToPsql:
 
         captured = {}
 
-        def fake_runner(args, **kwargs):
+        def fake_popen(args, **kwargs):
             captured["args"] = args
             captured["kwargs"] = kwargs
-            return mock.Mock(returncode=0, stderr=b"")
+            return _FakePsql(returncode=0)
 
         stream_dump_to_psql(
             target,
             "postgresql+asyncpg://u:p@h:5432/d",
-            runner=fake_runner,
+            popen_factory=fake_popen,
         )
         assert captured["args"][0] == "psql"
         assert "--single-transaction" in captured["args"]
@@ -358,14 +389,14 @@ class TestStreamDumpToPsql:
         with gzip.open(target, "wb") as fh:
             fh.write(b"bogus dump\n")
 
-        def fake_runner(args, **kwargs):
-            return mock.Mock(returncode=1, stderr=b"ERROR: relation does not exist")
+        def fake_popen(args, **kwargs):
+            return _FakePsql(returncode=1, stderr=b"ERROR: relation does not exist")
 
         with pytest.raises(RestoreError, match="psql exited with code 1"):
             stream_dump_to_psql(
                 target,
                 "postgresql://u:p@h:5432/d",
-                runner=fake_runner,
+                popen_factory=fake_popen,
             )
 
     def test_raises_when_psql_missing(self, tmp_path: Path) -> None:
@@ -373,14 +404,106 @@ class TestStreamDumpToPsql:
         with gzip.open(target, "wb") as fh:
             fh.write(b"x\n")
 
-        def fake_runner(args, **kwargs):
+        def fake_popen(args, **kwargs):
             raise FileNotFoundError("psql")
 
         with pytest.raises(RestoreError, match="psql.*not found"):
             stream_dump_to_psql(
                 target,
                 "postgresql://u:p@h:5432/d",
-                runner=fake_runner,
+                popen_factory=fake_popen,
+            )
+
+
+# ---------------------------------------------------------------------------
+# The regression tests a mocked runner could never be: these spawn a
+# REAL child process and inspect the bytes it actually received.
+#
+# Issue #40: stream_dump_to_psql passed a gzip.GzipFile straight to
+# subprocess as stdin=. subprocess needs a real OS file descriptor, so
+# it called .fileno() -- which on a GzipFile returns the descriptor of
+# the UNDERLYING COMPRESSED FILE. psql got gzip magic bytes and died on
+# "invalid command \<binary garbage>". Every test above passed the whole
+# time, because each substituted a fake runner that ignored stdin.
+# ---------------------------------------------------------------------------
+class TestStreamDumpActuallyDecompresses:
+    @staticmethod
+    def _echo_factory(out_path: Path):
+        """Popen factory spawning a child that saves its stdin to a file."""
+        code = f"import sys; open({str(out_path)!r}, 'wb').write(sys.stdin.buffer.read())"
+
+        def factory(args, **kwargs):
+            # S603: the command is this interpreter plus a literal built
+            # from pytest's own tmp_path -- no external or user input
+            # reaches it. Spawning a real child is the entire point of
+            # these tests; a mock is what let issue #40 through.
+            return subprocess.Popen([sys.executable, "-c", code], **kwargs)  # noqa: S603
+
+        return factory
+
+    def test_child_receives_decompressed_sql_not_gzip_bytes(self, tmp_path: Path) -> None:
+        sql = b"COPY public.states (id, abbrev) FROM stdin;\n1\tMN\n\\.\n"
+        target = tmp_path / "dump.sql.gz"
+        with gzip.open(target, "wb") as fh:
+            fh.write(sql)
+        received = tmp_path / "received.sql"
+
+        stream_dump_to_psql(
+            target,
+            "postgresql://u:p@h:5432/d",
+            popen_factory=self._echo_factory(received),
+        )
+
+        got = received.read_bytes()
+        assert got[:2] != b"\x1f\x8b", "psql was handed the raw gzip stream"
+        assert got == sql
+
+    def test_streams_a_dump_larger_than_one_copy_chunk(self, tmp_path: Path) -> None:
+        """Content must survive crossing the 1 MiB copy-chunk boundary."""
+        sql = b"".join(b"-- filler line %06d\n" % i for i in range(60_000))
+        assert len(sql) > 1024 * 1024
+        target = tmp_path / "big.sql.gz"
+        with gzip.open(target, "wb") as fh:
+            fh.write(sql)
+        received = tmp_path / "received.sql"
+
+        stream_dump_to_psql(
+            target,
+            "postgresql://u:p@h:5432/d",
+            popen_factory=self._echo_factory(received),
+        )
+
+        assert received.read_bytes() == sql
+
+    def test_corrupt_download_is_reported_and_psql_is_killed(self, tmp_path: Path) -> None:
+        """A truncated download must not let psql COMMIT a partial load."""
+        target = tmp_path / "corrupt.sql.gz"
+        target.write_bytes(b"this is not gzip at all")
+
+        fake = _FakePsql(returncode=0)
+
+        with pytest.raises(RestoreError, match="truncated or corrupt"):
+            stream_dump_to_psql(
+                target,
+                "postgresql://u:p@h:5432/d",
+                popen_factory=lambda args, **kwargs: fake,
+            )
+        assert fake.killed, "psql must be killed so it cannot commit a partial restore"
+
+    def test_psql_error_survives_an_early_exit_mid_stream(self, tmp_path: Path) -> None:
+        """If psql dies early, report ITS stderr rather than 'broken pipe'."""
+        target = tmp_path / "dump.sql.gz"
+        with gzip.open(target, "wb") as fh:
+            fh.write(b"-- some sql\n")
+
+        dying = _FakePsql(returncode=3, stderr=b"psql:<stdin>:1: ERROR: boom")
+        dying.stdin = _BrokenPipeSink()
+
+        with pytest.raises(RestoreError, match="psql exited with code 3: .*boom"):
+            stream_dump_to_psql(
+                target,
+                "postgresql://u:p@h:5432/d",
+                popen_factory=lambda args, **kwargs: dying,
             )
 
 

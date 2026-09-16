@@ -32,18 +32,22 @@ on:
         required: true
         type: string
       sst_version:
-        description: "SST quarterly version label (e.g. 2026Q2FEB18)."
+        description: >-
+          Label recorded in the run summary only. SST publishes each
+          state on its own cadence, so the actual per-state versions
+          come from the STATES list in the load step, not from here.
         required: false
-        default: "2026Q2FEB18"
+        default: "2026Q4"
         type: string
 
 env:
   POETRY_VERSION: "1.8.4"
   PYTHON_VERSION: "3.11"
-  # Pin the SST quarterly file every state should use. Bumping this value
-  # is the only thing required to refresh the bundled dump to a newer
-  # quarter (assuming SST has published it for every member state).
-  SST_VERSION: "2026Q2FEB18"
+  # Cosmetic label for the run summary. There is no single quarterly
+  # version across states -- SST publishes each state on its own
+  # cadence -- so the authoritative per-state pins live in the STATES
+  # list in the "Fetch + load all 24 SST states" step below.
+  SST_VERSION: "2026Q4"
   # AZ ships its own dataset versioned alongside the package itself; bumped
   # whenever the AZ DOR TPT Rate Table CSV is refreshed in src/.../states/az_data.py.
   AZ_VERSION: "v0.23-tpt"
@@ -101,7 +105,7 @@ jobs:
             sst="${SST_VERSION}"
           fi
           echo "version=$sst" >> "$GITHUB_OUTPUT"
-          echo "Loading every SST state at version: $sst"
+          echo "Summary label for this dump: $sst (per-state pins are in the load step)"
 
       - uses: actions/setup-python@v5
         with:
@@ -164,33 +168,49 @@ jobs:
         # pinned individually. Keep this list in sync with the prod
         # ~/sst-load.sh on the opensalestax-01 VM whenever SST publishes
         # a new quarter for a given state.
+        #
+        # IMPORTANT: SST hosts exactly ONE file per state per kind --
+        # the current one. When a state publishes a new quarter, the
+        # previous file is REMOVED, and any pin referencing it starts
+        # 404ing. These pins are therefore perishable: they are a
+        # reproducibility record, not a permanent address. When this
+        # step fails with `HTTPStatusError: 404`, diff the pins against
+        # the live listings and refresh them:
+        #   https://www.streamlinedsalestax.org/ratesandboundry/Rates/
+        #   https://www.streamlinedsalestax.org/ratesandboundry/Boundary/
+        #
+        # Refreshed 2026-09-16: 18 of 24 pins had rotated away upstream,
+        # which broke every rebuild (and would have broken the next
+        # release tag). The six unchanged states -- IN, KY, MI, NJ, NV,
+        # RI -- are states SST simply has not republished; their old
+        # filenames are current, not stale.
         run: |
           set -euo pipefail
           declare -a STATES=(
-            "AR 2026Q2MAR02 2026Q2MAR02"
-            "GA 2026Q2FEB19 2026Q2FEB16"
-            "IA 2025Q3MAY30 2026Q1DEC09"
+            "AR 2026Q4AUG28 2026Q4SEP02"
+            "GA 2026Q4AUG28 2026Q4AUG20"
+            "IA 2025Q3MAY30 2026Q4AUG31"
             "IN 2008Q4MAY7  2005Q1JAN6"
-            "KS 2026Q2FEB18 2026Q2FEB18"
+            "KS 2026Q4AUG19 2026Q4AUG19"
             "KY 2012Q4Aug13 2013Q2MAR13"
             "MI 2023Q1DEC22 2023Q1DEC15"
-            "MN 2026Q2FEB18 2026Q2FEB18"
-            "NC 2024Q3APR26 2026Q2FEB18"
-            "ND 2026Q2FEB11 2026Q2FEB19"
-            "NE 2026Q2FEB25 2026Q2APR20"
+            "MN 2026Q4AUG18 2026Q4AUG18"
+            "NC 2026Q3APR23 2026Q4AUG19"
+            "ND 2026Q4AUG14 2026Q4AUG14"
+            "NE 2026Q4AUG21 2026Q4AUG21"
             "NJ 2018Q1OCT16 2019Q2MAR27"
             "NV 2025Q4NOV05 2025Q4NOV05"
-            "OH 2026Q1NOV28 2026Q1NOV28"
-            "OK 2026Q2FEB17 2026Q2APR01"
+            "OH 2026Q4AUG27 2026Q4SEP01"
+            "OK 2026Q4AUG17 2026Q4AUG28"
             "RI 2019Q2MAR27 2019Q2MAR27"
-            "SD 2024Q1DEC12 2026Q2FEB23"
-            "TN 2025Q1MAR07 2026Q2FEB23"
-            "UT 2026Q2MAR20 2026Q2MAR20"
-            "VT 2026Q2FEB20 2026Q2FEB20"
-            "WA 2026Q2FEB26 2026Q2FEB26"
-            "WI 2026Q2FEB18 2026Q2FEB18"
-            "WV 2026Q1AUG14 2026Q1SEP02"
-            "WY 2026Q2APR1  2026Q2FEB23"
+            "SD 2026Q3JUN02 2026Q4SEP08"
+            "TN 2026Q4AUG21 2026Q4AUG21"
+            "UT 2026Q4AUG11 2026Q4AUG11"
+            "VT 2026Q4AUG20 2026Q4AUG20"
+            "WA 2026Q4AUG27 2026Q4AUG27"
+            "WI 2026Q4AUG17 2026Q4AUG17"
+            "WV 2026Q3FEB25 2026Q3APR29"
+            "WY 2026Q4AUG20 2026Q4AUG20"
           )
           for entry in "${STATES[@]}"; do
             read -r state rver bver <<< "$entry"
