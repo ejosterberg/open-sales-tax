@@ -124,10 +124,17 @@ class Massachusetts:
         return iter(())
 
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
-        """MA's annual sales-tax holiday weekend (set by joint resolution).
+        """MA's annual sales-tax holiday weekend (M.G.L. c. 64H section 6A).
 
-        2026 dates per MA Department of Revenue. Subsequent years
-        require updating once the General Court designates them.
+        The General Court designates a 2-day August weekend by joint
+        resolution no later than June 15, or the Commissioner of
+        Revenue designates one by July 1 (section 6A(b)). The 2026
+        weekend (August 8-9) was set on June 11, 2026; 2027 is not
+        designated yet, so add it once it is.
+
+        Section 6A(a)(ii) excludes meals, so ``prepared_food`` is not
+        covered; section 1 treats a transfer of standardized software
+        as tangible personal property, so ``digital_goods`` is.
         """
         if year != 2026:
             return iter(())
@@ -137,12 +144,17 @@ class Massachusetts:
                     name="Annual Sales Tax Holiday (2026)",
                     starts_on=dt.date(2026, 8, 8),
                     ends_on=dt.date(2026, 8, 9),
-                    applicable_categories=None,  # broad: most personal use
+                    applicable_categories=("general", "clothing", "digital_goods"),
                     max_amount_per_item=Decimal("2500.00"),
                     notes=(
-                        "Most retail items < $2500/item; excludes "
-                        "telecommunications, tobacco, alcohol, motor vehicles, "
-                        "boats, marijuana, meals."
+                        "M.G.L. c. 64H section 6A: non-business retail sales of "
+                        "tangible personal property priced $2,500 or less per "
+                        "item. Excluded: telecommunications services, tobacco "
+                        "products, marijuana and marijuana products, alcoholic "
+                        "beverages, gas, steam, electricity, motor vehicles, "
+                        "motorboats, and meals. Deposits, prepayments, and "
+                        "binding promises to pay made before the weekend, prior "
+                        "sales, and layaway sales are ineligible."
                     ),
                 ),
             ]

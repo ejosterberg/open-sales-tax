@@ -161,3 +161,12 @@ def test_maryland_holiday_dates_2027() -> None:
     assert dt.date(2027, 2, 1).strftime("%A") == "Monday"
     assert dt.date(2027, 8, 8) == dt.date(2027, 8, 1) + dt.timedelta(days=7)
     assert dt.date(2027, 8, 1).strftime("%A") == "Sunday"
+
+
+def test_massachusetts_holiday_excludes_meals_and_awaits_2027_designation() -> None:
+    """M.G.L. c. 64H section 6A excludes meals; 2027's weekend is not designated yet."""
+    (holiday,) = list(MASSACHUSETTS.holidays_for(2026))
+    assert holiday.applicable_categories == ("general", "clothing", "digital_goods")
+    assert holiday.max_amount_per_item == Decimal("2500.00")
+    assert "6A" in (holiday.notes or "")
+    assert list(MASSACHUSETTS.holidays_for(2027)) == []
