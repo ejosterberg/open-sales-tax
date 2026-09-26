@@ -150,9 +150,9 @@ def test_ohio_parse_rates_signature() -> None:
 # General Assembly, signed December 19, 2025).
 # ---------------------------------------------------------------------------
 def test_ohio_holiday_count_2026() -> None:
-    """OH has exactly one annual holiday in 2026 (the traditional 3-day version)."""
+    """OH's 2026 traditional 3-day holiday is two windows, one per statutory cap."""
     holidays = list(OHIO.holidays_for(2026))
-    assert len(holidays) == 1
+    assert len(holidays) == 2
     assert all(isinstance(h, HolidayWindow) for h in holidays)
 
 
@@ -168,6 +168,9 @@ def test_ohio_holiday_dates_2026() -> None:
     holiday = next(iter(OHIO.holidays_for(2026)))
     assert holiday.starts_on == dt.date(2026, 8, 7)
     assert holiday.ends_on == dt.date(2026, 8, 9)
+    assert {(h.starts_on, h.ends_on) for h in OHIO.holidays_for(2026)} == {
+        (dt.date(2026, 8, 7), dt.date(2026, 8, 9))
+    }
     # Sanity: starts on a Friday, ends on a Sunday.
     assert holiday.starts_on.weekday() == 4  # Friday
     assert holiday.ends_on.weekday() == 6  # Sunday
@@ -176,16 +179,17 @@ def test_ohio_holiday_dates_2026() -> None:
     assert earlier.month == 7  # the prior Friday is in July
 
 
-def test_ohio_holiday_has_75_dollar_per_item_cap() -> None:
-    """Statute imposes a $75 per-item cap on clothing (the higher of the per-category caps).
+def test_ohio_holiday_caps_2026_split_by_category() -> None:
+    """ORC 5739.02(B)(55): clothing $75; school supplies and instructional materials $20.
 
-    The HolidayWindow schema's max_amount_per_item field cannot encode
-    the per-category split (clothing $75 vs. supplies $20 vs.
-    instructional materials $20); the higher $75 cap is stored and the
-    notes field documents the split for downstream callers.
+    Each cap is its own window, so the engine applies the $20 cap to
+    supplies instead of the clothing cap.
     """
-    holiday = next(iter(OHIO.holidays_for(2026)))
-    assert holiday.max_amount_per_item == Decimal("75.00")
+    caps = {h.applicable_categories: h.max_amount_per_item for h in OHIO.holidays_for(2026)}
+    assert caps == {
+        ("clothing",): Decimal("75.00"),
+        ("school_supplies", "instructional_materials"): Decimal("20.00"),
+    }
 
 
 def test_ohio_holiday_categories() -> None:
@@ -195,9 +199,7 @@ def test_ohio_holiday_categories() -> None:
     own per-item cap (clothing $75, supplies $20, instructional
     materials $20).
     """
-    holiday = next(iter(OHIO.holidays_for(2026)))
-    assert holiday.applicable_categories is not None
-    cats = set(holiday.applicable_categories)
+    cats = {c for h in OHIO.holidays_for(2026) for c in h.applicable_categories or ()}
     assert "clothing" in cats
     assert "school_supplies" in cats
     assert "instructional_materials" in cats
@@ -207,12 +209,10 @@ def test_ohio_holiday_categories() -> None:
 
 
 def test_ohio_holiday_notes_cite_statute_and_per_category_caps() -> None:
-    """Holiday notes cite ORC 5739.02(B)(55) and document the per-category cap split."""
-    holiday = next(iter(OHIO.holidays_for(2026)))
-    assert holiday.notes is not None
-    notes = holiday.notes
-    assert "5739.02(B)(55)" in notes
-    # Per-category caps must be documented since the schema can't carry them directly.
+    """Holiday notes cite ORC 5739.02(B)(55) and document each window's cap."""
+    holidays = list(OHIO.holidays_for(2026))
+    assert all("5739.02(B)(55)" in (h.notes or "") for h in holidays)
+    notes = " ".join(h.notes or "" for h in holidays)
     assert "$75" in notes
     assert "$20" in notes
     # The HB 186 cancellation of the expanded 5739.41 framework must be documented
@@ -225,15 +225,35 @@ def test_ohio_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design).
 
     2024 and 2025 had EXPANDED holidays under section 5739.41 that
-    differed substantially from the traditional 3-day window; 2027+
-    depends on whether the Tax Commissioner certifies the Expanded
-    Sales Tax Holiday Fund. Future maintainers must add each year
-    explicitly after verifying which framework applies.
+    differed substantially from the traditional 3-day window, and 2027
+    is an expanded holiday set by H.B. 479. Future maintainers must add
+    each later year explicitly after verifying which framework applies.
     """
     assert list(OHIO.holidays_for(2024)) == []
     assert list(OHIO.holidays_for(2025)) == []
-    assert list(OHIO.holidays_for(2027)) == []
+    assert list(OHIO.holidays_for(2028)) == []
     assert list(OHIO.holidays_for(2099)) == []
+
+
+def test_ohio_expanded_holiday_2027() -> None:
+    """2027: the expanded section 5739.41 holiday, fifteen days from Aug 1 through Aug 15.
+
+    Section 513.10(D) of H.B. 96 (136th G.A.), as amended by H.B. 479,
+    sets the dates. Items priced $500 or less, minus the section
+    5739.01(UUU) exclusions; the traditional 3-day holiday does not run.
+    """
+    (holiday,) = list(OHIO.holidays_for(2027))
+    assert (holiday.starts_on, holiday.ends_on) == (dt.date(2027, 8, 1), dt.date(2027, 8, 15))
+    assert (holiday.ends_on - holiday.starts_on).days == 14
+    assert holiday.max_amount_per_item == Decimal("500.00")
+    assert holiday.applicable_categories is not None
+    cats = set(holiday.applicable_categories)
+    assert {"general", "clothing", "prepared_food"} <= cats
+    assert "digital_goods" not in cats
+    notes = holiday.notes or ""
+    assert "5739.01(UUU)" in notes
+    assert "H.B. 479" in notes
+    assert "alcoholic beverages" in notes
 
 
 # ---------------------------------------------------------------------------

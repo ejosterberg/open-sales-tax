@@ -116,14 +116,15 @@ to all county and transit-authority local taxes layered on top.
 
 H.B. 33 of the 135th General Assembly (2023) created a separate
 expanded-holiday framework codified at **Ohio Rev. Code section
-5739.41**. The expansion permits the Tax Commissioner to declare
-a holiday of up to 14 days each summer covering **most tangible
-personal property priced $500 or less per item** -- subject to a
-funding cap (the "Expanded Sales Tax Holiday Fund") that sets
-aside surplus state revenue to offset the lost sales-tax
-collections. Categorical exclusions: motor vehicles, watercraft,
-outboard motors, alcoholic beverages, tobacco, vapor products,
-and any item over the $500 cap.
+5739.41**. When the Expanded Sales Tax Holiday Fund holds enough
+surplus state revenue, the Tax Commissioner designates a holiday
+of at least three days, longer when the fund can cover the
+forgone revenue (section 131.44(B)(2)), covering **most tangible
+personal property priced $500 or less per item** (section
+5739.02(B)(64)). Section 5739.01(UUU) excludes watercraft and
+outboard motors required to be titled, motor vehicles, alcoholic
+beverages, tobacco, vapor products, and items containing
+marijuana.
 
 ### Recent-year history
 
@@ -150,27 +151,31 @@ and any item over the $500 cap.
   August 9, 2026 (11:59 p.m.)** -- the first Friday of
   August 2026 is August 7, and the following Saturday-Sunday
   fall on August 8-9.
+- **2027**: **Expanded holiday, fifteen days**, Sunday August 1
+  through Sunday August 15, 2027. Section 513.10(D) of H.B. 96
+  of the 136th General Assembly, as amended by Section 12 of
+  **H.B. 479** (signed June 24, 2026; the governor's line-item
+  veto struck only Section 259.20), sets those dates
+  notwithstanding sections 5739.41 and 131.44(B)(2). Section
+  5739.02(B)(55) suspends the traditional 3-day holiday in any
+  year a section 5739.41 holiday is held.
 
-This module encodes ONLY the 2026 traditional 3-day holiday
-(:meth:`Ohio.holidays_for`); a future maintainer adding 2027
-must verify whether 2027 is the traditional 3-day version under
-section 5739.02(B)(55) or whether the Tax Commissioner has
-re-certified the Expanded Sales Tax Holiday Fund for an
-expanded 14-day version under section 5739.41. The two
-frameworks are mutually exclusive in any given year.
+:meth:`Ohio.holidays_for` encodes 2026 and 2027. Later years need
+a fresh check: the traditional 3-day holiday applies unless a
+section 5739.41 holiday is held that year, and the two are
+mutually exclusive.
 
-The :class:`HolidayWindow` schema's ``max_amount_per_item``
-field cannot encode the per-category split (clothing $75 vs.
-supplies $20 vs. instructional materials $20) directly; the
-2026 holiday is therefore modeled as a single window with the
-HIGHER cap ($75 for clothing) and ``applicable_categories``
-listing all three eligible categories. The notes field
-documents the per-category cap split for future reviewers and
-for downstream callers that may need to apply the lower $20
-cap to school supplies / instructional materials line items.
-A future schema enhancement allowing per-category caps would
-let this be modeled with greater precision; documented as a
-known limitation per the multi-cap-holiday pattern.
+The 2026 holiday's per-category caps (clothing $75; school
+supplies and school instructional materials $20) are modeled as
+two windows over the same dates, one per cap. The 2027 expanded
+holiday covers every item of tangible personal property priced
+$500 or less except the section 5739.01(UUU) exclusions.
+:class:`HolidayWindow` cannot express an exclusion list, so the
+2027 window lists the tangible categories it covers; digital
+goods are left out because specified digital products are not
+tangible personal property. A caller that files an excluded item
+(alcohol, tobacco, a motor vehicle) under ``general`` must not
+apply the window to it.
 
 ## LOADING
 
@@ -374,90 +379,94 @@ class Ohio(SstStateModule):
         return super()._authority_name(code, authority_type)
 
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
-        """Ohio's annual sales-tax holiday under Ohio Rev. Code section 5739.02(B)(55).
+        """Ohio's sales-tax holidays for the years encoded in this module.
 
-        Recurring statutory date: first Friday of August and the
-        following Saturday and Sunday -- a 3-day window. Eligible
-        items: clothing priced $75 or less per item; school
-        supplies priced $20 or less per item; school instructional
-        materials priced $20 or less per item.
+        - 2026: the traditional holiday under Ohio Rev. Code section
+          5739.02(B)(55), the first Friday of August through Sunday
+          (August 7-9, 2026). Clothing priced $75 or less per item;
+          school supplies and school instructional materials priced
+          $20 or less per item. One window per cap.
+        - 2027: the expanded holiday under section 5739.41, fifteen
+          days from August 1 through August 15, 2027 (section
+          513.10(D) of H.B. 96 of the 136th General Assembly, as
+          amended by H.B. 479). Tangible personal property priced
+          $500 or less per item, minus the section 5739.01(UUU)
+          exclusions. The traditional holiday does not run in 2027.
 
-        2026 dates encoded explicitly per the Ohio Department of
-        Taxation's May 1, 2026 announcement (Friday August 7
-        through Sunday August 9, 2026). Subsequent years require
-        an explicit data update -- the General Assembly may either
-        leave the traditional section 5739.02(B)(55) holiday in
-        place OR (per section 5739.41 / HB 33 of 2023, when
-        sufficient Expanded Sales Tax Holiday Fund revenue is
-        certified) declare an expanded 14-day holiday covering
-        most TPP priced $500 or less. The two frameworks are
-        mutually exclusive in any year. HB 186 of the 136th
-        General Assembly (signed December 19, 2025) cancelled the
-        2026 expansion and delayed certification of fund revenue
-        for a 2027 expanded holiday.
-
-        Schema limitation: the 2026 holiday has DIFFERENT per-item
-        caps for different categories ($75 clothing, $20 supplies,
-        $20 instructional materials). The :class:`HolidayWindow`
-        schema's single ``max_amount_per_item`` field cannot
-        encode the per-category split; the holiday is modeled with
-        the HIGHER $75 cap and ``applicable_categories`` listing
-        all three eligible categories. Downstream callers
-        applying tax to school-supplies or instructional-material
-        line items must additionally enforce the $20 cap from the
-        notes field. Documented as a known limitation pending a
-        future schema enhancement allowing per-category caps.
+        Other years return nothing; add them as they are verified.
         """
-        if year != 2026:
-            return iter(())
-        return iter(
-            [
-                HolidayWindow(
-                    name="Ohio Back-to-School Sales Tax Holiday (2026)",
-                    starts_on=dt.date(2026, 8, 7),
-                    ends_on=dt.date(2026, 8, 9),
-                    applicable_categories=(
-                        "clothing",
-                        "school_supplies",
-                        "instructional_materials",
+        if year == 2026:
+            return iter(
+                [
+                    HolidayWindow(
+                        name="Ohio Back-to-School Sales Tax Holiday -- Clothing (2026)",
+                        starts_on=dt.date(2026, 8, 7),
+                        ends_on=dt.date(2026, 8, 9),
+                        applicable_categories=("clothing",),
+                        max_amount_per_item=Decimal("75.00"),
+                        notes=(
+                            "Ohio Rev. Code section 5739.02(B)(55)(a)(i): clothing "
+                            "priced $75 or less per item, exempt from the state "
+                            "sales tax and the county and transit-authority taxes "
+                            "layered on it. An article over the cap is fully "
+                            "taxable (no proration). HB 186 of the 136th General "
+                            "Assembly cancelled the 2026 expanded section 5739.41 "
+                            "holiday. Calculation only -- not legal or tax advice."
+                        ),
                     ),
-                    max_amount_per_item=Decimal("75.00"),
-                    notes=(
-                        "Ohio Rev. Code section 5739.02(B)(55). "
-                        "Three-day exemption from the 5.75% state "
-                        "sales tax (and from county and transit-"
-                        "authority local sales taxes layered on top "
-                        "under sections 5739.021 and 5739.023) for "
-                        "the following items, each subject to its "
-                        "own per-item cap: (a) CLOTHING priced $75 "
-                        "or less per item; (b) SCHOOL SUPPLIES "
-                        "priced $20 or less per item; (c) SCHOOL "
-                        "INSTRUCTIONAL MATERIALS priced $20 or less "
-                        "per item. Per-item caps are absolute -- an "
-                        "article priced over its cap is fully "
-                        "taxable at the regular rate (no proration). "
-                        "Schema limitation: the HolidayWindow "
-                        "max_amount_per_item field carries the "
-                        "HIGHER $75 cap; downstream callers "
-                        "applying the holiday to school_supplies or "
-                        "instructional_materials line items must "
-                        "additionally enforce the lower $20 cap. "
-                        "The expanded 14-day section 5739.41 "
-                        "holiday framework (HB 33 of 2023) covering "
-                        "most TPP priced $500 or less was exercised "
-                        "in 2024 and 2025 but cancelled for 2026 "
-                        "by HB 186 of the 136th General Assembly "
-                        "(signed December 19, 2025); 2026 reverts "
-                        "to the traditional 3-day version under "
-                        "section 5739.02(B)(55). 2026: first Friday "
-                        "of August is August 7; holiday runs "
-                        "12:00 a.m. Friday August 7 through "
-                        "11:59 p.m. Sunday August 9. Calculation "
-                        "only -- not legal or tax advice."
+                    HolidayWindow(
+                        name=(
+                            "Ohio Back-to-School Sales Tax Holiday -- School Supplies "
+                            "and Instructional Materials (2026)"
+                        ),
+                        starts_on=dt.date(2026, 8, 7),
+                        ends_on=dt.date(2026, 8, 9),
+                        applicable_categories=("school_supplies", "instructional_materials"),
+                        max_amount_per_item=Decimal("20.00"),
+                        notes=(
+                            "Ohio Rev. Code section 5739.02(B)(55)(a)(ii)-(iii): "
+                            "school supplies and school instructional materials "
+                            "priced $20 or less per item. An article over the cap "
+                            "is fully taxable (no proration). HB 186 of the 136th "
+                            "General Assembly cancelled the 2026 expanded section "
+                            "5739.41 holiday. Calculation only -- not legal or tax "
+                            "advice."
+                        ),
                     ),
-                ),
-            ]
-        )
+                ]
+            )
+        if year == 2027:
+            return iter(
+                [
+                    HolidayWindow(
+                        name="Ohio Expanded Sales Tax Holiday (2027)",
+                        starts_on=dt.date(2027, 8, 1),
+                        ends_on=dt.date(2027, 8, 15),
+                        applicable_categories=(
+                            "general",
+                            "clothing",
+                            "prepared_food",
+                            "school_supplies",
+                            "instructional_materials",
+                        ),
+                        max_amount_per_item=Decimal("500.00"),
+                        notes=(
+                            "Ohio Rev. Code sections 5739.41 and 5739.02(B)(64); "
+                            "dates set by section 513.10(D) of H.B. 96 of the 136th "
+                            "General Assembly as amended by H.B. 479. Tangible "
+                            "personal property priced $500 or less per item. "
+                            "Excluded by section 5739.01(UUU): watercraft and "
+                            "outboard motors required to be titled, motor "
+                            "vehicles, alcoholic beverages, tobacco, vapor "
+                            "products, and items containing marijuana. Specified "
+                            "digital products are not tangible personal property "
+                            "and stay taxable. Calculation only -- not legal or "
+                            "tax advice."
+                        ),
+                    ),
+                ]
+            )
+        return iter(())
 
 
 # Compile-time Protocol satisfaction check + module-import-time
