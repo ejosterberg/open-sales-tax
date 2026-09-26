@@ -183,17 +183,17 @@ def test_missouri_prescription_drugs_cite_144_030() -> None:
 # ---------------------------------------------------------------------------
 # Sales-tax holiday tests
 # ---------------------------------------------------------------------------
-def test_missouri_holidays_for_2026_returns_six_windows() -> None:
-    """One Show-Me Green window + five back-to-school scope windows = 6 total."""
+def test_missouri_holidays_for_2026_returns_seven_windows() -> None:
+    """One Show-Me Green window + six back-to-school scope windows = 7 total."""
     holidays = list(MISSOURI.holidays_for(2026))
-    assert len(holidays) == 6
+    assert len(holidays) == 7
     assert all(isinstance(h, HolidayWindow) for h in holidays)
 
 
 def test_missouri_holidays_for_unknown_year_returns_empty() -> None:
     """No extrapolation; future years require explicit data updates."""
     assert list(MISSOURI.holidays_for(2025)) == []
-    assert list(MISSOURI.holidays_for(2027)) == []
+    assert list(MISSOURI.holidays_for(2028)) == []
     assert list(MISSOURI.holidays_for(2099)) == []
 
 
@@ -211,10 +211,12 @@ def test_missouri_2026_back_to_school_dates_first_friday_to_sunday() -> None:
     """Mo. Rev. Stat. section 144.049: first Friday of August through Sunday.
 
     For 2026 the first Friday of August is August 7, so the holiday
-    runs August 7-9, 2026 (a 3-day weekend window).
+    runs August 7-9, 2026 (a 3-day weekend window). Six scopes:
+    clothing, school supplies, computers, peripherals, software, and
+    graphing calculators.
     """
     back_to_school_windows = [h for h in MISSOURI.holidays_for(2026) if "Back-to-School" in h.name]
-    assert len(back_to_school_windows) == 5  # clothing, supplies, computers, peripherals, software
+    assert len(back_to_school_windows) == 6
     expected_start = dt.date(2026, 8, 7)
     expected_end = dt.date(2026, 8, 9)
     for h in back_to_school_windows:
@@ -250,6 +252,10 @@ def test_missouri_2026_back_to_school_per_item_caps() -> None:
     assert software.max_amount_per_item == Decimal("350.00")
     assert software.applicable_categories == ("computer_software",)
 
+    calculators = next(h for n, h in by_name.items() if "Graphing Calculators" in n)
+    assert calculators.max_amount_per_item == Decimal("150.00")
+    assert calculators.applicable_categories == ("graphing_calculators",)
+
 
 def test_missouri_every_holiday_cites_statute() -> None:
     """Per the project quality bar: every HolidayWindow.notes must cite
@@ -270,3 +276,25 @@ def test_missouri_holidays_chronologically_ordered() -> None:
     # The remainder should all be Back-to-School in August
     for s in starts[1:]:
         assert s == dt.date(2026, 8, 7)
+
+
+def test_missouri_holiday_dates_2027() -> None:
+    """2027: Show-Me Green Apr 19-25 (fixed dates); Back-to-School Aug 6-8 (first Friday).
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(MISSOURI.holidays_for(2027))
+    show_me_green = [h for h in holidays if "Show-Me Green" in h.name]
+    back_to_school = [h for h in holidays if "Back-to-School" in h.name]
+    assert {(h.starts_on, h.ends_on) for h in show_me_green} == {
+        (dt.date(2027, 4, 19), dt.date(2027, 4, 25))
+    }
+    assert {(h.starts_on, h.ends_on) for h in back_to_school} == {
+        (dt.date(2027, 8, 6), dt.date(2027, 8, 8))
+    }
+    assert dt.date(2027, 8, 6).strftime("%A") == "Friday"
+    assert dt.date(2027, 8, 6).day <= 7
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in MISSOURI.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)

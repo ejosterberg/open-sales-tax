@@ -100,9 +100,9 @@ Missouri has TWO annual sales-tax holidays codified in Chapter
   144.526) -- begins at 12:01 a.m. on April 19 and ends at
   midnight on April 25 each year (fixed calendar dates, NOT
   weekday-relative). Exempts qualifying Energy Star certified
-  new appliances $1,500 or less per item. The state-level
-  exemption applies automatically; cities and counties may opt
-  out, in which case local sales tax still applies.
+  new appliances $1,500 or less per item, from state and all
+  local sales and use taxes; since January 1, 2023 (S.B. 153 &
+  97 of 2021) political subdivisions can no longer opt out.
 - **Back-to-School Sales Tax Holiday** (Mo. Rev. Stat. section
   144.049) -- begins at 12:01 a.m. on the first Friday in August
   and ends at midnight on the Sunday following. Exempts:
@@ -111,8 +111,9 @@ Missouri has TWO annual sales-tax holidays codified in Chapter
   - Personal computers $1,500 or less
   - Computer peripheral devices $1,500 or less
   - Computer software $350 or less
+  - Graphing calculators $150 or less
 
-  As of 2023 (HB 154 of 2021, codified at section 144.049.10),
+  As of 2023 (S.B. 153 & 97 of 2021),
   cities and counties no longer have the option to opt out --
   the back-to-school holiday is mandatory at all jurisdiction
   levels.
@@ -269,6 +270,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # art. IV, section 47(a)). The current 4.225% composition has been
 # stable since 1984.
 _RATE_EFFECTIVE_FROM = dt.date(1984, 1, 1)
+
+
+_BACK_TO_SCHOOL_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 7), dt.date(2026, 8, 9)),
+    2027: (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+}
 
 
 class Missouri:
@@ -431,11 +438,9 @@ class Missouri:
     def special_cases(self) -> Iterable[SpecialCase]:
         """No special cases consumed by the engine in v0.7.
 
-        Local-jurisdiction opt-out behavior for the Show-Me Green
-        holiday and the (now-mandatory) back-to-school holiday are
-        documented in the module docstring and would become
-        SpecialCase entries once the engine layer that reads them
-        lands.
+        Both holidays have covered state and all local taxes, with no
+        local opt-out, since January 1, 2023 (S.B. 153 & 97 of
+        2021), so there is no opt-out behavior to model.
         """
         return iter(())
 
@@ -459,18 +464,22 @@ class Missouri:
         - Show-Me Green: Sun April 19 -- Sat April 25, 2026.
         - Back-to-School: first Friday of August 2026 is August 7;
           holiday runs Aug 7 (Fri) -- Aug 9 (Sun), 2026.
-        """
-        if year != 2026:
-            return iter(())
 
-        show_me_green_start = dt.date(2026, 4, 19)
-        show_me_green_end = dt.date(2026, 4, 25)
-        back_to_school_start = dt.date(2026, 8, 7)
-        back_to_school_end = dt.date(2026, 8, 9)
+        For 2027:
+        - Show-Me Green: Mon April 19 -- Sun April 25, 2027.
+        - Back-to-School: first Friday of August 2027 is August 6;
+          holiday runs Aug 6 (Fri) -- Aug 8 (Sun), 2027.
+        """
+        dates = _BACK_TO_SCHOOL_DATES.get(year)
+        if dates is None:
+            return iter(())
+        show_me_green_start = dt.date(year, 4, 19)
+        show_me_green_end = dt.date(year, 4, 25)
+        back_to_school_start, back_to_school_end = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Missouri Show-Me Green Sales Tax Holiday (2026)",
+                    name=f"Missouri Show-Me Green Sales Tax Holiday ({year})",
                     starts_on=show_me_green_start,
                     ends_on=show_me_green_end,
                     applicable_categories=("energy_star",),
@@ -483,14 +492,15 @@ class Missouri:
                         "priced $1,500 or less per item are exempt "
                         "from the state 4.225% sales tax from 12:01 "
                         "a.m. April 19 through midnight April 25 each "
-                        "year. Cities and counties may opt out, in "
-                        "which case local sales tax still applies. "
+                        "year, from state and all local sales and "
+                        "use taxes (no local opt-out since January "
+                        "1, 2023, S.B. 153 & 97 of 2021). "
                         "The engine-level cap is the statutory $1,500. "
                         "Calculation only -- not tax advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="Missouri Back-to-School Sales Tax Holiday -- Clothing (2026)",
+                    name=f"Missouri Back-to-School Sales Tax Holiday -- Clothing ({year})",
                     starts_on=back_to_school_start,
                     ends_on=back_to_school_end,
                     applicable_categories=("clothing",),
@@ -503,14 +513,14 @@ class Missouri:
                         "exempt from sales tax during the holiday. "
                         "Excludes accessories, watches, jewelry, "
                         "umbrellas, handbags, and items containing "
-                        "fur. Per HB 154 (2021), the holiday is "
+                        "fur. Per S.B. 153 & 97 (2021), the holiday is "
                         "mandatory at all jurisdiction levels (cities "
                         "and counties may no longer opt out). "
                         "Calculation only -- not tax advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="Missouri Back-to-School Sales Tax Holiday -- School Supplies (2026)",
+                    name=f"Missouri Back-to-School Sales Tax Holiday -- School Supplies ({year})",
                     starts_on=back_to_school_start,
                     ends_on=back_to_school_end,
                     applicable_categories=("school_supplies",),
@@ -530,7 +540,10 @@ class Missouri:
                     ),
                 ),
                 HolidayWindow(
-                    name="Missouri Back-to-School Sales Tax Holiday -- Personal Computers (2026)",
+                    name=(
+                        "Missouri Back-to-School Sales Tax Holiday -- "
+                        f"Personal Computers ({year})"
+                    ),
                     starts_on=back_to_school_start,
                     ends_on=back_to_school_end,
                     applicable_categories=("computers",),
@@ -545,7 +558,7 @@ class Missouri:
                 HolidayWindow(
                     name=(
                         "Missouri Back-to-School Sales Tax Holiday "
-                        "-- Computer Peripherals (2026)"
+                        f"-- Computer Peripherals ({year})"
                     ),
                     starts_on=back_to_school_start,
                     ends_on=back_to_school_end,
@@ -561,7 +574,7 @@ class Missouri:
                     ),
                 ),
                 HolidayWindow(
-                    name="Missouri Back-to-School Sales Tax Holiday -- Computer Software (2026)",
+                    name=f"Missouri Back-to-School Sales Tax Holiday -- Computer Software ({year})",
                     starts_on=back_to_school_start,
                     ends_on=back_to_school_end,
                     applicable_categories=("computer_software",),
@@ -571,6 +584,23 @@ class Missouri:
                         "computer software priced $350 or less per "
                         "item is exempt during the holiday. "
                         "Calculation only -- not tax advice."
+                    ),
+                ),
+                HolidayWindow(
+                    name=(
+                        "Missouri Back-to-School Sales Tax Holiday -- "
+                        f"Graphing Calculators ({year})"
+                    ),
+                    starts_on=back_to_school_start,
+                    ends_on=back_to_school_end,
+                    applicable_categories=("graphing_calculators",),
+                    max_amount_per_item=Decimal("150.00"),
+                    notes=(
+                        "Mo. Rev. Stat. section 144.049.2: graphing "
+                        "calculators having a taxable value of $150 "
+                        "or less are exempt from state and local "
+                        "sales tax during the holiday. Calculation "
+                        "only -- not tax advice."
                     ),
                 ),
             ]
