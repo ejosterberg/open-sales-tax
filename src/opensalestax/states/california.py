@@ -54,8 +54,10 @@ Taxability matrix:
   taxable.
 - **Prescription drugs** -- NON-taxable (section 6369).
 - **Prepared food** -- taxable.
-- **Digital goods** -- TAXABLE per AB 147 (2019) and subsequent
-  CDTFA guidance.
+- **Digital goods** -- NON-taxable when transferred electronically
+  with no tangible storage medium (18 CCR 1502(f)(1)(D); CDTFA
+  Publication 109). AB 147 (Stats. 2019, ch. 5) is the Marketplace
+  Facilitator Act: it changed who must collect, not what is taxable.
 
 State maintainer: vacant -- see MAINTAINERS.md. CA is the highest-
 impact state in the US; a maintainer who knows the CDTFA address-
@@ -127,10 +129,15 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
     ),
     "digital_goods": TaxabilityRule(
         item_category="digital_goods",
-        is_taxable=True,
+        is_taxable=False,
         notes=(
-            "Digital goods are taxable in California per AB 147 (2019) "
-            "and subsequent CDTFA guidance."
+            "Digital goods transferred electronically, with no tangible "
+            "storage medium, are not taxable: CDTFA Publication 109 "
+            "('The transfer of a downloadable file such as an eBook or "
+            "an app without purchasing any physical storage medium is "
+            "not a taxable transaction') and, for prewritten programs, "
+            "18 CCR 1502(f)(1)(D). The same item sold on a disc, flash "
+            "drive, or other medium is taxable."
         ),
     ),
     "general": TaxabilityRule(

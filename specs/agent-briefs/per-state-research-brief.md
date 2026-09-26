@@ -62,7 +62,7 @@ Use these 6 categories as the baseline (the loader prepopulates them):
 - `groceries` — usually non-taxable; IL is a famous exception (1% reduced rate)
 - `prescription_drugs` — almost always non-taxable
 - `prepared_food` — almost always taxable
-- `digital_goods` — varies; check state-specific legislation (CA's AB 147, MD's HB 932)
+- `digital_goods` — varies; check state-specific legislation and the DOR's guidance on electronic delivery (MD taxes them under HB 932 of 2021; CA does not, per 18 CCR 1502(f)(1)(D) and CDTFA Publication 109)
 
 For each category, your `TaxabilityRule` should:
 - Set `is_taxable` boolean correctly

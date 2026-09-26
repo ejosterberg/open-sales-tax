@@ -67,7 +67,7 @@ def test_california_is_registered() -> None:
         ("groceries", False),
         ("prescription_drugs", False),
         ("prepared_food", True),
-        ("digital_goods", True),
+        ("digital_goods", False),  # electronic transfer, 18 CCR 1502(f)(1)(D)
         ("general", True),
     ],
 )
