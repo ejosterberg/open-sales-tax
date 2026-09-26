@@ -281,6 +281,12 @@ _RATE_EFFECTIVE_TO = dt.date(2029, 12, 31)
 _RATE_PCT = Decimal("5.000")
 
 
+_SECOND_AMENDMENT_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 9, 4), dt.date(2026, 9, 6)),
+    2027: (dt.date(2027, 9, 3), dt.date(2027, 9, 5)),
+}
+
+
 class Louisiana:
     """Louisiana state module (tier 1; statewide rate only in v0.7).
 
@@ -366,27 +372,33 @@ class Louisiana:
 
         For 2026 the first Friday of September is **September 4**
         (Sept 1 is a Tuesday), so the holiday runs September 4-6,
-        2026.
+        2026. For 2027 it is **September 3** (Sept 1 is a Wednesday),
+        so the holiday runs September 3-5, 2027.
 
         Two other LA holidays (back-to-school under R.S. 47:305.54
-        and hurricane preparedness under R.S. 47:305.58) have been
-        suspended since 2018 and were NOT reauthorized in the 2025
-        Regular Session (HB 551 died on 2025-06-12). They are
-        intentionally NOT yielded here.
+        and hurricane preparedness under R.S. 47:305.58) were
+        repealed by Act 11 of the 2024 Third Extraordinary Session
+        (section 4), effective for tax periods beginning January 1,
+        2025; Act 11 retained the Second Amendment weekend. HB 551 of
+        2025, which proposed a new back-to-school holiday, died on
+        2025-06-12. The repealed holidays are intentionally NOT
+        yielded here.
 
         Subsequent years require an explicit data update; do not
         extrapolate the statutory formula -- the legislature has a
         documented history of suspending or amending these
         holidays in budget cycles.
         """
-        if year != 2026:
+        dates = _SECOND_AMENDMENT_DATES.get(year)
+        if dates is None:
             return iter(())
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Louisiana Second Amendment Weekend Holiday (2026)",
-                    starts_on=dt.date(2026, 9, 4),
-                    ends_on=dt.date(2026, 9, 6),
+                    name=f"Louisiana Second Amendment Weekend Holiday ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=(
                         "firearms",
                         "ammunition",

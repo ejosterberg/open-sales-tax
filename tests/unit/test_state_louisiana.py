@@ -278,5 +278,22 @@ def test_louisiana_holiday_unknown_year_returns_empty() -> None:
     """
     assert list(LOUISIANA.holidays_for(2024)) == []
     assert list(LOUISIANA.holidays_for(2025)) == []
-    assert list(LOUISIANA.holidays_for(2027)) == []
+    assert list(LOUISIANA.holidays_for(2028)) == []
     assert list(LOUISIANA.holidays_for(2099)) == []
+
+
+def test_louisiana_holiday_dates_2027() -> None:
+    """2027: the first consecutive Friday-Sunday in September (Sep 3-5).
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(LOUISIANA.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 9, 3), dt.date(2027, 9, 5))
+    }
+    assert dt.date(2027, 9, 3).strftime("%A") == "Friday"
+    assert dt.date(2027, 9, 3).day <= 7
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in LOUISIANA.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
