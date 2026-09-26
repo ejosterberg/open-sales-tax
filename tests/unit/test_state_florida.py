@@ -275,12 +275,57 @@ def test_florida_special_cases_empty() -> None:
 
 
 def test_florida_holidays_2026_count() -> None:
-    """FL ships 4 sales-tax holidays for 2026 (Disaster Prep / Freedom Month
-    / Back-to-School / Tool Time).
-    """
-    assert len(list(FLORIDA.holidays_for(2026))) == 4
+    """FL's 2026 holidays: back-to-school (4 price caps) + hunting, fishing, and camping (9)."""
+    assert len(list(FLORIDA.holidays_for(2026))) == 13
 
 
 def test_florida_holidays_unknown_year_returns_empty() -> None:
     assert list(FLORIDA.holidays_for(2025)) == []
+    assert list(FLORIDA.holidays_for(2028)) == []
     assert list(FLORIDA.holidays_for(2099)) == []
+
+
+@pytest.mark.parametrize("year", [2026, 2027])
+def test_florida_back_to_school_runs_july_20_to_august_20(year: int) -> None:
+    """Fla. Stat. 212.08(20)(a), as amended by ch. 2026-239: one window per price cap."""
+    windows = [h for h in FLORIDA.holidays_for(year) if "Back-to-School" in h.name]
+    assert {(h.starts_on, h.ends_on) for h in windows} == {
+        (dt.date(year, 7, 20), dt.date(year, 8, 20))
+    }
+    caps = {h.applicable_categories: h.max_amount_per_item for h in windows}
+    assert caps == {
+        ("clothing", "backpacks", "handbags", "wallets"): Decimal("100.00"),
+        ("school_supplies",): Decimal("50.00"),
+        ("learning_aids", "jigsaw_puzzles"): Decimal("30.00"),
+        ("computers",): Decimal("1500.00"),
+    }
+
+
+def test_florida_hunting_fishing_camping_holiday_is_2026_only() -> None:
+    """Section 43, ch. 2026-239: September 1 - December 31, 2026, and not 2027."""
+    windows = [h for h in FLORIDA.holidays_for(2026) if "Hunting, Fishing, and Camping" in h.name]
+    assert len(windows) == 9
+    assert {(h.starts_on, h.ends_on) for h in windows} == {
+        (dt.date(2026, 9, 1), dt.date(2026, 12, 31))
+    }
+    caps = {c: h.max_amount_per_item for h in windows for c in h.applicable_categories or ()}
+    assert caps["firearms"] is None
+    assert caps["tents"] == Decimal("200.00")
+    assert caps["sleeping_bags"] == Decimal("50.00")
+    assert caps["flashlights"] == Decimal("30.00")
+    assert caps["fishing_rods"] == Decimal("75.00")
+    assert caps["fishing_rod_and_reel_sets"] == Decimal("150.00")
+    assert caps["fishing_tackle"] == Decimal("10.00")
+    assert not [h for h in FLORIDA.holidays_for(2027) if "Hunting" in h.name]
+
+
+def test_florida_retired_holidays_are_gone() -> None:
+    """Disaster Preparedness, Freedom Month, and Tool Time are not 2026 or 2027 holidays.
+
+    Disaster-preparedness items are exempt year-round since August 1,
+    2025 (ch. 2025-208); the 2026 tax package enacted no Freedom Month
+    or Tool Time holiday.
+    """
+    for year in (2026, 2027):
+        names = [h.name for h in FLORIDA.holidays_for(year)]
+        assert not [n for n in names if "Disaster" in n or "Freedom" in n or "Tool Time" in n]

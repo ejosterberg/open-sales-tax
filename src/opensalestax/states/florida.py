@@ -15,10 +15,9 @@ county surtax table (all 67 counties) and the 30 covered cities.
 
 Taxability matrix (per Fla. Stat. Chapter 212):
 
-- **Clothing** -- TAXABLE (no general exemption). FL runs annual
-  sales-tax holidays (Back to School, Disaster Preparedness,
-  Tool Time, Freedom Month) that temporarily exempt qualifying
-  items; modeled when the holidays feature lands.
+- **Clothing** -- TAXABLE (no general exemption). The annual
+  back-to-school holiday (Fla. Stat. 212.08(20)) temporarily
+  exempts qualifying items; see :meth:`Florida.holidays_for`.
 - **Groceries** -- NON-taxable for "groceries" (Fla. Stat.
   212.08(1)). Prepared food, candy, soda: taxable.
 - **Prescription drugs** -- NON-taxable.
@@ -37,9 +36,9 @@ NOT modeled in this loader:
   separate from general sales tax.
 
 State maintainer: vacant -- see MAINTAINERS.md. FL's annual
-sales-tax holidays are extensive (typically 4-5 per year, set
-by annual legislation); a maintainer who tracks legislative
-sessions is ideal.
+back-to-school holiday is permanent in statute, but other
+holidays come and go with each year's tax package; a maintainer
+who tracks legislative sessions is ideal.
 
 DISCLAIMER: This is calculation infrastructure, not tax advice.
 Verify every rule against the current FL DOR DR-15DSS publication
@@ -79,9 +78,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
         item_category="clothing",
         is_taxable=True,
         notes=(
-            "Clothing IS taxable in Florida year-round. Annual "
-            "back-to-school sales-tax holidays temporarily exempt "
-            "qualifying items; modeled when the holidays feature lands."
+            "Clothing IS taxable in Florida year-round. The annual "
+            "back-to-school sales-tax holiday (Fla. Stat. 212.08(20)) "
+            "temporarily exempts qualifying items."
         ),
     ),
     "groceries": TaxabilityRule(
@@ -258,49 +257,26 @@ class Florida:
         return iter(())
 
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
-        """Florida runs 4-5 annual sales-tax holidays set by legislation.
+        """Florida's sales-tax holidays for the years encoded in this module.
 
-        2026 dates encoded explicitly. Add subsequent years as the
-        Florida Legislature's annual tax-relief bill is published.
+        - Back-to-school (Fla. Stat. 212.08(20)): July 20 through
+          August 20 each year. Permanent since ch. 2025-208; section
+          27 of ch. 2026-239 set the current dates. One window per cap.
+        - Hunting, fishing, and camping (section 43 of ch. 2026-239,
+          uncodified): September 1 through December 31, 2026 only.
+
+        Disaster-preparedness items have been exempt year-round since
+        August 1, 2025 (ch. 2025-208), so they are no longer a holiday,
+        and 2026 has no Freedom Month or Tool Time holiday. Other
+        temporary holidays come from each year's tax package; add them
+        as they are enacted.
         """
-        if year != 2026:
+        if year not in (2026, 2027):
             return iter(())
-        return iter(
-            [
-                HolidayWindow(
-                    name="Disaster Preparedness (2026)",
-                    starts_on=dt.date(2026, 6, 1),
-                    ends_on=dt.date(2026, 6, 14),
-                    applicable_categories=("emergency_supplies",),
-                    max_amount_per_item=None,
-                    notes="Batteries, generators, ice chests, etc.",
-                ),
-                HolidayWindow(
-                    name="Freedom Month (2026)",
-                    starts_on=dt.date(2026, 7, 1),
-                    ends_on=dt.date(2026, 7, 31),
-                    applicable_categories=("recreation", "entertainment"),
-                    max_amount_per_item=None,
-                    notes="Outdoor recreation gear, event admissions, etc.",
-                ),
-                HolidayWindow(
-                    name="Back-to-School (2026)",
-                    starts_on=dt.date(2026, 8, 1),
-                    ends_on=dt.date(2026, 8, 14),
-                    applicable_categories=("clothing", "school_supplies", "computers"),
-                    max_amount_per_item=Decimal("100.00"),
-                    notes="Clothing $100/less, supplies $50/less, computers $1500/less.",
-                ),
-                HolidayWindow(
-                    name="Tool Time (2026)",
-                    starts_on=dt.date(2026, 9, 5),
-                    ends_on=dt.date(2026, 9, 11),
-                    applicable_categories=("tools",),
-                    max_amount_per_item=None,
-                    notes="Tools and shop supplies for skilled trade workers.",
-                ),
-            ]
-        )
+        windows = _back_to_school(year)
+        if year == 2026:
+            windows.extend(_HUNTING_FISHING_CAMPING_2026)
+        return iter(windows)
 
     def shipping_rule_set(self) -> ShippingRuleSet:
         """Return FL's shipping rule.
@@ -315,6 +291,130 @@ class Florida:
             citation="FL Rule 12A-1.045",
         )
 
+
+def _back_to_school(year: int) -> list[HolidayWindow]:
+    """Fla. Stat. 212.08(20)(a): one window per statutory price cap."""
+    starts_on, ends_on = dt.date(year, 7, 20), dt.date(year, 8, 20)
+    common = (
+        "Fla. Stat. 212.08(20). Not available for rentals, repairs, or "
+        "sales within a theme park or entertainment complex, public "
+        "lodging establishment, or airport; dealers cannot opt out."
+    )
+    return [
+        HolidayWindow(
+            name=f"Back-to-School -- Clothing, Footwear, Wallets, and Bags ({year})",
+            starts_on=starts_on,
+            ends_on=ends_on,
+            applicable_categories=("clothing", "backpacks", "handbags", "wallets"),
+            max_amount_per_item=Decimal("100.00"),
+            notes=(
+                "Clothing, footwear, wallets, and bags (handbags, backpacks, "
+                "fanny packs, diaper bags) priced $100 or less per item; "
+                "briefcases, suitcases, garment bags, watches, jewelry, "
+                "umbrellas, skis, swim fins, roller blades, and skates are "
+                f"excluded. {common}"
+            ),
+        ),
+        HolidayWindow(
+            name=f"Back-to-School -- School Supplies ({year})",
+            starts_on=starts_on,
+            ends_on=ends_on,
+            applicable_categories=("school_supplies",),
+            max_amount_per_item=Decimal("50.00"),
+            notes=f"School supplies priced $50 or less per item. {common}",
+        ),
+        HolidayWindow(
+            name=f"Back-to-School -- Learning Aids and Jigsaw Puzzles ({year})",
+            starts_on=starts_on,
+            ends_on=ends_on,
+            applicable_categories=("learning_aids", "jigsaw_puzzles"),
+            max_amount_per_item=Decimal("30.00"),
+            notes=f"Learning aids and jigsaw puzzles priced $30 or less. {common}",
+        ),
+        HolidayWindow(
+            name=f"Back-to-School -- Personal Computers ({year})",
+            starts_on=starts_on,
+            ends_on=ends_on,
+            applicable_categories=("computers",),
+            max_amount_per_item=Decimal("1500.00"),
+            notes=(
+                "Personal computers and computer-related accessories priced "
+                "$1,500 or less, for noncommercial home or personal use; "
+                "cellular telephones, video game consoles, and digital media "
+                f"receivers are excluded. {common}"
+            ),
+        ),
+    ]
+
+
+def _hunting_fishing_camping(
+    label: str, categories: tuple[str, ...], cap: str | None, notes: str
+) -> HolidayWindow:
+    return HolidayWindow(
+        name=f"Hunting, Fishing, and Camping -- {label} (2026)",
+        starts_on=dt.date(2026, 9, 1),
+        ends_on=dt.date(2026, 12, 31),
+        applicable_categories=categories,
+        max_amount_per_item=None if cap is None else Decimal(cap),
+        notes=f"{notes} Section 43, ch. 2026-239, Laws of Florida.",
+    )
+
+
+_HUNTING_FISHING_CAMPING_2026: tuple[HolidayWindow, ...] = (
+    _hunting_fishing_camping(
+        "Firearms, Ammunition, and Archery",
+        ("firearms", "ammunition", "hunting_supplies"),
+        None,
+        "Firearms, ammunition, the listed firearm accessories, bows, "
+        "crossbows, and the listed archery accessories; no price cap.",
+    ),
+    _hunting_fishing_camping("Tents", ("tents",), "200.00", "Tents priced $200 or less."),
+    _hunting_fishing_camping(
+        "Camping Gear",
+        ("sleeping_bags", "portable_hammocks", "camping_stoves", "camping_chairs"),
+        "50.00",
+        "Sleeping bags, portable hammocks, camping stoves, and collapsible "
+        "camping chairs priced $50 or less.",
+    ),
+    _hunting_fishing_camping(
+        "Lanterns and Flashlights",
+        ("camping_lanterns", "flashlights"),
+        "30.00",
+        "Camping lanterns and flashlights priced $30 or less.",
+    ),
+    _hunting_fishing_camping(
+        "Rods and Reels",
+        ("fishing_rods", "fishing_reels"),
+        "75.00",
+        "Rods and reels priced $75 or less sold individually; not for " "commercial fishing.",
+    ),
+    _hunting_fishing_camping(
+        "Rod and Reel Sets",
+        ("fishing_rod_and_reel_sets",),
+        "150.00",
+        "Rods and reels sold as a set priced $150 or less; not for " "commercial fishing.",
+    ),
+    _hunting_fishing_camping(
+        "Tackle Boxes",
+        ("tackle_boxes",),
+        "30.00",
+        "Tackle boxes or bags priced $30 or less; not for commercial fishing.",
+    ),
+    _hunting_fishing_camping(
+        "Bait and Tackle",
+        ("fishing_bait", "fishing_tackle"),
+        "10.00",
+        "Bait or fishing tackle priced $10 or less sold individually; not "
+        "for commercial fishing.",
+    ),
+    _hunting_fishing_camping(
+        "Bait and Tackle Sold Together",
+        ("fishing_tackle_sets",),
+        "20.00",
+        "Bait or fishing tackle sold together as multiple items priced "
+        "$20 or less; not for commercial fishing.",
+    ),
+)
 
 _PROTOCOL_CHECK: StateModule = Florida()
 del _PROTOCOL_CHECK
