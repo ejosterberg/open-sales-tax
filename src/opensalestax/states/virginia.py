@@ -236,6 +236,12 @@ _RATE_EFFECTIVE_FROM = dt.date(2013, 7, 1)
 _STATEWIDE_MINIMUM_RATE_PCT = Decimal("5.300")
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 7), dt.date(2026, 8, 9)),
+    2027: (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+}
+
+
 class Virginia:
     """Virginia state module (tier 1; statewide minimum rate only in v0.6)."""
 
@@ -512,7 +518,8 @@ class Virginia:
         12:01 a.m. and ends the following Sunday at 11:59 p.m.
 
         For 2026 the first Friday of August is August 7, so the
-        holiday runs August 7-9, 2026.
+        holiday runs August 7-9, 2026. For 2027 it is August 6, so
+        the holiday runs August 6-8, 2027.
 
         The single statutory holiday covers four scopes; each is
         encoded as a separate :class:`HolidayWindow` so the engine
@@ -522,16 +529,14 @@ class Virginia:
         documented in ``notes`` and will be enforced once the
         threshold-rule engine work lands in v0.6+.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # 2026 dates: first Friday of August is August 7;
-        # holiday ends the following Sunday, August 9.
-        starts_on = dt.date(2026, 8, 7)
-        ends_on = dt.date(2026, 8, 9)
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Virginia Sales Tax Holiday -- School Supplies (2026)",
+                    name=f"Virginia Sales Tax Holiday -- School Supplies ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_supplies",),
@@ -544,7 +549,7 @@ class Virginia:
                     ),
                 ),
                 HolidayWindow(
-                    name="Virginia Sales Tax Holiday -- Clothing & Footwear (2026)",
+                    name=f"Virginia Sales Tax Holiday -- Clothing & Footwear ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("clothing",),
@@ -556,7 +561,7 @@ class Virginia:
                     ),
                 ),
                 HolidayWindow(
-                    name="Virginia Sales Tax Holiday -- Energy Star & WaterSense (2026)",
+                    name=f"Virginia Sales Tax Holiday -- Energy Star & WaterSense ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("energy_star", "water_efficient"),
@@ -570,7 +575,7 @@ class Virginia:
                     ),
                 ),
                 HolidayWindow(
-                    name="Virginia Sales Tax Holiday -- Hurricane Preparedness (2026)",
+                    name=f"Virginia Sales Tax Holiday -- Hurricane Preparedness ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("emergency_supplies",),
