@@ -47,9 +47,9 @@ Taxability matrix (per W. Va. Code Chapter 11, Article 15):
   general clothing exemption** in chapter 11, article 15;
   clothing and footwear are general tangible personal
   property and tax at the rate set by section 11-15-3. The
-  annual Sales Tax Holiday on the first Friday-Monday of
-  August (W. Va. Code section 11-15-9o) provides a 4-day
-  window for clothing/footwear items priced under $125 --
+  annual Sales Tax Holiday around the first Sunday of August
+  (W. Va. Code section 11-15-9s) provides a 4-day window for
+  clothing/footwear items priced $125 or less --
   modeled in :meth:`WestVirginia.holidays_for`.
 - **Groceries (food and food ingredients for home consumption)**
   -- **EXEMPT** since 2013-07-01 per **W. Va. Code section
@@ -112,12 +112,13 @@ Taxability matrix (per W. Va. Code Chapter 11, Article 15):
   personal property in chapter 11, article 15.
 
 Sales tax holiday -- West Virginia Annual Sales Tax Holiday
-(W. Va. Code section 11-15-9o):
+(W. Va. Code section 11-15-9s):
 
-- Recurring date: **first Friday in August at 12:00 a.m.
-  through the following Monday at 11:59 p.m.** (a 4-day
-  window). The holiday was enacted by H.B. 2025 of the 2021
-  Regular Session and codified as section 11-15-9o.
+- Recurring date: **the first Sunday of August, or the
+  previous Friday and Saturday, or the following Monday** (a
+  4-day window, Friday through Monday). The holiday was
+  enacted by H.B. 206 of the 2019 First Special Session,
+  effective July 1, 2021, and codified as section 11-15-9s.
 - Multi-scope holiday with FIVE distinct per-item caps:
 
     * **Clothing and footwear**: $125 or less per item
@@ -131,8 +132,11 @@ Sales tax holiday -- West Virginia Annual Sales Tax Holiday
   because :attr:`HolidayWindow.max_amount_per_item` is a
   single-value field. The same pattern is used by VA, MO, and
   other multi-scope-holiday states.
-- 2026 dates: **August 7 (Friday) - August 10 (Monday), 2026**
-  (first Friday in August 2026 is August 7).
+- 2026 dates: **July 31 (Friday) - August 3 (Monday), 2026**
+  (first Sunday of August 2026 is August 2), as the State Tax
+  Department announced. 2027 dates: **July 30 (Friday) -
+  August 2 (Monday), 2027** (first Sunday of August 2027 is
+  August 1).
 
 State maintainer: vacant -- see MAINTAINERS.md. WV's per-city
 home-rule sales tax rates are loaded from the SST quarterly file
@@ -175,8 +179,8 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "contains no general clothing exemption; clothing and "
             "footwear are general tangible personal property and tax "
             "at the rate set by W. Va. Code section 11-15-3. The "
-            "annual West Virginia Sales Tax Holiday on the first "
-            "Friday-Monday of August (W. Va. Code section 11-15-9o) "
+            "annual West Virginia Sales Tax Holiday around the "
+            "first Sunday of August (W. Va. Code section 11-15-9s) "
             "provides a 4-day exemption for clothing and footwear "
             "priced $125 or less per item. Calculation only -- not "
             "legal or tax advice."
@@ -275,6 +279,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 7, 31), dt.date(2026, 8, 3)),
+    2027: (dt.date(2027, 7, 30), dt.date(2027, 8, 2)),
+}
+
+
 class WestVirginia(SstStateModule):
     """West Virginia state module (tier 1, SST member).
 
@@ -283,7 +293,7 @@ class WestVirginia(SstStateModule):
     quarterly rate and boundary files. This subclass overrides the
     taxability matrix with WV-specific rules grounded in W. Va.
     Code chapter 11, article 15 and adds the annual August sales-
-    tax holiday under W. Va. Code section 11-15-9o.
+    tax holiday under W. Va. Code section 11-15-9s.
 
     Notable WV history encoded in the docstring + grocery rule:
 
@@ -291,7 +301,7 @@ class WestVirginia(SstStateModule):
       (2006-2013), reaching 0% on 2013-07-01 -- a multi-year
       sequence of legislative steps culminating in full
       elimination per section 11-15-3a.
-    - The annual August holiday (section 11-15-9o, enacted 2021)
+    - The annual August holiday (section 11-15-9s, effective 2021)
       is a 4-day, multi-scope holiday with five distinct per-item
       caps (clothing $125, school supplies $50, instructional
       materials $20, sports equipment $150, computers $500).
@@ -319,11 +329,11 @@ class WestVirginia(SstStateModule):
         return super()._authority_name(code, authority_type)
 
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
-        """West Virginia's annual sales-tax holiday under section 11-15-9o.
+        """West Virginia's annual sales-tax holiday under section 11-15-9s.
 
-        Recurring statutory date: first Friday in August at 12:00
-        a.m. through the following Monday at 11:59 p.m. -- a 4-day
-        window. The holiday covers FIVE distinct scopes with
+        Recurring statutory date: "the first Sunday of August, or
+        the previous Friday and Saturday, or the following Monday"
+        -- a 4-day window, Friday through Monday. The holiday covers FIVE distinct scopes with
         different per-item caps; each scope is encoded as a
         separate :class:`HolidayWindow` because
         :attr:`HolidayWindow.max_amount_per_item` is a single-value
@@ -339,111 +349,112 @@ class WestVirginia(SstStateModule):
         - Computers / tablets / laptops for personal use:
           $500 or less per item
 
-        2026 dates encoded explicitly per the recurring statutory
-        rule. Subsequent years require an explicit data update (do
+        2026 and 2027 dates are encoded explicitly per the recurring
+        statutory rule. Subsequent years require an explicit data update (do
         NOT extrapolate -- the legislature could amend the dates,
         scope, or per-item caps at any time, and a future
         maintainer must verify against the West Virginia State
         Tax Department's published guidance for each year).
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # 2026 dates: first Friday of August is August 7;
-        # holiday ends the following Monday, August 10.
-        starts_on = dt.date(2026, 8, 7)
-        ends_on = dt.date(2026, 8, 10)
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="West Virginia Sales Tax Holiday -- Clothing & Footwear (2026)",
+                    name=f"West Virginia Sales Tax Holiday -- Clothing & Footwear ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("clothing",),
                     max_amount_per_item=Decimal("125.00"),
                     notes=(
-                        "W. Va. Code section 11-15-9o (enacted by "
-                        "H.B. 2025, 2021 Regular Session). Four-day "
+                        "W. Va. Code section 11-15-9s (H.B. 206, "
+                        "2019 First Special Session, effective July "
+                        "1, 2021). Four-day "
                         "exemption from the 6% state sales tax (and "
                         "from local municipal home-rule sales taxes "
                         "under section 8-13C) for clothing and "
                         "footwear priced $125 or LESS per item. The "
                         "$125 threshold is per item, not per "
-                        "transaction. The holiday runs from 12:00 "
-                        "a.m. on the first Friday in August through "
-                        "11:59 p.m. on the following Monday. 2026: "
-                        "first Friday in August is August 7; holiday "
-                        "runs through Monday August 10. Calculation "
+                        "transaction. The holiday covers the first "
+                        "Sunday of August plus the previous Friday "
+                        "and Saturday and the following Monday: "
+                        "July 31 - August 3 in 2026 and July 30 - "
+                        "August 2 in 2027. Calculation "
                         "only -- not legal or tax advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="West Virginia Sales Tax Holiday -- School Supplies (2026)",
+                    name=f"West Virginia Sales Tax Holiday -- School Supplies ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_supplies",),
                     max_amount_per_item=Decimal("50.00"),
                     notes=(
-                        "W. Va. Code section 11-15-9o. Four-day "
+                        "W. Va. Code section 11-15-9s. Four-day "
                         "exemption from the 6% state sales tax for "
                         "qualifying school supplies (binders, "
                         "calculators, notebooks, pens, pencils, "
                         "paper, etc.) priced $50 or LESS per item. "
-                        "2026 dates: August 7 (Friday) through "
-                        "August 10 (Monday). Calculation only -- "
+                        "Dates: July 31 - August 3, 2026 and July 30 - "
+                        "August 2, 2027. Calculation only -- "
                         "not legal or tax advice."
                     ),
                 ),
                 HolidayWindow(
                     name=(
                         "West Virginia Sales Tax Holiday -- "
-                        "School Instructional Materials (2026)"
+                        f"School Instructional Materials ({year})"
                     ),
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_instructional_materials",),
                     max_amount_per_item=Decimal("20.00"),
                     notes=(
-                        "W. Va. Code section 11-15-9o. Four-day "
+                        "W. Va. Code section 11-15-9s. Four-day "
                         "exemption from the 6% state sales tax for "
                         "qualifying school instructional materials "
                         "(reference books, reference maps and "
                         "globes, textbooks, workbooks) priced $20 "
-                        "or LESS per item. 2026 dates: August 7 "
-                        "(Friday) through August 10 (Monday). "
+                        "or LESS per item. "
+                        "Dates: July 31 - August 3, 2026 and July 30 - "
+                        "August 2, 2027. "
                         "Calculation only -- not legal or tax "
                         "advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="West Virginia Sales Tax Holiday -- Sports Equipment (2026)",
+                    name=f"West Virginia Sales Tax Holiday -- Sports Equipment ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("sports_equipment",),
                     max_amount_per_item=Decimal("150.00"),
                     notes=(
-                        "W. Va. Code section 11-15-9o. Four-day "
+                        "W. Va. Code section 11-15-9s. Four-day "
                         "exemption from the 6% state sales tax for "
                         "qualifying sports equipment priced $150 or "
-                        "LESS per item. 2026 dates: August 7 "
-                        "(Friday) through August 10 (Monday). "
+                        "LESS per item. "
+                        "Dates: July 31 - August 3, 2026 and July 30 - "
+                        "August 2, 2027. "
                         "Calculation only -- not legal or tax "
                         "advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="West Virginia Sales Tax Holiday -- Computers & Tablets (2026)",
+                    name=f"West Virginia Sales Tax Holiday -- Computers & Tablets ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("computers",),
                     max_amount_per_item=Decimal("500.00"),
                     notes=(
-                        "W. Va. Code section 11-15-9o. Four-day "
+                        "W. Va. Code section 11-15-9s. Four-day "
                         "exemption from the 6% state sales tax for "
                         "qualifying computers, laptops, and tablets "
                         "intended for personal (non-business) use, "
-                        "priced $500 or LESS per item. 2026 dates: "
-                        "August 7 (Friday) through August 10 "
-                        "(Monday). Calculation only -- not legal or "
+                        "priced $500 or LESS per item. "
+                        "Dates: July 31 - August 3, 2026 and July 30 - "
+                        "August 2, 2027. Calculation only -- not legal or "
                         "tax advice."
                     ),
                 ),

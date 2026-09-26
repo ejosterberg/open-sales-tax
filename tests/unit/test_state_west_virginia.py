@@ -83,7 +83,7 @@ def test_west_virginia_clothing_rule_cites_holiday_statute() -> None:
     """Clothing rule references the August holiday statute."""
     rule = WEST_VIRGINIA.taxability_for("clothing", dt.date(2026, 5, 3))
     assert rule is not None
-    assert "11-15-9o" in (rule.notes or "")
+    assert "11-15-9s" in (rule.notes or "")
 
 
 def test_west_virginia_groceries_exempt_with_phase_out_history() -> None:
@@ -154,39 +154,38 @@ def test_west_virginia_parse_boundaries_signature() -> None:
 
 # ---------------------------------------------------------------------------
 # Sales tax holiday -- WV has ONE annual statutory holiday split across
-# 5 scopes (W. Va. Code section 11-15-9o), each encoded as a separate
+# 5 scopes (W. Va. Code section 11-15-9s), each encoded as a separate
 # HolidayWindow because max_amount_per_item is single-value.
 # ---------------------------------------------------------------------------
 def test_west_virginia_holiday_count_2026() -> None:
-    """WV has 5 HolidayWindow scopes in 2026 under W. Va. Code 11-15-9o."""
+    """WV has 5 HolidayWindow scopes in 2026 under W. Va. Code 11-15-9s."""
     holidays = list(WEST_VIRGINIA.holidays_for(2026))
     assert len(holidays) == 5
     assert all(isinstance(h, HolidayWindow) for h in holidays)
 
 
 def test_west_virginia_holiday_dates_2026() -> None:
-    """2026 WV Sales Tax Holiday: first Friday in August (Aug 7) - Monday Aug 10.
+    """2026 WV Sales Tax Holiday: Friday Jul 31 - Monday Aug 3.
 
-    Per W. Va. Code section 11-15-9o the holiday runs from 12:00
-    a.m. on the first Friday in August through 11:59 p.m. on the
+    Per W. Va. Code section 11-15-9s the holiday is the first Sunday of
+    August (Aug 2, 2026) plus the previous Friday and Saturday and the
     following Monday (a 4-day window).
     """
     holidays = list(WEST_VIRGINIA.holidays_for(2026))
     for holiday in holidays:
-        assert holiday.starts_on == dt.date(2026, 8, 7)
-        assert holiday.ends_on == dt.date(2026, 8, 10)
+        assert holiday.starts_on == dt.date(2026, 7, 31)
+        assert holiday.ends_on == dt.date(2026, 8, 3)
         # Sanity: starts on a Friday, ends on a Monday.
         assert holiday.starts_on.weekday() == 4  # Friday
         assert holiday.ends_on.weekday() == 0  # Monday
-        # And it really is the FIRST Friday in August (no earlier Friday this month).
-        earlier = holiday.starts_on - dt.timedelta(days=7)
-        assert earlier.month == 7  # the prior Friday is in July
+        sunday = holiday.starts_on + dt.timedelta(days=2)
+        assert sunday.month == 8 and sunday.day <= 7
 
 
 def test_west_virginia_holiday_per_scope_caps() -> None:
-    """Each scope has the statutory per-item cap from section 11-15-9o.
+    """Each scope has the statutory per-item cap from section 11-15-9s.
 
-    Caps per the brief and W. Va. Code section 11-15-9o:
+    Caps per the brief and W. Va. Code section 11-15-9s:
     - clothing/footwear: $125
     - school supplies: $50
     - school instructional materials: $20
@@ -229,17 +228,33 @@ def test_west_virginia_holiday_scopes_are_separate_windows() -> None:
 
 
 def test_west_virginia_holiday_notes_cite_statute() -> None:
-    """Every holiday window's notes cite W. Va. Code section 11-15-9o."""
+    """Every holiday window's notes cite W. Va. Code section 11-15-9s."""
     for holiday in WEST_VIRGINIA.holidays_for(2026):
         assert holiday.notes is not None
-        assert "11-15-9o" in holiday.notes
+        assert "11-15-9s" in holiday.notes
 
 
 def test_west_virginia_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(WEST_VIRGINIA.holidays_for(2025)) == []
-    assert list(WEST_VIRGINIA.holidays_for(2027)) == []
+    assert list(WEST_VIRGINIA.holidays_for(2028)) == []
     assert list(WEST_VIRGINIA.holidays_for(2099)) == []
+
+
+def test_west_virginia_holiday_dates_2027() -> None:
+    """2027: the first Sunday of August (Aug 1) plus Fri-Sat before and Mon after.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(WEST_VIRGINIA.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 7, 30), dt.date(2027, 8, 2))
+    }
+    assert dt.date(2027, 8, 1).strftime("%A") == "Sunday"
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in WEST_VIRGINIA.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
 
 
 # ---------------------------------------------------------------------------
