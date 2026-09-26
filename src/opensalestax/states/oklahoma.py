@@ -138,7 +138,8 @@ covers all of these in addition to clothing).
 The 2026 holiday runs **August 7 (Friday) through August 9
 (Sunday)**, per the Oklahoma Tax Commission Sales Tax Holiday
 publication (retrieved 2026-05-03) and the recurring statutory
-rule (first Friday in August 2026 is August 7).
+rule (first Friday in August 2026 is August 7). The 2027 holiday
+runs **August 6 (Friday) through August 8 (Sunday)**.
 
 ## Loading
 
@@ -341,6 +342,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 7), dt.date(2026, 8, 9)),
+    2027: (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+}
+
+
 class Oklahoma(SstStateModule):
     """Oklahoma state module (tier 1, SST member).
 
@@ -418,8 +425,9 @@ class Oklahoma(SstStateModule):
         school art supplies, NOT instructional materials, NOT
         computers / electronics.
 
-        2026 dates encoded explicitly per the recurring statutory
-        rule (first Friday in August 2026 is August 7) and
+        2026 and 2027 dates encoded explicitly per the recurring
+        statutory rule (first Friday in August: August 7, 2026 and
+        August 6, 2027), with 2026
         verified against the Oklahoma Tax Commission Sales Tax
         Holiday publication (retrieved 2026-05-03). Subsequent
         years require an explicit data update; do NOT extrapolate
@@ -428,14 +436,16 @@ class Oklahoma(SstStateModule):
         against the OK Tax Commission's published guidance for
         each year.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Oklahoma Annual Sales Tax Holiday (2026)",
-                    starts_on=dt.date(2026, 8, 7),
-                    ends_on=dt.date(2026, 8, 9),
+                    name=f"Oklahoma Annual Sales Tax Holiday ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("clothing",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
@@ -463,9 +473,8 @@ class Oklahoma(SstStateModule):
                         "supplies, instructional materials, or "
                         "electronics. The holiday runs from 12:01 "
                         "a.m. on the first Friday in August through "
-                        "midnight on the following Sunday. 2026: "
-                        "first Friday in August is August 7; "
-                        "holiday runs through Sunday August 9. "
+                        "midnight on the following Sunday: August "
+                        "7-9 in 2026 and August 6-8 in 2027. "
                         "Calculation only -- not legal or tax "
                         "advice."
                     ),

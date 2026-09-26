@@ -260,5 +260,22 @@ def test_oklahoma_holiday_excludes_school_supplies() -> None:
 def test_oklahoma_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(OKLAHOMA.holidays_for(2025)) == []
-    assert list(OKLAHOMA.holidays_for(2027)) == []
+    assert list(OKLAHOMA.holidays_for(2028)) == []
     assert list(OKLAHOMA.holidays_for(2099)) == []
+
+
+def test_oklahoma_holiday_dates_2027() -> None:
+    """2027: the first Friday in August (Aug 6) through Sunday Aug 8.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(OKLAHOMA.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 8, 6), dt.date(2027, 8, 8))
+    }
+    assert dt.date(2027, 8, 6).strftime("%A") == "Friday"
+    assert dt.date(2027, 8, 6).day <= 7
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in OKLAHOMA.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
