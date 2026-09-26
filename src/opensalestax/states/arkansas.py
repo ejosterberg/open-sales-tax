@@ -228,6 +228,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_BACK_TO_SCHOOL_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 1), dt.date(2026, 8, 2)),
+    2027: (dt.date(2027, 8, 7), dt.date(2027, 8, 8)),
+}
+
+
 class Arkansas(SstStateModule):
     """Arkansas state module (tier 1, SST member).
 
@@ -266,7 +272,8 @@ class Arkansas(SstStateModule):
         11:59 p.m. on the following Sunday. For 2026 this is
         August 1 (Saturday) through August 2 (Sunday), as
         confirmed by the DFA 2026 holiday page (retrieved
-        2026-05-03).
+        2026-05-03). For 2027 it is August 7 (Saturday) through
+        August 8 (Sunday); August 1, 2027 is a Sunday.
 
         Five distinct scopes are encoded as separate
         :class:`HolidayWindow` instances so the engine can match
@@ -285,16 +292,14 @@ class Arkansas(SstStateModule):
         category list (Act 944 of 2021 added electronics) and
         could in principle adjust the cap thresholds.
         """
-        if year != 2026:
+        dates = _BACK_TO_SCHOOL_DATES.get(year)
+        if dates is None:
             return iter(())
-        # 2026 dates: first Saturday of August is August 1;
-        # holiday ends Sunday August 2.
-        starts_on = dt.date(2026, 8, 1)
-        ends_on = dt.date(2026, 8, 2)
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Arkansas Back-to-School Sales Tax Holiday -- Clothing (2026)",
+                    name=f"Arkansas Back-to-School Sales Tax Holiday -- Clothing ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("clothing",),
@@ -312,7 +317,7 @@ class Arkansas(SstStateModule):
                 HolidayWindow(
                     name=(
                         "Arkansas Back-to-School Sales Tax Holiday -- "
-                        "Clothing Accessories (2026)"
+                        f"Clothing Accessories ({year})"
                     ),
                     starts_on=starts_on,
                     ends_on=ends_on,
@@ -329,7 +334,7 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name="Arkansas Back-to-School Sales Tax Holiday -- School Supplies (2026)",
+                    name=f"Arkansas Back-to-School Sales Tax Holiday -- School Supplies ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_supplies",),
@@ -344,7 +349,10 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name="Arkansas Back-to-School Sales Tax Holiday -- School Art Supplies (2026)",
+                    name=(
+                        "Arkansas Back-to-School Sales Tax Holiday -- "
+                        f"School Art Supplies ({year})"
+                    ),
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_art_supplies",),
@@ -359,7 +367,7 @@ class Arkansas(SstStateModule):
                 HolidayWindow(
                     name=(
                         "Arkansas Back-to-School Sales Tax Holiday -- "
-                        "School Instructional Materials (2026)"
+                        f"School Instructional Materials ({year})"
                     ),
                     starts_on=starts_on,
                     ends_on=ends_on,
@@ -374,7 +382,10 @@ class Arkansas(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name="Arkansas Back-to-School Sales Tax Holiday -- Electronic Devices (2026)",
+                    name=(
+                        "Arkansas Back-to-School Sales Tax Holiday -- "
+                        f"Electronic Devices ({year})"
+                    ),
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("electronic_devices",),

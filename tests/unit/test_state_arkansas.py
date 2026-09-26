@@ -216,5 +216,22 @@ def test_arkansas_holiday_categories_complete() -> None:
 def test_arkansas_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(ARKANSAS.holidays_for(2025)) == []
-    assert list(ARKANSAS.holidays_for(2027)) == []
+    assert list(ARKANSAS.holidays_for(2028)) == []
     assert list(ARKANSAS.holidays_for(2099)) == []
+
+
+def test_arkansas_holiday_dates_2027() -> None:
+    """2027: the first Saturday in August (Aug 7) through Sunday Aug 8.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(ARKANSAS.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 8, 7), dt.date(2027, 8, 8))
+    }
+    assert dt.date(2027, 8, 7).strftime("%A") == "Saturday"
+    assert dt.date(2027, 8, 7).day <= 7
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in ARKANSAS.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
