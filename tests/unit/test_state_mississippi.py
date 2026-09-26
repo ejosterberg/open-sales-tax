@@ -200,11 +200,14 @@ def test_mississippi_back_to_school_categories() -> None:
 
 
 def test_mississippi_back_to_school_notes_cite_statute() -> None:
-    """Back-to-school holiday notes cite 27-65-111(bb) AND S.B. 2470."""
+    """Back-to-school holiday notes cite 27-65-111(ab) AND S.B. 2470.
+
+    S.B. 2470 (2024) re-lettered the paragraph from (bb) to (ab).
+    """
     holidays = list(MISSISSIPPI.holidays_for(2026))
     bts = next(h for h in holidays if "Back-to-School" in h.name)
     assert bts.notes is not None
-    assert "27-65-111(bb)" in bts.notes
+    assert "27-65-111(ab)" in bts.notes
     assert "S.B. 2470" in bts.notes or "SB 2470" in bts.notes
 
 
@@ -260,7 +263,7 @@ def test_mississippi_holidays_chronological() -> None:
 def test_mississippi_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(MISSISSIPPI.holidays_for(2025)) == []
-    assert list(MISSISSIPPI.holidays_for(2027)) == []
+    assert list(MISSISSIPPI.holidays_for(2028)) == []
     assert list(MISSISSIPPI.holidays_for(2099)) == []
 
 
@@ -338,3 +341,26 @@ def test_mississippi_parse_boundaries_emits_many_zips() -> None:
         f"Expected statewide ZCTA coverage (~360 MS ZIPs); got only "
         f"{len(state_zips)} -- ratchet may not be wired correctly"
     )
+
+
+def test_mississippi_holiday_dates_2027() -> None:
+    """2027: Back-to-School Jul 9-11 (second Friday); Second Amendment Aug 27-29 (last Friday)."""
+    holidays = list(MISSISSIPPI.holidays_for(2027))
+    assert [(h.starts_on, h.ends_on) for h in holidays] == [
+        (dt.date(2027, 7, 9), dt.date(2027, 7, 11)),
+        (dt.date(2027, 8, 27), dt.date(2027, 8, 29)),
+    ]
+    assert dt.date(2027, 7, 2).strftime("%A") == "Friday"
+    assert dt.date(2027, 7, 9) == dt.date(2027, 7, 2) + dt.timedelta(days=7)
+    assert dt.date(2027, 8, 27).strftime("%A") == "Friday"
+    assert (dt.date(2027, 8, 27) + dt.timedelta(days=7)).month == 9
+    assert all("(2027)" in h.name for h in holidays)
+
+
+def test_mississippi_second_amendment_covers_firearm_safes() -> None:
+    """H.B. 1793 (2026) adds firearm safes from July 1, 2026, so both years list them."""
+    for year in (2026, 2027):
+        msaw = next(h for h in MISSISSIPPI.holidays_for(year) if "Second Amendment" in h.name)
+        assert msaw.applicable_categories is not None
+        assert "firearm_safes" in msaw.applicable_categories
+        assert "1793" in (msaw.notes or "")

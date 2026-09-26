@@ -50,7 +50,7 @@ Taxability matrix (per Miss. Code Ann. Title 27, Chapter 65):
   section 27-65-17. The MS rate is high relative to peer states.
 - **Clothing** -- TAXABLE year-round (no general clothing
   exemption). The annual back-to-school sales tax holiday (section
-  27-65-111(bb)) provides a 3-day window for items < $100.
+  27-65-111(ab)) provides a 3-day window for items < $100.
 - **Groceries (SNAP-eligible food)** -- TAXABLE at the **REDUCED
   5% rate** effective July 1, 2025 per H.B. 1, Laws 2025 (which
   amended the rate-imposition provisions). Prior to July 1, 2025
@@ -91,7 +91,7 @@ Taxability matrix (per Miss. Code Ann. Title 27, Chapter 65):
 Sales tax holidays -- MS has TWO annual holidays:
 
 1. **Back-to-School Sales Tax Holiday** (Miss. Code section
-   27-65-111(bb))
+   27-65-111(ab))
    - Recurring date: **second Friday in July through following
      Sunday** (3-day window). The pre-2024 statute was "last
      Friday and Saturday in July" (2 days); S.B. 2470, Laws 2024
@@ -172,7 +172,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
         notes=(
             "Clothing IS taxable in Mississippi year-round at the general "
             "7% rate (Miss. Code Ann. section 27-65-17). The annual "
-            "back-to-school Sales Tax Holiday (section 27-65-111(bb)) "
+            "back-to-school Sales Tax Holiday (section 27-65-111(ab)) "
             "provides a 3-day exemption for items priced less than $100. "
             "Calculation only -- not tax advice."
         ),
@@ -250,6 +250,18 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # 1992 increase from 6% (effective 1992-07-01 per Laws 1992, ch. 484).
 # The rate has been stable at 7% since.
 _RATE_EFFECTIVE_FROM = dt.date(1992, 7, 1)
+
+
+_HOLIDAY_DATES: dict[int, tuple[tuple[dt.date, dt.date], tuple[dt.date, dt.date]]] = {
+    2026: (
+        (dt.date(2026, 7, 10), dt.date(2026, 7, 12)),
+        (dt.date(2026, 8, 28), dt.date(2026, 8, 30)),
+    ),
+    2027: (
+        (dt.date(2027, 7, 9), dt.date(2027, 7, 11)),
+        (dt.date(2027, 8, 27), dt.date(2027, 8, 29)),
+    ),
+}
 
 
 class Mississippi:
@@ -413,30 +425,33 @@ class Mississippi:
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Mississippi's two annual sales tax holidays.
 
-        1. Back-to-School (section 27-65-111(bb)) -- second Friday in
+        1. Back-to-School (section 27-65-111(ab)) -- second Friday in
            July through Sunday; clothing/footwear/school supplies
            under $100/item.
         2. Second Amendment Weekend (section 27-65-111(af)) -- last
            Friday in August through Sunday; firearms, ammunition,
-           and statutorily-defined hunting supplies; no per-item cap.
+           statutorily-defined hunting supplies, and (from July 1,
+           2026, H.B. 1793) firearm safes; no per-item cap.
 
-        2026 dates encoded explicitly per the recurring statutory
-        rule. Subsequent years require an explicit data update (do
+        2026 and 2027 dates are encoded explicitly per the recurring
+        statutory rules. Subsequent years require an explicit data update (do
         NOT extrapolate -- the legislature occasionally adjusts
         dates and category lists, as S.B. 2470 (2024) did).
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        back_to_school, second_amendment = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Back-to-School Sales Tax Holiday (2026)",
-                    starts_on=dt.date(2026, 7, 10),
-                    ends_on=dt.date(2026, 7, 12),
+                    name=f"Back-to-School Sales Tax Holiday ({year})",
+                    starts_on=back_to_school[0],
+                    ends_on=back_to_school[1],
                     applicable_categories=("clothing", "school_supplies"),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
-                        "Miss. Code Ann. section 27-65-111(bb), as "
+                        "Miss. Code Ann. section 27-65-111(ab), as "
                         "amended by S.B. 2470, Laws 2024. Three-day "
                         "exemption from the 7% state sales tax for "
                         "clothing, footwear, and school supplies "
@@ -444,19 +459,20 @@ class Mississippi:
                         "the holiday was 2 days (Friday-Saturday) on "
                         "the LAST weekend in July; the 2024 amendment "
                         "moved it to the SECOND weekend and added "
-                        "Sunday. 2026 second Friday in July is July "
-                        "10; holiday runs through Sunday July 12. "
+                        "Sunday: July 10-12 in 2026 and July 9-11 "
+                        "in 2027. "
                         "Calculation only -- not tax advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="Second Amendment Sales Tax Holiday (2026)",
-                    starts_on=dt.date(2026, 8, 28),
-                    ends_on=dt.date(2026, 8, 30),
+                    name=f"Second Amendment Sales Tax Holiday ({year})",
+                    starts_on=second_amendment[0],
+                    ends_on=second_amendment[1],
                     applicable_categories=(
                         "firearms",
                         "ammunition",
                         "hunting_supplies",
+                        "firearm_safes",
                     ),
                     max_amount_per_item=None,
                     notes=(
@@ -467,13 +483,20 @@ class Mississippi:
                         "to: archery equipment, firearm and archery "
                         "cases, firearm and archery accessories, "
                         "hearing protection, holsters, belts and "
-                        "slings). NO per-item dollar cap. Mail-order "
+                        "slings), and, from July 1, 2026 (H.B. 1793, "
+                        "Laws 2026), firearm safes: 'a locking "
+                        "container or other enclosure, excluding "
+                        "glass-faced containers, equipped with a "
+                        "padlock, key lock, combination lock, or "
+                        "other locking device that is designed and "
+                        "intended for the secure storage of one (1) "
+                        "or more firearms'. NO per-item dollar cap. Mail-order "
                         "/ telephone / internet sales qualify if "
                         "ordered and paid during the holiday with "
                         "immediate shipment scheduled; layaway does "
-                        "not qualify. 2026 last Friday in August is "
-                        "August 28; holiday runs through Sunday "
-                        "August 30. Calculation only -- not tax "
+                        "not qualify. Dates: August 28-30 in 2026 "
+                        "and August 27-29 in 2027. Calculation only "
+                        "-- not tax "
                         "advice."
                     ),
                 ),
