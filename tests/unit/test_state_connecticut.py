@@ -110,7 +110,8 @@ def test_connecticut_2026_holiday_is_sales_tax_free_week() -> None:
     """Annual third-Sunday-in-August Sales Tax Free Week (Conn. Gen. Stat. 12-407e).
 
     For 2026, the third Sunday of August is August 16; the holiday runs
-    through Saturday August 22.
+    through Saturday August 22. P.A. 26-68 section 262 restored the
+    under-$300 threshold and added backpacks.
     """
     holidays = list(CONNECTICUT.holidays_for(2026))
     assert len(holidays) == 1
@@ -121,9 +122,10 @@ def test_connecticut_2026_holiday_is_sales_tax_free_week() -> None:
     assert h.ends_on == dt.date(2026, 8, 22)
     # Sunday through following Saturday = 7 days inclusive
     assert (h.ends_on - h.starts_on).days == 6
-    assert h.applicable_categories == ("clothing",)
-    assert h.max_amount_per_item == Decimal("100.00")
+    assert h.applicable_categories == ("clothing", "backpacks")
+    assert h.max_amount_per_item == Decimal("300.00")
     assert "12-407e" in (h.notes or "")
+    assert "26-68" in (h.notes or "")
 
 
 def test_connecticut_holiday_starts_on_third_sunday_of_august() -> None:
@@ -139,4 +141,16 @@ def test_connecticut_holiday_starts_on_third_sunday_of_august() -> None:
 def test_connecticut_holidays_for_unknown_year_returns_empty() -> None:
     """Future years require explicit data updates; no extrapolation."""
     assert list(CONNECTICUT.holidays_for(2099)) == []
+    assert list(CONNECTICUT.holidays_for(2028)) == []
     assert list(CONNECTICUT.holidays_for(2025)) == []
+
+
+def test_connecticut_holiday_dates_2027() -> None:
+    """2027: the third Sunday of August (Aug 15) through Saturday Aug 21."""
+    (h,) = list(CONNECTICUT.holidays_for(2027))
+    assert (h.starts_on, h.ends_on) == (dt.date(2027, 8, 15), dt.date(2027, 8, 21))
+    assert h.starts_on.strftime("%A") == "Sunday"
+    assert 15 <= h.starts_on.day <= 21
+    assert h.applicable_categories == ("clothing", "backpacks")
+    assert h.max_amount_per_item == Decimal("300.00")
+    assert "(2027)" in h.name

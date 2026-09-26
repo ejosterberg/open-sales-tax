@@ -48,7 +48,7 @@ Taxability matrix (per Conn. Gen. Stat. chapter 219):
 - **Clothing** -- TAXABLE at 6.35%. CT eliminated its clothing
   exemption in 2011 (P.A. 11-6) and the briefly-restored under-$50
   exemption was repealed effective 2015-07-01 (P.A. 15-244).
-  Section 12-407e exempts clothing/footwear under $100 only during
+  Section 12-407e exempts clothing/footwear under $300 only during
   the annual third-Sunday-in-August holiday week (modeled in
   ``holidays_for``).
 - **Groceries** -- NON-taxable as "food products for human
@@ -67,12 +67,16 @@ Sales-tax holidays:
 
 - **Sales Tax Free Week** -- annual back-to-school holiday running
   the third Sunday in August through the following Saturday,
-  inclusive (section 12-407e). Exempts clothing and footwear under
-  $100 per item; excludes athletic wear, jewelry, handbags,
-  luggage, umbrellas, wallets, and watches. The under-$300
+  inclusive (section 12-407e). Exempts clothing and footwear,
+  including cleated shoes, and backpacks under $300 per item;
+  excludes athletic wear, jewelry, handbags, luggage other than
+  backpacks, umbrellas, wallets, and watches. The under-$300
   threshold that ran 2004-2015 was reduced to under-$100 effective
-  2015-07-01 by P.A. 15-244. 2026 dates: August 16 (Sunday) through
-  August 22 (Saturday).
+  2015-07-01 by P.A. 15-244; P.A. 26-68 section 262 (effective from
+  passage in May 2026) restored under-$300 and added cleated shoes
+  and backpacks. 2026 dates: August 16 (Sunday) through August 22
+  (Saturday). 2027 dates: August 15 (Sunday) through August 21
+  (Saturday).
 
 State maintainer: vacant -- see MAINTAINERS.md. CT's category
 rates and the Mashantucket Pequot reservation case are the most
@@ -116,7 +120,8 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "12-408(1)(H) -- not modeled in v0.6 pending threshold-rule "
             "support. The annual Sales Tax Free Week (third Sunday in "
             "August through following Saturday) exempts clothing/footwear "
-            "under $100 per item; see holidays_for(). Calculation only -- "
+            "and backpacks under $300 per item; see holidays_for(). "
+            "Calculation only -- "
             "not tax advice."
         ),
     ),
@@ -178,10 +183,10 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # P.A. 11-6 raised the rate from 6.0% effective 2011-07-01.
 _RATE_EFFECTIVE_FROM = dt.date(2011, 7, 1)
 
-# Annual Sales Tax Free Week: third Sunday of August through following Saturday.
-# 2026: third Sunday is August 16; week runs through Saturday August 22.
-_HOLIDAY_2026_START = dt.date(2026, 8, 16)
-_HOLIDAY_2026_END = dt.date(2026, 8, 22)
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 16), dt.date(2026, 8, 22)),
+    2027: (dt.date(2027, 8, 15), dt.date(2027, 8, 21)),
+}
 
 
 class Connecticut:
@@ -245,31 +250,38 @@ class Connecticut:
 
         Codified as a recurring holiday by Conn. Gen. Stat. section
         12-407e: third Sunday in August through following Saturday,
-        inclusive. Exempts clothing and footwear under $100 per item;
-        excludes athletic wear, jewelry, handbags, luggage, umbrellas,
-        wallets, and watches.
+        inclusive. Exempts clothing and footwear, including cleated
+        shoes, and backpacks under $300 per item; excludes athletic
+        wear, jewelry, handbags, luggage other than backpacks,
+        umbrellas, wallets, and watches.
 
         The under-$300 threshold that ran 2004-2015 was reduced to
-        under-$100 effective 2015-07-01 by P.A. 15-244. 2026 dates
-        encoded explicitly; future years require updating once DRS
-        publishes the official window.
+        under-$100 effective 2015-07-01 by P.A. 15-244. P.A. 26-68
+        section 262 (effective from passage in May 2026) restored
+        under-$300 and added cleated shoes and backpacks; DRS
+        confirmed the $300 threshold for the 2026 week. 2026 and 2027
+        dates encoded explicitly; later years need an explicit update.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Sales Tax Free Week (2026)",
-                    starts_on=_HOLIDAY_2026_START,
-                    ends_on=_HOLIDAY_2026_END,
-                    applicable_categories=("clothing",),
-                    max_amount_per_item=Decimal("100.00"),
+                    name=f"Sales Tax Free Week ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
+                    applicable_categories=("clothing", "backpacks"),
+                    max_amount_per_item=Decimal("300.00"),
                     notes=(
-                        "Clothing and footwear under $100/item exempt "
-                        "(Conn. Gen. Stat. section 12-407e). Excludes "
-                        "athletic wear designed primarily for sports, "
-                        "jewelry, handbags, luggage, umbrellas, wallets, "
-                        "and watches. Third Sunday of August through "
+                        "Clothing and footwear, including cleated shoes, "
+                        "and backpacks under $300/item exempt (Conn. Gen. "
+                        "Stat. section 12-407e as amended by P.A. 26-68 "
+                        "section 262). Excludes athletic wear designed "
+                        "primarily for sports, jewelry, handbags, luggage "
+                        "other than backpacks, umbrellas, wallets, and "
+                        "watches. Third Sunday of August through "
                         "following Saturday."
                     ),
                 ),
