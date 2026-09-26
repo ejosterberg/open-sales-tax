@@ -244,17 +244,16 @@ def test_tennessee_holiday_count_2026() -> None:
 
 
 def test_tennessee_holiday_dates_2026() -> None:
-    """All 4 holiday scopes share the same 3-day window: July 24-26, 2026.
+    """All 4 holiday scopes share the same 3-day window: July 31 - August 2, 2026.
 
-    Last full Friday-Saturday-Sunday weekend wholly within July 2026
-    (the literal "last Friday in July" is July 31, but per TN DOR
-    practice the holiday uses the last full weekend wholly within
-    July).
+    Tenn. Code Ann. 67-6-393 starts the holiday on the last Friday of
+    July and ends it the following Sunday, which may fall in August;
+    the Department of Revenue announced July 31 - August 2 for 2026.
     """
     holidays = list(TENNESSEE.holidays_for(2026))
     for h in holidays:
-        assert h.starts_on == dt.date(2026, 7, 24)
-        assert h.ends_on == dt.date(2026, 7, 26)
+        assert h.starts_on == dt.date(2026, 7, 31)
+        assert h.ends_on == dt.date(2026, 8, 2)
         # Sanity: starts on a Friday, ends on a Sunday.
         assert h.starts_on.weekday() == 4  # Friday
         assert h.ends_on.weekday() == 6  # Sunday
@@ -327,10 +326,10 @@ def test_tennessee_holidays_unknown_year_returns_empty() -> None:
     TN ran one-time grocery holidays in 2022 and 2023, but those
     were ad-hoc legislative actions. The recurring back-to-school
     holiday under 67-6-393 is the only one modeled, and only for
-    explicitly-encoded years (2026 at promotion time).
+    explicitly-encoded years (2026 and 2027).
     """
     assert list(TENNESSEE.holidays_for(2025)) == []
-    assert list(TENNESSEE.holidays_for(2027)) == []
+    assert list(TENNESSEE.holidays_for(2028)) == []
     assert list(TENNESSEE.holidays_for(2099)) == []
 
 
@@ -339,3 +338,20 @@ def test_tennessee_holidays_chronological_order_within_year() -> None:
     holidays = list(TENNESSEE.holidays_for(2026))
     starts = [h.starts_on for h in holidays]
     assert starts == sorted(starts)
+
+
+def test_tennessee_holiday_dates_2027() -> None:
+    """2027: the last Friday of July (Jul 30) through Sunday Aug 1.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(TENNESSEE.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 7, 30), dt.date(2027, 8, 1))
+    }
+    assert dt.date(2027, 7, 30).strftime("%A") == "Friday"
+    assert (dt.date(2027, 7, 30) + dt.timedelta(days=7)).month == 8
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in TENNESSEE.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)

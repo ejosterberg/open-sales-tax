@@ -167,23 +167,15 @@ covers BOTH state and local sales tax. Each scope is encoded as a
 separate :class:`HolidayWindow` so the engine can match per-
 category and apply the correct per-item cap.
 
-The 2026 holiday runs **July 24 (Friday) through July 26 (Sunday)**.
-The literal statutory text references "the last Friday of July ...
-the following Sunday." In 2026 the last Friday of July is July 31
-(Fridays in July 2026: 7/3, 7/10, 7/17, 7/24, 7/31), which would
-push the closing Sunday into August 2 (crossing month boundaries).
-Tennessee Department of Revenue practice and longstanding
-administrative interpretation treat the holiday as the **last full
-Friday-Saturday-Sunday weekend wholly within July** when the
-literal reading would otherwise straddle August -- consistent with
-the 2024 holiday (July 26-28) and 2025 holiday (July 25-27)
-precedents (in those years the last Friday in July fell on a date
-where the following Sunday was still in July). The 2026 dates of
-July 24-26 are verified against multiple independent 2026 holiday
-compendia (Sales Tax Institute, Innovate Tax, Avalara, Calvetti
-Ferguson) and align with this DOR practice. A future maintainer
-should re-verify against the Tennessee DOR's official 2026 press
-release once issued.
+The holiday starts on the last Friday of July and ends the
+following Sunday, even when that Sunday falls in August. The
+Tennessee Department of Revenue's holiday page states: "For 2026,
+the dates were Friday, July 31 through Sunday, August 2", and the
+2027 holiday "begins at 12:01 a.m. on Friday, July 30, 2027, and
+ends at 11:59 p.m. on Sunday, August 1, 2027"
+(https://www.tn.gov/revenue/taxes/sales-and-use-tax/sales-tax-holiday.html,
+retrieved 2026-09-25). The 2020 holiday likewise ran July 31 -
+August 2.
 
 ### Other Tennessee holidays in 2026
 
@@ -310,9 +302,9 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "applicable local sales taxes (up to 2.75% per Tenn. "
             "Code Ann. section 67-6-702). The annual Tennessee "
             "Sales Tax Holiday (Tenn. Code Ann. section 67-6-393) "
-            "provides a 3-day exemption on the last Friday-"
-            "Saturday-Sunday weekend wholly within July for "
-            "clothing priced $100 OR LESS per item. Calculation "
+            "provides a 3-day exemption from the last Friday of "
+            "July through the following Sunday for clothing "
+            "priced $100 OR LESS per item. Calculation "
             "only -- not legal or tax advice."
         ),
     ),
@@ -428,6 +420,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 7, 31), dt.date(2026, 8, 2)),
+    2027: (dt.date(2027, 7, 30), dt.date(2027, 8, 1)),
+}
+
+
 class Tennessee(SstStateModule):
     """Tennessee state module (tier 1, SST associate member).
 
@@ -490,11 +488,8 @@ class Tennessee(SstStateModule):
 
         Per Tenn. Code Ann. section 67-6-393, the holiday begins at
         12:01 a.m. on the last Friday of July and ends at 11:59 p.m.
-        on the following Sunday -- a 3-day window. The Tennessee
-        Department of Revenue interprets "last Friday of July" as
-        the last Friday whose Sunday also falls in July (i.e., the
-        last full Friday-Saturday-Sunday weekend wholly within
-        July). Eligible items and per-item caps:
+        on the following Sunday -- a 3-day window that may end in
+        August. Eligible items and per-item caps:
 
         - Clothing: $100 or less per item
         - School supplies: $100 or less per item
@@ -508,13 +503,10 @@ class Tennessee(SstStateModule):
         :class:`HolidayWindow` so the engine can per-category match
         and apply the correct per-item cap.
 
-        2026 dates encoded explicitly per the recurring statutory
-        rule and verified against:
-
-        - Tennessee DOR 2024 holiday press release (July 26-28, 2024)
-        - Tennessee DOR 2025 holiday press release (July 25-27, 2025)
-        - Multiple 2026 secondary holiday compendia (Sales Tax
-          Institute, Innovate Tax, Avalara) all reporting July 24-26
+        2026 and 2027 dates are encoded explicitly per the
+        Tennessee Department of Revenue's holiday page (retrieved
+        2026-09-25): July 31 - August 2, 2026 and July 30 -
+        August 1, 2027.
 
         Subsequent years require an explicit data update; do NOT
         extrapolate -- the General Assembly could amend the dates,
@@ -529,14 +521,16 @@ class Tennessee(SstStateModule):
         SB 1785 -- food sold to persons 65+ from July 1 to
         September 30, 2026) are NOT enacted and not modeled.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Tennessee Sales Tax Holiday -- Clothing (2026)",
-                    starts_on=dt.date(2026, 7, 24),
-                    ends_on=dt.date(2026, 7, 26),
+                    name=f"Tennessee Sales Tax Holiday -- Clothing ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("clothing",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
@@ -549,20 +543,16 @@ class Tennessee(SstStateModule):
                         "is fully taxable at the regular rate (no "
                         "proration). Holiday runs from 12:01 a.m. "
                         "on the last Friday of July through 11:59 "
-                        "p.m. on the following Sunday. 2026: the "
-                        "last Friday in July is July 31, which "
-                        "would push Sunday into August; per "
-                        "longstanding TN DOR practice the holiday "
-                        "uses the last full Friday-Sunday weekend "
-                        "wholly within July, i.e., July 24-26 in "
-                        "2026. Calculation only -- not legal or "
+                        "p.m. on the following Sunday: July 31 - "
+                        "August 2 in 2026 and July 30 - August 1 in "
+                        "2027. Calculation only -- not legal or "
                         "tax advice."
                     ),
                 ),
                 HolidayWindow(
-                    name="Tennessee Sales Tax Holiday -- School Supplies (2026)",
-                    starts_on=dt.date(2026, 7, 24),
-                    ends_on=dt.date(2026, 7, 26),
+                    name=f"Tennessee Sales Tax Holiday -- School Supplies ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("school_supplies",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
@@ -580,9 +570,9 @@ class Tennessee(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name="Tennessee Sales Tax Holiday -- School Art Supplies (2026)",
-                    starts_on=dt.date(2026, 7, 24),
-                    ends_on=dt.date(2026, 7, 26),
+                    name=f"Tennessee Sales Tax Holiday -- School Art Supplies ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("school_art_supplies",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
@@ -600,9 +590,9 @@ class Tennessee(SstStateModule):
                     ),
                 ),
                 HolidayWindow(
-                    name="Tennessee Sales Tax Holiday -- Computers (2026)",
-                    starts_on=dt.date(2026, 7, 24),
-                    ends_on=dt.date(2026, 7, 26),
+                    name=f"Tennessee Sales Tax Holiday -- Computers ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("computers",),
                     max_amount_per_item=Decimal("1500.00"),
                     notes=(
