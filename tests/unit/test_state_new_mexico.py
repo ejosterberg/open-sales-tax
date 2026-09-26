@@ -414,8 +414,25 @@ def test_new_mexico_holiday_unknown_year_returns_empty() -> None:
     """
     assert list(NEW_MEXICO.holidays_for(2024)) == []
     assert list(NEW_MEXICO.holidays_for(2025)) == []
-    assert list(NEW_MEXICO.holidays_for(2027)) == []
+    assert list(NEW_MEXICO.holidays_for(2028)) == []
     assert list(NEW_MEXICO.holidays_for(2099)) == []
+
+
+def test_new_mexico_holiday_dates_2027() -> None:
+    """2027: the last Friday in July (Jul 30) through Sunday Aug 1.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(NEW_MEXICO.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 7, 30), dt.date(2027, 8, 1))
+    }
+    assert dt.date(2027, 7, 30).strftime("%A") == "Friday"
+    assert (dt.date(2027, 7, 30) + dt.timedelta(days=7)).month == 8
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in NEW_MEXICO.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
 
 
 # ---------------------------------------------------------------------------

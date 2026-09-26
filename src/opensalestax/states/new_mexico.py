@@ -425,6 +425,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # Rate Schedule effective Jan 1, 2026).
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 7, 31), dt.date(2026, 8, 2)),
+    2027: (dt.date(2027, 7, 30), dt.date(2027, 8, 1)),
+}
+
+
 class NewMexico:
     """New Mexico state module (tier 1; top-30 location coverage).
 
@@ -658,7 +664,8 @@ class NewMexico:
 
         For 2026 the last Friday in July is **Friday, July 31,
         2026**, so the 2026 holiday runs **July 31 through
-        August 2, 2026**.
+        August 2, 2026**. For 2027 it is **Friday, July 30, 2027**,
+        so the holiday runs **July 30 through August 1, 2027**.
 
         The holiday is encoded as SIX separate ``HolidayWindow``
         instances (one per statutory scope), each with the
@@ -687,11 +694,10 @@ class NewMexico:
         amended the date formula twice in twenty years and may do so
         again.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # 2026 holiday: July 31 (last Friday in July) through August 2.
-        starts_on = dt.date(2026, 7, 31)
-        ends_on = dt.date(2026, 8, 2)
+        starts_on, ends_on = dates
         # Common notes prefix (statute + merchant-election caveat)
         # repeated per-window so the warning surfaces wherever the
         # engine quotes a HolidayWindow.notes field.
@@ -711,7 +717,7 @@ class NewMexico:
         return iter(
             [
                 HolidayWindow(
-                    name="New Mexico Back-to-School: Clothing and Footwear (2026)",
+                    name=f"New Mexico Back-to-School: Clothing and Footwear ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("clothing",),
@@ -731,7 +737,7 @@ class NewMexico:
                     ),
                 ),
                 HolidayWindow(
-                    name="New Mexico Back-to-School: Bookbags and Backpacks (2026)",
+                    name=f"New Mexico Back-to-School: Bookbags and Backpacks ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("bookbags",),
@@ -742,7 +748,7 @@ class NewMexico:
                     ),
                 ),
                 HolidayWindow(
-                    name="New Mexico Back-to-School: Computers (2026)",
+                    name=f"New Mexico Back-to-School: Computers ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("computers",),
@@ -757,7 +763,7 @@ class NewMexico:
                     ),
                 ),
                 HolidayWindow(
-                    name="New Mexico Back-to-School: Computer Hardware (2026)",
+                    name=f"New Mexico Back-to-School: Computer Hardware ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("computer_hardware",),
@@ -771,7 +777,7 @@ class NewMexico:
                     ),
                 ),
                 HolidayWindow(
-                    name="New Mexico Back-to-School: Handheld Calculators (2026)",
+                    name=f"New Mexico Back-to-School: Handheld Calculators ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("calculators",),
@@ -783,7 +789,7 @@ class NewMexico:
                     ),
                 ),
                 HolidayWindow(
-                    name="New Mexico Back-to-School: School Supplies (2026)",
+                    name=f"New Mexico Back-to-School: School Supplies ({year})",
                     starts_on=starts_on,
                     ends_on=ends_on,
                     applicable_categories=("school_supplies",),
