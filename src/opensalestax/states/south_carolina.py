@@ -78,10 +78,19 @@ during the window for qualifying categories:
 - Musical instruments used for school assignments
 
 **2026 dates:** August 7 through August 9, 2026 (verified against
-SC DOR's published statutory schedule on 2026-05-03). A pending
-2025-2026 Bill 728 ("Tax Free Month") would extend the holiday to
-the entire month of August but has not been enacted; encode the
-72-hour holiday consistent with current statute.
+SC DOR's published statutory schedule on 2026-05-03). **2027 dates:**
+August 6 through August 8, 2027. A pending 2025-2026 Bill 728 ("Tax
+Free Month") would extend the holiday to the entire month of August
+but has not been enacted; encode the 72-hour holiday consistent with
+current statute.
+
+Second Amendment Weekend (section 12-36-2120(76)): the 48 hours from
+12:01 a.m. on the **Friday after Thanksgiving** through midnight the
+following **Saturday**, every year, exempt sales of handguns (as
+defined in section 16-23-10(1)), rifles, and shotguns from state and
+local sales/use tax, with no dollar cap (SC Revenue Ruling #08-13).
+Ammunition, parts, and accessories sold alone stay taxable. 2026
+dates: November 27-28; 2027 dates: November 26-27.
 
 Loading: the v0.2 loader treats ``SouthCarolina.parse_rates`` as
 "self-seeded" -- it returns the single statewide row and ignores
@@ -192,6 +201,18 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 # surcharge under S.C. Code Ann. section 12-36-1110 was added on top
 # of the long-standing 5% under section 12-36-910(A).
 _RATE_EFFECTIVE_FROM = dt.date(2007, 6, 1)
+
+
+_HOLIDAY_DATES: dict[int, tuple[tuple[dt.date, dt.date], tuple[dt.date, dt.date]]] = {
+    2026: (
+        (dt.date(2026, 8, 7), dt.date(2026, 8, 9)),
+        (dt.date(2026, 11, 27), dt.date(2026, 11, 28)),
+    ),
+    2027: (
+        (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+        (dt.date(2027, 11, 26), dt.date(2027, 11, 27)),
+    ),
+}
 
 
 class SouthCarolina:
@@ -357,25 +378,31 @@ class SouthCarolina:
         return iter(())
 
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
-        """South Carolina's annual Tax Free Weekend (section 12-36-2120(57)).
+        """South Carolina's two annual sales tax holidays.
 
-        Statutorily the holiday runs 12:01 a.m. on the **first Friday
-        in August** through midnight the following Sunday (a 72-hour
-        window). 2026 dates encoded explicitly per SC DOR's published
-        schedule; subsequent years require an explicit data update (do
-        not extrapolate -- the legislature occasionally adjusts dates
-        and a pending 2025-2026 Bill 728 would extend the window to a
-        full month).
+        1. Tax Free Weekend (section 12-36-2120(57)): 12:01 a.m. on the
+           **first Friday in August** through midnight the following
+           Sunday (a 72-hour window).
+        2. Second Amendment Weekend (section 12-36-2120(76)): 12:01
+           a.m. on the **Friday after Thanksgiving** through midnight
+           the following Saturday (48 hours); handguns, rifles, and
+           shotguns only (SC Revenue Ruling #08-13).
+
+        2026 and 2027 dates are encoded explicitly; subsequent years
+        require an explicit data update (do not extrapolate -- the
+        legislature occasionally adjusts dates and a pending 2025-2026
+        Bill 728 would extend the August window to a full month).
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # 2026: first Friday of August is August 7; ends Sunday August 9.
+        (weekend_starts, weekend_ends), (second_starts, second_ends) = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Tax Free Weekend (2026)",
-                    starts_on=dt.date(2026, 8, 7),
-                    ends_on=dt.date(2026, 8, 9),
+                    name=f"Tax Free Weekend ({year})",
+                    starts_on=weekend_starts,
+                    ends_on=weekend_ends,
                     applicable_categories=(
                         "clothing",
                         "school_supplies",
@@ -392,6 +419,27 @@ class SouthCarolina:
                         "books for school assignments, and musical "
                         "instruments for school assignments. NO per-item "
                         "dollar cap. Calculation only -- not tax advice."
+                    ),
+                ),
+                HolidayWindow(
+                    name=f"Second Amendment Weekend ({year})",
+                    starts_on=second_starts,
+                    ends_on=second_ends,
+                    applicable_categories=("firearms",),
+                    max_amount_per_item=None,
+                    notes=(
+                        "S.C. Code Ann. section 12-36-2120(76). 48-hour "
+                        "exemption from state AND local sales/use tax "
+                        "for handguns (as defined in section "
+                        "16-23-10(1); antique, curiosity, or collector's "
+                        "handguns and handguns that do not fire fixed "
+                        "cartridges are excluded), rifles, and shotguns, "
+                        "from 12:01 a.m. on the Friday after Thanksgiving "
+                        "through midnight the following Saturday. "
+                        "Ammunition, parts, and accessories sold alone "
+                        "stay taxable (SC Revenue Ruling #08-13). NO "
+                        "per-item dollar cap. Calculation only -- not tax "
+                        "advice."
                     ),
                 ),
             ]

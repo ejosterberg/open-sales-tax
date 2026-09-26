@@ -137,16 +137,26 @@ def test_south_carolina_digital_goods_notes_quirk() -> None:
 # ---------------------------------------------------------------------------
 # Holiday tests (Tax Free Weekend) -- mirrors test_holidays.py shape
 # ---------------------------------------------------------------------------
+def _window(year: int, name: str) -> HolidayWindow:
+    return next(h for h in SOUTH_CAROLINA.holidays_for(year) if name in h.name)
+
+
+def _thanksgiving(year: int) -> dt.date:
+    november_1 = dt.date(year, 11, 1)
+    first_thursday = november_1 + dt.timedelta(days=(3 - november_1.weekday()) % 7)
+    return first_thursday + dt.timedelta(days=21)
+
+
 def test_south_carolina_holiday_count_2026() -> None:
-    """SC has exactly one annual holiday (the August Tax Free Weekend)."""
+    """SC has two annual holidays: the August Tax Free Weekend and Second Amendment Weekend."""
     holidays = list(SOUTH_CAROLINA.holidays_for(2026))
-    assert len(holidays) == 1
+    assert len(holidays) == 2
     assert all(isinstance(h, HolidayWindow) for h in holidays)
 
 
 def test_south_carolina_holiday_dates_2026() -> None:
     """2026 Tax Free Weekend: Friday Aug 7 through Sunday Aug 9."""
-    (holiday,) = list(SOUTH_CAROLINA.holidays_for(2026))
+    holiday = _window(2026, "Tax Free Weekend")
     assert holiday.starts_on == dt.date(2026, 8, 7)
     assert holiday.ends_on == dt.date(2026, 8, 9)
     # Sanity: starts on a Friday, ends on a Sunday (statutory pattern).
@@ -155,14 +165,13 @@ def test_south_carolina_holiday_dates_2026() -> None:
 
 
 def test_south_carolina_holiday_has_no_per_item_cap() -> None:
-    """Statute does not impose a per-item dollar threshold."""
-    (holiday,) = list(SOUTH_CAROLINA.holidays_for(2026))
-    assert holiday.max_amount_per_item is None
+    """Neither statute imposes a per-item dollar threshold."""
+    assert all(h.max_amount_per_item is None for h in SOUTH_CAROLINA.holidays_for(2026))
 
 
 def test_south_carolina_holiday_categories_include_clothing_and_supplies() -> None:
     """Statute covers clothing, school supplies, computers, and bed/bath."""
-    (holiday,) = list(SOUTH_CAROLINA.holidays_for(2026))
+    holiday = _window(2026, "Tax Free Weekend")
     assert holiday.applicable_categories is not None
     cats = set(holiday.applicable_categories)
     assert "clothing" in cats
@@ -172,17 +181,39 @@ def test_south_carolina_holiday_categories_include_clothing_and_supplies() -> No
 
 
 def test_south_carolina_holiday_notes_cite_statute() -> None:
-    """The holiday window's notes must cite the authorizing statute."""
-    (holiday,) = list(SOUTH_CAROLINA.holidays_for(2026))
-    assert holiday.notes is not None
-    assert "12-36-2120(57)" in holiday.notes
+    """Each holiday window's notes must cite its authorizing statute."""
+    assert "12-36-2120(57)" in (_window(2026, "Tax Free Weekend").notes or "")
+    assert "12-36-2120(76)" in (_window(2026, "Second Amendment").notes or "")
 
 
 def test_south_carolina_holiday_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(SOUTH_CAROLINA.holidays_for(2025)) == []
-    assert list(SOUTH_CAROLINA.holidays_for(2027)) == []
+    assert list(SOUTH_CAROLINA.holidays_for(2028)) == []
     assert list(SOUTH_CAROLINA.holidays_for(2099)) == []
+
+
+def test_south_carolina_second_amendment_weekend_2026() -> None:
+    """Section 12-36-2120(76): the Friday after Thanksgiving through Saturday; firearms only."""
+    holiday = _window(2026, "Second Amendment")
+    assert (holiday.starts_on, holiday.ends_on) == (dt.date(2026, 11, 27), dt.date(2026, 11, 28))
+    assert holiday.starts_on == _thanksgiving(2026) + dt.timedelta(days=1)
+    assert holiday.applicable_categories == ("firearms",)
+
+
+def test_south_carolina_holiday_dates_2027() -> None:
+    """2027: Tax Free Weekend Aug 6-8 (first Friday); Second Amendment Weekend Nov 26-27."""
+    tax_free = _window(2027, "Tax Free Weekend")
+    second_amendment = _window(2027, "Second Amendment")
+    assert (tax_free.starts_on, tax_free.ends_on) == (dt.date(2027, 8, 6), dt.date(2027, 8, 8))
+    assert tax_free.starts_on.strftime("%A") == "Friday"
+    assert tax_free.starts_on.day <= 7
+    assert (second_amendment.starts_on, second_amendment.ends_on) == (
+        dt.date(2027, 11, 26),
+        dt.date(2027, 11, 27),
+    )
+    assert second_amendment.starts_on == _thanksgiving(2027) + dt.timedelta(days=1)
+    assert len(list(SOUTH_CAROLINA.holidays_for(2027))) == 2
 
 
 # ---------------------------------------------------------------------------
