@@ -227,6 +227,12 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[dt.date, dt.date]] = {
+    2026: (dt.date(2026, 8, 7), dt.date(2026, 8, 8)),
+    2027: (dt.date(2027, 8, 6), dt.date(2027, 8, 7)),
+}
+
+
 class Iowa(SstStateModule):
     """Iowa state module (tier 1, SST member).
 
@@ -269,21 +275,23 @@ class Iowa(SstStateModule):
         watches, etc.) and athletic / protective clothing intended
         for use in athletic or recreational activity.
 
-        2026 dates encoded explicitly per the recurring statutory
-        rule. Subsequent years require an explicit data update (do
+        2026 and 2027 dates are encoded explicitly per the recurring
+        statutory rule. Subsequent years require an explicit data update (do
         NOT extrapolate -- the legislature could amend the dates,
         scope, or per-item cap at any time, and a future maintainer
         must verify against the Iowa Department of Revenue's
         published guidance for each year).
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        starts_on, ends_on = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Iowa Annual Sales Tax Holiday (2026)",
-                    starts_on=dt.date(2026, 8, 7),
-                    ends_on=dt.date(2026, 8, 8),
+                    name=f"Iowa Annual Sales Tax Holiday ({year})",
+                    starts_on=starts_on,
+                    ends_on=ends_on,
                     applicable_categories=("clothing",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
@@ -305,9 +313,8 @@ class Iowa(SstStateModule):
                         "performed during the holiday. The holiday "
                         "runs from 12:01 a.m. on the first Friday "
                         "in August through 11:59 p.m. on the "
-                        "following Saturday. 2026: first Friday in "
-                        "August is August 7; holiday runs through "
-                        "Saturday August 8. Calculation only -- not "
+                        "following Saturday: August 7-8 in 2026 and "
+                        "August 6-7 in 2027. Calculation only -- not "
                         "legal or tax advice."
                     ),
                 ),

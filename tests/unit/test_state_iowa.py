@@ -198,8 +198,25 @@ def test_iowa_holiday_notes_cite_statute_and_exclusions() -> None:
 def test_iowa_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(IOWA.holidays_for(2025)) == []
-    assert list(IOWA.holidays_for(2027)) == []
+    assert list(IOWA.holidays_for(2028)) == []
     assert list(IOWA.holidays_for(2099)) == []
+
+
+def test_iowa_holiday_dates_2027() -> None:
+    """2027: the first Friday in August (Aug 6) and the following Saturday.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(IOWA.holidays_for(2027))
+    assert {(h.starts_on, h.ends_on) for h in holidays} == {
+        (dt.date(2027, 8, 6), dt.date(2027, 8, 7))
+    }
+    assert dt.date(2027, 8, 6).strftime("%A") == "Friday"
+    assert dt.date(2027, 8, 6).day <= 7
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in IOWA.holidays_for(2026)
+    ]
+    assert all("(2027)" in h.name for h in holidays)
 
 
 # ---------------------------------------------------------------------------
