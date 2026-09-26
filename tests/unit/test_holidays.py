@@ -143,3 +143,21 @@ def test_holiday_period_respects_max_amount() -> None:
     assert h.applies_to("clothing", Decimal("100.00"))  # inclusive
     assert not h.applies_to("clothing", Decimal("100.01"))
     assert not h.applies_to("clothing", Decimal("500"))
+
+
+def test_maryland_holiday_dates_2027() -> None:
+    """2027: Shop Maryland Energy Feb 13-15; Tax-Free Week Aug 8-14.
+
+    Tax-Gen. 11-226(a): the Saturday before the third Monday in February
+    through that Monday. Tax-Gen. 11-228(b): the second Sunday in August
+    through the following Saturday.
+    """
+    windows = [(h.starts_on, h.ends_on) for h in MARYLAND.holidays_for(2027)]
+    assert windows == [
+        (dt.date(2027, 2, 13), dt.date(2027, 2, 15)),
+        (dt.date(2027, 8, 8), dt.date(2027, 8, 14)),
+    ]
+    assert dt.date(2027, 2, 15) == dt.date(2027, 2, 1) + dt.timedelta(days=14)
+    assert dt.date(2027, 2, 1).strftime("%A") == "Monday"
+    assert dt.date(2027, 8, 8) == dt.date(2027, 8, 1) + dt.timedelta(days=7)
+    assert dt.date(2027, 8, 1).strftime("%A") == "Sunday"

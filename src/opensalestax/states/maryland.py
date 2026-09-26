@@ -100,6 +100,18 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[tuple[dt.date, dt.date], tuple[dt.date, dt.date]]] = {
+    2026: (
+        (dt.date(2026, 2, 14), dt.date(2026, 2, 16)),
+        (dt.date(2026, 8, 9), dt.date(2026, 8, 15)),
+    ),
+    2027: (
+        (dt.date(2027, 2, 13), dt.date(2027, 2, 15)),
+        (dt.date(2027, 8, 8), dt.date(2027, 8, 14)),
+    ),
+}
+
+
 class Maryland:
     """Maryland state module (tier 1; statewide rate only)."""
 
@@ -137,26 +149,31 @@ class Maryland:
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Maryland's two annual sales-tax holidays.
 
-        2026 dates per the Maryland Comptroller. Both are
-        recurring statutorily; subsequent years follow the same
-        calendar pattern.
+        2026 dates per the Maryland Comptroller; 2027 dates from the
+        same statutory rules (Tax-Gen. section 11-226(a): the
+        Saturday before the third Monday in February through that
+        Monday; section 11-228(b): the second Sunday in August
+        through the following Saturday). Later years need an
+        explicit update.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
+        energy, tax_free_week = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Shop Maryland Energy (2026)",
-                    starts_on=dt.date(2026, 2, 14),
-                    ends_on=dt.date(2026, 2, 16),
+                    name=f"Shop Maryland Energy ({year})",
+                    starts_on=energy[0],
+                    ends_on=energy[1],
                     applicable_categories=("energy_star",),
                     max_amount_per_item=None,
                     notes="Energy Star products + solar water heaters; President's Day weekend.",
                 ),
                 HolidayWindow(
-                    name="Shop Maryland Tax-Free Week (2026)",
-                    starts_on=dt.date(2026, 8, 9),
-                    ends_on=dt.date(2026, 8, 15),
+                    name=f"Shop Maryland Tax-Free Week ({year})",
+                    starts_on=tax_free_week[0],
+                    ends_on=tax_free_week[1],
                     applicable_categories=("clothing",),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
