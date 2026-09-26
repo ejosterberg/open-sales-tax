@@ -275,24 +275,70 @@ def test_texas_houston_metro_zips_bind_to_metro() -> None:
 # ---------------------------------------------------------------------------
 # Sales-tax holiday tests
 # ---------------------------------------------------------------------------
-def test_texas_holidays_for_2026_returns_three_windows() -> None:
-    """One April emergency-prep + one May Energy Star + one August BTS = 3."""
+def test_texas_holidays_for_2026_returns_five_windows() -> None:
+    """Three April emergency-prep price tiers + one May Energy Star + one August BTS = 5."""
     holidays = list(TEXAS.holidays_for(2026))
-    assert len(holidays) == 3
+    assert len(holidays) == 5
     assert all(isinstance(h, HolidayWindow) for h in holidays)
 
 
 def test_texas_holidays_for_unknown_year_returns_empty() -> None:
     """No extrapolation; future years require explicit data updates."""
     assert list(TEXAS.holidays_for(2025)) == []
-    assert list(TEXAS.holidays_for(2027)) == []
+    assert list(TEXAS.holidays_for(2028)) == []
     assert list(TEXAS.holidays_for(2099)) == []
 
 
 def test_texas_2026_back_to_school_dates() -> None:
-    """Texas back-to-school 2026: August 7-9 (first weekend of August)."""
+    """Texas back-to-school 2026: August 7-9 (first Friday in August through Sunday)."""
     bts = next(h for h in TEXAS.holidays_for(2026) if "Back-to-School" in h.name)
     assert bts.starts_on == dt.date(2026, 8, 7)
     assert bts.ends_on == dt.date(2026, 8, 9)
-    assert bts.applicable_categories == ("clothing", "school_supplies")
+    assert bts.applicable_categories == ("clothing", "school_supplies", "backpacks")
     assert bts.max_amount_per_item == Decimal("100.00")
+
+
+def test_texas_2026_emergency_supplies_price_tiers() -> None:
+    """Tex. Tax Code 151.3565: three price tiers, April 25-27, 2026.
+
+    Generators under $3,000; ladders and shutters under $300; other
+    supplies under $75. The window opens the Saturday before the last
+    Monday in April.
+    """
+    tiers = {
+        h.applicable_categories: h.max_amount_per_item
+        for h in TEXAS.holidays_for(2026)
+        if "Emergency" in h.name
+    }
+    assert tiers == {
+        ("generators",): Decimal("3000.00"),
+        ("emergency_ladders", "storm_protection_devices"): Decimal("300.00"),
+        ("emergency_supplies",): Decimal("75.00"),
+    }
+    assert {
+        (h.starts_on, h.ends_on) for h in TEXAS.holidays_for(2026) if "Emergency" in h.name
+    } == {(dt.date(2026, 4, 25), dt.date(2026, 4, 27))}
+
+
+def test_texas_holiday_dates_2027() -> None:
+    """2027: emergency Apr 24-26, Energy Star May 29-31 (Memorial Day), back-to-school Aug 6-8.
+
+    Same scopes and caps as 2026.
+    """
+    holidays = list(TEXAS.holidays_for(2027))
+    windows = {h.name.split(" (")[0]: (h.starts_on, h.ends_on) for h in holidays}
+    emergency = (dt.date(2027, 4, 24), dt.date(2027, 4, 26))
+    assert windows == {
+        "Emergency Preparation Supplies -- Portable Generators": emergency,
+        "Emergency Preparation Supplies -- Ladders and Storm Protection Devices": emergency,
+        "Emergency Preparation Supplies -- Other Supplies": emergency,
+        "Energy Star + Water-Efficient Products": (dt.date(2027, 5, 29), dt.date(2027, 5, 31)),
+        "Back-to-School": (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+    }
+    assert dt.date(2027, 4, 26).strftime("%A") == "Monday"
+    assert (dt.date(2027, 4, 26) + dt.timedelta(days=7)).month == 5
+    assert dt.date(2027, 5, 31).strftime("%A") == "Monday"
+    assert dt.date(2027, 8, 6).strftime("%A") == "Friday"
+    assert [(h.applicable_categories, h.max_amount_per_item) for h in holidays] == [
+        (h.applicable_categories, h.max_amount_per_item) for h in TEXAS.holidays_for(2026)
+    ]

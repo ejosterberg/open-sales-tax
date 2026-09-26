@@ -23,7 +23,7 @@ from opensalestax.states.texas import TEXAS
 
 # (state, expected count of 2026 holidays, headline-holiday name fragment)
 HOLIDAY_STATES = [
-    (TEXAS, 3, "Back-to-School"),
+    (TEXAS, 5, "Back-to-School"),
     (FLORIDA, 13, "Back-to-School"),
     (MASSACHUSETTS, 1, "Annual Sales Tax Holiday"),
     (MARYLAND, 2, "Shop Maryland"),

@@ -143,6 +143,20 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+_HOLIDAY_DATES: dict[int, tuple[tuple[dt.date, dt.date], ...]] = {
+    2026: (
+        (dt.date(2026, 4, 25), dt.date(2026, 4, 27)),
+        (dt.date(2026, 5, 23), dt.date(2026, 5, 25)),
+        (dt.date(2026, 8, 7), dt.date(2026, 8, 9)),
+    ),
+    2027: (
+        (dt.date(2027, 4, 24), dt.date(2027, 4, 26)),
+        (dt.date(2027, 5, 29), dt.date(2027, 5, 31)),
+        (dt.date(2027, 8, 6), dt.date(2027, 8, 8)),
+    ),
+}
+
+
 class Texas:
     """Texas state module (tier 1; state + county + transit + city in v0.26)."""
 
@@ -319,39 +333,92 @@ class Texas:
     def holidays_for(self, year: int) -> Iterable[HolidayWindow]:
         """Texas has 3 annual sales-tax holidays per Tex. Tax Code Chapter 151.
 
-        Dates rotate each year (last Saturday of April, etc.); 2026
-        dates encoded explicitly. Add subsequent years as legislation
-        is published.
+        - Emergency preparation supplies (section 151.3565): the
+          Saturday before the last Monday in April through that Monday.
+          Three price tiers, each its own window: portable generators
+          under $3,000; emergency ladders and storm protection devices
+          (hurricane shutters) under $300; the other listed supplies
+          under $75.
+        - ENERGY STAR and water-efficient products (sections 151.333,
+          151.3335): the Saturday before Memorial Day through Memorial
+          Day. The statute also caps ENERGY STAR air conditioners at
+          $6,000 and refrigerators at $2,000; those caps are documented
+          in the window's notes, not enforced, because the window
+          matches the broader ``energy_star`` category.
+        - Back-to-school (sections 151.326, 151.327): the first Friday
+          in August through the following Sunday (S.B. 1415, 2025);
+          clothing, footwear, school supplies, and backpacks under $100.
+
+        2026 and 2027 dates are encoded explicitly; add later years as
+        they are verified. Sources: Comptroller publications 98-1017
+        (emergency supplies) and 96-1331 (back-to-school).
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # Per https://comptroller.texas.gov/taxes/publications/
+        emergency, energy, back_to_school = dates
         return iter(
             [
                 HolidayWindow(
-                    name="Emergency Preparation Supplies (2026)",
-                    starts_on=dt.date(2026, 4, 25),
-                    ends_on=dt.date(2026, 4, 27),
-                    applicable_categories=("emergency_supplies",),
+                    name=f"Emergency Preparation Supplies -- Portable Generators ({year})",
+                    starts_on=emergency[0],
+                    ends_on=emergency[1],
+                    applicable_categories=("generators",),
                     max_amount_per_item=Decimal("3000.00"),
-                    notes="Generators <$3000, hurricane shutters, batteries, etc.",
+                    notes="Tex. Tax Code section 151.3565: portable generators under $3,000.",
                 ),
                 HolidayWindow(
-                    name="Energy Star + Water-Efficient Products (2026)",
-                    starts_on=dt.date(2026, 5, 23),
-                    ends_on=dt.date(2026, 5, 25),
+                    name=(
+                        "Emergency Preparation Supplies -- Ladders and Storm "
+                        f"Protection Devices ({year})"
+                    ),
+                    starts_on=emergency[0],
+                    ends_on=emergency[1],
+                    applicable_categories=("emergency_ladders", "storm_protection_devices"),
+                    max_amount_per_item=Decimal("300.00"),
+                    notes=(
+                        "Tex. Tax Code section 151.3565: emergency ladders and "
+                        "storm protection devices such as hurricane shutters "
+                        "under $300."
+                    ),
+                ),
+                HolidayWindow(
+                    name=f"Emergency Preparation Supplies -- Other Supplies ({year})",
+                    starts_on=emergency[0],
+                    ends_on=emergency[1],
+                    applicable_categories=("emergency_supplies",),
+                    max_amount_per_item=Decimal("75.00"),
+                    notes=(
+                        "Tex. Tax Code section 151.3565: the other listed "
+                        "supplies (batteries, flashlights and lanterns, "
+                        "portable radios, fire extinguishers, smoke and CO "
+                        "detectors, first aid kits, tarps, fuel containers, "
+                        "and similar items) under $75."
+                    ),
+                ),
+                HolidayWindow(
+                    name=f"Energy Star + Water-Efficient Products ({year})",
+                    starts_on=energy[0],
+                    ends_on=energy[1],
                     applicable_categories=("energy_star", "water_efficient"),
                     max_amount_per_item=None,
-                    notes="Memorial Day weekend; Energy Star + WaterSense items.",
+                    notes=(
+                        "Memorial Day weekend; ENERGY STAR and WaterSense items "
+                        "(Tex. Tax Code sections 151.333, 151.3335). ENERGY STAR "
+                        "air conditioners are capped at $6,000 and refrigerators "
+                        "at $2,000; water-efficient items must be for "
+                        "residential, non-business use."
+                    ),
                 ),
                 HolidayWindow(
-                    name="Back-to-School (2026)",
-                    starts_on=dt.date(2026, 8, 7),
-                    ends_on=dt.date(2026, 8, 9),
-                    applicable_categories=("clothing", "school_supplies"),
+                    name=f"Back-to-School ({year})",
+                    starts_on=back_to_school[0],
+                    ends_on=back_to_school[1],
+                    applicable_categories=("clothing", "school_supplies", "backpacks"),
                     max_amount_per_item=Decimal("100.00"),
                     notes=(
-                        "First weekend of August; clothing, footwear, "
+                        "First Friday in August through Sunday (Tex. Tax Code "
+                        "sections 151.326, 151.327); clothing, footwear, "
                         "school supplies and backpacks under $100/item."
                     ),
                 ),
