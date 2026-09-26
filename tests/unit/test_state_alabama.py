@@ -281,20 +281,21 @@ def test_alabama_holiday_count_2026() -> None:
 
 
 def test_alabama_severe_weather_holiday_dates_2026() -> None:
-    """SWP 2026: last full weekend of February = Friday Feb 27 - Sunday Mar 1."""
+    """SWP 2026: last full weekend of February = Friday Feb 20 - Sunday Feb 22.
+
+    The Feb 27 weekend ends on March 1, so it is not a full February
+    weekend (ALDOR's 2026 fact sheet uses Feb 20-22): the next
+    weekend's Sunday falls in March.
+    """
     holidays = list(ALABAMA.holidays_for(2026))
     swp = [h for h in holidays if "Severe Weather" in h.name]
     assert len(swp) == 2  # generators scope + preparedness-supplies scope
     for h in swp:
-        assert h.starts_on == dt.date(2026, 2, 27)
-        assert h.ends_on == dt.date(2026, 3, 1)
-        # Sanity: starts on a Friday, ends on a Sunday.
+        assert h.starts_on == dt.date(2026, 2, 20)
+        assert h.ends_on == dt.date(2026, 2, 22)
         assert h.starts_on.weekday() == 4  # Friday
         assert h.ends_on.weekday() == 6  # Sunday
-        # And Feb 27 really is the LAST Friday of February 2026
-        # (next Friday is in March).
-        next_friday = h.starts_on + dt.timedelta(days=7)
-        assert next_friday.month == 3
+        assert (h.ends_on + dt.timedelta(days=7)).month == 3
 
 
 def test_alabama_back_to_school_holiday_dates_2026() -> None:
@@ -314,62 +315,62 @@ def test_alabama_back_to_school_holiday_dates_2026() -> None:
         assert h.starts_on == first_friday + dt.timedelta(days=14)
 
 
-def test_alabama_swp_generator_cap_is_1000() -> None:
-    """SWP generator scope: $1,000 per-item cap per Ala. Code 40-23-210 et seq."""
+def test_alabama_swp_generator_cap_is_1564() -> None:
+    """SWP generator scope: $1,564 per purchase (Act 2025-309 CPI adjustment)."""
     holidays = list(ALABAMA.holidays_for(2026))
     generator = next(h for h in holidays if h.applicable_categories == ("generators",))
-    assert generator.max_amount_per_item == Decimal("1000.00")
+    assert generator.max_amount_per_item == Decimal("1564.00")
     assert generator.notes is not None
-    assert "40-23-210" in generator.notes
+    assert "40-23-230" in generator.notes
 
 
-def test_alabama_swp_supplies_cap_is_60() -> None:
-    """SWP preparedness-supplies scope: $60 per-item cap."""
+def test_alabama_swp_supplies_cap_is_94() -> None:
+    """SWP preparedness-supplies scope: $94 per-item cap (Act 2025-309)."""
     holidays = list(ALABAMA.holidays_for(2026))
     supplies = next(
         h for h in holidays if h.applicable_categories == ("severe_weather_preparedness_supplies",)
     )
-    assert supplies.max_amount_per_item == Decimal("60.00")
+    assert supplies.max_amount_per_item == Decimal("94.00")
     assert supplies.notes is not None
-    assert "40-23-210" in supplies.notes
+    assert "40-23-230" in supplies.notes
 
 
-def test_alabama_bts_clothing_cap_is_100() -> None:
-    """BTS clothing scope: $100 per-item cap per Ala. Code 40-23-211."""
+def test_alabama_bts_clothing_cap_is_156() -> None:
+    """BTS clothing scope: $156 per-item cap per Ala. Code 40-23-211 (Act 2025-309)."""
     holidays = list(ALABAMA.holidays_for(2026))
     clothing = next(
         h
         for h in holidays
         if "Back-to-School" in h.name and h.applicable_categories == ("clothing",)
     )
-    assert clothing.max_amount_per_item == Decimal("100.00")
+    assert clothing.max_amount_per_item == Decimal("156.00")
     assert clothing.notes is not None
     assert "40-23-211" in clothing.notes
 
 
-def test_alabama_bts_computers_cap_is_750() -> None:
-    """BTS computer scope: $750 per single-purchase transaction."""
+def test_alabama_bts_computers_cap_is_1173() -> None:
+    """BTS computer scope: $1,173 per single-purchase transaction (Act 2025-309)."""
     holidays = list(ALABAMA.holidays_for(2026))
     computers = next(h for h in holidays if h.applicable_categories == ("computers",))
-    assert computers.max_amount_per_item == Decimal("750.00")
+    assert computers.max_amount_per_item == Decimal("1173.00")
     assert computers.notes is not None
     assert "40-23-211" in computers.notes
 
 
-def test_alabama_bts_school_supplies_cap_is_50() -> None:
-    """BTS school supplies scope: $50 per-item cap."""
+def test_alabama_bts_school_supplies_cap_is_78() -> None:
+    """BTS school supplies scope: $78 per-item cap (Act 2025-309)."""
     holidays = list(ALABAMA.holidays_for(2026))
     supplies = next(h for h in holidays if h.applicable_categories == ("school_supplies",))
-    assert supplies.max_amount_per_item == Decimal("50.00")
+    assert supplies.max_amount_per_item == Decimal("78.00")
     assert supplies.notes is not None
     assert "40-23-211" in supplies.notes
 
 
-def test_alabama_bts_books_cap_is_30() -> None:
-    """BTS books scope: $30 per-item cap (noncommercial)."""
+def test_alabama_bts_books_cap_is_47() -> None:
+    """BTS books scope: $47 per-item cap (noncommercial; Act 2025-309)."""
     holidays = list(ALABAMA.holidays_for(2026))
     books = next(h for h in holidays if h.applicable_categories == ("books",))
-    assert books.max_amount_per_item == Decimal("30.00")
+    assert books.max_amount_per_item == Decimal("47.00")
     assert books.notes is not None
     assert "40-23-211" in books.notes
 
@@ -410,8 +411,32 @@ def test_alabama_holidays_unknown_year_returns_empty() -> None:
     """Future / past years return empty (no extrapolation by design)."""
     assert list(ALABAMA.holidays_for(2024)) == []
     assert list(ALABAMA.holidays_for(2025)) == []
-    assert list(ALABAMA.holidays_for(2027)) == []
+    assert list(ALABAMA.holidays_for(2028)) == []
     assert list(ALABAMA.holidays_for(2099)) == []
+
+
+def test_alabama_holiday_dates_2027() -> None:
+    """2027: SWP Feb 26-28 (last full February weekend); BTS Jul 16-18 (third Friday)."""
+    holidays = list(ALABAMA.holidays_for(2027))
+    assert len(holidays) == 6
+    swp = [h for h in holidays if "Severe Weather" in h.name]
+    bts = [h for h in holidays if "Back-to-School" in h.name]
+    assert {(h.starts_on, h.ends_on) for h in swp} == {(dt.date(2027, 2, 26), dt.date(2027, 2, 28))}
+    assert {(h.starts_on, h.ends_on) for h in bts} == {(dt.date(2027, 7, 16), dt.date(2027, 7, 18))}
+    assert dt.date(2027, 2, 26).strftime("%A") == "Friday"
+    assert (dt.date(2027, 2, 28) + dt.timedelta(days=7)).month == 3
+    assert dt.date(2027, 7, 2).strftime("%A") == "Friday"
+    assert dt.date(2027, 7, 16) == dt.date(2027, 7, 2) + dt.timedelta(days=14)
+    assert all("(2027)" in h.name for h in holidays)
+
+
+def test_alabama_holiday_caps_2027_match_2026() -> None:
+    """ALDOR re-adjusts the CPI caps every five calendar years, so 2027 keeps 2026's."""
+
+    def caps(year: int) -> dict[tuple[str, ...] | None, Decimal | None]:
+        return {h.applicable_categories: h.max_amount_per_item for h in ALABAMA.holidays_for(year)}
+
+    assert caps(2027) == caps(2026)
 
 
 # ---------------------------------------------------------------------------

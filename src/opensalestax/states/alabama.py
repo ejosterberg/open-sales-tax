@@ -118,7 +118,7 @@ Taxability matrix (statewide rules; per Ala. Code Title 40, Chapter
   tangible personal property (Ala. Code section 40-23-2(1)). The
   annual Back-to-School Sales Tax Holiday (Ala. Code section
   40-23-211) provides a three-day exemption for clothing items
-  priced $100 or less per item (see "Sales-tax holidays" below).
+  priced $156 or less per item (see "Sales-tax holidays" below).
 - **Groceries (food and food ingredients)** -- TAXABLE at the
   REDUCED 2.0% state rate effective 2025-09-01 per HB 386 of 2024.
   See the "Grocery phase-down" section above for the full statutory
@@ -160,31 +160,37 @@ participating localities each year; this module encodes only the
 state-side scope and documents the local-opt-in caveat.
 
 1. **Severe Weather Preparedness Sales Tax Holiday** -- Ala. Code
-   section 40-23-210 et seq. Three-day weekend (Friday through
+   section 40-23-230 et seq. Three-day weekend (Friday through
    Sunday) covering the **last full weekend of February**. For
-   2026 the dates are **February 27 (Friday) through March 1
-   (Sunday)** because February 28, 2026 is a Saturday and the
-   first day of the weekend is Friday February 27. Covers:
+   2026 the dates were **February 20 (Friday) through February 22
+   (Sunday)** per ALDOR's 2026 fact sheet: the February 27 weekend
+   ends on March 1, so it is not a full February weekend. For 2027
+   the dates are **February 26 through February 28**. Covers:
 
-   - **Generators with sales price $1,000 or less per item**
-     (typically portable, gasoline-powered backup generators)
-   - **Severe-weather-preparedness items with sales price $60 or
+   - **Generators and power cords in a single purchase of $1,564
+     or less** (typically portable, gasoline-powered backup
+     generators)
+   - **Severe-weather-preparedness items with sales price $94 or
      less per item** (batteries, flashlights, weather-band radios,
      tarps, plywood, ground anchor systems, gas/diesel fuel
      containers, ice packs, fire extinguishers, smoke / CO
      detectors, first-aid kits, etc.)
 
 2. **Back-to-School Sales Tax Holiday** -- Ala. Code section
-   40-23-211. Three-day weekend (Friday through Sunday) covering
-   the **third full weekend of July**. For 2026 the dates are
-   **July 17 (Friday) through July 19 (Sunday)**. Covers four
-   scopes:
+   40-23-210 et seq. Three days from the **third Friday in July**
+   through the following Sunday (40-23-211). For 2026 the dates
+   are **July 17 (Friday) through July 19 (Sunday)**; for 2027,
+   **July 16 through July 18**. Covers four scopes:
 
-   - **Clothing -- $100 or less per article**
-   - **Computers / computer equipment / software -- $750 or less
-     per item** (single-purchase transaction)
-   - **School supplies -- $50 or less per item**
-   - **Books -- $30 or less per item** (noncommercial purchases)
+   - **Clothing -- $156 or less per article**
+   - **Computers / computer equipment / software -- a single
+     purchase of $1,173 or less**
+   - **School supplies, art supplies, and instructional material
+     -- $78 or less per item**
+   - **Books -- $47 or less per book** (noncommercial purchases)
+
+   Act 2025-309 indexes these caps to the Consumer Price Index;
+   the amounts above are ALDOR's 2026 figures.
 
 Both holidays are encoded as separate ``HolidayWindow`` instances
 per scope so the engine can apply per-item caps correctly. Future
@@ -261,7 +267,7 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
             "clothing exemption. The annual Back-to-School Sales Tax "
             "Holiday (Ala. Code section 40-23-211) provides a "
             "three-day exemption in mid-July for clothing items "
-            "priced $100 or less per article. County and municipal "
+            "priced $156 or less per article. County and municipal "
             "sales taxes apply at full local rate and may diverge "
             "from the state -- this module models the state portion "
             "only. Calculation only -- not tax advice."
@@ -391,6 +397,18 @@ _RATE_EFFECTIVE_FROM = AL_STATE_EFFECTIVE_FROM
 # tax rate?" (https://revenue.alabama.gov/sales-use/faq/), retrieved
 # 2026-05-03; cross-checked against Ala. Code section 40-23-2(1).
 _RATE_PCT = AL_STATE_RATE_PCT
+
+
+_HOLIDAY_DATES: dict[int, tuple[tuple[dt.date, dt.date], tuple[dt.date, dt.date]]] = {
+    2026: (
+        (dt.date(2026, 2, 20), dt.date(2026, 2, 22)),
+        (dt.date(2026, 7, 17), dt.date(2026, 7, 19)),
+    ),
+    2027: (
+        (dt.date(2027, 2, 26), dt.date(2027, 2, 28)),
+        (dt.date(2027, 7, 16), dt.date(2027, 7, 18)),
+    ),
+}
 
 
 class Alabama:
@@ -593,58 +611,61 @@ class Alabama:
         caveat is documented in each window's notes.
 
         1. **Severe Weather Preparedness Sales Tax Holiday** --
-           Ala. Code section 40-23-210 et seq. Last full weekend
-           of February (Friday-Sunday). For 2026: Feb 27 - Mar 1.
-           Two scopes:
+           Ala. Code section 40-23-230 et seq. Friday of the last
+           full weekend in February through the following Sunday
+           (40-23-231). For 2026: Feb 20 - 22 (ALDOR 2026 fact
+           sheet; the Feb 27 weekend ends in March, so it is not a
+           full February weekend). For 2027: Feb 26 - 28. Two scopes:
 
-           - generators with sales price $1,000 or less per item
-           - severe-weather-preparedness items with sales price
-             $60 or less per item
+           - generators -- a single purchase of $1,564 or less
+           - severe-weather-preparedness items -- $94 or less per item
 
         2. **Back-to-School Sales Tax Holiday** -- Ala. Code section
-           40-23-211. Third full weekend of July (Friday-Sunday).
-           For 2026: July 17 - 19. Four scopes:
+           40-23-210 et seq. The third Friday in July through the
+           following Sunday (40-23-211). For 2026: July 17 - 19. For
+           2027: July 16 - 18. Four scopes:
 
-           - clothing -- $100 or less per article
-           - computers/computer equipment/software -- $750 or less
-             per single-purchase transaction
-           - school supplies -- $50 or less per item
-           - books -- $30 or less per item (noncommercial)
+           - clothing -- $156 or less per article
+           - computers/computer equipment/software -- a single
+             purchase of $1,173 or less
+           - school supplies, art supplies, and instructional
+             material -- $78 or less per item
+           - books -- $47 or less per book (noncommercial)
+
+        Act 2025-309 indexes every cap to the Consumer Price Index
+        (40-23-210(b), 40-23-230(c)); the adjusted amounts above are
+        from ALDOR's 2026 fact sheets and apply to 2027 as well, since
+        ALDOR repeats the adjustment every five calendar years. The
+        computer and generator caps apply to a single purchase, which
+        ``max_amount_per_item`` can only approximate.
 
         Subsequent years require an explicit data update -- the
         statutory weekend formulas are stable but local-opt-in
         participation lists change annually and the legislature
         could in principle adjust caps or scopes.
         """
-        if year != 2026:
+        dates = _HOLIDAY_DATES.get(year)
+        if dates is None:
             return iter(())
-        # Severe Weather Preparedness Holiday 2026: last full weekend
-        # of February. Feb 28 2026 is a Saturday, so the Friday is
-        # Feb 27 and the Sunday is March 1.
-        swp_starts = dt.date(2026, 2, 27)
-        swp_ends = dt.date(2026, 3, 1)
-        # Back-to-School Holiday 2026: third full weekend of July.
-        # Fridays in July 2026 are 3, 10, 17, 24, 31; the third is
-        # July 17, holiday ends Sunday July 19.
-        bts_starts = dt.date(2026, 7, 17)
-        bts_ends = dt.date(2026, 7, 19)
+        (swp_starts, swp_ends), (bts_starts, bts_ends) = dates
         return iter(
             [
                 HolidayWindow(
                     name=(
                         "Alabama Severe Weather Preparedness Sales Tax "
-                        "Holiday -- Generators (2026)"
+                        f"Holiday -- Generators ({year})"
                     ),
                     starts_on=swp_starts,
                     ends_on=swp_ends,
                     applicable_categories=("generators",),
-                    max_amount_per_item=Decimal("1000.00"),
+                    max_amount_per_item=Decimal("1564.00"),
                     notes=(
-                        "Ala. Code section 40-23-210 et seq. (Severe "
+                        "Ala. Code section 40-23-230 et seq. (Severe "
                         "Weather Preparedness Sales Tax Holiday). "
                         "Three-day exemption from STATE 4.0% sales tax "
-                        "for portable backup generators with sales "
-                        "price $1,000 or less per item. Counties and "
+                        "for portable generators and power cords in "
+                        "a single purchase of $1,564 or less (Act "
+                        "2025-309 inflation adjustment). Counties and "
                         "municipalities MUST OPT IN by ordinance to "
                         "extend the exemption to their local portion; "
                         "many do, many do not -- ALDOR publishes an "
@@ -655,14 +676,14 @@ class Alabama:
                 HolidayWindow(
                     name=(
                         "Alabama Severe Weather Preparedness Sales Tax "
-                        "Holiday -- Preparedness Supplies (2026)"
+                        f"Holiday -- Preparedness Supplies ({year})"
                     ),
                     starts_on=swp_starts,
                     ends_on=swp_ends,
                     applicable_categories=("severe_weather_preparedness_supplies",),
-                    max_amount_per_item=Decimal("60.00"),
+                    max_amount_per_item=Decimal("94.00"),
                     notes=(
-                        "Ala. Code section 40-23-210 et seq. (Severe "
+                        "Ala. Code section 40-23-230 et seq. (Severe "
                         "Weather Preparedness Sales Tax Holiday). "
                         "Three-day exemption from STATE 4.0% sales tax "
                         "for severe-weather-preparedness supplies "
@@ -671,7 +692,8 @@ class Alabama:
                         "gas/diesel fuel containers, ice packs, fire "
                         "extinguishers, smoke / carbon monoxide "
                         "detectors, first-aid kits, and similar items) "
-                        "with sales price $60 or less per item. "
+                        "with sales price $94 or less per item (Act "
+                        "2025-309 inflation adjustment). "
                         "Counties and municipalities MUST OPT IN by "
                         "ordinance to extend the exemption to their "
                         "local portion; ALDOR publishes the annual "
@@ -680,16 +702,17 @@ class Alabama:
                     ),
                 ),
                 HolidayWindow(
-                    name=("Alabama Back-to-School Sales Tax Holiday -- Clothing (2026)"),
+                    name=f"Alabama Back-to-School Sales Tax Holiday -- Clothing ({year})",
                     starts_on=bts_starts,
                     ends_on=bts_ends,
                     applicable_categories=("clothing",),
-                    max_amount_per_item=Decimal("100.00"),
+                    max_amount_per_item=Decimal("156.00"),
                     notes=(
                         "Ala. Code section 40-23-211 (Back-to-School "
                         "Sales Tax Holiday). Three-day exemption from "
                         "STATE 4.0% sales tax for clothing items with "
-                        "sales price $100 or less per article. Counties "
+                        "sales price $156 or less per article (Act "
+                        "2025-309 inflation adjustment). Counties "
                         "and municipalities MUST OPT IN by ordinance to "
                         "extend the exemption to their local portion; "
                         "many do, many do not -- ALDOR publishes an "
@@ -698,19 +721,23 @@ class Alabama:
                     ),
                 ),
                 HolidayWindow(
-                    name="Alabama Back-to-School Sales Tax Holiday -- Computers / Software (2026)",
+                    name=(
+                        "Alabama Back-to-School Sales Tax Holiday -- "
+                        f"Computers / Software ({year})"
+                    ),
                     starts_on=bts_starts,
                     ends_on=bts_ends,
                     applicable_categories=("computers",),
-                    max_amount_per_item=Decimal("750.00"),
+                    max_amount_per_item=Decimal("1173.00"),
                     notes=(
                         "Ala. Code section 40-23-211 (Back-to-School "
                         "Sales Tax Holiday). Three-day exemption from "
                         "STATE 4.0% sales tax for computers, computer "
                         "equipment, computer software, and school "
-                        "computer supplies with sales price $750 or "
-                        "less per single-purchase transaction (the "
-                        "$750 cap applies to the entire transaction, "
+                        "computer supplies in a single purchase of "
+                        "$1,173 or less (Act 2025-309 inflation "
+                        "adjustment; the cap applies to the entire "
+                        "transaction, "
                         "not per individual line item). Counties and "
                         "municipalities MUST OPT IN by ordinance to "
                         "extend the exemption to their local portion; "
@@ -720,35 +747,37 @@ class Alabama:
                     ),
                 ),
                 HolidayWindow(
-                    name=("Alabama Back-to-School Sales Tax Holiday -- School Supplies (2026)"),
+                    name=f"Alabama Back-to-School Sales Tax Holiday -- School Supplies ({year})",
                     starts_on=bts_starts,
                     ends_on=bts_ends,
                     applicable_categories=("school_supplies",),
-                    max_amount_per_item=Decimal("50.00"),
+                    max_amount_per_item=Decimal("78.00"),
                     notes=(
                         "Ala. Code section 40-23-211 (Back-to-School "
                         "Sales Tax Holiday). Three-day exemption from "
                         "STATE 4.0% sales tax for school supplies, "
                         "school art supplies, and school instructional "
-                        "materials with sales price $50 or less per "
-                        "item. Counties and municipalities MUST OPT IN "
+                        "materials with sales price $78 or less per "
+                        "item (Act 2025-309 inflation adjustment). "
+                        "Counties and municipalities MUST OPT IN "
                         "by ordinance to extend the exemption to their "
                         "local portion. Calculation only -- not tax "
                         "advice."
                     ),
                 ),
                 HolidayWindow(
-                    name=("Alabama Back-to-School Sales Tax Holiday -- Books (2026)"),
+                    name=f"Alabama Back-to-School Sales Tax Holiday -- Books ({year})",
                     starts_on=bts_starts,
                     ends_on=bts_ends,
                     applicable_categories=("books",),
-                    max_amount_per_item=Decimal("30.00"),
+                    max_amount_per_item=Decimal("47.00"),
                     notes=(
                         "Ala. Code section 40-23-211 (Back-to-School "
                         "Sales Tax Holiday). Three-day exemption from "
                         "STATE 4.0% sales tax for noncommercial book "
-                        "purchases with sales price $30 or less per "
-                        "book. Counties and municipalities MUST OPT IN "
+                        "purchases with sales price $47 or less per "
+                        "book (Act 2025-309 inflation adjustment). "
+                        "Counties and municipalities MUST OPT IN "
                         "by ordinance to extend the exemption to their "
                         "local portion; ALDOR publishes the annual "
                         "participating-locality list. Calculation only "
