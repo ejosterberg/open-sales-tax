@@ -7,6 +7,22 @@ County" effective **May 1, 2026** (Rev. 3/9/2026), publication
 number 5182. Cross-checked against the SC DOR Local Sales Taxes
 page on dor.sc.gov (audit refreshed 2026-05-04).
 
+Re-verified **2026-09-28** (daily audit, day-21 RI+SC rotation) by
+parsing the live ST-500 PDF and diffing **all 46 counties** plus the
+Myrtle Beach municipal row against this module: **46/46 exact, and
+Myrtle Beach 9% exact.** The live chart is still Rev. 3/9/2026, so
+there has been no republication since the May 1 2026 effective date.
+SC local taxes are referendum-driven and by statute take effect on
+**May 1** following a November vote, so the next expected movement is
+**2027-05-01**; a November-referendum check belongs in the spring
+audits, not mid-year.
+
+The same run removed a contradictory `DOR_GRID` pin for Myrtle Beach
+(`29577-0001`) that asserted 8.000% on the stale premise that Horry
+County levies 1%; the ST-500 has Horry at 2% (TT + ECI), making 9%
+correct. The surviving pins are now cited to the ST-500 rather than to
+an aggregator.
+
 Architecture: South Carolina's local sales taxes are **county-level
 only** -- there is no city-level general retail surcharge anywhere
 in the state. Each county may impose any combination of:

@@ -3490,15 +3490,6 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     ),
     (
         "SC",
-        "Myrtle Beach",
-        "29577",
-        "0001",
-        "8.000",
-        "0.05",
-        "iter-65 audit pin: SC DOR (state 6 + Horry 1 + Myrtle Beach 1)",
-    ),
-    (
-        "SC",
         "Spartanburg",
         "29306",
         "0001",
@@ -5774,7 +5765,10 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "9.000",
         "0.05",
-        "iter-127 audit pin: SalesTaxHandbook (state 6 + Horry 2 + city 1 TD)",
+        'SC DOR ST-500 (Rev. 3/9/2026) eff May 1 2026, "Horry-Myrtle Beach 9%" '
+        "(state 6 + Horry TT/ECI 2 + Myrtle Beach TD 1). daily-audit 2026-09 "
+        "re-sourced from SalesTaxHandbook to the DOR chart and removed a "
+        "contradictory iter-65 pin that asserted 8.000% here.",
     ),
     (
         "SC",
@@ -5783,7 +5777,10 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "9.000",
         "0.05",
-        "iter-127 audit pin: SalesTaxHandbook (state 6 + Horry 2 + city 1 TD)",
+        'SC DOR ST-500 (Rev. 3/9/2026) eff May 1 2026, "Horry-Myrtle Beach 9%" '
+        "(state 6 + Horry TT/ECI 2 + Myrtle Beach TD 1). daily-audit 2026-09 "
+        "re-sourced from SalesTaxHandbook to the DOR chart and removed a "
+        "contradictory iter-65 pin that asserted 8.000% here.",
     ),
     # iter-128: TX Waco + Galveston each at 8.25% local-cap max.
     # Both probed at bare state-only 6.25% pre-fix. Verified live

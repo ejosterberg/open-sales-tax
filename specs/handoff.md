@@ -272,6 +272,49 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **RI + SC both rate-clean; but the grid has 11 remaining CONTRADICTORY pins
+  (audit 2026-09-28, day-21 rotation: RI + SC).**
+  - **No live rate defect in either state.** RI is flat **7%** with no local
+    general sales tax (6/6 pins pass). SC was audited by diffing **all 46
+    counties** against the live ST-500 (Rev. 3/9/2026, eff 2026-05-01):
+    **46/46 exact**, Myrtle Beach 9% exact. SC prod data (loaded 2026-05-11)
+    already carries the current chart, so **no reload is owed for RI or SC.**
+  - **RI's 2019Q2 SST file is NOT stale — do not re-investigate.** SST does not
+    require rate/boundary files from single-rate states unchanged since
+    2006-10-01, and RI has held 7% since 1990. `check_sst_pins.py` reports RI
+    current; commit `5e3a110` already lists RI 2019 as one of six
+    never-republished states. Now also in the `sc_data.py`-adjacent audit report.
+  - **FIXED: two `DOR_GRID` pins on the same ZIP+4 (`SC 29577-0001`) asserted
+    8.000% and 9.000%**, so one always failed. The ST-500 says
+    "Horry-Myrtle Beach 9%" and the engine returns 9% — the 8% pin assumed Horry
+    County levies 1% when it levies 2% (TT + ECI). Stale pin removed; both
+    surviving Myrtle Beach pins re-cited from **SalesTaxHandbook** to the ST-500.
+  - **⚠️ 11 CONTRADICTORY PINS REMAIN — AK 1, CA 7, NM 1, TX 2.** A sweep of all
+    790 grid rows found 12 ZIP+4s asserting two different rates; **one of each
+    pair fails on every run**, unnoticed because `DOR_GRID` is gated behind
+    `-m liveapi` which CI deselects. All 12 probed live: **the engine returns
+    the higher pin in every case**, so the low pins are stale pre-city-coverage
+    leftovers. **CDTFA independently confirms all 7 CA values** (Burbank 10.500,
+    Temecula 8.750, SLO 8.750, Burlingame 9.625, Napa 8.750, Sausalito 9.250,
+    Eureka 10.250) — CA is safe to clean now. **AK Kenai is a genuine
+    borough-suppressed-inside-city modeling question, not a stale value — decide
+    it, don't delete it.** NM + TX need their primary sources first. Full
+    per-item status and fix order:
+    `specs/findings/dor-grid-contradictory-duplicate-pins-2026-09.md`. Chipped.
+  - **226 of 790 grid rows (29%) cite an aggregator** — CA 159, TX 24, AL 17,
+    AZ 8, FL 7, MO 4, WY 3, OK 2, SC 2 (SC's now re-cited). The
+    aggregator-sourced-rate-errors sweep tracked ~130 hits in `src/`; **the test
+    pins were never counted.** Same defect class as the AZ/FL over-collections.
+  - **THE top unwritten test, now named three times (AZ 2026-09-05, FL
+    2026-09-21, here):** an **offline** `DOR_GRID` consistency test. Assertion
+    one — *no two rows for the same ZIP+4 disagree* — is ~15 lines, needs no
+    network so **CI would actually run it**, and would have caught all 12 of
+    these the day each landed. Chipped with the pin cleanup.
+  - **Incidental, outside the pair: 3 dead SST pins** — AR boundary
+    (2026Q4SEP02), OH rates (2026Q4AUG27) + boundary (2026Q4SEP01), all
+    superseded by 2026Q4SEP17 and now **404**. A release-tag data rebuild would
+    fail. Not adopted (constitution §11); chipped.
+
 - **FL — 3 LIVE OVER-COLLECTIONS: Okeechobee fixed in repo this run, Palm Beach
   + Collier were fixed 78 days ago and never deployed; DE fully clean (audit
   2026-09-21, day-5 rotation: DE + FL).**
