@@ -272,6 +272,31 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **AL Autauga County 2.0% → 2.5% (eff 2026-09-01): FIXED IN REPO, PROD RELOAD
+  PENDING. Also, the 2026-08-01 AK/AL fixes were NEVER RELOADED (audit 2026-10-01).**
+  - **Autauga:** Act 2026-362, ALDOR notice `Autauga-County_20260824.pdf`, and
+    `taxrates.csv` locality 7001 (`RC` row active 20260901). There is one
+    county-wide row with no `CL` variant, so it applies inside Prattville too.
+    Every Autauga ZIP has **under-collected 0.5pp since 2026-09-01**. Prattville
+    36066/36067 goes 9.5 → **10.0**; its pin is updated and fails under
+    `-m liveapi` until the reload.
+  - **Reload gap:** prod runs `091d9ba`, which includes `e99237f` (the 08-01
+    fixes), but AK and AL data were never rebuilt. **Ward Cove 99928 still
+    over-collects 3.00pp**, six AK ZIPs still return 0%, and **Calera AL 35040
+    still binds Chilton and over-collects 2.00pp**. AZ *was* reloaded. Fix: on
+    `opensalestax-01`, `git pull` + rebuild, then `data load -s AK -v
+    AK-SST-V0.54-ARSSTC` and `data load -s AL -v AL-SST-V0.31-STATEWIDE-COUNTY`
+    (reuse the existing labels). Then check which of the other 10 states
+    affected by the tiebreak fix (NY, FL, SC, CA, PA, TX, VA, MS, NM, HI) still
+    need a reload. Chipped.
+  - **AK has no rate changes.** The ARSSTC 7-1/8-1/9-1-2026 ZIP sheets are
+    identical; there is no 10-1 sheet yet.
+  - **AL coverage gap grows:** Dadeville (3.5 → 4.0), Pike Road (2.25 → 3.5) and
+    Semmes (4 → 4.5) changed on 2026-10-01; none are modelled. The ALDOR CSV
+    makes wholesale city seeding practical; the source is now recorded in
+    `data-sources.md`.
+  - Report: `specs/audits/2026/10/state-audit-2026-10-01.md`.
+
 - **RI + SC both rate-clean; but the grid has 11 remaining CONTRADICTORY pins
   (audit 2026-09-28, day-21 rotation: RI + SC).**
   - **No live rate defect in either state.** RI is flat **7%** with no local

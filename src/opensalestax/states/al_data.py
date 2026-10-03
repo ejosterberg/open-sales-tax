@@ -76,8 +76,8 @@ Cities seeded (top 30 by 2026 population):
 - **Vestavia Hills** (Jefferson Co.) -- combined 10.000%
 - **Phenix City** (Russell Co.) -- combined 9.750% (state 4 +
   county 1 + city 4.75)
-- **Prattville** (Autauga Co.) -- combined 9.500% (state 4 + county
-  2 + city 3.5)
+- **Prattville** (Autauga Co.) -- combined 10.000% (state 4 + county
+  2.5 + city 3.5; county was 2.0 until 2026-08-31)
 - **Gadsden** (Etowah Co.) -- combined 10.000% (state 4 + county 1
   + city 5)
 - **Alabaster** (Shelby Co.) -- combined 10.000% (state 4 + county
@@ -172,7 +172,11 @@ AL_STATE_EFFECTIVE_FROM = dt.date(1969, 12, 8)
 # exactly. All values represent the county's general-retail sales tax
 # portion, NOT including the 4.000% statewide rate or any city tax.
 AL_COUNTY_RATE_PCT: dict[str, Decimal] = {
-    "Autauga County": Decimal("2.000"),  # Prattville centroid: 4 + 2 + 3.5 = 9.5
+    # Autauga 2.0 -> 2.5 effective 2026-09-01 (Act 2026-362; ALDOR notice
+    # Autauga-County_20260824.pdf; taxrates.csv locality 7001 RC row
+    # active 20260901). Single county-wide row -- no CL variant -- so it
+    # applies inside Prattville too. Grocery stays at 2.0.
+    "Autauga County": Decimal("2.500"),  # Prattville: 4 + 2.5 + 3.5 = 10.0
     "Baldwin County": Decimal("3.000"),  # Daphne 4+3+2.5=9.5; Foley 4+3+3=10
     "Barbour County": Decimal("1.500"),  # ALDOR taxrates.csv flat county rate
     "Bibb County": Decimal("4.000"),  # ALDOR taxrates.csv flat county rate

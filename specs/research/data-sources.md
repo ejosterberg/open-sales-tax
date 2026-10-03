@@ -159,6 +159,33 @@ their sales tax, each with its own rules. Solving Colorado well is a
 significant undertaking; getting it 80% right is achievable with SST-style
 rate files for state + county levels.
 
+### Audit sources recorded by the daily state audit
+
+**Alabama (county AND city rates — one file):** ALDOR "Local Sales, Use,
+Rental & Lodgings Tax Rates Text File",
+`https://www.revenue.alabama.gov/wp-content/uploads/2024/03/taxrates.csv`.
+The upload path is fixed but the file is refreshed in place monthly (check
+the `Last-Modified` header; it was 2026-09-01 at the 2026-10-01 audit).
+Filter `TaxType=ST`, `Rate Type=GENER`, empty `Inactive Date`; a rate change
+shows as a new row with `Indicator=RC` and the old row closed the day before,
+which gives the effective date directly. `scripts/extract_al_county_rates.py
+<csv>` emits the county dict; note its base-vs-CL choice differs from
+`al_data.py` for the city-anchor counties (Lauderdale, Lee, Mobile, Morgan),
+which deliberately use the inside-city `CL` rate — that difference is a
+convention, not drift. Self-administered cities (Birmingham, Huntsville,
+Hoover, …) are still listed. **Notices:** the
+`/sales-use/local-tax-notices/` page shows only the newest ~15; the full
+history is in its RSS feed (`…/local-tax-notices/feed/?paged=N`), and each
+post's PDF link sits in escaped JSON on the post page (`https:\/\/…pdf`), so
+un-escape `\/` before matching. Many notices are lodging/rental/admin-only —
+read the "General Rate" row.
+
+**Alaska:** ARSSTC monthly "Rate Sheet with Zip Codes" xlsx (see
+`arsstc.org/business-sellers/tax-rates/`). Boroughs are the county level and
+are in the same sheet. Rows with no `city` (e.g. Haines townsite 7.0% vs
+Haines rural 5.0% on ZIP 99827) must be keyed by borough name too, or they
+collide and shrink the per-ZIP bracket.
+
 ## 6. US Census TIGER/Line shapefiles
 
 **URL:** https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html

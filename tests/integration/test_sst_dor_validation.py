@@ -3474,9 +3474,10 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Prattville",
         "36066",
         "0001",
-        "9.500",
+        "10.000",
         "0.05",
-        "iter-65 audit pin: AL DOR (state 4 + Autauga 2 + Prattville 3.5) per al_data.py docstring",
+        "daily-audit 2026-10-01: ALDOR (state 4 + Autauga 2.5 + Prattville 3.5); "
+        "Autauga 2.0 -> 2.5 eff 2026-09-01 per ALDOR notice + taxrates.csv",
     ),
     # iter-65 batch C: MS/SC/CT/VA coverage expansion.
     (
