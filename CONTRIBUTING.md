@@ -199,8 +199,21 @@ landscape):
    - `poetry run pytest` against both engines
 5. **Sign off every commit** (`git commit -s`).
 6. **Open the PR.** Describe what changed and why. Link the issue.
-7. **CI runs:** lint, DCO check, tests against both engines, Docker
-   build. All must pass.
+7. **CI runs:** lint (ruff + mypy), the DCO check, and the test suite
+   against both PostgreSQL and MariaDB. All must pass. (There is no
+   Docker build job yet, so if you touch the `Dockerfile`, say in the
+   PR how you tested it.)
+
+   **Your first PR will show CI as waiting, not running.** GitHub
+   does not run workflows on a pull request from a first-time
+   contributor's fork until a maintainer clicks *Approve and run*.
+   Until then the checks show as pending. If nobody approves them,
+   GitHub eventually marks the run **failed**, even though no job ever
+   started. That red X is not about your code. If your checks have
+   been waiting for more than a couple of days, comment on the PR and
+   mention @ejosterberg. Please don't close it: a closed PR drops out
+   of the maintainer's review queue. Once you have had a PR merged, CI
+   on your later PRs starts on its own.
 8. **One maintainer review** is required to merge. State-specific PRs
    prefer review by that state's maintainer when one exists.
 

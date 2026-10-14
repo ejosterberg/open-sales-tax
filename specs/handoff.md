@@ -1212,6 +1212,95 @@ recommendations, and what is still unresolved:
 
 ## Recent improvements (weekly sweeps)
 
+- **2026-10-13 (Monday sweep) — Every outside PR this project has
+  received "failed" CI because nobody approved it to run. A volunteer
+  closed two good PRs as a result.** Tier 7 (community) that turned out
+  to be Tier 1. Cody Dixon (`dixoncody36`, the Texas volunteer from
+  issue #38) opened **#43** (2027 sales-tax holiday windows for 18 states
+  plus 2026 statute corrections, about 1,400 lines, one commit per state,
+  sources cited) and **#44** (California `digital_goods` was marked
+  *taxable*, citing AB 147, which is the Marketplace Facilitator Act and
+  not a taxability law). Both were opened 2026-09-26, got no human
+  reply, showed a red CI X, and the contributor closed both about 27
+  hours later. **Root cause, verified with the Actions API:** the repo's
+  fork-PR policy is `first_time_contributors`, so a workflow from a new
+  fork waits for a maintainer to click *Approve and run*. All three fork
+  PRs ever opened (#41, #43, #44) produced runs with **0 jobs** and
+  conclusion `failure` (GitHub shows "likely failed because of a
+  workflow file issue"). #41's run expired after 30 days on
+  2026-09-14. #43's and #44's runs were cancelled at the exact second
+  each PR was closed. So CI never ran on any of them. `ci.yml` is not
+  broken: maintainer PRs pass, and the PRs touch no workflow files.
+  This is the `action_required` failure mode the global CLAUDE.md warns
+  about, and it is the triage gap from item 5 under "Open decisions"
+  above, which has now cost the project a contributor's work.
+  - **Shipped:** `CONTRIBUTING.md` step 7 now explains the first-PR
+    approval wait, says a red X before approval says nothing about the
+    contributor's code, asks contributors to mention @ejosterberg
+    rather than close the PR, and drops the false "Docker build" CI
+    claim (open-decision item 3).
+  - **Verified, not merged — needs Eric.** I checked PR #44 against
+    primary sources: 18 CCR 1502(f)(1)(D) matches verbatim (Cornell LII
+    copy), and so does the CDTFA Publication 109 quote ("Nontaxable
+    Sales" page, cdtfa.ca.gov/formspubs/pub109/nontaxable-sales.htm).
+    **The live engine currently over-collects tax on California digital
+    downloads.** The commit is 14 lines with a DCO sign-off, and it
+    cherry-picks cleanly onto main (`git fetch origin pull/44/head:pr44
+    && git cherry-pick -s pr44`). I tried that, but the session's safety
+    classifier blocked merging an outside PR without maintainer review,
+    so I undid it before any push. Best path: reopen #44, click
+    *Approve and run*, and merge it, so Cody gets the merge credit.
+    After merging, deploy and reload CA.
+  - **#43 needs a real review** (18 states, about 1,400 lines). It also
+    raises two engine questions worth answering whatever happens to the
+    PR: (a) holiday price caps are inclusive, but many statutes say "less
+    than $X", so an item priced exactly at the cap is wrongly exempt
+    today in IA, OK, MS, TX and CT; (b) FL made disaster-preparedness
+    items exempt year-round from 2025-08-01 (ch. 2025-208), which
+    belongs in taxability rules, not holidays. #44 also asks whether NY
+    `digital_goods` means software, media, or both. A one-line
+    definition in `docs/state-modules.md` would settle that for every
+    state module.
+  - **Draft replies for Eric to post** (not posted: messages go out
+    under Eric's name):
+    - On #44: "Sorry, Cody. The red X was GitHub waiting for me to
+      approve CI on a first-time contributor's PR, not a problem with
+      your change, and I missed it. I've checked both citations against
+      18 CCR 1502 and Pub 109 and they're right. I'm reopening this to
+      merge it. Thank you."
+    - On #43: same apology, plus "This is a big, careful piece of work.
+      Would you reopen it? I'll review it state by state. Your two
+      questions (inclusive caps and FL's year-round exemption) are
+      good, and I'd like to fix both in the engine."
+    - On #38: reply to the 2026-08-11 follow-up, pointing to the above.
+  - **Also open:** #42 (SST pin drift) is still unrefreshed: AR
+    boundary, OH rates and boundary, and GA rates are 404 upstream, so
+    the next data-dump build will fail. By design a human adopts the
+    new quarter. The fix is `python scripts/check_sst_pins.py --write`
+    plus a prod reload. #40/#41: no activity since August, and #41 now
+    has merge conflicts.
+  - **Process fix recommended:** add an inbox step to this weekly task
+    that runs `gh run list --json conclusion,event` and flags any
+    `pull_request` run with 0 jobs or `action_required`, plus any
+    issue/PR with no maintainer reply after 48h. Or relax the fork
+    approval policy (Settings → Actions → "Require approval for
+    first-time contributors who are new to GitHub"). Both are Eric's
+    call.
+  - **Also shipped: dependency security bump.** The gate's `pip-audit`
+    step was **failing on main** with 16 advisories published since the
+    last bump: anyio 4.14.0 (3 advisories, a runtime dependency),
+    urllib3 2.7.0 (3), virtualenv 21.5.1 (4 IDs), and pip 26.1.2 (the
+    local virtualenv's own installer). Lockfile bumped to anyio 4.15.1,
+    urllib3 2.8.0 and virtualenv 21.14.7, which also pulled in
+    typing-extensions, packaging and python-discovery minor updates.
+    pip was upgraded in the local virtualenv only. **Prod still runs the
+    old anyio until the next deploy.**
+  - Gates: ruff check + format ✓, mypy strict ✓ (137 files), unit tests
+    1,642 passed / 4 skipped, pip-audit clean after the bump. SonarQube:
+    **0 BLOCKER/CRITICAL before and after (0 new)**, 0 vulnerabilities,
+    0 hotspots. The 2 MAJOR bugs are pre-existing test-file findings
+    from 2026-05.
+
 - **2026-09-16 (follow-up) — SST pin-rot tooling, a credential leak, and
   the docs that were lying about how to install this.** Four expert
   reviews (packaging / release engineering / maintainer practice /
