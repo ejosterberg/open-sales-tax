@@ -180,6 +180,25 @@ post's PDF link sits in escaped JSON on the post page (`https:\/\/…pdf`), so
 un-escape `\/` before matching. Many notices are lodging/rental/admin-only —
 read the "General Rate" row.
 
+**Utah (SST — DOR cross-check):** the SST file carries county + city rates
+(`UTR…csv`; type `00` = county by FIPS county code, type `01` = city/district
+by FIPS Place or a `97xxx` UT-specific code; a change shows as the old row
+end-dated the day before plus a new row). To confirm the cause and the
+combined rate, read the UT State Tax Commission **Tax Bulletins** page,
+`https://tax.utah.gov/tax-bulletins/` — each quarter has a "Sales Tax Rate
+Changes" bulletin (e.g. **15-26** for 2026-10-01) listing jurisdiction, tax
+type, and new combined rate, plus a "Corrected Tax Rates" bulletin. The
+`/sales/ratechanges/` page was stale (last entry 2025-01-01) at the
+2026-10-28 audit — do not rely on it. Individual bulletin PDF URLs are not
+linked from the listing page.
+
+**Vermont (SST — DOR cross-check):** Vermont Department of Taxes "Local
+Option Tax" page, `https://tax.vermont.gov/business/local-option-tax`, lists
+every municipality with the 1% local option sales tax and its effective
+month (new adopters are called out by quarter). Vermont has no county sales
+tax. Compare the municipality count with the count of type-1 rows in the
+SST `VTR…` file that are open-ended.
+
 **Alaska:** ARSSTC monthly "Rate Sheet with Zip Codes" xlsx (see
 `arsstc.org/business-sellers/tax-rates/`). Boroughs are the county level and
 are in the same sheet. Rows with no `city` (e.g. Haines townsite 7.0% vs

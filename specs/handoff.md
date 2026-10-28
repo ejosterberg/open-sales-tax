@@ -272,6 +272,24 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **UT + VT — ≥ 11 LIVE UNDER-COLLECTIONS from the unapplied Q3 + Q4 SST
+  refreshes (audit 2026-10-28, buffer-day catch-up).** Both states are on Q2
+  files on prod. Q4 is published: `UTR/UTB2026Q4AUG11`, `VTR/VTB2026Q4AUG20`.
+  Apply Q4 and skip Q3. Both are SST states, so there is no code fix.
+  - **UT:** every **Weber County** location is 0.2pp low (county
+    highways + transit, eff 2026-10-01, Tax Bulletin 15-26). Washington City,
+    Toquerville, Hildale and Delta are 0.30–0.33pp low, and **Hanksville is
+    1.40pp low**. The Q4 file also has 7 rows effective 2026-07-01 that were not
+    matched by name in this run. Ogden pin moved 7.25 → 7.45.
+  - **VT:** 9 new 1% local option taxes (8 from 2026-07-01, Peru from
+    2026-10-01). Fair Haven, Morristown, Pomfret, Vergennes and Waitsfield
+    return 6% (should be 7%). After the refresh, add the 9 codes to
+    `vt_names.py` once each is verified by probe.
+  - **The October rotation ran only on day 1.** Days 2–26 were missed, and most
+    states were last audited June–August. Use the remaining buffer days
+    to work through the oldest states first.
+  - Report: `specs/audits/2026/10/state-audit-2026-10-28.md`. Chipped.
+
 - **AL Autauga County 2.0% → 2.5% (eff 2026-09-01): FIXED IN REPO, PROD RELOAD
   PENDING. Also, the 2026-08-01 AK/AL fixes were NEVER RELOADED (audit 2026-10-01).**
   - **Autauga:** Act 2026-362, ALDOR notice `Autauga-County_20260824.pdf`, and

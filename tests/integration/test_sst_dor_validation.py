@@ -6721,9 +6721,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Ogden",
         "84401",
         "0001",
-        "7.250",
+        "7.450",
         "0.05",
-        "UT DOR (state 4.85% + Weber County)",
+        "daily-audit 2026-10-28: 7.250 -> 7.450 (UT State Tax Commission Tax "
+        "Bulletin 15-26: Weber County option highways + public transit +0.2%, "
+        "eff 2026-10-01; SST UTR2026Q4AUG11 county 057 2.4 -> 2.6). UT is SST "
+        "-- fix is the UTR2026Q4AUG11/UTB2026Q4AUG11 refresh; fails under "
+        "-m liveapi until prod loads UT Q4.",
     ),
     (
         "AR",
