@@ -3376,9 +3376,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Albany",
         "31701",
         "0001",
-        "8.000",
+        "9.000",
         "0.05",
-        "iter-64 audit pin: GA DOR (state 4 + Dougherty 4)",
+        # full-sweep 2026-11-01: Dougherty County went 4% -> 5% effective
+        # 2026-10-01 (GAR2026Q4OCT01.csv county 095; GA DOR Q4 2026 rate chart
+        # row "047 Dougherty 9 L E S T2 P"). Prod is still on GAR2026Q2FEB19, so
+        # the live engine returns 8.000% here (under-collects 1.0pp) until the
+        # GA Q4 SST refresh is applied. GA is SST -- no code fix. Fails under
+        # -m liveapi until prod loads GA Q4.
+        "GA DOR Q4 2026 chart (state 4% + Dougherty County 5%, effective 2026-10-01)",
     ),
     (
         "GA",
@@ -6823,6 +6829,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "7.000",
         "0.05",
         "GA DOR Q3 2026 chart (state 4% + Madison County 3%, effective 2026-07-01)",
+    ),
+    # full-sweep 2026-11-01: GAR2026Q4OCT01.csv raises Richmond County (Augusta)
+    # 4.5% -> 5.0% effective 2026-10-01; GA DOR Q4 2026 rate chart row
+    # "121 Richmond 9 L E S O T P". Prod is still on GAR2026Q2FEB19, so Augusta
+    # returns 8.500% (under-collects 0.5pp) until the Q4 refresh. GA is SST --
+    # no code fix. Fails under -m liveapi until prod loads GA Q4.
+    (
+        "GA",
+        "Augusta (Richmond County)",
+        "30901",
+        "0001",
+        "9.000",
+        "0.05",
+        "GA DOR Q4 2026 chart (state 4% + Richmond County 5%, effective 2026-10-01)",
     ),
     (
         "MN",
