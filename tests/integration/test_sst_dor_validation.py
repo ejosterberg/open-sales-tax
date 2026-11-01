@@ -2392,33 +2392,16 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # its county wasn't in CA_COUNTY_RATE_PCT. Now it gets state +
     # county-district correctly. ZIPs picked from county seats /
     # major mid-tier cities to keep the regression-pin meaningful.
-    (
-        "CA",
-        "San Mateo (Burlingame)",
-        "94010",
-        "0001",
-        "9.375",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + San Mateo 2.125%) -- iter-62 county expansion",
-    ),
-    (
-        "CA",
-        "Marin (Sausalito)",
-        "94965",
-        "0001",
-        "8.250",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + Marin 1.0%) -- iter-62 county expansion",
-    ),
-    (
-        "CA",
-        "Humboldt (Eureka)",
-        "95501",
-        "0001",
-        "9.500",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + Humboldt 2.25%) -- iter-62 county expansion",
-    ),
+    # iter-62 county-expansion pins for Burlingame/Sausalito/Eureka/SLO/Napa
+    # removed 2026-11-01 (audit-sweep-pac): each ZIP ALSO carried a later
+    # city-inclusive pin (iter-98/100/120/113/114), so these county-only
+    # entries contradicted the city pins — the engine returned the higher
+    # value every time, so the lower ones always failed. Pre-removal state
+    # was: 94010 Burlingame 9.375 (keep 9.625), 94965 Sausalito 8.250
+    # (keep 9.250), 95501 Eureka 9.500 (keep 10.250), 93401 SLO 8.250
+    # (keep 8.750), 94559 Napa 7.750 (keep 8.750). All five surviving
+    # higher pins independently confirmed against CDTFA 2026-07-01 rate
+    # schedule (see specs/findings/dor-grid-contradictory-duplicate-pins-2026-09.md).
     (
         "CA",
         "Santa Barbara",
@@ -2427,24 +2410,6 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "7.750",
         "0.05",
         "CDTFA Q2 2026 (state 7.25% + Santa Barbara 0.5%) -- iter-62 county expansion",
-    ),
-    (
-        "CA",
-        "San Luis Obispo",
-        "93401",
-        "0001",
-        "8.250",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + SLO 1.0%) -- iter-62 county expansion",
-    ),
-    (
-        "CA",
-        "Napa",
-        "94559",
-        "0001",
-        "7.750",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + Napa 0.5%) -- iter-62 county expansion",
     ),
     (
         "CA",
@@ -2653,24 +2618,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "CDTFA Q2 2026 (state 7.25% + SD County 0.5%) -- post-zip_county; was state-only 7.25% before fix",
     ),
-    (
-        "CA",
-        "Burbank (LA Co)",
-        "91501",
-        "0001",
-        "9.500",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + LA County 2.25%) -- post-zip_county; under-reports Burbank's own 0.75% city tax pending CA_CITIES expansion",
-    ),
-    (
-        "CA",
-        "Temecula (Riverside Co)",
-        "92590",
-        "0001",
-        "7.750",
-        "0.05",
-        "CDTFA Q2 2026 (state 7.25% + Riverside County 0.5%) -- post-zip_county; under-reports any Temecula city portion pending CA_CITIES expansion",
-    ),
+    # post-zip_county county-only pins for Burbank 91501 and Temecula 92590
+    # removed 2026-11-01 (audit-sweep-pac): each ZIP ALSO carried a later
+    # city-inclusive pin (iter-93 Burbank, iter-115 Temecula), so these
+    # county-only entries contradicted the city pins — the engine returned
+    # the higher value every time, so the lower ones always failed.
+    # Pre-removal state: 91501 Burbank 9.500 (keep 10.500), 92590 Temecula
+    # 7.750 (keep 8.750). Both surviving higher pins independently
+    # confirmed against CDTFA 2026-07-01 rate schedule (see
+    # specs/findings/dor-grid-contradictory-duplicate-pins-2026-09.md).
     # Illinois -- IDOR Tax Rate Database / Tax Rate Finder (verified 2026-05-04).
     # Combined = state 6.25% + per-county + RTA (Cook 1.0% / Collar 0.75% / 0
     # downstate) + city home-rule. Tolerance 0.05% to absorb ZIP+4 micro-
@@ -4313,7 +4269,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "9.625",
         "0.05",
-        "iter-98 audit pin: SalesTaxHandbook (state 7.25 + San Mateo 2.125 + city 0.25)",
+        "iter-98 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + San Mateo 2.125 + city 0.25) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     # iter-99: Richmond + Antioch + Pittsburg + Redwood City fill-ins.
     (
@@ -4369,7 +4325,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "9.250",
         "0.05",
-        "iter-100 audit pin: SalesTaxHandbook (state 7.25 + Marin 1.0 + city 1.0)",
+        "iter-100 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + Marin 1.0 + city 1.0) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     (
         "CA",
@@ -4697,7 +4653,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "8.750",
         "0.05",
-        "iter-113 audit pin: SalesTaxHandbook (state 7.25 + SLO 1.0 + city 0.5)",
+        "iter-113 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + SLO 1.0 + city 0.5) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     (
         "CA",
@@ -4800,7 +4756,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "8.750",
         "0.05",
-        "iter-114 audit pin: SalesTaxHandbook (state 7.25 + Napa 0.5 + city 1.0)",
+        "iter-114 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + Napa 0.5 + city 1.0) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     (
         "CA",
@@ -4840,7 +4796,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "8.750",
         "0.05",
-        "iter-115 audit pin: SalesTaxHandbook (state 7.25 + Riverside 0.5 + city 1.0)",
+        "iter-115 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + Riverside 0.5 + city 1.0) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     (
         "CA",
@@ -5183,7 +5139,7 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0001",
         "10.250",
         "0.05",
-        "iter-120 audit pin: SalesTaxHandbook (state 7.25 + Humboldt 2.25 + city 0.75; Apr-2025 raise)",
+        "iter-120 audit pin: CDTFA 2026-07-01 schedule (state 7.25 + Humboldt 2.25 + city 0.75; Apr-2025 raise) -- re-cited 2026-11-01 (was SalesTaxHandbook)",
     ),
     (
         "CA",
