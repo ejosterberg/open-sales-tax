@@ -3928,9 +3928,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Minot",
         "58701",
         "0001",
-        "7.500",
+        "8.000",
         "0.05",
-        "iter-70 audit pin: ND DOR (state 5 + Minot 2 + Ward 0.5)",
+        "full-sweep 2026-11-01: ND permit-holder notice -- Minot city rate "
+        "2.0% -> 2.5% eff 2026-10-01 (new combined = state 5% + Ward 0.5% "
+        "+ Minot 2.5% = 8.0%). Engine returns 7.500% -- under-collects "
+        "0.50pp since 2026-10-01. ND is SST: fix is the Q4 (NDR2026Q4AUG14) "
+        "refresh.",
     ),
     (
         "IN",
