@@ -6900,7 +6900,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # (https://otr.cfo.dc.gov/release/notice-oct-1-2025-tax-changes).
     # Pin bumped 2026-11-01 after confirming the engine already honours
     # the effective-dated 7.0% row in src/opensalestax/states/district_of_columbia.py.
-    ("DC", "Washington DC", "20001", "0001", "7.000", "0.05", "DC OTR (flat statewide, 7.0% effective 2026-10-01)"),
+    (
+        "DC",
+        "Washington DC",
+        "20001",
+        "0001",
+        "7.000",
+        "0.05",
+        "DC OTR (flat statewide, 7.0% effective 2026-10-01)",
+    ),
     ("DE", "Wilmington", "19801", "0001", "0.000", "0.05", "DE DOR (no statewide sales tax)"),
     (
         "IA",
