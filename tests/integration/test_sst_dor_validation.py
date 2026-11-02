@@ -3488,15 +3488,11 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "iter-65 audit pin: VA DOR (state 4.3 + state-mandated local 1.0; Lynchburg has no add-on)",
     ),
     # iter-66 batch A: HI/NM/MD/MA/KY/no-tax coverage expansion.
-    (
-        "NM",
-        "Rio Rancho",
-        "87124",
-        "0001",
-        "7.6875",
-        "0.10",
-        "iter-66 audit pin: NM Tax & Revenue (Sandoval County + Rio Rancho GRT)",
-    ),
+    # (NM Rio Rancho 87124 pin removed 2026-11-01: superseded by the
+    # iter-172 pin at the same ZIP, which refreshed 7.6875 -> 7.875 after
+    # the Rio Rancho city rate rose 2.8125 -> 3.000. The old pin was
+    # left stacked and started failing against live once the refresh
+    # landed; keeping both pins just double-reports the same ZIP.)
     (
         "MD",
         "Baltimore",
@@ -6899,7 +6895,20 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # Most are flat-statewide so a single entry pins the rate; a few
     # (CO/LA) are documented gaps via SubJurisdiction Protocol decisions
     # 04 / 05 -- the entry pins state-only behavior.
-    ("DC", "Washington DC", "20001", "0001", "6.000", "0.05", "DC DOR (flat statewide)"),
+    # DC general sales tax rose 6.0 -> 7.0 effective 2026-10-01 per DC OTR
+    # "Notice of Oct. 1, 2025 Tax Changes"
+    # (https://otr.cfo.dc.gov/release/notice-oct-1-2025-tax-changes).
+    # Pin bumped 2026-11-01 after confirming the engine already honours
+    # the effective-dated 7.0% row in src/opensalestax/states/district_of_columbia.py.
+    (
+        "DC",
+        "Washington DC",
+        "20001",
+        "0001",
+        "7.000",
+        "0.05",
+        "DC OTR (flat statewide, 7.0% effective 2026-10-01)",
+    ),
     ("DE", "Wilmington", "19801", "0001", "0.000", "0.05", "DE DOR (no statewide sales tax)"),
     (
         "IA",
