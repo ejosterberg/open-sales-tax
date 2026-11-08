@@ -477,7 +477,11 @@ def test_new_mexico_parse_rates_emits_state_county_city_layers() -> None:
         ("Artesia", "Eddy County", Decimal("7.6458")),
         ("Portales", "Roosevelt County", Decimal("8.55")),
         ("Silver City", "Grant County", Decimal("8.125")),
-        ("Espanola", "Rio Arriba County", Decimal("8.8125")),
+        # NM TRD "GRT Rate Schedule July 1, 2026 - June 30, 2027"
+        # location 17-215 (Espanola Rio Arriba side) = 8.6875%.
+        # Was 8.8125% (SalesTaxHandbook, iter-175); corrected to the
+        # primary-source Rio Arriba rate 2026-11-08.
+        ("Espanola", "Rio Arriba County", Decimal("8.6875")),
         ("Grants", "Cibola County", Decimal("8.000")),
         ("Anthony", "Doña Ana County", Decimal("8.3775")),
         ("Bernalillo", "Sandoval County", Decimal("7.4375")),

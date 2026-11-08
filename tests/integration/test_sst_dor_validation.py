@@ -6998,7 +6998,13 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "NM TRD (state + Farmington city 3.3125%) -- iter-173 refresh from 8.125",
     ),
     ("NM", "Gallup", "87301", "0001", "8.5625", "0.05", "NM TRD (state + Gallup city GRT)"),
-    ("NM", "Espanola", "87532", "0001", "8.875", "0.05", "NM TRD (state + Espanola city GRT)"),
+    # NM TRD "GRT Rate Schedule July 1, 2026 - June 30, 2027" location
+    # 17-215 Espanola (Rio Arriba side) = 8.6875%. ZIP 87532's Census
+    # area-majority county is Rio Arriba (NM FIPS 039), so the ZIP-only
+    # lookup pins to the Rio Arriba rate, not the 8.8125% Santa Fe side
+    # (location 01-226). Was 8.875 (pre-iter-175) and 8.8125 (iter-175
+    # SalesTaxHandbook); corrected to primary source 2026-11-08.
+    ("NM", "Espanola", "87532", "0001", "8.6875", "0.05", "NM TRD loc 17-215 (Rio Arriba side)"),
     (
         "NV",
         "Las Vegas",
