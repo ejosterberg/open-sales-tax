@@ -182,10 +182,24 @@ async def lookup_jurisdictions_by_zip(
     # transit) regardless of record type; pull them from the
     # type-4 layer too so districts encoded only on per-+4 rows
     # don't get dropped.
-    district_authorities: list[TaxAuthority] = []
+    #
+    # Also pull the matching (zip4_low, zip4_high) for each district
+    # row so the cross-county district filter below can detect which
+    # county a county-anchored district was co-bound to on each row.
+    # SST boundary files for county-anchored district taxes (e.g.
+    # OH's COTA LinkUS extension codes 96000=Delaware, 98000=Union,
+    # plus COTA 25000=Franklin) emit one boundary row per county side
+    # of a cross-county ZIP, pairing district + county on the same
+    # (zip5, zip4_low, zip4_high). A naive district query unions
+    # every district every ZIP+4 row touches, so Dublin 43017 (which
+    # straddles Franklin, Delaware, Union) picks up all three county-
+    # anchored districts and stacks their rates -- blowing past Ohio's
+    # statutory 8.75% cap (ORC 5739.023) and returning 10.00% for an
+    # address OH DOR's Finder reports as 8.00%.
+    district_rows: list[tuple[TaxAuthority, str, str]] = []
     if zip4 is not None:
         district_stmt = (
-            select(TaxAuthority)
+            select(TaxAuthority, Boundary.zip4_low, Boundary.zip4_high)
             .join(Boundary, Boundary.authority_id == TaxAuthority.id)
             .where(
                 *base_filter(),
@@ -196,9 +210,17 @@ async def lookup_jurisdictions_by_zip(
                 TaxAuthority.authority_type == "district",
             )
             .options(*options)
-            .distinct()
         )
-        district_authorities = list((await session.execute(district_stmt)).scalars().all())
+        district_rows = [
+            (auth, lo, hi) for auth, lo, hi in (await session.execute(district_stmt)).all()
+        ]
+    district_authorities: list[TaxAuthority] = []
+    seen_d: set[int] = set()
+    for auth, _lo, _hi in district_rows:
+        if auth.id in seen_d:
+            continue
+        seen_d.add(auth.id)
+        district_authorities.append(auth)
 
     # Loose fallback: if neither the precise type-4 query NOR
     # the type-z fallback found any city/county binding for this
@@ -294,6 +316,54 @@ async def lookup_jurisdictions_by_zip(
             if auth.authority_type == "city" and _state_abbrev(auth) in {"TN", "WA"}:
                 city_includes_county = True
                 break
+
+    # Cross-county district filter (ORC 5739.023 / OH COTA LinkUS +
+    # any other state whose SST boundary file pairs a county-anchored
+    # district onto the same (zip5, zip4_low, zip4_high) row as its
+    # anchoring county). For each type-4 district we pulled above,
+    # collect the set of counties also bound to that exact row. If
+    # the district HAS county pairings and NONE of them is in the
+    # picked county set, drop the district as cross-county pollution.
+    # Districts with no county pair on any matching row (state-wide
+    # transit, etc.) pass through untouched. The filter is rate-neutral
+    # for correctly-bound districts and only removes bindings that
+    # the SST file implicitly tied to the wrong county.
+    if zip4 is not None and precise_county_ids and district_rows:
+        # Collect the distinct (zip5, zip4_low, zip4_high) tuples each
+        # district row anchors on, so we can ask the DB which counties
+        # share those exact tuples.
+        district_row_tuples = {(zip5, lo, hi) for _a, lo, hi in district_rows}
+        county_pair_stmt = (
+            select(Boundary.authority_id, Boundary.zip4_low, Boundary.zip4_high)
+            .join(TaxAuthority, TaxAuthority.id == Boundary.authority_id)
+            .where(
+                Boundary.zip5 == zip5,
+                TaxAuthority.authority_type == "county",
+                Boundary.zip4_low.in_({lo for _z, lo, _h in district_row_tuples}),
+                Boundary.zip4_high.in_({hi for _z, _l, hi in district_row_tuples}),
+            )
+        )
+        county_pair_rows = list((await session.execute(county_pair_stmt)).all())
+        county_pairs_by_range: dict[tuple[str, str, str], set[int]] = {}
+        for cid, lo, hi in county_pair_rows:
+            key = (zip5, lo, hi)
+            if key in district_row_tuples:
+                county_pairs_by_range.setdefault(key, set()).add(cid)
+        district_county_pairs: dict[int, set[int]] = {}
+        for auth, lo, hi in district_rows:
+            key = (zip5, lo, hi)
+            peers = county_pairs_by_range.get(key)
+            if peers:
+                district_county_pairs.setdefault(auth.id, set()).update(peers)
+        kept_district_ids: set[int] = set()
+        for auth in district_authorities:
+            peers = district_county_pairs.get(auth.id)
+            if not peers:
+                kept_district_ids.add(auth.id)
+                continue
+            if peers & precise_county_ids:
+                kept_district_ids.add(auth.id)
+        district_authorities = [a for a in district_authorities if a.id in kept_district_ids]
 
     seen_ids: set[int] = set()
     merged: list[TaxAuthority] = []
