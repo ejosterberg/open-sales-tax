@@ -427,7 +427,7 @@ class NorthCarolina(SstStateModule):
         yield from super().parse_rates(source_file, version_label)
         yield RateRow(
             authority_name=_MECKLENBURG_PIT_NAME,
-            authority_type="county",
+            authority_type="district",
             rate_pct=_MECKLENBURG_PIT_RATE_PCT,
             effective_from=_MECKLENBURG_PIT_EFFECTIVE_FROM,
             effective_to=None,
@@ -440,16 +440,17 @@ class NorthCarolina(SstStateModule):
         Walks the SST stream once (per the parent) and, for every
         boundary row whose county resolves to Mecklenburg, emits a
         parallel binding to the PIT authority so the lookup engine
-        picks up both. The PIT is treated as a county-type authority
-        rather than a district so the city-includes-county filter
-        (TN/WA) doesn't accidentally touch it.
+        picks up both. The PIT is encoded as a district-type authority
+        (not county) so `_pick_one_city_county_per_zip5` doesn't have
+        to pick between Mecklenburg Co and PIT at the county slot --
+        districts always pass through the merge and stack additively.
         """
         for row in super().parse_boundaries(source_file, version_label):
             yield row
             if row.authority_type == "county" and row.authority_name == _MECKLENBURG_COUNTY_NAME:
                 yield BoundaryRow(
                     authority_name=_MECKLENBURG_PIT_NAME,
-                    authority_type="county",
+                    authority_type="district",
                     zip5=row.zip5,
                     zip4_low=row.zip4_low,
                     zip4_high=row.zip4_high,
