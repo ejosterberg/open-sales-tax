@@ -22,6 +22,7 @@ from sqlalchemy.orm import selectinload
 
 from opensalestax.data.county_names import county_name as _county_name_lookup
 from opensalestax.data.zip_county_dominant import dominant_county
+from opensalestax.data.zip_county_overrides import county_override as _county_override
 from opensalestax.db.models import Boundary, DataVersion, State, TaxAuthority
 
 # Threshold for the v0.47 "lone type-4-only district" heuristic.
@@ -639,7 +640,13 @@ def _pick_one_city_county_per_zip5(
         sample_auth = seen_authorities[by_type["county"][0]]
         sample_state = _state_abbrev(sample_auth)
         if sample_state is not None:
-            dom_fips = dominant_county(zip5, sample_state)
+            # Hand-curated override wins over Census area-majority. See
+            # zip_county_overrides.py: Census land-area is a proxy for
+            # "where the addresses are" and fails for a city that sits
+            # in a geographically small county next to a large rural
+            # neighbour (e.g. OK 74003 Bartlesville: Osage 113 wins by
+            # acreage but the city is in Washington 147).
+            dom_fips = _county_override(zip5, sample_state) or dominant_county(zip5, sample_state)
             if dom_fips is not None:
                 dominant_county_name = _county_name_lookup(sample_state, dom_fips)
 
