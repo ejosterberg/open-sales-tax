@@ -20,8 +20,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from opensalestax.data.county_names import county_name as _county_name_lookup
-from opensalestax.data.zip_county_dominant import dominant_county
 from opensalestax.db.models import Boundary, DataVersion, State, TaxAuthority
 
 # Threshold for the v0.47 "lone type-4-only district" heuristic.
@@ -106,21 +104,7 @@ async def lookup_jurisdictions_by_zip(
     # encoding ("this +4 is in city X" vs "this +4 is in
     # unincorporated county Y") the type-4 row is the precise
     # truth and the type-z fallback would double-count.
-    # Track precise city and county IDs SEPARATELY so the "drop type-z"
-    # filter at the merge step only drops the SAME type. Previous
-    # behaviour (iter-62 through 2026-11-08) folded both into one
-    # `precise_county_city_ids` set, which meant a soft-added dominant
-    # city would cause any type-z county binding to be dropped as if
-    # the city had superseded it. UT 84601 reproduces this: Provo has
-    # only narrow per-+4 rows (none covering synthetic +4 "0001"), so
-    # the soft-add path adds Provo, and the old code then dropped the
-    # type-z Utah County 2.5% binding, under-collecting by 2.5pp.
-    # Same pattern bites MN 55344/55416/55369 (Hennepin County 0.15%
-    # dropped) and WY 82601 (Natrona County correctly kept via a
-    # different code path, but any peer state with the pattern is
-    # exposed).
-    precise_city_ids: set[int] = set()
-    precise_county_ids: set[int] = set()
+    precise_county_city_ids: set[int] = set()
     has_narrow_precise = False
     if zip4 is not None:
         precise_stmt = (
@@ -154,10 +138,7 @@ async def lookup_jurisdictions_by_zip(
                 continue
             seen.add(auth.id)
             precise_authorities.append(auth)
-            if auth.authority_type == "city":
-                precise_city_ids.add(auth.id)
-            elif auth.authority_type == "county":
-                precise_county_ids.add(auth.id)
+        precise_county_city_ids = seen
     else:
         precise_authorities = []
 
@@ -208,7 +189,7 @@ async def lookup_jurisdictions_by_zip(
     # +4 avoids OK-style double-counting when a ZIP straddles two
     # cities (e.g. 73069 has Norman ranges starting at +4 1000 and
     # Moore ranges starting at +4 8061; for +4 6107 Norman wins).
-    if zip4 is not None and not (precise_city_ids or precise_county_ids):
+    if zip4 is not None and not precise_county_city_ids:
         local_in_z = any(a.authority_type in ("county", "city") for a in z_authorities)
         if not local_in_z:
             loose_stmt = (
@@ -227,11 +208,6 @@ async def lookup_jurisdictions_by_zip(
             )
             loose_rows = list((await session.execute(loose_stmt)).all())
             precise_authorities = _pick_closest_per_type(loose_rows, zip4)
-            for auth in precise_authorities:
-                if auth.authority_type == "city":
-                    precise_city_ids.add(auth.id)
-                elif auth.authority_type == "county":
-                    precise_county_ids.add(auth.id)
 
     # Decision 10 (iter-62 third attempt): soft-add the ZIP's dominant
     # city when precise + z + loose all missed one AND no narrow
@@ -263,30 +239,21 @@ async def lookup_jurisdictions_by_zip(
             dominant = (await session.execute(dominant_city_stmt)).scalars().first()
             if dominant is not None:
                 precise_authorities = [*precise_authorities, dominant]
-                precise_city_ids.add(dominant.id)
+                precise_county_city_ids = precise_county_city_ids | {dominant.id}
 
     # Merge: state always; districts always; county/city prefer
     # type-4 over type-z when both exist for the SAME ZIP+4.
-    #
-    # The "drop type-z" filter runs per-type: a precise city only
-    # supersedes other type-z CITIES (not type-z counties), and
-    # vice versa. Folding both into one set (pre 2026-11-08) caused
-    # UT 84601 to drop its type-z Utah County binding because the
-    # soft-add had added a precise city (Provo), under-collecting
-    # 2.5pp. Same bug hit MN 55344/55416/55369 (Hennepin typez
-    # dropped when a Minneapolis / Maple Grove / Eden Prairie city
-    # bound via precise type-4).
     seen_ids: set[int] = set()
     merged: list[TaxAuthority] = []
     for auth in [*precise_authorities, *district_authorities, *z_authorities]:
         if auth.id in seen_ids:
             continue
-        if auth.authority_type == "city" and precise_city_ids and auth.id not in precise_city_ids:
-            continue
+        # Drop type-z county/city when a precise type-4 county/
+        # city was found (TN-style alternation).
         if (
-            auth.authority_type == "county"
-            and precise_county_ids
-            and auth.id not in precise_county_ids
+            auth.authority_type in ("county", "city")
+            and precise_county_city_ids
+            and auth.id not in precise_county_city_ids
         ):
             continue
         seen_ids.add(auth.id)
@@ -301,10 +268,10 @@ async def lookup_jurisdictions_by_zip(
     # synthetic and real +4 addresses without precise SST coverage
     # behave the same as the zip5-only path.
     #
-    # When either precise set IS populated, the precise type-4
-    # match has already won for that city/county slot; skip the
+    # When precise_county_city_ids IS populated, the precise type-4
+    # match has already won for the city/county slot; skip the
     # dedup so per-+4 precision is preserved.
-    if not (precise_city_ids or precise_county_ids):
+    if not precise_county_city_ids:
         merged = await _dedup_typez_fallback(session, merged, zip5)
 
     # iter-167: cross-state ZIP dedup. Some ZIPs (Pipestone area
@@ -368,7 +335,7 @@ async def _dedup_typez_fallback(
     total_zip_counts: dict[int, int] = {}
     for aid, zip_count in (await session.execute(coverage_stmt)).all():
         total_zip_counts[aid] = zip_count
-    return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts, zip5=zip5)
+    return _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
 
 
 def _collapse_single_local_districts(
@@ -520,7 +487,7 @@ async def lookup_jurisdictions_by_zip5_loose(
         for aid, zip_count in (await session.execute(coverage_stmt)).all():
             total_zip_counts[aid] = zip_count
 
-    picked = _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts, zip5=zip5)
+    picked = _pick_one_city_county_per_zip5(rows, total_zip_counts=total_zip_counts)
     # Collapse multi-county same-rate LOST/overlay stacks (IA) to the
     # dominant district; no-op for states that don't need it.
     return await _dedup_single_local_districts(session, picked, zip5)
@@ -548,8 +515,6 @@ def _is_placeholder_name(auth: TaxAuthority) -> bool:
 def _pick_one_city_county_per_zip5(
     rows: list[tuple[TaxAuthority, str | None]],
     total_zip_counts: dict[int, int] | None = None,
-    *,
-    zip5: str | None = None,
 ) -> list[TaxAuthority]:
     """Collapse multi-city / multi-county ZIPs to one authority per type.
 
@@ -605,55 +570,24 @@ def _pick_one_city_county_per_zip5(
     out: list[TaxAuthority] = []
     picked_city: TaxAuthority | None = None
     picked_county: TaxAuthority | None = None
-    # Hard-override for the county slot: Census area-majority wins over
-    # SST row-count. GA 30601 reproduces why: ZIP 30601's USPS place is
-    # Athens (Athens-Clarke County). The GA Q4 SST boundary file binds
-    # 30601 to Clarke, Jackson, AND Madison, with Madison carrying one
-    # more row (15) than Clarke (14) -- so the row-count tiebreak picked
-    # Madison, over-collecting the wrong county and dropping Athens-
-    # Clarke entirely. `dominant_county` returns the FIPS whose
-    # AREALAND_PART is largest per the Census ZCTA relationship file;
-    # that is the same rule `choose_county_name` already uses for
-    # self-seeded modules, lifted here for SST states too.
-    dominant_county_name: str | None = None
-    if zip5 is not None and by_type.get("county"):
-        sample_auth = seen_authorities[by_type["county"][0]]
-        sample_state = _state_abbrev(sample_auth)
-        if sample_state is not None:
-            dom_fips = dominant_county(zip5, sample_state)
-            if dom_fips is not None:
-                dominant_county_name = _county_name_lookup(sample_state, dom_fips)
-
     for auth_type, aids in by_type.items():
         if auth_type in ("city", "county"):
-            # If Census tells us the dominant county for this ZIP AND a
-            # candidate matches that name, that pick is final.
-            overridden_id: int | None = None
-            if auth_type == "county" and dominant_county_name is not None:
-                for aid in aids:
-                    if seen_authorities[aid].name == dominant_county_name:
-                        overridden_id = aid
-                        break
-            # Otherwise: dominant authority wins by the usual sort chain.
+            # Dominant authority wins. Sort key chain:
             #   1. most rows for THIS ZIP (typez+type4 combined)
             #   2. type-z first (True > False) -- secondary signal
             #   3. non-placeholder name (True > False -- vetted name wins)
             #   4. fewer total ZIPs (more-specific authority wins;
             #      negate so max() picks the smallest)
             #   5. lowest id (stable tiebreaker)
-            best_id = (
-                overridden_id
-                if overridden_id is not None
-                else max(
-                    aids,
-                    key=lambda aid: (
-                        counts.get(aid, 0),
-                        has_typez.get(aid, False),
-                        not _is_placeholder_name(seen_authorities[aid]),
-                        -total_zip_counts.get(aid, 0),
-                        -aid,
-                    ),
-                )
+            best_id = max(
+                aids,
+                key=lambda aid: (
+                    counts.get(aid, 0),
+                    has_typez.get(aid, False),
+                    not _is_placeholder_name(seen_authorities[aid]),
+                    -total_zip_counts.get(aid, 0),
+                    -aid,
+                ),
             )
             chosen = seen_authorities[best_id]
             if auth_type == "city":

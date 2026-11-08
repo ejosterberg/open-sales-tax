@@ -3069,14 +3069,25 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "iter-63 audit pin: GA DOR (state 4 + Bibb 4)",
     ),
+    # Athens 30601 uses +4 "1500" (inside Clarke County +4 range
+    # 1101-3915) rather than the synthetic "0001" because the
+    # SST boundary file has Clarke bound only to narrow per-+4
+    # ranges (no zip-wide type-z row), and Madison County has
+    # a type-z row for 30601 too -- so synthetic "0001" falls
+    # outside every Clarke range and gets Madison via type-z
+    # fallback. 2026-11-08 engine fix added Census dominant-county
+    # override which picks Clarke for ANY real-world +4 inside
+    # Clarke's ranges, but synthetic "0001" still misses the
+    # precise lookup. Any +4 in 1101-3915 reproduces the correct
+    # Athens-Clarke 8.000% from a non-synthetic address.
     (
         "GA",
         "Athens",
         "30601",
-        "0001",
+        "1500",
         "8.000",
         "0.05",
-        "iter-63 audit pin: GA DOR (state 4 + Athens-Clarke 4)",
+        "iter-63 audit pin: GA DOR (state 4 + Athens-Clarke 4), 2026-10-01 schedule confirms Clarke 029 at 8%",
     ),
     # iter-63 batch B: SST flat-rate states + WV municipal-tax cities
     # whose live API matches the published state/municipal table.
@@ -6505,15 +6516,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "ARSSTC (City of Bethel, Bethel Census Area) -- v0.49 AK promotion",
     ),
-    (
-        "AK",
-        "Kenai (KPB-incorporated)",
-        "99611",
-        "0001",
-        "3.000",
-        "0.05",
-        "ARSSTC (City of Kenai 3.0% -- KPB borough rate suppressed inside city)",
-    ),
+    # AK 99611 Kenai second pin (3.000% KPB-suppressed-inside-city)
+    # removed 2026-11-08: the iter-67 pin earlier in the grid (6.000% KPB
+    # 3 + Kenai 3) is the correct ARSSTC-verified answer, confirmed by
+    # src/opensalestax/states/alaska.py: the borough tax IS collected
+    # throughout the borough including inside city limits, and the
+    # city tax is added on top (ARSSTC tax-rate look-up + KPB / KGB
+    # ordinances; verified iter-67 against live ARSSTC rate-finder).
+    # The 3.000 pin was a modelling-question marker kept pending a
+    # decision that is now made: ARSSTC stacking is the correct model.
     (
         "AK",
         "Petersburg",
