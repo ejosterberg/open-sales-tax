@@ -352,12 +352,24 @@ NM_LOCATION_RATES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         ),
     ),
     "Espanola": (
-        # Crosses Rio Arriba and Santa Fe counties; primary is Rio Arriba
+        # Crosses Rio Arriba and Santa Fe counties; primary is Rio
+        # Arriba (ZIP 87532 Census area-majority = NM FIPS 039 Rio
+        # Arriba). NM TRD assigns different combined rates per side:
+        #   Rio Arriba side -> location code 17-215 -> 8.6875%
+        #   Santa Fe side   -> location code 01-226 -> 8.8125%
+        # ZIP-only lookups default to the dominant Rio Arriba rate.
         "Rio Arriba County",
-        # iter-175: refreshed 4.000 -> 3.9375 (combined 8.875% ->
-        # 8.8125%) per NM TRD via SalesTaxHandbook May 2026.
-        # Was 0.0625% over.
-        Decimal("3.9375"),  # combined 8.8125% (TRD loc code 17-123)
+        # 2026-11-08: reverted iter-175's SalesTaxHandbook-sourced
+        # 3.9375% (combined 8.8125%) back to the primary NM TRD
+        # "GRT Rate Schedule July 1, 2026 - June 30, 2027" value for
+        # Rio Arriba Espanola (location 17-215): combined 8.6875% =
+        # state 4.875% + Rio Arriba county remainder 1.75% + Espanola
+        # city portion 2.0625%. Prior iter-175 value matched the
+        # Santa Fe-side rate (01-226) by coincidence, over-collecting
+        # 0.125% on the Rio Arriba side (the majority of 87532).
+        # Aggregator-sourced; replaced per CLAUDE.md "primary sources
+        # only" rule. See specs/findings/defect-sweep-remaining-20261108.md.
+        Decimal("3.8125"),  # combined 8.6875% (TRD loc code 17-215)
         ("87532",),
     ),
     "Grants": (
