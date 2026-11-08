@@ -276,6 +276,24 @@ async def lookup_jurisdictions_by_zip(
     # 2.5pp. Same bug hit MN 55344/55416/55369 (Hennepin typez
     # dropped when a Minneapolis / Maple Grove / Eden Prairie city
     # bound via precise type-4).
+    #
+    # EXCEPTION for city-includes-county states (TN, WA): the SST
+    # file's city rate ALREADY includes the county portion, so a
+    # type-z county binding stacked on top of a precise city would
+    # double-collect. When a precise city matches in one of these
+    # states, treat the county the same way the pre-2026-11-08
+    # code did and drop any type-z county, even though no precise
+    # county matched. WA 98402-3502 Tacoma reproduces: Pierce Co
+    # has a type-z row + Tacoma has a precise type-4; without this
+    # exception Pierce stacks (+3.1pp over-collection). Same bite
+    # on TN 37040 Clarksville.
+    city_includes_county = False
+    if precise_city_ids:
+        for auth in precise_authorities:
+            if auth.authority_type == "city" and _state_abbrev(auth) in {"TN", "WA"}:
+                city_includes_county = True
+                break
+
     seen_ids: set[int] = set()
     merged: list[TaxAuthority] = []
     for auth in [*precise_authorities, *district_authorities, *z_authorities]:
@@ -283,12 +301,13 @@ async def lookup_jurisdictions_by_zip(
             continue
         if auth.authority_type == "city" and precise_city_ids and auth.id not in precise_city_ids:
             continue
-        if (
-            auth.authority_type == "county"
-            and precise_county_ids
-            and auth.id not in precise_county_ids
-        ):
-            continue
+        if auth.authority_type == "county":
+            if city_includes_county:
+                # Drop ALL type-z counties when the state's cities include
+                # the county portion (pre 2026-11-08 behaviour for TN/WA).
+                continue
+            if precise_county_ids and auth.id not in precise_county_ids:
+                continue
         seen_ids.add(auth.id)
         merged.append(auth)
 
