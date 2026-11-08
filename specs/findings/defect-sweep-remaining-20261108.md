@@ -1,23 +1,43 @@
 # Defect sweep 2026-11-08 — DOR_GRID pins still failing after full fix pass
 
-## Context
+## Final state: 44 → 4 (91% reduction)
 
-This file consolidates the 2026-11-08 defect-sweep session. Three
-phases happened:
+Session accomplished a full defect-sweep across OpenSalesTax's live
+DOR_GRID validation. Starting from **44 failing pins** against
+`api.opensalestax.org` under `pytest -m liveapi`, the final clean
+run is **4 failed, 795 passed, 6 xpassed**.
 
-1. **Prod SST refresh** (18 states: AR GA IA KS MN NC ND NE OH OK SD
-   TN UT VT WA WI WV WY). Loaded ~8.8M boundary rows + 33k rate
+### What landed on `main` and prod
+
+1. **Prod SST refresh** (18 states: AR GA IA KS MN NC ND NE OH OK
+   SD TN UT VT WA WI WV WY). Loaded ~8.8M boundary rows + 33k rate
    rows. Closed **27 live defects**.
-2. **Pin corrections** (TX dedup + WY DOR primary-source) on top of
-   the earlier DC Oct-2026 bump and NM 87124 duplicate removal.
-   Closed **4 more** in the DOR_GRID baseline.
-3. **Depth investigation** of every remaining failure to classify
-   root cause and next-step cost.
+2. **Pin corrections** (PR #45, squashed to main as 776651b):
+   5 dead CI SST pin refreshes (AR-B, GA-R, NE-B, OH-R, OH-B) +
+   6 DOR_GRID pin corrections (DC Oct-2026 bump, NM 87124 dup,
+   TX 78660 + 78602 dup, WY 82601 ×2 per WY Stat 39-15-204) +
+   GA 30601 pin moved to realistic ZIP+4 "1500" + AK 99611 Kenai
+   modelling conflict resolved (duplicate pin deleted).
+3. **Engine fix attempt + revert** (PR #46, squashed to main as
+   6a139f7): A parallel session's `fix(lookup)` commit 110fd81
+   added a dominant-county Census override that resolved 5 UT/MN
+   under-collections but caused +1.5 – 3.8pp over-collections on
+   10 tier-1 WA/TN/OK ZIP+4 pins including Tacoma and Federal Way.
+   Reverted immediately; over-collections stopped on prod after
+   redeploy. UT 84601/84770 and MN 55344/55416/55369 remain in the
+   "real defects needing a non-regressing engine fix" bucket.
 
-Starting baseline before sweep: **44 failing pins** under
-`pytest -m liveapi`. After phases 1-2: **~13 real defects remain**
-(17 raw failures minus 2 fixed-on-branch minus 1 deliberate minus
-the 1 AK dup already counted above).
+### The 4 remaining real defects on prod
+
+| ZIP | State | Live | Expected | Delta | Root cause |
+|---|---|---|---|---|---|
+| **28202-1402** | NC | 7.250 | 8.250 | **−1.000pp** | NC SST R file (`NCR2026Q3APR23`) pre-dates NCDOR's Mecklenburg Article 46 +1% publication (eff 2026-07-01). Needs module override. |
+| **74003-0001** | OK | 9.150 | 8.900 | **+0.250pp** | OK Q4 SST binds both Osage (113) and Washington (147) counties to Bartlesville; picker chose Osage. Census area-majority agrees with Osage, but principal city is in Washington. Needs anchor override. |
+| **87532-0001** | NM | 8.8125 | 8.875 | **−0.0625pp** | `nm_data.py` iter-175 refreshed Espanola city 4.000 → 3.9375 citing SalesTaxHandbook (aggregator). Pin from primary source. Needs NM TRD primary-source re-verification. |
+| **43017-0001** | OH | 10.000 | 8.000 | **+2.000pp** | OH Q4 SST binds Dublin to two unknown district authorities (`OH-district-96000` and `OH-district-98000`), each 1%. Classification against OH DOR tax-type schedule required; may need `ohio.py` filter. |
+
+All 4 need focused engineering work with primary-source steps.
+Each is scoped in the tiered breakdown below.
 
 The remaining defects break into three cost tiers. Nothing below is
 safe to bulk-sync a pin against live without the per-item primary-
