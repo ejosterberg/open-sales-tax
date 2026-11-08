@@ -6505,15 +6505,15 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.05",
         "ARSSTC (City of Bethel, Bethel Census Area) -- v0.49 AK promotion",
     ),
-    (
-        "AK",
-        "Kenai (KPB-incorporated)",
-        "99611",
-        "0001",
-        "3.000",
-        "0.05",
-        "ARSSTC (City of Kenai 3.0% -- KPB borough rate suppressed inside city)",
-    ),
+    # AK 99611 Kenai second pin (3.000% KPB-suppressed-inside-city)
+    # removed 2026-11-08: the iter-67 pin earlier in the grid (6.000% KPB
+    # 3 + Kenai 3) is the correct ARSSTC-verified answer, confirmed by
+    # src/opensalestax/states/alaska.py: the borough tax IS collected
+    # throughout the borough including inside city limits, and the
+    # city tax is added on top (ARSSTC tax-rate look-up + KPB / KGB
+    # ordinances; verified iter-67 against live ARSSTC rate-finder).
+    # The 3.000 pin was a modelling-question marker kept pending a
+    # decision that is now made: ARSSTC stacking is the correct model.
     (
         "AK",
         "Petersburg",
