@@ -300,9 +300,17 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Casper synthetic +4",
         "82601",
         "0001",
-        "6.000",
+        "5.000",
         "0.05",
-        "Decision 10 fix: state 4% + Natrona 1% + Casper 1% (loose-lookup parity)",
+        # Corrected 2026-11-08: Wyoming cities do NOT levy their own
+        # general sales tax under WY Stat. 39-15-204 -- only counties
+        # (up to 1% general + 1% specific-purpose). The authoritative
+        # pin on line 290 above is WY DOR state 4 + Natrona 1 = 5.000;
+        # the earlier Decision 10 pin stacked a non-existent Casper
+        # city 1% (sourced via SalesTaxHandbook aggregator -- known
+        # over-reporter of WY city rates). Loose-lookup parity still
+        # holds at the corrected 5.000%.
+        "WY DOR (state 4% + Natrona 1%)",
     ),
     # GA Roswell synthetic +4 regression-pin: must NOT pick Cobb just
     # because Cobb's narrow type-4 rows happen to sit nearer +4 0001.
@@ -2735,29 +2743,12 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
     # ZIPs OUTSIDE the city-seed lists now resolve to state + county
     # via the Census ZCTA load, parallelling the FL/AZ/CA pattern
     # shipped in v0.28. These rows guard the fix.
-    # TX: a non-city Travis County ZIP (Pflugerville) -- Travis has 0%
-    # county portion so combined is state 6.25% only at this ZIP. The
-    # dollar result equals the prior state-only fallback; the audit
-    # trail now records Travis County.
-    (
-        "TX",
-        "Pflugerville (Travis)",
-        "78660",
-        "0001",
-        "6.250",
-        "0.05",
-        "TX Comptroller (state 6.25% + Travis 0%) -- post-v0.29 ZCTA; was state-only before",
-    ),
-    # TX: rural Bastrop County ZIP (no county sales tax, no city seed).
-    (
-        "TX",
-        "Bastrop (rural)",
-        "78602",
-        "0001",
-        "6.250",
-        "0.05",
-        "TX Comptroller (state 6.25% + Bastrop 0%) -- post-v0.29 ZCTA",
-    ),
+    # (TX 78660 Pflugerville + TX 78602 Bastrop "post-v0.29 ZCTA"
+    # state-only fallback pins removed 2026-11-08: both superseded
+    # by the iter-129 / iter-132 pins at the same ZIPs further down
+    # this grid, each expecting the correct full 8.250% stack from
+    # TX Comptroller city.php (Pflugerville 1.0 + Travis Co ESD 2,
+    # ESD 12 at 0.5 each; Bastrop Co 0.5 + Bastrop city 1.5).)
     # NY: Ithaca / Tompkins County ZIP (in Pub 718 county block; not in
     # NY_CITIES). Expected state 4% + Tompkins 4% = 8.0%.
     (
@@ -7151,9 +7142,14 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "Casper",
         "82601",
         "4800",
-        "6.000",
+        "5.000",
         "0.05",
-        "WY DOR / SalesTaxHandbook (state 4% + Natrona 1% + Casper city 1%) -- real +4",
+        # Corrected 2026-11-08: see note on the 82601-0001 pin above.
+        # WY cities do not levy their own general sales tax; the old
+        # 6.000 came from a SalesTaxHandbook over-report. 5.000 is
+        # state 4 + Natrona Co 1, matching the authoritative WY DOR
+        # pin at line 290.
+        "WY DOR (state 4% + Natrona 1%) -- real +4",
     ),
     (
         "WY",
