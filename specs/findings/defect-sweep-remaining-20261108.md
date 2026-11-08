@@ -133,17 +133,34 @@ expected** 8.000%. The two unknown districts are UNCLASSIFIED —
 (COTA, SORTA, GCRTA, TARTA, WRTA, GDRTA, METRO Akron) but codes
 96000 and 98000 are absent.
 
-**Root cause.** Unknown. Possibilities: (a) Delaware Area Transit
-Agency + Union County transit (Dublin spans three counties:
-Franklin, Delaware, Union — so a county-tied transit for each would
-stack); (b) new 2026-10-01 OH levies not yet classified; (c)
-non-retail authorities (lodging, motor fuel, utility) that
-shouldn't bind to general retail but which the SST file emits
-anyway.
+**Root cause.** Unknown — but **confirmed over-collection above
+the OH statutory maximum**. OH DOR's Sales and Use Tax page
+(tax.ohio.gov/business/sales-and-use-tax, read 2026-11-08) states
+verbatim:
 
-**Fix cost.** Primary-source step (OH DOR SST tax-type guide or
-tax type documentation at tax.ohio.gov) + possibly a filter in
-`ohio.py`. 1-2 hrs for the research + 1 hr for the filter.
+> Counties and regional transit authorities in Ohio can add sales
+> tax in small increments (multiples of 0.05%) up to a maximum of
+> 3 percent. When combined with the state rate—which is 5.75
+> percent—the overall tax rate (state, local, and transit)
+> cannot exceed 8.75 percent.
+
+Dublin 43017 live returns 10.000% which exceeds the 8.75%
+statutory ceiling, so **at least one of OH-district-96000 /
+98000 is not a general sales tax**. The nine unclassified type-63
+codes in the current OH SST file (02000, 43000, 67000, 76000,
+87100, 93000, 94000, 96000, 98000) are candidates for one of:
+alcohol excise, hotel-lodging tax, admissions tax, motor-fuel,
+or a state-administered county permissive non-retail levy —
+things the SST file emits generally but which don't apply to
+general retail.
+
+**Fix cost.** Classify each of the 9 unknown codes against the
+OH SST tax-type guide (behind the OH DOR login / not scrapable),
+then add a `_ALLOWED_RETAIL_DISTRICTS` allow-list to `ohio.py`
+that only emits codes known to be retail. Low-risk interim:
+hard-code the 7 known transit authorities + whitelist, drop
+all others. 2-3 hrs for the research + 1 hr for the filter,
+plus a cautious reload cycle.
 
 ### NM 87532 Espanola — aggregator-sourced code change (0.0625pp)
 
