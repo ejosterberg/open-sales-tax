@@ -186,10 +186,17 @@ relying on these rules in production.
 
 from __future__ import annotations
 
+import datetime as dt
 from decimal import Decimal
 
 from opensalestax.states._sst_base import SstStateModule
-from opensalestax.states.protocol import StateModule, StateTier, TaxabilityRule
+from opensalestax.states.protocol import (
+    BoundaryRow,
+    RateRow,
+    StateModule,
+    StateTier,
+    TaxabilityRule,
+)
 from opensalestax.states.registry import register
 
 # ---------------------------------------------------------------------------
@@ -351,6 +358,22 @@ _TAXABILITY: dict[str, TaxabilityRule] = {
 }
 
 
+#: The additional 1% Mecklenburg County transit/roads sales tax
+#: voter-approved on the 2025-11-04 ballot (Mecklenburg Public
+#: Improvement referendum) and made effective by NCDOR under
+#: NCGS 105-537 as of 2026-07-01. NCDOR "Important Notice:
+#: Mecklenburg County Sales and Use Tax Increase" (press release
+#: 2026-06-24) documents the change. The NC SST quarterly R file
+#: at `NCR2026Q3APR23.csv` pre-dates the referendum and does not
+#: carry the new rate; this module injects it as a parallel
+#: authority bound to every Mecklenburg ZIP so the correct 8.25%
+#: combined rate lands even without a Q4 SST refresh.
+_MECKLENBURG_PIT_NAME = "Mecklenburg County Public Improvement Tax"
+_MECKLENBURG_PIT_RATE_PCT = Decimal("1.000")
+_MECKLENBURG_PIT_EFFECTIVE_FROM = dt.date(2026, 7, 1)
+_MECKLENBURG_COUNTY_NAME = "Mecklenburg County"
+
+
 class NorthCarolina(SstStateModule):
     """North Carolina state module (tier 1, SST member).
 
@@ -390,6 +413,47 @@ class NorthCarolina(SstStateModule):
             if friendly is not None:
                 return friendly
         return super()._authority_name(code, authority_type)
+
+    def parse_rates(self, source_file, version_label):
+        """SST-parsed rates + the Mecklenburg Public Improvement Tax.
+
+        The 1% Mecklenburg PIT (effective 2026-07-01) is not yet in
+        the SST Q3APR23 file; emit it as a standalone county-type
+        authority so the engine stacks it on top of the existing
+        Mecklenburg County 2% (Article 39 LOST) + Public Transit 0.5%
+        (Article 43) for a correct 8.25% combined rate at Mecklenburg
+        addresses.
+        """
+        yield from super().parse_rates(source_file, version_label)
+        yield RateRow(
+            authority_name=_MECKLENBURG_PIT_NAME,
+            authority_type="county",
+            rate_pct=_MECKLENBURG_PIT_RATE_PCT,
+            effective_from=_MECKLENBURG_PIT_EFFECTIVE_FROM,
+            effective_to=None,
+            parent_authority_name=self.state_name,
+        )
+
+    def parse_boundaries(self, source_file, version_label):
+        """SST boundaries + Mecklenburg PIT bindings on every Mecklenburg ZIP.
+
+        Walks the SST stream once (per the parent) and, for every
+        boundary row whose county resolves to Mecklenburg, emits a
+        parallel binding to the PIT authority so the lookup engine
+        picks up both. The PIT is treated as a county-type authority
+        rather than a district so the city-includes-county filter
+        (TN/WA) doesn't accidentally touch it.
+        """
+        for row in super().parse_boundaries(source_file, version_label):
+            yield row
+            if row.authority_type == "county" and row.authority_name == _MECKLENBURG_COUNTY_NAME:
+                yield BoundaryRow(
+                    authority_name=_MECKLENBURG_PIT_NAME,
+                    authority_type="county",
+                    zip5=row.zip5,
+                    zip4_low=row.zip4_low,
+                    zip4_high=row.zip4_high,
+                )
 
 
 # Compile-time Protocol satisfaction check + module-import-time
