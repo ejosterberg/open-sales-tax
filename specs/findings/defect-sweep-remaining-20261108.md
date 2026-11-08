@@ -1,11 +1,32 @@
-# Defect sweep 2026-11-08 — DOR_GRID pins still failing after full fix pass
+# Defect sweep 2026-11-08 — DOR_GRID pins (ALL REPAIRED)
 
-## Final state: 44 → 4 (91% reduction)
+## Final state: 44 → 0 (100% reduction)
 
 Session accomplished a full defect-sweep across OpenSalesTax's live
 DOR_GRID validation. Starting from **44 failing pins** against
 `api.opensalestax.org` under `pytest -m liveapi`, the final clean
-run is **4 failed, 795 passed, 6 xpassed**.
+run is **0 failed, 799 passed, 6 xpassed** (11:21 wall time,
+confirmed 2026-11-08 ~09:30 CT against prod).
+
+### Second-half closeouts (after the 4-remaining writeup below)
+
+The four defects enumerated in the "4 remaining" table have all
+shipped and been verified on prod:
+
+| ZIP | Fix | PR | Prod verify |
+|---|---|---|---|
+| 28202-1402 NC | Mecklenburg PIT injected as district authority | #49 + #50 | 8.25% ✓ |
+| 74003-0001 OK | Hand-curated `ZIP_COUNTY_OVERRIDES` entry (Bartlesville→Washington Co) | #48 | 8.90% ✓ |
+| **87532-0001 NM** | **Revert iter-175 aggregator rate (3.9375 → 3.8125) per NM TRD "Rate Schedule July 1, 2026 - June 30, 2027" location 17-215** | **#52** | **8.6875% ✓** |
+| **43017-0001 OH** | **Cross-county district filter: a county-anchored district is kept only when the SST file co-binds it to the picked county's `(zip5,zip4_low,zip4_high)`** | **#51 + #53** | **8.00% ✓** |
+
+The OH fix also named `OH-district-96000` / `98000` in
+`oh_names.py` as the COTA Delaware/Union LinkUS extensions
+(effective 2025-04-01 per OH DOR Finder). The cross-county filter
+is universal (not OH-specific) — it drops districts whose SST
+boundary file implicitly tied them to the wrong county on a
+cross-county ZIP, regardless of which state. Rate-neutral by
+construction; only removes bindings that were pollution.
 
 ### What landed on `main` and prod
 
