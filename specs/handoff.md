@@ -217,6 +217,11 @@ any new BLOCKER) blocks itself before push.
 
 ## What to start on next
 
+> **Update 2026-11-12 (daily audit):** the MN reload below has happened
+> (`MN-SST-2026Q4AUG18`, 2026-11-08); all 6 label rows xpass live and the
+> xfail decorator was removed. Steps 1–2 are done except the optional
+> grid rename; step 3 (release tag) remains.
+
 **The obvious next move is deploying iter-220/221 to prod + a
 data reload for MN/IA/NC** so the corrected friendly names
 surface in the live engine. The mechanical sequence is in the
@@ -271,6 +276,17 @@ If Eric wants none of the above, ask before pivoting.
   the cousub file once and processes the whole pool offline.
 
 ### Open follow-ups from daily state-tax audits
+
+- **MN — Grand Rapids local sales tax ENDS 2026-12-31 (audit 2026-11-12).**
+  MN DOR notice `2026-10/grand-rapids-ending-general-notice.pdf`. Prod is on
+  `MN-SST-2026Q4AUG18` (loaded 2026-11-08, = upstream) and correctly still
+  charges the 0.5% city tax on 55744 today (8.375%). When SST posts the
+  2027Q1 MN file, load it **on or right after 2027-01-01** (purge the Q4
+  label first — labels purge by exact match) and confirm 55744 → 7.875%.
+  Also: the iter-220 MN/IA/NC label reload is DONE — all 6
+  `test_mn_district_label_correct` rows xpass; xfail marker removed
+  2026-11-12. Optional leftover: rename `MN_DISTRICT_LABEL_GRID` to a
+  neutral name.
 
 - **UT + VT — ≥ 11 LIVE UNDER-COLLECTIONS from the unapplied Q3 + Q4 SST
   refreshes (audit 2026-10-28, buffer-day catch-up).** Both states are on Q2

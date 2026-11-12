@@ -7653,8 +7653,9 @@ def test_shipping_tax_matches_rule(
 # the historically-wrong names will no longer appear in any response.
 #
 # Each row asserts: for the given ZIP, the (now-known-wrong) name MUST
-# NOT appear in the response. Test stays xfail until prod's data is
-# reloaded with the corrected mn_names.py; remove xfail at that point.
+# NOT appear in the response. The xfail marker was removed by the
+# 2026-11-12 daily audit: after the 2026-11-08 MN-SST-2026Q4AUG18 reload
+# all 6 rows (MN + the IA/NC parallels) xpassed against the live engine.
 MN_DISTRICT_LABEL_GRID: list[tuple[str, str, str]] = [
     # ZIP 56301 (St. Cloud, Stearns Co): code 80012 was wrongly labelled
     # "Anoka County Transportation Sales Tax" -- now "Stearns County Sales".
@@ -7681,15 +7682,6 @@ MN_DISTRICT_LABEL_GRID: list[tuple[str, str, str]] = [
 
 
 @pytest.mark.liveapi
-@pytest.mark.xfail(
-    reason=(
-        "MN labels fixed in mn_names.py iter-220 but prod data not yet "
-        "reloaded; tests pass once data reload runs. IA + NC label fixes "
-        "still pending. See specs/findings/mn-transit-district-cross-county-leak.md. "
-        "When all 6 rows xpass, remove the xfail marker."
-    ),
-    strict=False,
-)
 @pytest.mark.parametrize(
     ("zip5", "leak_district_name", "label"),
     MN_DISTRICT_LABEL_GRID,
