@@ -12,6 +12,7 @@ on:
 env:
   POETRY_VERSION: "1.8.4"
   PYTHON_VERSION: "3.11"
+  PIP_AUDIT_VERSION: "2.9.0"
 
 jobs:
   # -------------------------------------------------------------------------
@@ -50,6 +51,28 @@ jobs:
 
       - name: mypy
         run: poetry run mypy src/
+
+  # -------------------------------------------------------------------------
+  # Known-vulnerability audit of every package pinned in poetry.lock (all
+  # groups, all extras). Audits the lockfile, not an installed environment.
+  # Added 2026-11-12 after certifi, filelock and virtualenv sat vulnerable
+  # in the lock with nothing checking. Same script as the pre-commit hook.
+  # -------------------------------------------------------------------------
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install pip-audit
+        run: pipx install pip-audit==${{ env.PIP_AUDIT_VERSION }}
+
+      - name: pip-audit poetry.lock
+        run: bash scripts/audit_lock.sh
 
   # -------------------------------------------------------------------------
   # DCO sign-off check on every commit in the PR. Constitution §14 requires
