@@ -30,3 +30,14 @@ repos:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+
+  # Mirrors CI's "Dependency audit" job. Runs only when poetry.lock changes;
+  # needs pip-audit on PATH (`pipx install pip-audit`).
+  - repo: local
+    hooks:
+      - id: audit-lock
+        name: pip-audit poetry.lock
+        entry: bash scripts/audit_lock.sh
+        language: system
+        files: ^poetry\.lock$
+        pass_filenames: false
