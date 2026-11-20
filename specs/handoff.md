@@ -277,6 +277,13 @@ If Eric wants none of the above, ask before pivoting.
 
 ### Open follow-ups from daily state-tax audits
 
+- **PR — back-to-school IVU-free days 2026-27 NOT ENCODED (audit 2026-11-20).
+  Deadline 2027-01-08.** Hacienda CC RI 26-11 (2026-06-02): school uniforms +
+  school materials exempt 2026-07-17..18 (already missed) and
+  **2027-01-08..09**. `puerto_rico.py` still says "not yet confirmed" and a
+  unit test pins no holiday 2024-2030. Needs a narrow category, not all of
+  `clothing`. See `specs/findings/pr-back-to-school-ivu-holiday-2026-11.md`.
+
 - **MN — Grand Rapids local sales tax ENDS 2026-12-31 (audit 2026-11-12).**
   MN DOR notice `2026-10/grand-rapids-ending-general-notice.pdf`. Prod is on
   `MN-SST-2026Q4AUG18` (loaded 2026-11-08, = upstream) and correctly still
