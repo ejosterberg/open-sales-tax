@@ -186,3 +186,75 @@ jobs:
           name: coverage-report
           path: .coverage
           if-no-files-found: ignore
+
+  # -------------------------------------------------------------------------
+  # Build the production Docker image in a clean environment, smoke-test it
+  # against a real PostgreSQL, and audit EXACTLY what ships inside it.
+  #
+  # Why this job exists (2026-11-12): the image had never been built in CI.
+  # Poetry was pip-installed into the same site-packages the runtime stage
+  # copied, so Poetry + dulwich + virtualenv + filelock shipped to
+  # production carrying 41 known advisories that a lockfile-level audit
+  # could never see. Auditing the image's own `pip freeze` closes that gap.
+  # A newly published advisory against anything in the image turns this
+  # job red -- that is intended: fix it, don't silence it.
+  # -------------------------------------------------------------------------
+  image:
+    name: Docker image (build, smoke, audit)
+    runs-on: ubuntu-latest
+    needs: [lint]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: opensalestax
+          POSTGRES_PASSWORD: opensalestax
+          POSTGRES_DB: opensalestax
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U opensalestax"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t opensalestax:ci .
+
+      - name: Build tooling must not ship in the runtime image
+        run: |
+          set -euo pipefail
+          docker run --rm opensalestax:ci python -c "
+          import importlib.util, sys
+          leaked = [m for m in ('poetry', 'dulwich', 'virtualenv', 'filelock')
+                    if importlib.util.find_spec(m) is not None]
+          print('leaked build tooling:', leaked or 'none')
+          sys.exit(1 if leaked else 0)
+          "
+
+      - name: Smoke test -- CLI entry point and /v1/health against PostgreSQL
+        run: |
+          set -euo pipefail
+          docker run --rm opensalestax:ci opensalestax --help > /dev/null
+          docker run -d --name ost-smoke --network host \
+            -e OPENSALESTAX_DATABASE_URL=postgresql+asyncpg://opensalestax:opensalestax@localhost:5432/opensalestax \
+            opensalestax:ci
+          for i in $(seq 1 30); do
+            if body=$(curl -fsS http://127.0.0.1:8080/v1/health 2>/dev/null); then break; fi
+            sleep 2
+          done
+          echo "health: ${body:-<no response>}"
+          docker logs ost-smoke | tail -20
+          echo "$body" | python3 -c "import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get('database_connected') is True else 1)"
+          docker rm -f ost-smoke
+
+      - name: Audit installed packages in the image
+        run: |
+          set -euo pipefail
+          docker run --rm opensalestax:ci pip freeze --all \
+            | grep -v -E '^(-e |opensalestax)' > image-requirements.txt
+          echo "Packages in image: $(wc -l < image-requirements.txt)"
+          pipx run pip-audit==2.10.1 --no-deps --disable-pip --strict -r image-requirements.txt
