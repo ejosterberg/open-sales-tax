@@ -76,3 +76,18 @@ from 2026-07-01; DOR is updating its system to apply it retroactively.
 - `az_data.py`: Winslow 3.000 → 2.000 with source comment.
 - `specs/findings/az-palo-district-mesa-2026-12.md` written.
 - Chip: NE boundary refresh + AZ prod reload.
+
+## Follow-up 2026-11-23 (prod applied)
+
+- Prod deployed to `7a213da`; AZ reloaded under the same label
+  `AZ-SST-V0.55.4` (data_version 668, 79 rates). 86047 now 8.43%
+  (was 9.43%); Phoenix 85003 9.10% and Scottsdale 85251 8.00% unchanged.
+- NE boundary pin bumped to `2026Q4NOV10` (`b9e6bb0`) and loaded with rate
+  `2026Q4AUG21` under the same label `NE-SST-2026Q4AUG21` (data_version
+  669, 535,089 boundaries). The new file differs from `2026Q4OCT20` by one
+  row only: Hastings 68901-3111 gains a historical place-code segment ending
+  2026-10-20; the current assignment is unchanged. Omaha 7.00%, Lincoln
+  7.25%, Hastings 7.00% unchanged.
+- Winslow added to `tests/integration/test_sst_dor_validation.py`; live
+  AZ+NE rows 64/64 pass. Prod `~/sst-load.sh` NE line refreshed (the rest of
+  that array is still the 2026-05-04 snapshot).
