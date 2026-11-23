@@ -130,37 +130,20 @@ under `C:\Users\ejosterberg\.claude\scheduled-tasks\` and run when
 the Claude Code app is open (or on next launch if it was closed
 when the cron fired).
 
-### Daily state-tax audit (`monthly-state-tax-audit` taskId)
+### Weekly all-state tax audit (`weekly-state-tax-audit` taskId)
 
-**Schedule:** 7am local, every day. Cycles through 2 jurisdictions
-per day; 26 days covers all 52 (50 states + DC + PR). Days 27-31
-are buffer.
+**Schedule:** Saturday 7am local. Replaced the daily 2-state rotation
+(`monthly-state-tax-audit`, now disabled) on 2026-11-22: the daily run kept
+stalling on permission prompts, and Eric wanted fewer, cheaper runs.
 
-| Day | Pair | Day | Pair |
-|----:|------|----:|------|
-|  1 | AK, AL |  14 | MT, NC |
-|  2 | AR, AZ |  15 | ND, NE |
-|  3 | CA, CO |  16 | NH, NJ |
-|  4 | CT, DC |  17 | NM, NV |
-|  5 | DE, FL |  18 | NY, OH |
-|  6 | GA, HI |  19 | OK, OR |
-|  7 | IA, ID |  20 | PA, PR |
-|  8 | IL, IN |  21 | RI, SC |
-|  9 | KS, KY |  22 | SD, TN |
-| 10 | LA, MA |  23 | TX, UT |
-| 11 | MD, ME |  24 | VA, VT |
-| 12 | MI, MN |  25 | WA, WI |
-| 13 | MO, MS |  26 | WV, WY |
-
-Per-state procedure compares the state's authoritative DOR (or
-SST Governing Board for SST members) rate publication against
-the live engine, writes findings to `specs/audits/YYYY/MM/state-
-audit-YYYY-MM-DD.md`, auto-commits trivial fixes, chips larger
-refreshes for Eric's review.
-
-Set up in iter-219 as monthly; reshaped to daily-rotation in
-iter-233 per Eric's feedback that monthly-as-one-big-batch was
-too coarse.
+Each run audits all 52 jurisdictions with scripts rather than page-by-page
+browsing: `scripts/check_sst_pins.py` + a prod `data_versions` query (SST
+refresh status), the `-m liveapi` sweep of
+`tests/integration/test_sst_dor_validation.py` (all DOR-verified pins), and
+month-over-month diffs of the monthly sources (AZ DOR rate-table PDF, AK
+ARSSTC sheet). A wholesale DOR diff of the 26 quarterly non-SST states runs
+only in the first Saturday of Jan/Apr/Jul/Oct and the last Saturday of
+Mar/Jun/Sep/Dec. Report: `specs/audits/YYYY/MM/state-audit-YYYY-MM-DD-weekly.md`.
 
 ### Weekly software improvement (`weekly-software-improvement` taskId)
 
@@ -276,6 +259,16 @@ If Eric wants none of the above, ask before pivoting.
   the cousub file once and processes the whole pool offline.
 
 ### Open follow-ups from daily state-tax audits
+
+- **AZ — Winslow over-collection fixed in code, PROD RELOAD OWED (audit
+  2026-11-22).** DOR Dec 2026 table: Winslow retail 3.00 -> 2.00, retroactive
+  to 2026-07-01. `az_data.py` updated; live engine still returns 9.43% at
+  86047 (correct 8.43%) until AZ is reloaded on prod. Also new: Palo District
+  (Mesa) from 2026-12-01, not encoded — see
+  `specs/findings/az-palo-district-mesa-2026-12.md`.
+
+- **NE — boundary file `NEB2026Q4NOV10` published (audit 2026-11-22).** Pin
+  `2026Q4OCT20` is dead upstream; rate file `NER2026Q4AUG21` unchanged.
 
 - **PR — back-to-school IVU-free days 2026-27 NOT ENCODED (audit 2026-11-20).
   Deadline 2027-01-08.** Hacienda CC RI 26-11 (2026-06-02): school uniforms +

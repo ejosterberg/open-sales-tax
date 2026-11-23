@@ -456,9 +456,13 @@ AZ_CITIES: dict[str, tuple[str, Decimal, tuple[str, ...]]] = {
         Decimal("3.000"),
         ("86025",),
     ),
+    # Winslow 3.00 -> 2.00 (all-state audit 2026-11-22): AZ DOR
+    # TPT_RATETABLE_12012026.pdf flags Winslow (WS / NAV) 017 Retail at
+    # 2.00 with the note "Rate Sunset July, 2026 ... apply the 2% rate
+    # from July 1, 2026"; the 11/01/2026 table still showed 3.00.
     "Winslow": (
         "Navajo County",
-        Decimal("3.000"),
+        Decimal("2.000"),
         ("86047",),
     ),
     # --- Yavapai County (additional, beyond Prescott + Prescott Valley) ---
