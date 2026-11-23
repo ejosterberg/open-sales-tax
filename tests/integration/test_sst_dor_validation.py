@@ -759,6 +759,17 @@ DOR_GRID: list[tuple[str, str, str, str, str, str, str]] = [
         "0.01",
         "AZ DOR (state 5.6% + Maricopa 0.7% + Mesa 2.0%)",
     ),
+    # All-state audit 2026-11-22: Winslow city rate sunset 3.00 -> 2.00,
+    # retroactive to 2026-07-01 (AZ DOR TPT_RATETABLE_12012026.pdf).
+    (
+        "AZ",
+        "Winslow",
+        "86047",
+        "0001",
+        "8.430",
+        "0.01",
+        "AZ DOR Dec 2026 (state 5.6% + Navajo 0.83% + Winslow 2.0%)",
+    ),
     (
         "AZ",
         "Chandler",
